@@ -104,6 +104,17 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
+function u8ToAbsolute(value: number, channel: Channel): number {
+  return channel.rawMin + (value / 255) * (channel.rawMax - channel.rawMin);
+}
+
+function controlPointToAbsolute(cp: ControlPoint, channel: Channel): number {
+  // the x value of the control point is in the range [0, 255]
+  // because of the way the histogram is generated
+  // (see LUT_ENTRIES and the fact that we use Uint8Array)
+  return u8ToAbsolute(cp.x, channel);
+}
+
 /** Defines an SVG gradient with id `id` based on the provided `controlPoints` */
 const ControlPointGradientDef: React.FC<{ controlPoints: ControlPoint[]; id: string }> = ({ controlPoints, id }) => {
   const range = controlPoints[controlPoints.length - 1].x - controlPoints[0].x;
@@ -174,6 +185,10 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const xScale = useMemo(
     () => d3.scaleLinear().domain([0, TFEDITOR_MAX_BIN]).rangeRound([0, innerWidth]),
     [innerWidth]
+  );
+  const xScaleRaw = useMemo(
+    () => d3.scaleLinear().domain([props.channelData.rawMin, props.channelData.rawMax]).range([0, innerWidth]),
+    [innerWidth, props.channelData]
   );
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
@@ -322,12 +337,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const areaPath = useMemo(() => {
     const areaGenerator = d3
       .area<ControlPoint>()
-      .x((d) => xScale(d.x))
+      .x((d) => xScaleRaw(controlPointToAbsolute(d, props.channelData)))
       .y0((d) => yScale(d.opacity))
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight]);
+  }, [controlPointsToRender, xScaleRaw, yScale, innerHeight]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -338,16 +353,16 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const xAxisRef = useCallback(
     (el: SVGGElement) => {
-      const ticks = xScale.ticks(TFEDITOR_NUM_TICKS);
-      ticks[ticks.length - 1] = xScale.domain()[1];
+      const ticks = xScaleRaw.ticks(TFEDITOR_NUM_TICKS);
+      ticks[ticks.length - 1] = xScaleRaw.domain()[1];
       d3.select(el).call(
         d3
-          .axisBottom(xScale)
+          .axisBottom(xScaleRaw)
           .tickValues(ticks)
           .tickPadding(props.useControlPoints ? 3 : 10) // get tick labels out of the way of sliders in "basic" mode
       );
     },
-    [xScale, props.useControlPoints]
+    [xScaleRaw, props.useControlPoints]
   );
 
   const yAxisRef = useCallback(
@@ -373,7 +388,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(idx)) // set position and height from data
+        .attr("x", (_len, idx) => xScaleRaw(u8ToAbsolute(idx, props.channelData))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
@@ -406,7 +421,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         <circle
           key={i}
           className={i === selectedPointIdx ? "selected" : ""}
-          cx={xScale(cp.x)}
+          cx={xScaleRaw(controlPointToAbsolute(cp, props.channelData))}
           cy={yScale(cp.opacity)}
           style={{ fill: colorArrayToString(cp.color) }}
           r={5}
@@ -477,7 +492,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* "basic mode" sliders */}
           {!props.useControlPoints && (
             <g className="ramp-sliders">
-              <g transform={`translate(${xScale(props.ramp[0])})`}>
+              <g transform={`translate(${xScaleRaw(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
                 <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                 <path
                   d={sliderHandlePath}
@@ -485,7 +500,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
                 />
               </g>
-              <g transform={`translate(${xScale(props.ramp[1])})`}>
+              <g transform={`translate(${xScaleRaw(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
                 <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                 <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
               </g>
@@ -500,22 +515,22 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           <span>
             Min{" "}
             <InputNumber
-              value={props.ramp[0]}
+              value={u8ToAbsolute(props.ramp[0], props.channelData)}
               onChange={(v) => v !== null && setRamp([v, props.ramp[1]])}
               formatter={numberFormatter}
               min={0}
-              max={Math.min(props.ramp[1], TFEDITOR_MAX_BIN)}
+              max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), props.channelData.rawMax)}
               size="small"
             />
           </span>
           <span>
             Max{" "}
             <InputNumber
-              value={props.ramp[1]}
+              value={u8ToAbsolute(props.ramp[1], props.channelData)}
               onChange={(v) => v !== null && setRamp([props.ramp[0], v])}
               formatter={numberFormatter}
-              min={Math.max(0, props.ramp[0])}
-              max={TFEDITOR_MAX_BIN}
+              min={Math.max(0, u8ToAbsolute(props.ramp[0], props.channelData))}
+              max={props.channelData.rawMax}
               size="small"
               width={45}
             />
