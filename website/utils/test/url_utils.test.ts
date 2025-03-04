@@ -416,6 +416,7 @@ describe("Viewer state", () => {
     region: { x: [0, 1], y: [0, 1], z: [0, 1] },
     slice: { x: 0.5, y: 0.5, z: 0.5 },
     time: 0,
+    scene: 0,
     cameraState: undefined,
   };
   const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
@@ -435,6 +436,7 @@ describe("Viewer state", () => {
     reg: "0:1,0:1,0:1",
     slice: "0.5,0.5,0.5",
     t: "0",
+    scene: "0",
   };
 
   const CUSTOM_VIEWER_STATE: ViewerState = {
@@ -454,6 +456,7 @@ describe("Viewer state", () => {
     region: { x: [0, 0.5], y: [0, 1], z: [0, 1] },
     slice: { x: 0.25, y: 0.75, z: 0.5 },
     time: 100,
+    scene: 3,
     cameraState: {
       position: [-1.05, -4, 45],
       target: [0, 0, 0],
@@ -479,6 +482,7 @@ describe("Viewer state", () => {
     reg: "0:0.5,0:1,0:1",
     slice: "0.25,0.75,0.5",
     t: "100",
+    scene: "3",
     cam: "pos:-1.05:-4:45,tar:0:0:0,up:0:1:0,ort:3.534,fov:43.5",
   };
 

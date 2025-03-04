@@ -31,14 +31,23 @@ export type ControlVisibilityFlags = { [K in ControlNames]: boolean };
 
 export interface AppProps {
   // FIRST WAY TO GET DATA INTO THE VIEWER: pass in volume data directly
+
   // rawData has a "dtype" which is expected to be "uint8", a "shape":[c,z,y,x] and a "buffer" which is a DataView
   rawData?: RawArrayData;
   // rawDims is a small amount of metadata (e.g. dimensions and channel names) to be converted internally to an ImageInfo
   rawDims?: RawArrayInfo;
 
   // SECOND WAY TO GET DATA INTO THE VIEWER: (if `rawData`/`rawDims` isn't present) pass in URL(s) to fetch volume data
-  imageUrl: string | string[];
-  parentImageUrl?: string | string[];
+
+  // The inner level of array(s), if present, groups multiple sources into a single volume with all sources' channels.
+  // If there is an outer array level, it groups multiple volumes into a single multi-scene collection.
+  // To clarify:
+  // - A bare string is a single volume scene with a single source.
+  // - An array of only strings is interpreted as a single volume with multiple sources, not a multi-scene collection.
+  // - An array of strings *or* string arrays is a multi-scene collection, and all strings within the top-level array
+  //   are treated as if they were string arrays with one element (i.e. volumes with one source).
+  imageUrl: string | (string | string[])[];
+  parentImageUrl?: string | (string | string[])[];
 
   viewerChannelSettings?: ViewerChannelSettings;
 

@@ -96,6 +96,7 @@ export enum ViewerStateKeys {
   Region = "reg",
   Slice = "slice",
   Time = "t",
+  Scene = "scene",
   CameraState = "cam",
 }
 
@@ -242,6 +243,8 @@ export class ViewerStateParams {
   [ViewerStateKeys.Slice]?: string = undefined;
   /** Frame number, for time-series volumes. 0 by default. */
   [ViewerStateKeys.Time]?: string = undefined;
+  /** Scene number, for multiscene images. 0 by default. */
+  [ViewerStateKeys.Scene]?: string = undefined;
   /**
    * Camera transform settings, as a list of `key:value` pairs separated by commas.
    * Valid keys are defined in `CameraTransformKeys`:
@@ -761,6 +764,7 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
     region: parseStringRegion(params[ViewerStateKeys.Region]),
     slice: parseStringSlice(params[ViewerStateKeys.Slice]),
     time: parseStringInt(params[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
+    scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
     renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
     cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
   };
@@ -813,6 +817,7 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Slice]: state.slice && serializeSlice(state.slice),
     [ViewerStateKeys.Levels]: state.levels?.join(","),
     [ViewerStateKeys.Time]: state.time?.toString(),
+    [ViewerStateKeys.Scene]: state.scene?.toString(),
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };
@@ -955,8 +960,12 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
   // Parse data sources (URL or dataset/id pair)
   if (params.url) {
-    const imageUrls = tryDecodeURLList(params.url) ?? decodeURL(params.url);
-    const firstUrl = Array.isArray(imageUrls) ? imageUrls[0] : imageUrls;
+    const sceneUrls = tryDecodeURLList(params.url, " ") ?? [params.url];
+    const sourceUrls = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? [decodeURL(scene)]);
+
+    const firstScene = sourceUrls[0];
+    const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
+    const imageUrls = sourceUrls.length === 1 ? (sourceUrls[0].length === 1 ? firstScene[0] : firstScene) : sourceUrls;
 
     args.cellId = "1";
     args.imageUrl = imageUrls;

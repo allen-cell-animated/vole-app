@@ -1,9 +1,10 @@
 // 3rd Party Imports
 import {
   CreateLoaderOptions,
-  IVolumeLoader,
   LoadSpec,
   PrefetchDirection,
+  RawArrayData,
+  RawArrayInfo,
   RENDERMODE_PATHTRACE,
   RENDERMODE_RAYMARCH,
   View3d,
@@ -19,6 +20,8 @@ import { Box3, Vector3 } from "three";
 import {
   AXIS_MARGIN_DEFAULT,
   CACHE_MAX_SIZE,
+  CLIPPING_PANEL_HEIGHT_DEFAULT,
+  CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
   getDefaultChannelColor,
   getDefaultViewerState,
@@ -37,6 +40,7 @@ import {
 } from "../../shared/utils/controlPointsToLut";
 import { useConstructor, useStateWithGetter } from "../../shared/utils/hooks";
 import PlayControls from "../../shared/utils/playControls";
+import SceneStore from "../../shared/utils/sceneStore";
 import {
   alphaSliderToImageValue,
   brightnessSliderToImageValue,
@@ -108,17 +112,31 @@ const axisToLoaderPriority: Record<AxisName | "t", PrefetchDirection> = {
   x: PrefetchDirection.X_PLUS,
 };
 
-const setIndicatorPositions = (view3d: View3d, panelOpen: boolean, hasTime: boolean): void => {
-  const CLIPPING_PANEL_HEIGHT = 150;
+/** `true` if `p` is not an array that contains another array */
+const notDoublyNested = <T,>(p: T | (T | T[])[]): p is T | T[] => !Array.isArray(p) || !p.some(Array.isArray);
+
+const setIndicatorPositions = (
+  view3d: View3d,
+  panelOpen: boolean,
+  hasTime: boolean,
+  hasScenes: boolean,
+  mode3d: boolean
+): void => {
+  // The height of the clipping panel includes the button, but we're trying to put these elements next to the button
+  const CLIPPING_PANEL_BUTTON_HEIGHT = 40;
   // Move scale bars this far to the left when showing time series, to make room for timestep indicator
   const SCALE_BAR_TIME_SERIES_OFFSET = 120;
 
   let axisY = AXIS_MARGIN_DEFAULT[1];
   let [scaleBarX, scaleBarY] = SCALE_BAR_MARGIN_DEFAULT;
   if (panelOpen) {
+    // If we have Time, Scene, X, Y, and Z sliders, the drawer will need to be a bit taller
+    let isTall = hasTime && hasScenes && mode3d;
+    let clippingPanelFullHeight = isTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
+    let clippingPanelHeight = clippingPanelFullHeight - CLIPPING_PANEL_BUTTON_HEIGHT;
     // Move indicators up out of the way of the clipping panel
-    axisY += CLIPPING_PANEL_HEIGHT;
-    scaleBarY += CLIPPING_PANEL_HEIGHT;
+    axisY += clippingPanelHeight;
+    scaleBarY += clippingPanelHeight;
   }
   if (hasTime) {
     // Move scale bar left out of the way of timestep indicator
@@ -168,9 +186,9 @@ const App: React.FC<AppProps> = (props) => {
   // install loadContext into view3d
   view3d.loaderContext = loadContext;
 
-  const loader = useRef<IVolumeLoader>();
+  const loader = useRef<SceneStore>();
   const [image, setImage] = useState<Volume | null>(null);
-  const imageUrlRef = useRef<string | string[]>("");
+  const imageUrlRef = useRef<string | (string | string[])[]>("");
 
   const [errorAlert, _showError] = useErrorAlert();
   const showError = (error: unknown): void => {
@@ -187,6 +205,8 @@ const App: React.FC<AppProps> = (props) => {
   const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 0, y: 0, z: 0 };
   const numSlicesLoaded: PerAxis<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
   const numTimesteps = image?.imageInfo.times ?? 1;
+  const singleScene = (props.rawData && props.rawDims) || notDoublyNested(props.imageUrl);
+  const numScenes = singleScene ? 1 : props.imageUrl.length;
 
   // State for image loading/reloading
 
@@ -374,7 +394,8 @@ const App: React.FC<AppProps> = (props) => {
       }),
     });
 
-    setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1);
+    const mode3d = viewerSettings.viewMode === ViewMode.threeD;
+    setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
     imageLoadHandlers.current.forEach((effect) => effect(aimg));
 
     playControls.stepAxis = (axis: AxisName | "t") => {
@@ -395,11 +416,21 @@ const App: React.FC<AppProps> = (props) => {
 
   const openImage = async (): Promise<void> => {
     const { imageUrl, parentImageUrl, rawData, rawDims } = props;
-    const showParentImage = viewerState.current.imageType === ImageType.fullField && parentImageUrl !== undefined;
-    const path = showParentImage ? parentImageUrl : imageUrl;
-    // Don't reload if we're already looking at this image
-    if (path === imageUrlRef.current && !rawData && !rawDims) {
-      return;
+    const scene = viewerState.current.scene;
+    let scenePaths: (string | string[])[] | [{ data: RawArrayData; metadata: RawArrayInfo }];
+
+    if (rawData && rawDims) {
+      scenePaths = [{ data: rawData, metadata: rawDims }];
+    } else {
+      const showParentImage = viewerState.current.imageType === ImageType.fullField && parentImageUrl !== undefined;
+      const path = showParentImage ? parentImageUrl : imageUrl;
+      // Don't reload if we're already looking at this image
+      if (path === imageUrlRef.current) {
+        return;
+      }
+      imageUrlRef.current = path;
+
+      scenePaths = notDoublyNested(path) ? [path] : path;
     }
 
     setSendingQueryRequest(true);
@@ -409,10 +440,6 @@ const App: React.FC<AppProps> = (props) => {
     const loadSpec = new LoadSpec();
     loadSpec.time = viewerState.current.time;
 
-    // if this does NOT end with tif or json,
-    // then we assume it's zarr.
-    await loadContext.onOpen();
-
     const options: Partial<CreateLoaderOptions> = {};
     if (rawData && rawDims) {
       options.fileType = VolumeFileFormat.DATA;
@@ -421,9 +448,9 @@ const App: React.FC<AppProps> = (props) => {
 
     let aimg: Volume;
     try {
-      loader.current = await loadContext.createLoader(path, { ...options });
+      loader.current = new SceneStore(loadContext, scenePaths);
 
-      aimg = await loader.current.createVolume(loadSpec, (v, channelIndex) => {
+      aimg = await loader.current.createVolume(scene, loadSpec, (v, channelIndex) => {
         // NOTE: this callback runs *after* `onNewVolumeCreated` below, for every loaded channel
         // TODO is this search by name necessary or will the `channelIndex` passed to the callback always match state?
         const thisChannelSettings = viewerState.current.channelSettings[channelIndex];
@@ -477,12 +504,10 @@ const App: React.FC<AppProps> = (props) => {
 
     // initiate loading only after setting up new channel settings,
     // in case the loader callback fires before the state is set
-    loader.current.loadVolumeData(aimg, requiredLoadSpec).catch((e) => {
+    loader.current.loadScene(scene, aimg, requiredLoadSpec).catch((e) => {
       showError(e);
       throw e;
     });
-
-    imageUrlRef.current = path;
   };
 
   // Imperative callbacks /////////////////////////////////////////////////////
@@ -508,9 +533,9 @@ const App: React.FC<AppProps> = (props) => {
   const resetCamera = useCallback((): void => view3d.resetCamera(), []);
 
   const onClippingPanelVisibleChange = useCallback(
-    (panelOpen: boolean, hasTime: boolean): void => {
+    (panelOpen: boolean, hasTime: boolean, hasScenes: boolean, mode3d: boolean): void => {
       clippingPanelOpenRef.current = panelOpen;
-      setIndicatorPositions(view3d, panelOpen, hasTime);
+      setIndicatorPositions(view3d, panelOpen, hasTime, hasScenes, mode3d);
 
       // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
       view3d.setShowScaleBar(false);
@@ -707,6 +732,13 @@ const App: React.FC<AppProps> = (props) => {
     }
   }, [viewerSettings.time]);
 
+  useEffect(() => {
+    if (image) {
+      setSendingQueryRequest(true);
+      loader.current?.loadScene(viewerSettings.scene, image).catch((e) => showError(e));
+    }
+  }, [viewerSettings.scene]);
+
   useImageLoadEffect(
     (currentImage) => view3d.setInterpolationEnabled(currentImage, viewerSettings.interpolationEnabled),
     [viewerSettings.interpolationEnabled]
@@ -829,6 +861,7 @@ const App: React.FC<AppProps> = (props) => {
               numSlices={numSlices}
               numSlicesLoaded={numSlicesLoaded}
               numTimesteps={numTimesteps}
+              numScenes={numScenes}
               playControls={playControls}
               playingAxis={playingAxis}
               appHeight={props.appHeight}

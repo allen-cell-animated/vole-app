@@ -6,6 +6,7 @@ import styled from "styled-components";
 
 import { ViewerStateContextType } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { AppDataProps } from "../../types";
+import { notDoublyNested } from "../../utils/datatype_utils";
 import { ENCODED_COLON_REGEX, ENCODED_COMMA_REGEX, serializeViewerUrlParams } from "../../utils/url_utils";
 import { FlexRow } from "../LandingPage/utils";
 
@@ -40,14 +41,20 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   };
 
   const urlParams: string[] = [];
+  const { imageUrl } = props.appProps;
 
-  if (props.appProps.imageUrl) {
-    let serializedUrl;
-    if (props.appProps.imageUrl instanceof Array) {
-      serializedUrl = props.appProps.imageUrl.map((url) => encodeURIComponent(url)).join(",");
-    } else {
-      serializedUrl = encodeURIComponent(props.appProps.imageUrl);
-    }
+  if (imageUrl) {
+    const url = notDoublyNested(imageUrl) ? [imageUrl] : imageUrl;
+    const serializedUrl = url
+      .map((scene) => {
+        if (Array.isArray(scene)) {
+          return scene.map((url) => encodeURIComponent(url)).join(",");
+        } else {
+          return encodeURIComponent(scene);
+        }
+      })
+      .join("+");
+
     urlParams.push(`url=${serializedUrl}`);
   }
 
