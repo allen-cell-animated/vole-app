@@ -29,6 +29,8 @@ type ControlNames =
 /** Show/hide different elements of the UI */
 export type ControlVisibilityFlags = { [K in ControlNames]: boolean };
 
+export type MultisceneUrls = { scenes: (string | string[])[] };
+
 export interface AppProps {
   // FIRST WAY TO GET DATA INTO THE VIEWER: pass in volume data directly
 
@@ -46,8 +48,8 @@ export interface AppProps {
   // - An array of only strings is interpreted as a single volume with multiple sources, not a multi-scene collection.
   // - An array of strings *or* string arrays is a multi-scene collection, and all strings within the top-level array
   //   are treated as if they were string arrays with one element (i.e. volumes with one source).
-  imageUrl: string | (string | string[])[];
-  parentImageUrl?: string | (string | string[])[];
+  imageUrl: string | string[] | MultisceneUrls;
+  parentImageUrl?: string | string[] | MultisceneUrls;
 
   viewerChannelSettings?: ViewerChannelSettings;
 

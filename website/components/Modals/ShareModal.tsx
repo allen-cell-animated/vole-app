@@ -4,9 +4,9 @@ import { Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 
+import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import { ViewerStateContextType } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { AppDataProps } from "../../types";
-import { notDoublyNested } from "../../utils/datatype_utils";
 import { ENCODED_COLON_REGEX, ENCODED_COMMA_REGEX, serializeViewerUrlParams } from "../../utils/url_utils";
 import { FlexRow } from "../LandingPage/utils";
 
@@ -44,8 +44,8 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const { imageUrl } = props.appProps;
 
   if (imageUrl) {
-    const url = notDoublyNested(imageUrl) ? [imageUrl] : imageUrl;
-    const serializedUrl = url
+    const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
+    const serializedUrl = urls
       .map((scene) => {
         if (Array.isArray(scene)) {
           return scene.map((url) => encodeURIComponent(url)).join(",");

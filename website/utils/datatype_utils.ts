@@ -1,8 +1,5 @@
 import { isEqual } from "lodash";
 
-/** `true` if `p` is not an array that contains another array */
-export const notDoublyNested = <T>(p: T | (T | T[])[]): p is T | T[] => !Array.isArray(p) || !p.some(Array.isArray);
-
 /**
  * Returns a (shallow) copy of an object with all properties that are
  * `undefined` removed.

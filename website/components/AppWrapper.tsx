@@ -3,6 +3,7 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
+import { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 import { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { AppDataProps } from "../types";
@@ -68,16 +69,11 @@ export default function AppWrapper(): ReactElement {
     // Force a page reload when loading new data. This prevents a bug where a desync in the number
     // of channels in the viewer can cause a crash. The root cause is React immediately forcing a
     // re-render every time `setState` is called in an async function.
-    const url = appProps.imageUrl;
-    if (Array.isArray(url)) {
-      navigation(`/viewer?url=${encodeURIComponent(url.join(","))}`, {
-        state: appProps,
-      });
-    } else {
-      navigation(`/viewer?url=${encodeURIComponent(url)}`, {
-        state: appProps,
-      });
-    }
+    const urls = (appProps.imageUrl as MultisceneUrls).scenes ?? [appProps.imageUrl];
+    const sceneUrlsUnencoded = urls.map((scene) => (Array.isArray(scene) ? scene.join(",") : scene));
+    navigation(`/viewer?url=${encodeURIComponent(sceneUrlsUnencoded.join(" "))}`, {
+      state: appProps,
+    });
     navigation(0);
   };
 

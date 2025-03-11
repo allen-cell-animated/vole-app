@@ -2,7 +2,7 @@ import { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
 import FirebaseRequest, { DatasetMetaData } from "../../public/firebase";
-import type { AppProps } from "../../src/aics-image-viewer/components/App/types";
+import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 import type {
   ChannelState,
   ViewerState,
@@ -960,12 +960,17 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
   // Parse data sources (URL or dataset/id pair)
   if (params.url) {
+    // split encoded url into a list of one or more scenes...
     const sceneUrls = tryDecodeURLList(params.url, " ") ?? [params.url];
-    const sourceUrls = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? [decodeURL(scene)]);
+    // ...and each scene into a list of multiple sources, if any.
+    const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
 
-    const firstScene = sourceUrls[0];
+    const firstScene = scenes[0];
+    // Get the very first URL for the download button
     const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
-    const imageUrls = sourceUrls.length === 1 ? (sourceUrls[0].length === 1 ? firstScene[0] : firstScene) : sourceUrls;
+    // Strip away unneeded structure from final prop (don't represent a multiscene or multi-source image unless needed)
+    const imageUrls: string | string[] | MultisceneUrls =
+      scenes.length > 1 ? { scenes } : firstScene.length > 1 ? firstScene : firstScene[0];
 
     args.cellId = "1";
     args.imageUrl = imageUrls;

@@ -3,8 +3,7 @@ import {
   CreateLoaderOptions,
   LoadSpec,
   PrefetchDirection,
-  RawArrayData,
-  RawArrayInfo,
+  RawArrayLoaderOptions,
   RENDERMODE_PATHTRACE,
   RENDERMODE_RAYMARCH,
   View3d,
@@ -13,7 +12,7 @@ import {
   VolumeLoaderContext,
 } from "@aics/vole-core";
 import { Layout } from "antd";
-import { debounce } from "lodash";
+import { debounce, isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
@@ -50,7 +49,7 @@ import {
 import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../../shared/utils/viewerState";
 import type { ChannelState } from "../ViewerStateProvider/types";
-import type { AppProps, ControlVisibilityFlags, UseImageEffectType } from "./types";
+import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
 import CellViewerCanvasWrapper from "../CellViewerCanvasWrapper";
 import ControlPanel from "../ControlPanel";
@@ -111,9 +110,6 @@ const axisToLoaderPriority: Record<AxisName | "t", PrefetchDirection> = {
   y: PrefetchDirection.Y_PLUS,
   x: PrefetchDirection.X_PLUS,
 };
-
-/** `true` if `p` is not an array that contains another array */
-const notDoublyNested = <T,>(p: T | (T | T[])[]): p is T | T[] => !Array.isArray(p) || !p.some(Array.isArray);
 
 const setIndicatorPositions = (
   view3d: View3d,
@@ -188,7 +184,7 @@ const App: React.FC<AppProps> = (props) => {
 
   const loader = useRef<SceneStore>();
   const [image, setImage] = useState<Volume | null>(null);
-  const imageUrlRef = useRef<string | (string | string[])[]>("");
+  const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
 
   const [errorAlert, _showError] = useErrorAlert();
   const showError = (error: unknown): void => {
@@ -202,11 +198,11 @@ const App: React.FC<AppProps> = (props) => {
     return () => view3d.setLoadErrorHandler(undefined);
   }, [view3d]);
 
+  const hasRawImage = !!(props.rawData && props.rawDims);
+  const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
   const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 0, y: 0, z: 0 };
   const numSlicesLoaded: PerAxis<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
   const numTimesteps = image?.imageInfo.times ?? 1;
-  const singleScene = (props.rawData && props.rawDims) || notDoublyNested(props.imageUrl);
-  const numScenes = singleScene ? 1 : props.imageUrl.length;
 
   // State for image loading/reloading
 
@@ -417,7 +413,7 @@ const App: React.FC<AppProps> = (props) => {
   const openImage = async (): Promise<void> => {
     const { imageUrl, parentImageUrl, rawData, rawDims } = props;
     const scene = viewerState.current.scene;
-    let scenePaths: (string | string[])[] | [{ data: RawArrayData; metadata: RawArrayInfo }];
+    let scenePaths: (string | string[])[] | [RawArrayLoaderOptions];
 
     if (rawData && rawDims) {
       scenePaths = [{ data: rawData, metadata: rawDims }];
@@ -425,12 +421,12 @@ const App: React.FC<AppProps> = (props) => {
       const showParentImage = viewerState.current.imageType === ImageType.fullField && parentImageUrl !== undefined;
       const path = showParentImage ? parentImageUrl : imageUrl;
       // Don't reload if we're already looking at this image
-      if (path === imageUrlRef.current) {
+      if (isEqual(path, imageUrlRef.current)) {
         return;
       }
       imageUrlRef.current = path;
 
-      scenePaths = notDoublyNested(path) ? [path] : path;
+      scenePaths = (path as MultisceneUrls).scenes ?? [path];
     }
 
     setSendingQueryRequest(true);
