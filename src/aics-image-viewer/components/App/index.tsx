@@ -116,7 +116,7 @@ const setIndicatorPositions = (
   panelOpen: boolean,
   hasTime: boolean,
   hasScenes: boolean,
-  mode3d: boolean
+  isMode3d: boolean
 ): void => {
   // The height of the clipping panel includes the button, but we're trying to put these elements next to the button
   const CLIPPING_PANEL_BUTTON_HEIGHT = 40;
@@ -127,7 +127,7 @@ const setIndicatorPositions = (
   let [scaleBarX, scaleBarY] = SCALE_BAR_MARGIN_DEFAULT;
   if (panelOpen) {
     // If we have Time, Scene, X, Y, and Z sliders, the drawer will need to be a bit taller
-    let isTall = hasTime && hasScenes && mode3d;
+    let isTall = hasTime && hasScenes && isMode3d;
     let clippingPanelFullHeight = isTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
     let clippingPanelHeight = clippingPanelFullHeight - CLIPPING_PANEL_BUTTON_HEIGHT;
     // Move indicators up out of the way of the clipping panel
