@@ -168,7 +168,7 @@ export class ViewerChannelSettingParams {
   /**
    * Control points for the transfer function. If provided, overrides the
    * `lut` field when calculating the control points. Should be a list
-   * of `x:opacity:color` triplets, separated by comma.
+   * of `x:opacity:color` triplets, separated by colon.
    * - `x` is a numeric intensity value.
    * - `opacity` is a float in the [0, 1] range.
    * - `color` is a 6-digit hex color, e.g. `ff0000`.
