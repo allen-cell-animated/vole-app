@@ -41,13 +41,12 @@ export interface AppProps {
 
   // SECOND WAY TO GET DATA INTO THE VIEWER: (if `rawData`/`rawDims` isn't present) pass in URL(s) to fetch volume data
 
-  // The inner level of array(s), if present, groups multiple sources into a single volume with all sources' channels.
-  // If there is an outer array level, it groups multiple volumes into a single multi-scene collection.
-  // To clarify:
-  // - A bare string is a single volume scene with a single source.
-  // - An array of only strings is interpreted as a single volume with multiple sources, not a multi-scene collection.
-  // - An array of strings *or* string arrays is a multi-scene collection, and all strings within the top-level array
-  //   are treated as if they were string arrays with one element (i.e. volumes with one source).
+  /**
+   * URL(s) from which to fetch the image. You can pass a `string` to load from a single data source, or get fancier:
+   * - Pass an array of strings to assemble a single volume with all sources' channels, in order.
+   * - Pass an object with a key `scenes: (string | string[])[]` to load multiple volumes as a *multi-scene collection*.
+   *   Each string or string array within the `scenes` array is treated as a single volume with one or more sources.
+   */
   imageUrl: string | string[] | MultisceneUrls;
   parentImageUrl?: string | string[] | MultisceneUrls;
 
