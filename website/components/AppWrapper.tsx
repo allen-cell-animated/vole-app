@@ -1,33 +1,25 @@
+import { View3d } from "@aics/vole-core";
 import React, { ReactElement, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { FlexRowAlignCenter } from "./LandingPage/utils";
-import LoadModal from "./Modals/LoadModal";
-import Header, { HEADER_HEIGHT_PX } from "./Header";
-import HelpDropdown from "./HelpDropdown";
-import ShareModal from "./Modals/ShareModal";
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
 import { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
+import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { AppDataProps } from "../types";
 import { parseViewerUrlParams } from "../utils/url_utils";
-import { View3d } from "@aics/volume-viewer";
+import { FlexRowAlignCenter } from "./LandingPage/utils";
+
+import Header, { HEADER_HEIGHT_PX } from "./Header";
+import HelpDropdown from "./HelpDropdown";
+import LoadModal from "./Modals/LoadModal";
+import ShareModal from "./Modals/ShareModal";
 
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
   cellId: "",
   imageDownloadHref: "",
   parentImageDownloadHref: "",
-  viewerChannelSettings: {
-    groups: [
-      {
-        name: "Channels",
-        channels: [
-          { match: [0, 1, 2], enabled: true },
-          { match: "(.+)", enabled: false },
-        ],
-      },
-    ],
-  },
+  viewerChannelSettings: getDefaultViewerChannelSettings(),
 };
 
 /**

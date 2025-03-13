@@ -1,21 +1,21 @@
-import React, { useState, useCallback } from "react";
-import { Button, List, Checkbox } from "antd";
+import { Channel } from "@aics/vole-core";
+import { Button, Checkbox, List } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
-import { Channel } from "@aics/volume-viewer";
+import React, { useCallback, useState } from "react";
 
-import TfEditor from "../TfEditor";
-import { getDefaultChannelState, ISOSURFACE_OPACITY_SLIDER_MAX, PRESET_COLOR_MAP } from "../../shared/constants";
-import ColorPicker from "../ColorPicker";
-import { ColorObject, colorObjectToArray, colorArrayToObject } from "../../shared/utils/colorRepresentations";
+import { ISOSURFACE_OPACITY_SLIDER_MAX } from "../../shared/constants";
+import { IsosurfaceFormat } from "../../shared/types";
+import { colorArrayToObject, ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
 import {
-  type ChannelState,
   type ChannelSettingUpdater,
+  type ChannelState,
   type SingleChannelSettingUpdater,
 } from "../ViewerStateProvider/types";
-import { IsosurfaceFormat } from "../../shared/types";
-import ViewerIcon from "../shared/ViewerIcon";
+
+import ColorPicker from "../ColorPicker";
 import SliderRow from "../shared/SliderRow";
-import { controlPointsToRamp, getDefaultLut } from "../../shared/utils/controlPointsToLut";
+import ViewerIcon from "../shared/ViewerIcon";
+import TfEditor from "../TfEditor";
 
 import "./styles.css";
 
@@ -36,25 +36,25 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const [controlsOpen, setControlsOpen] = useState(false);
 
   const changeSettingForThisChannel = useCallback<SingleChannelSettingUpdater>(
-    (key, value) => changeChannelSetting(index, key, value),
+    (value) => changeChannelSetting(index, value),
     [changeChannelSetting, index]
   );
 
   const volumeCheckHandler = ({ target }: CheckboxChangeEvent): void => {
-    changeChannelSetting(index, "volumeEnabled", target.checked);
+    changeChannelSetting(index, { volumeEnabled: target.checked });
   };
 
   const isosurfaceCheckHandler = ({ target }: CheckboxChangeEvent): void => {
-    changeChannelSetting(index, "isosurfaceEnabled", target.checked);
+    changeChannelSetting(index, { isosurfaceEnabled: target.checked });
   };
 
-  const onIsovalueChange = ([newValue]: number[]): void => changeSettingForThisChannel("isovalue", newValue);
+  const onIsovalueChange = ([newValue]: number[]): void => changeSettingForThisChannel({ isovalue: newValue });
   const onOpacityChange = ([newValue]: number[]): void =>
-    changeSettingForThisChannel("opacity", newValue / ISOSURFACE_OPACITY_SLIDER_MAX);
+    changeSettingForThisChannel({ opacity: newValue / ISOSURFACE_OPACITY_SLIDER_MAX });
 
   const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
     const color = colorObjectToArray(newRGB);
-    props.changeChannelSetting(index!, "color", color);
+    props.changeChannelSetting(index!, { color: color });
   };
 
   const createColorPicker = (): React.ReactNode => (
@@ -84,30 +84,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       />
     </div>
   );
-
-  /**
-   * Resets currently visible settings for this channel to their defaults.
-   */
-  const resetChannelToDefaults = (): void => {
-    // Only modify settings that are currently visible to the user.'
-    const defaultChannelState = getDefaultChannelState();
-    if (props.channelState.volumeEnabled) {
-      const defaultLut = getDefaultLut(props.channelDataForChannel.histogram);
-      props.changeChannelSetting(index, "controlPoints", defaultLut.controlPoints);
-      props.changeChannelSetting(index, "ramp", controlPointsToRamp(defaultLut.controlPoints));
-      props.changeChannelSetting(index, "useControlPoints", defaultChannelState.useControlPoints);
-
-      props.changeChannelSetting(index, "colorizeAlpha", defaultChannelState.colorizeAlpha);
-      props.changeChannelSetting(index, "colorizeEnabled", defaultChannelState.colorizeEnabled);
-    }
-
-    if (props.channelState.isosurfaceEnabled) {
-      props.changeChannelSetting(index, "isovalue", defaultChannelState.isovalue);
-      props.changeChannelSetting(index, "opacity", defaultChannelState.opacity);
-    }
-
-    props.changeChannelSetting(index, "color", PRESET_COLOR_MAP[0].colors[index] ?? defaultChannelState.color);
-  };
 
   const createTFEditor = (): React.ReactNode => {
     const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp } = channelState;
@@ -168,9 +144,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
             {renderSurfaceControls()}
           </>
         )}
-        <div style={{ marginTop: "15px" }}>
-          <Button onClick={resetChannelToDefaults}>Reset to defaults</Button>
-        </div>
       </>
     );
   };

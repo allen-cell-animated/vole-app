@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Button, Dropdown, Tooltip, MenuProps, Collapse, CollapseProps } from "antd";
+import { Button, Dropdown, Tooltip, MenuProps, Collapse, CollapseProps, Flex } from "antd";
 import { MenuInfo } from "rc-menu/lib/interface";
 
 import ChannelsWidget from "../ChannelsWidget";
@@ -13,6 +13,7 @@ import { PRESET_COLOR_MAP } from "../../shared/constants";
 import "./styles.css";
 import ViewerIcon from "../shared/ViewerIcon";
 import { MetadataRecord } from "../../shared/types";
+import { connectToViewerState } from "../ViewerStateProvider";
 
 type PropsOf<T> = T extends React.ComponentType<infer P> ? P : never;
 
@@ -29,6 +30,7 @@ interface ControlPanelProps
   getMetadata: () => MetadataRecord;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
+  resetToDefaultViewerState: () => void;
 }
 
 const enum ControlTab {
@@ -113,7 +115,21 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       });
     }
 
-    return <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1] : 0} items={items} />;
+    return (
+      <Flex gap={10} vertical>
+        <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1] : 0} items={items} />
+        <div style={{ margin: "0 10px", width: "fit-content" }}>
+          <Tooltip
+            trigger={["hover", "focus"]}
+            placement="right"
+            title="Clears ALL rendering settings and channel configuration to the default viewer state.
+            This will replace any edits to channel settings, color presets, and rendering adjustments."
+          >
+            <Button onClick={props.resetToDefaultViewerState}>Clear all settings</Button>
+          </Tooltip>
+        </div>
+      </Flex>
+    );
   };
 
   return (
@@ -157,4 +173,4 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   );
 }
 
-export default React.memo(ControlPanel);
+export default connectToViewerState(ControlPanel, ["resetToDefaultViewerState"]);

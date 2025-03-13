@@ -1,7 +1,7 @@
 const ESCAPED_AMPERSAND = "~and~";
 
 /**
- * Converts the path component of a URL into a query string. Used to redirect the browser
+ * Encodes the path component of a URL into a query string. Used to redirect the browser
  * for single-page apps when the server is not configured to serve the app for all paths,
  * e.g. GitHub pages.
  *
@@ -23,7 +23,7 @@ const ESCAPED_AMPERSAND = "~and~";
  *
  * @returns The URL with the path converted to a query string, and the original query string escaped.
  */
-export function convertUrlToQueryStringPath(url: URL, basePathSegments: number = 0): URL {
+export function encodeUrlPathAsQueryString(url: URL, basePathSegments: number = 0): URL {
   const pathSegments = url.pathname.split("/");
   const basePath = pathSegments.slice(0, basePathSegments + 1).join("/");
   const remainingPath = pathSegments.slice(basePathSegments + 1).join("/");
@@ -39,10 +39,6 @@ export function convertUrlToQueryStringPath(url: URL, basePathSegments: number =
   return new URL(newUrl);
 }
 
-export function isQueryStringPath(url: URL): boolean {
-  return url.search !== "" && url.search.startsWith("?/");
-}
-
 /**
  * Converts a query string back into a complete URL. Used in combination with `convertUrlToQueryStringPath()`.
  * to redirect the browser for single-page apps when the server cannot be configured, e.g. GitHub pages.
@@ -51,7 +47,7 @@ export function isQueryStringPath(url: URL): boolean {
  * @param url - The URL with a path converted to a query string, and the original query string escaped.
  * @returns The original URL, with path instead of a query string.
  */
-export function convertQueryStringPathToUrl(url: URL): URL {
+export function decodeUrlQueryStringPath(url: URL): URL {
   if (!url.search || !url.search.startsWith("?/")) {
     return url;
   }
@@ -63,4 +59,52 @@ export function convertQueryStringPathToUrl(url: URL): URL {
     .join("?"); // Rejoin the path and query string
 
   return new URL(`${url.origin}${url.pathname}${newPathAndQueryString}${url.hash}`);
+}
+
+export function isEncodedPathUrl(url: URL): boolean {
+  return url.search !== "" && url.search.startsWith("?/");
+}
+
+/**
+ * Encodes a URL for GitHub pages by converting the path to a query string.
+ * See `encodeUrlPathAsQueryString()` for more details.
+ */
+export function encodeGitHubPagesUrl(url: URL): URL {
+  url = new URL(url); // Clone the URL to avoid modifying the original
+  if (url.hostname === "allen-cell-animated.github.io") {
+    if (url.pathname.toString().includes("pr-preview")) {
+      return encodeUrlPathAsQueryString(url, 3);
+    }
+    // Redirect `/main` paths back to root `/`
+    if (url.pathname.toString().includes("main")) {
+      url.pathname = url.pathname.replace("/main", "");
+    }
+    return encodeUrlPathAsQueryString(url, 1);
+  }
+
+  return url;
+}
+
+/**
+ * Decodes a URL that was encoded for GitHub pages, e.g. by `encodeGitHubPagesUrl()`.
+ * See `decodeUrlQueryStringPath()` for more details.
+ */
+export function decodeGitHubPagesUrl(url: URL): URL {
+  return decodeUrlQueryStringPath(url);
+}
+
+/**
+ * Changes URLs with hash-based routing to path-based routing by removing the hash from
+ * the URL. Does nothing to URLs that do not use hash-based routing.
+ */
+export function tryRemoveHashRouting(url: URL): URL {
+  // Remove #/ from the URL path
+  if (url.hash.startsWith("#/")) {
+    const hashContents = url.hash.slice(2);
+    const [path, queryParams] = hashContents.split("?");
+    url.pathname += path;
+    url.search = queryParams ? `?${queryParams}` : "";
+    url.hash = "";
+  }
+  return url;
 }

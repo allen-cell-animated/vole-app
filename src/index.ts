@@ -10,6 +10,6 @@ export type {
 export { ViewMode, RenderMode, ImageType } from "./aics-image-viewer/shared/enums";
 
 export type { AppProps } from "./aics-image-viewer/components/App/types";
-export type { RawArrayData, RawArrayInfo } from "@aics/volume-viewer";
+export type { RawArrayData, RawArrayInfo } from "@aics/vole-core";
 
 export { ImageViewerApp, ViewerStateProvider };

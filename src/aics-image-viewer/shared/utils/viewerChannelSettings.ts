@@ -1,4 +1,5 @@
-import { ControlPoint } from "@aics/volume-viewer";
+import { ControlPoint } from "@aics/vole-core";
+
 import { OTHER_CHANNEL_KEY, SINGLE_GROUP_CHANNEL_KEY } from "../constants";
 
 /** Settings for a single channel, as passed in via props by App users */
@@ -55,7 +56,7 @@ export interface ViewerChannelSettings {
 
 export type ChannelGrouping = { [key: string]: number[] };
 
-export function matchChannel(channel: string, channelIndex: number, c: ViewerChannelSetting): boolean {
+export function matchChannel(channelName: string, channelIndex: number, c: ViewerChannelSetting): boolean {
   // c could be a number, an array of (strings or numbers), or a single regex
   if (typeof c.match === "number") {
     if (c.match === channelIndex) {
@@ -69,14 +70,14 @@ export function matchChannel(channel: string, channelIndex: number, c: ViewerCha
         }
       } else {
         const re = new RegExp(r);
-        if (re.test(channel)) {
+        if (re.test(channelName)) {
           return true;
         }
       }
     }
   } else if (typeof c.match === "string") {
     const re = new RegExp(c.match);
-    if (re.test(channel)) {
+    if (re.test(channelName)) {
       return true;
     }
   } else {

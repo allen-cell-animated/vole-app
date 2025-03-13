@@ -1,8 +1,9 @@
-import { CameraState } from "@aics/volume-viewer";
+import { CameraState } from "@aics/vole-core";
 
 import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
-import { ViewMode, RenderMode, ImageType } from "./enums";
+import { ImageType, RenderMode, ViewMode } from "./enums";
 import { ColorArray } from "./utils/colorRepresentations";
+import { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
 // Add all exported constants here to prevent circular dependencies
 export const // Control panel will automatically close if viewport is less than this width
@@ -98,19 +99,49 @@ export const PRESET_COLOR_MAP = Object.freeze([
 /** Allows the 3D viewer to apply the default camera settings for the view mode. */
 const USE_VIEW_MODE_DEFAULT_CAMERA = undefined;
 
+const viewModeToDefaultCameraPosition: Record<ViewMode, [number, number, number]> = {
+  [ViewMode.threeD]: [0, 0, 5],
+  [ViewMode.xy]: [0, 0, 2],
+  [ViewMode.xz]: [0, 2, 0],
+  [ViewMode.yz]: [2, 0, 0],
+};
+
+const viewModeToDefaultCameraUp: Record<ViewMode, [number, number, number]> = {
+  [ViewMode.threeD]: [0, 1, 0],
+  [ViewMode.xy]: [0, 1, 0],
+  [ViewMode.xz]: [0, 0, 1],
+  [ViewMode.yz]: [0, 0, 1],
+};
+
 /**
  * Reflects the default camera settings the 3D viewer uses on volume load.
  * These SHOULD NOT be changed; otherwise, existing shared links that don't specify the
  * camera settings will use the new defaults and may be in unexpected orientations or positions.
  */
-export const getDefaultCameraState = (): CameraState => ({
-  position: [0, 0, 5],
+export const getDefaultCameraState = (viewMode: ViewMode = ViewMode.threeD): CameraState => ({
+  // Default position varies by view mode
+  position: viewModeToDefaultCameraPosition[viewMode],
   target: [0, 0, 0],
-  up: [0, 1, 0],
+  up: viewModeToDefaultCameraUp[viewMode],
   fov: 20,
   orthoScale: 0.5,
 });
 
+export const getDefaultViewerChannelSettings = (): ViewerChannelSettings => ({
+  groups: [
+    {
+      name: "Channels",
+      channels: [
+        { match: [0, 1, 2], enabled: true },
+        { match: "(.+)", enabled: false },
+      ],
+    },
+  ],
+});
+
+/**
+ * Returns the default viewer state as a new object.
+ */
 export const getDefaultViewerState = (): ViewerState => ({
   viewMode: ViewMode.threeD, // "XY", "XZ", "YZ"
   renderMode: RenderMode.volumetric, // "pathtrace", "maxproject"
@@ -135,19 +166,35 @@ export const getDefaultViewerState = (): ViewerState => ({
   cameraState: USE_VIEW_MODE_DEFAULT_CAMERA,
 });
 
-export const getDefaultChannelState = (): ChannelState => ({
-  name: "",
-  volumeEnabled: false,
-  isosurfaceEnabled: false,
-  colorizeEnabled: false,
-  colorizeAlpha: 1.0,
-  isovalue: 128,
-  opacity: 1.0,
-  color: [226, 205, 179] as ColorArray,
-  useControlPoints: false,
-  ramp: [0, TFEDITOR_MAX_BIN],
-  controlPoints: [
-    { x: 0, opacity: 0, color: [255, 255, 255] },
-    { x: 255, opacity: 1, color: [255, 255, 255] },
-  ],
-});
+const INIT_COLORS = PRESET_COLORS_0;
+
+/** Returns the default color for a channel, by its index. */
+export function getDefaultChannelColor(channelIndex: number): ColorArray {
+  return INIT_COLORS[channelIndex % INIT_COLORS.length];
+}
+
+/**
+ * Returns the default channel state as a new object. If an index is provided, uses the default
+ * color preset for that index.
+ * @param index Optional channel index to use for the color preset.
+ * @returns a default ChannelState object.
+ */
+export const getDefaultChannelState = (index: number = 0): ChannelState => {
+  return {
+    name: "",
+    displayName: "",
+    volumeEnabled: false,
+    isosurfaceEnabled: false,
+    colorizeEnabled: false,
+    colorizeAlpha: 1.0,
+    isovalue: 128,
+    opacity: 1.0,
+    color: getDefaultChannelColor(index),
+    useControlPoints: false,
+    ramp: [0, TFEDITOR_MAX_BIN],
+    controlPoints: [
+      { x: 0, opacity: 0, color: [255, 255, 255] },
+      { x: 255, opacity: 1, color: [255, 255, 255] },
+    ],
+  };
+};

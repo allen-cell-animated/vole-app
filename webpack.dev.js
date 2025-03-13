@@ -6,8 +6,8 @@ const common = require("./webpack.common");
 
 module.exports = (env) => {
   return merge(common(env), {
-    mode: "development",
-    devtool: "eval-source-map",
+    mode: env.env === "production" ? "production" : "development",
+    devtool: env.env === "production" ? "source-map" : "eval-source-map",
     devServer: {
       // Allows the dev server to handle routes
       historyApiFallback: true,
@@ -21,6 +21,13 @@ module.exports = (env) => {
           },
         },
       ],
+    },
+    performance: {
+      assetFilter: function (assetFilename) {
+        return assetFilename.endsWith('.js') || assetFilename.endsWith('.css');
+      },
+      maxEntrypointSize: 3512000,
+      maxAssetSize: 3512000,
     },
     plugins: [],
   });

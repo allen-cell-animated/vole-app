@@ -1,27 +1,27 @@
-import FirebaseRequest, { DatasetMetaData } from "../../public/firebase";
-import { CameraState, ControlPoint } from "@aics/volume-viewer";
+import { CameraState, ControlPoint } from "@aics/vole-core";
+import { isEqual } from "lodash";
 
+import FirebaseRequest, { DatasetMetaData } from "../../public/firebase";
+import type { AppProps } from "../../src/aics-image-viewer/components/App/types";
 import type {
   ChannelState,
   ViewerState,
   ViewerStateContextType,
 } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
-import type { AppProps } from "../../src/aics-image-viewer/components/App/types";
-import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import {
-  ViewerChannelSetting,
-  ViewerChannelSettings,
-} from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
-import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
-import { PerAxis } from "../../src/aics-image-viewer/shared/types";
-import { clamp } from "./math_utils";
-import { removeMatchingProperties, removeUndefinedProperties } from "./datatype_utils";
-import { isEqual } from "lodash";
 import {
   getDefaultCameraState,
   getDefaultChannelState,
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
+import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
+import { PerAxis } from "../../src/aics-image-viewer/shared/types";
+import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
+import {
+  ViewerChannelSetting,
+  ViewerChannelSettings,
+} from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
+import { removeMatchingProperties, removeUndefinedProperties } from "./datatype_utils";
+import { clamp } from "./math_utils";
 
 export const ENCODED_COMMA_REGEX = /%2C/g;
 export const ENCODED_COLON_REGEX = /%3A/g;
@@ -167,7 +167,7 @@ export class ViewerChannelSettingParams {
   /**
    * Control points for the transfer function. If provided, overrides the
    * `lut` field when calculating the control points. Should be a list
-   * of `x:opacity:color` triplets, separated by comma.
+   * of `x:opacity:color` triplets, separated by colon.
    * - `x` is a numeric intensity value.
    * - `opacity` is a float in the [0, 1] range.
    * - `color` is a 6-digit hex color, e.g. `ff0000`.
@@ -554,6 +554,24 @@ function formatFloat(value: number, maxPrecision: number = 5): string {
   return Number(value.toPrecision(maxPrecision)).toString();
 }
 
+function perAxisToArray<T>(perAxis: PerAxis<T>): T[] {
+  return [perAxis.x, perAxis.y, perAxis.z];
+}
+
+/** Serializes a region into a `x1:x2,y1:y2,z1:z2` string format. */
+function serializeRegion(region: PerAxis<[number, number]>): string {
+  return perAxisToArray(region)
+    .map((axis) => axis.map((val) => formatFloat(val)).join(":"))
+    .join(",");
+}
+
+/** Serializes a slice parameter into a `x,y,z` string format. */
+function serializeSlice(slice: PerAxis<number>): string {
+  return perAxisToArray(slice)
+    .map((val) => formatFloat(val))
+    .join(",");
+}
+
 function serializeBoolean(value: boolean | undefined): "1" | "0" | undefined {
   if (value === undefined) {
     return undefined;
@@ -577,12 +595,16 @@ function parseCameraState(cameraSettings: string | undefined): Partial<CameraSta
   return removeUndefinedProperties(result);
 }
 
-export function serializeCameraState(cameraState: Partial<CameraState>, removeDefaults: boolean): string | undefined {
+export function serializeCameraState(
+  cameraState: Partial<CameraState>,
+  removeDefaults: boolean,
+  viewMode: ViewMode = ViewMode.threeD
+): string | undefined {
   if (removeDefaults) {
     // Note that we use the `getDefaultCameraState()` to get the defaults here,
     // instead of `getDefaultViewerState().cameraState`. The latter is undefined, which signals
     // that the camera should not be modified for URLs that don't specify it.
-    cameraState = removeMatchingProperties(cameraState, getDefaultCameraState());
+    cameraState = removeMatchingProperties(cameraState, getDefaultCameraState(viewMode));
     if (Object.keys(cameraState).length === 0) {
       return undefined;
     }
@@ -787,13 +809,12 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Brightness]: state.brightness?.toString(),
     [ViewerStateKeys.Density]: state.density?.toString(),
     [ViewerStateKeys.Interpolation]: serializeBoolean(state.interpolationEnabled),
-    [ViewerStateKeys.Region]:
-      state.region && `${state.region.x.join(":")},${state.region.y.join(":")},${state.region.z.join(":")}`,
-    [ViewerStateKeys.Slice]: state.slice && `${state.slice.x},${state.slice.y},${state.slice.z}`,
+    [ViewerStateKeys.Region]: state.region && serializeRegion(state.region),
+    [ViewerStateKeys.Slice]: state.slice && serializeSlice(state.slice),
     [ViewerStateKeys.Levels]: state.levels?.join(","),
     [ViewerStateKeys.Time]: state.time?.toString(),
     [ViewerStateKeys.CameraState]:
-      state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults),
+      state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };
 
   const viewModeToViewParam = {

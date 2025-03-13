@@ -1,28 +1,30 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
+import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
+
+import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 // Components
 import AppWrapper from "../website/components/AppWrapper";
-import LandingPage from "../website/components/LandingPage";
 import ErrorPage from "../website/components/ErrorPage";
-import { isQueryStringPath, convertQueryStringPathToUrl } from "../website/utils/gh_route_utils";
-import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
+import LandingPage from "../website/components/LandingPage";
+
 import "./App.css";
 
 // vars filled at build time using webpack DefinePlugin
-console.log(`website-3d-cell-viewer ${WEBSITE3DCELLVIEWER_BUILD_ENVIRONMENT} build`);
-console.log(`website-3d-cell-viewer Version ${WEBSITE3DCELLVIEWER_VERSION}`);
-console.log(`website-3d-cell-viewer Basename ${WEBSITE3DCELLVIEWER_BASENAME}`);
-console.log(`volume-viewer Version ${VOLUMEVIEWER_VERSION}`);
+console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
+console.log(`vole-app Version ${VOLEAPP_VERSION}`);
+console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
+console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
-const basename = WEBSITE3DCELLVIEWER_BASENAME;
+const basename = VOLEAPP_BASENAME;
 
-// Check for redirects in the query string, and update browser history state.
+// Decode URL path if it was encoded for GitHub pages or uses hash routing.
 const locationUrl = new URL(window.location.toString());
-if (isQueryStringPath(locationUrl)) {
-  const url = convertQueryStringPathToUrl(locationUrl);
-  const newRelativePath = url.pathname + url.search + url.hash;
+if (locationUrl.hash !== "" || isEncodedPathUrl(locationUrl)) {
+  const decodedUrl = tryRemoveHashRouting(decodeGitHubPagesUrl(locationUrl));
+  const newRelativePath = decodedUrl.pathname + decodedUrl.search + decodedUrl.hash;
   console.log("Redirecting to " + newRelativePath);
   // Replaces the query string path with the original path now that the
   // single-page app has loaded. This lets routing work as normal below.
@@ -44,9 +46,9 @@ const routes = [
 
 const router = createBrowserRouter(routes, { basename: basename });
 
-ReactDOM.render(
+const root = createRoot(document.getElementById("cell-viewer")!);
+root.render(
   <StyleProvider>
     <RouterProvider router={router} />
-  </StyleProvider>,
-  document.getElementById("cell-viewer")
+  </StyleProvider>
 );

@@ -1,6 +1,7 @@
-import { Channel, ControlPoint, Histogram, Lut, Volume, remapControlPoints } from "@aics/volume-viewer";
-import { findFirstChannelMatch, ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
+import { Channel, ControlPoint, Histogram, Lut, remapControlPoints, Volume } from "@aics/vole-core";
+
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
+import { findFirstChannelMatch, ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
 // @param {Object[]} controlPoints - array of {x:number, opacity:number, color:string}
 // @return {Uint8Array} array of length 256*4 representing the rgba values of the gradient
@@ -126,10 +127,23 @@ export function initializeLut(
 }
 
 export function controlPointsToRamp(controlPoints: ControlPoint[]): [number, number] {
-  if (controlPoints.length === 1 || controlPoints.length === 3) {
+  if (controlPoints.length <= 1) {
     return [0, TFEDITOR_MAX_BIN];
   } else if (controlPoints.length === 2) {
     return [controlPoints[0].x, controlPoints[1].x];
+  } else if (controlPoints.length === 3) {
+    if (
+      controlPoints[0].opacity !== controlPoints[1].opacity &&
+      controlPoints[0].opacity !== controlPoints[2].opacity &&
+      controlPoints[1].opacity !== controlPoints[2].opacity
+    ) {
+      // if all 3 are unequal, assume a ramp from first to last
+      return [controlPoints[0].x, controlPoints[2].x];
+    } else if (controlPoints[0].opacity !== controlPoints[1].opacity) {
+      return [controlPoints[0].x, controlPoints[1].x];
+    } else if (controlPoints[1].opacity !== controlPoints[2].opacity) {
+      return [controlPoints[1].x, controlPoints[2].x];
+    }
   }
   return [controlPoints[1].x, controlPoints[controlPoints.length - 2].x];
 }

@@ -1,4 +1,4 @@
-import { convertUrlToQueryStringPath } from "../../website/utils/gh_route_utils";
+import { encodeGitHubPagesUrl } from "../../website/utils/gh_route_utils";
 
 // Hide the default 404 page content and just show a blank screen.
 // The content should only be shown if the browser doesn't support JavaScript.
@@ -10,6 +10,6 @@ window.onload = () => {
 // Convert the current URL to a query string path and redirect the browser.
 const location = window.location;
 const locationUrl = new URL(location.toString());
-const newUrl = convertUrlToQueryStringPath(locationUrl, 1);
+const newUrl = encodeGitHubPagesUrl(locationUrl);
 location.replace(newUrl);
 console.log("Redirecting to " + newUrl.toString());

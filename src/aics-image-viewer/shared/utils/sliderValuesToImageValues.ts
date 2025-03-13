@@ -31,7 +31,7 @@ export const gammaSliderToImageValues = (sliderValues: [number, number, number])
 
 // Density and brightness are overloaded for the two supported rendering modes in the volume viewer.
 // These formulae are somewhat ad-hoc based on what will subjectively look reasonable in the viewer, and should be considered tweakable.
-// The volume-viewer expects to see numbers from 0..1 for density, brightness, and alpha.
+// vole-core expects to see numbers from 0..1 for density, brightness, and alpha.
 export const densitySliderToImageValue = (sliderValues: number, _isPT: boolean): number => +sliderValues / 100.0;
 
 export const brightnessSliderToImageValue = (sliderValues: number, _isPT: boolean): number => +sliderValues / 100.0;

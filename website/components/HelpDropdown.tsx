@@ -3,12 +3,13 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { DropdownSVG } from "../assets/icons";
-import { SecondaryButton } from "./Buttons";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "./LandingPage/utils";
 
+import { SecondaryButton } from "./Buttons";
+
 // Defined in webpack config
-declare const WEBSITE3DCELLVIEWER_VERSION: string;
-declare const VOLUMEVIEWER_VERSION: string;
+declare const VOLEAPP_VERSION: string;
+declare const VOLECORE_VERSION: string;
 
 export default function HelpDropdown(): ReactElement {
   const [container, setContainer] = useState<HTMLDivElement | null>();
@@ -20,11 +21,7 @@ export default function HelpDropdown(): ReactElement {
     {
       key: "github",
       label: (
-        <Link
-          to="https://github.com/allen-cell-animated/website-3d-cell-viewer"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
+        <Link to="https://github.com/allen-cell-animated/vole-app" target="_blank" rel="noreferrer noopener">
           Visit GitHub repository
         </Link>
       ),
@@ -33,7 +30,7 @@ export default function HelpDropdown(): ReactElement {
       key: "github-issue",
       label: (
         <Link
-          to="https://github.com/allen-cell-animated/website-3d-cell-viewer/issues/new/choose"
+          to="https://github.com/allen-cell-animated/vole-app/issues/new/choose"
           target="_blank"
           rel="noreferrer noopener"
         >
@@ -84,8 +81,8 @@ export default function HelpDropdown(): ReactElement {
         footer={<Button onClick={closeVersionModal}>Close</Button>}
       >
         <FlexColumnAlignCenter $gap={0}>
-          <p style={{ margin: 0 }}>Website v{WEBSITE3DCELLVIEWER_VERSION}</p>
-          <p style={{ margin: 0 }}>Volume viewer plugin v{VOLUMEVIEWER_VERSION}</p>
+          <p style={{ margin: 0 }}>Vol-E App v{VOLEAPP_VERSION}</p>
+          <p style={{ margin: 0 }}>Vol-E Core package v{VOLECORE_VERSION}</p>
         </FlexColumnAlignCenter>
       </Modal>
     </div>

@@ -1,14 +1,13 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import * as d3 from "d3";
-import { SketchPicker, ColorResult } from "react-color";
-import { Channel, ControlPoint, Histogram, Lut } from "@aics/volume-viewer";
+import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
+import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { ColorResult, SketchPicker } from "react-color";
 
-import SliderRow from "../shared/SliderRow";
 import {
-  LUT_MIN_PERCENTILE,
   LUT_MAX_PERCENTILE,
+  LUT_MIN_PERCENTILE,
   TFEDITOR_DEFAULT_COLOR,
   TFEDITOR_MAX_BIN,
 } from "../../shared/constants";
@@ -21,6 +20,8 @@ import {
 import { controlPointsToRamp, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
 import { useRefWithSetter } from "../../shared/utils/hooks";
 import type { SingleChannelSettingUpdater } from "../ViewerStateProvider/types";
+
+import SliderRow from "../shared/SliderRow";
 
 import "./styles.css";
 
@@ -163,8 +164,11 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [selectedPointIdx, setSelectedPointIdx] = useState<number | null>(null);
   const [draggedPointIdx, _setDraggedPointIdx] = useState<number | TfEditorRampSliderHandle | null>(null);
 
-  const _setCPs = useCallback((p: ControlPoint[]) => changeChannelSetting("controlPoints", p), [changeChannelSetting]);
-  const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting("ramp", ramp), [changeChannelSetting]);
+  const _setCPs = useCallback(
+    (p: ControlPoint[]) => changeChannelSetting({ controlPoints: p }),
+    [changeChannelSetting]
+  );
+  const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting({ ramp: ramp }), [changeChannelSetting]);
 
   // these bits of state need their freshest, most up-to-date values available in mouse event handlers. make refs!
   const [controlPointsRef, setControlPoints] = useRefWithSetter(_setCPs, props.controlPoints);
@@ -371,6 +375,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       if (el === null) {
         return;
       }
+      if (props.channelData.histogram.getNumBins() < 1) {
+        return;
+      }
       const { binLengths, max } = getHistogramBinLengths(props.channelData.histogram);
       const barWidth = innerWidth / props.channelData.histogram.getNumBins();
       const binScale = d3.scaleLog().domain([0.1, max]).range([innerHeight, 0]).base(2).clamp(true);
@@ -440,7 +447,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data.")}
         <Checkbox
           checked={props.useControlPoints}
-          onChange={(e) => changeChannelSetting("useControlPoints", e.target.checked)}
+          onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
           style={{ marginLeft: "auto" }}
         >
           Advanced
@@ -536,14 +543,14 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         label={
           <Checkbox
             checked={props.colorizeEnabled}
-            onChange={(e) => changeChannelSetting("colorizeEnabled", e.target.checked)}
+            onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
           >
             Colorize
           </Checkbox>
         }
         max={1}
         start={props.colorizeAlpha}
-        onUpdate={(values) => changeChannelSetting("colorizeAlpha", values[0])}
+        onUpdate={(values) => changeChannelSetting({ colorizeAlpha: values[0] })}
         hideSlider={!props.colorizeEnabled}
       />
     </div>

@@ -1,12 +1,12 @@
-name: github pages
+name: Github Pages Nightly
 
 env:
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "7 0 * * *"
 
 jobs:
   deploy:
@@ -19,8 +19,8 @@ jobs:
           node-version: ${{env.NODE_VERSION}}
 
       - name: Cache dependencies
-
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        # actions/cache@v4.2.2
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -37,9 +37,9 @@ jobs:
           echo "::set-output name=tag_name::${TAG_NAME}"
           echo "::set-output name=deploy_tag_name::deploy-${TAG_NAME}"
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@373f7f263a76c20808c831209c920827a82a2847
+        uses: JamesIves/github-pages-deploy-action@881db5376404c5c8d621010bcbec0310b58d5e29
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./imageviewer
-          tag_name: ${{ steps.prepare_tag.outputs.deploy_tag_name }}
-          tag_message: "Deployment to gh-pages to test new viewer ${{ steps.prepare_tag.outputs.tag_name }}"
+          folder: ./imageviewer
+          # Leave existing PR preview deployments in place
+          clean-exclude: pr-preview/
+          commit-message: "Deployment to gh-pages to test new viewer ${{ steps.prepare_tag.outputs.tag_name }}"

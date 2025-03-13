@@ -6,6 +6,7 @@ import { ErrorResponse, Link, useRouteError } from "react-router-dom";
 import styled from "styled-components";
 
 import { FlexColumnAlignCenter } from "./LandingPage/utils";
+
 import Header from "./Header";
 
 const ErrorPageWrapper = styled.div`
@@ -51,7 +52,7 @@ export default function ErrorPage(props: ErrorPageProps): ReactElement {
           <p>
             If the issue persists after a refresh,{" "}
             <Link
-              to="https://github.com/allen-cell-animated/website-3d-cell-viewer/issues/new?template=bug_report.md"
+              to="https://github.com/allen-cell-animated/vole-app/issues/new?template=bug_report.md"
               rel="noopener noreferrer"
               target="_blank"
             >

@@ -1,17 +1,17 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Button, Tooltip } from "antd";
+import { Volume } from "@aics/vole-core";
 import { CaretRightOutlined, PauseOutlined } from "@ant-design/icons";
-import { Volume } from "@aics/volume-viewer";
+import { Button, Tooltip } from "antd";
+import React, { useCallback, useEffect, useState } from "react";
+
+import { ViewMode } from "../../shared/enums";
+import { activeAxisMap, AxisName, PerAxis } from "../../shared/types";
+import PlayControls from "../../shared/utils/playControls";
+import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
 
 import NumericInput from "../shared/NumericInput";
 import SmarterSlider from "../shared/SmarterSlider";
 
 import "./styles.css";
-
-import { ViewMode } from "../../shared/enums";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
-import { AxisName, PerAxis, activeAxisMap } from "../../shared/types";
-import PlayControls from "../../shared/utils/playControls";
 
 const AXES: AxisName[] = ["x", "y", "z"];
 
@@ -92,7 +92,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
             </>
           )}
           {" / "}
-          {max}
+          {max - 1}
         </span>
       )}
     </span>

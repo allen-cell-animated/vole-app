@@ -1,19 +1,19 @@
-import React from "react";
-import { View3d, Volume } from "@aics/volume-viewer";
+import { View3d, Volume } from "@aics/vole-core";
 import { LoadingOutlined } from "@ant-design/icons";
+import React from "react";
 
-import { AxisName, PerAxis, Styles } from "../../shared/types";
 import { ViewMode } from "../../shared/enums";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+import { AxisName, PerAxis, Styles } from "../../shared/types";
 import PlayControls from "../../shared/utils/playControls";
+import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
 
-import { connectToViewerState } from "../ViewerStateProvider";
 import AxisClipSliders from "../AxisClipSliders";
 import BottomPanel from "../BottomPanel";
+import { connectToViewerState } from "../ViewerStateProvider";
 
 import "./styles.css";
 
-interface ViewerWrapperProps {
+type ViewerWrapperProps = {
   // From parent
   view3d: View3d;
   loadingImage: boolean;
@@ -37,30 +37,24 @@ interface ViewerWrapperProps {
   slice: PerAxis<number>;
   time: number;
   changeViewerSetting: ViewerSettingUpdater;
-}
+};
 
-interface ViewerWrapperState {}
+const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
+  const view3dviewerRef = React.createRef<HTMLDivElement>();
 
-class ViewerWrapper extends React.Component<ViewerWrapperProps, ViewerWrapperState> {
-  private view3dviewerRef: React.RefObject<HTMLDivElement>;
+  React.useEffect(() => {
+    view3dviewerRef.current!.appendChild(props.view3d.getDOMElement());
+    props.view3d.setAutoRotate(props.autorotate);
+  }, []);
 
-  constructor(props: ViewerWrapperProps) {
-    super(props);
-    this.view3dviewerRef = React.createRef();
-  }
+  // TODO necessary?
+  React.useEffect(() => {
+    props.view3d.resize(null);
+  });
 
-  componentDidMount(): void {
-    this.view3dviewerRef.current!.appendChild(this.props.view3d.getDOMElement());
-    this.props.view3d.setAutoRotate(this.props.autorotate);
-  }
-
-  componentDidUpdate(_prevProps: ViewerWrapperProps, _prevState: ViewerWrapperState): void {
-    this.props.view3d.resize(null);
-  }
-
-  renderOverlay(): React.ReactNode {
+  const renderOverlay = (): React.ReactNode => {
     // Don't show spinner during playback - we may be constantly loading new data, it'll block the view!
-    const showSpinner = this.props.loadingImage && !this.props.playingAxis;
+    const showSpinner = props.loadingImage && !props.playingAxis;
     const spinner = showSpinner ? (
       <div style={STYLES.noImage}>
         <LoadingOutlined style={{ fontSize: 60, zIndex: 1000 }} />
@@ -68,46 +62,44 @@ class ViewerWrapper extends React.Component<ViewerWrapperProps, ViewerWrapperSta
     ) : null;
 
     const noImageText =
-      !this.props.loadingImage && !this.props.image ? <div style={STYLES.noImage}>No image selected</div> : null;
-    if (!!noImageText && this.props.view3d) {
-      this.props.view3d.removeAllVolumes();
+      !props.loadingImage && !props.image ? <div style={STYLES.noImage}>No image selected</div> : null;
+    if (!!noImageText && props.view3d) {
+      props.view3d.removeAllVolumes();
     }
     return noImageText || spinner;
-  }
+  };
 
-  render(): React.ReactNode {
-    const { appHeight, changeViewerSetting, visibleControls, numSlices, numTimesteps, viewMode, region, slice, time } =
-      this.props;
+  const { appHeight, changeViewerSetting, visibleControls, numSlices, numTimesteps, viewMode, region, slice, time } =
+    props;
 
-    return (
-      <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
-        <div ref={this.view3dviewerRef} style={STYLES.view3d}></div>
-        <BottomPanel
-          title="Clipping"
-          onVisibleChange={(visible) => this.props.onClippingPanelVisibleChange?.(visible, numTimesteps > 1)}
-          onVisibleChangeEnd={this.props.onClippingPanelVisibleChangeEnd}
-        >
-          {visibleControls.axisClipSliders && !!this.props.image && (
-            <AxisClipSliders
-              mode={viewMode}
-              image={this.props.image}
-              changeViewerSetting={changeViewerSetting}
-              numSlices={numSlices}
-              numSlicesLoaded={this.props.numSlicesLoaded}
-              region={region}
-              slices={slice}
-              numTimesteps={numTimesteps}
-              time={time}
-              playControls={this.props.playControls}
-              playingAxis={this.props.playingAxis}
-            />
-          )}
-        </BottomPanel>
-        {this.renderOverlay()}
-      </div>
-    );
-  }
-}
+  return (
+    <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
+      <div ref={view3dviewerRef} style={STYLES.view3d}></div>
+      <BottomPanel
+        title="Clipping"
+        onVisibleChange={(visible) => props.onClippingPanelVisibleChange?.(visible, numTimesteps > 1)}
+        onVisibleChangeEnd={props.onClippingPanelVisibleChangeEnd}
+      >
+        {visibleControls.axisClipSliders && !!props.image && (
+          <AxisClipSliders
+            mode={viewMode}
+            image={props.image}
+            changeViewerSetting={changeViewerSetting}
+            numSlices={numSlices}
+            numSlicesLoaded={props.numSlicesLoaded}
+            region={region}
+            slices={slice}
+            numTimesteps={numTimesteps}
+            time={time}
+            playControls={props.playControls}
+            playingAxis={props.playingAxis}
+          />
+        )}
+      </BottomPanel>
+      {renderOverlay()}
+    </div>
+  );
+};
 
 export default connectToViewerState(ViewerWrapper, [
   "autorotate",

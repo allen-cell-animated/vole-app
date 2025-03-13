@@ -8,6 +8,7 @@ type BottomPanelProps = {
   title?: string;
   onVisibleChange?: (visible: boolean) => void;
   onVisibleChangeEnd?: (visible: boolean) => void;
+  children?: React.ReactNode;
 };
 
 const BottomPanel: React.FC<BottomPanelProps> = ({ children, title, onVisibleChange, onVisibleChangeEnd }) => {

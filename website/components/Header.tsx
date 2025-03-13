@@ -86,7 +86,7 @@ function HeaderLogo({ noNavigate }: { noNavigate?: boolean }): ReactElement {
         rel="noopener noreferrer"
         target={noNavigate ? "_blank" : undefined}
       >
-        <h1>3D Volume Viewer</h1>
+        <h1>Vol-E</h1>
       </HeaderTitleLink>
     </FlexRowAlignCenter>
   );

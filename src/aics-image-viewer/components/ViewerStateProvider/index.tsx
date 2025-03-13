@@ -1,17 +1,21 @@
-import React, { useCallback, useContext, useMemo, useReducer, useRef } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 
-import type {
-  ViewerStateContextType,
-  ViewerState,
-  ViewerSettingChangeHandlers,
-  ViewerSettingUpdater,
-  ChannelSettingUpdater,
-  ChannelState,
-  PartialIfObject,
-} from "./types";
+import { getDefaultViewerChannelSettings, getDefaultViewerState } from "../../shared/constants";
 import { RenderMode, ViewMode } from "../../shared/enums";
 import { ColorArray } from "../../shared/utils/colorRepresentations";
-import { getDefaultViewerState } from "../../shared/constants";
+import { useConstructor } from "../../shared/utils/hooks";
+import type {
+  ChannelSettingUpdater,
+  ChannelState,
+  ChannelStateKey,
+  PartialIfObject,
+  ViewerSettingChangeHandlers,
+  ViewerSettingUpdater,
+  ViewerState,
+  ViewerStateContextType,
+} from "./types";
+
+import ResetStateProvider from "./ResetStateProvider";
 
 const isObject = <T,>(val: T): val is Extract<T, Record<string, unknown>> =>
   typeof val === "object" && val !== null && !Array.isArray(val);
@@ -29,11 +33,17 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
     };
   },
   // Render mode: if we're switching to pathtrace, turn off autorotate
-  renderMode: (prevSettings, renderMode) => ({
-    ...prevSettings,
-    renderMode,
-    autorotate: renderMode === RenderMode.pathTrace ? false : prevSettings.autorotate,
-  }),
+  // Also, do not allow pathtrace mode in any mode other than 3D.
+  renderMode: (prevSettings, renderMode) => {
+    if (renderMode === RenderMode.pathTrace && prevSettings.viewMode !== ViewMode.threeD) {
+      return { ...prevSettings };
+    }
+    return {
+      ...prevSettings,
+      renderMode,
+      autorotate: renderMode === RenderMode.pathTrace ? false : prevSettings.autorotate,
+    };
+  },
   // Autorotate: do not enable autorotate while in pathtrace mode
   autorotate: (prevSettings, autorotate) => ({
     ...prevSettings,
@@ -68,52 +78,62 @@ const viewerSettingsReducer = <K extends keyof ViewerState>(
   }
 };
 
-/** Utility type to explicitly assert that one or more properties will *not* be defined on an object */
-type WithExplicitlyUndefined<K extends keyof any, T> = T & { [key in K]?: never };
+enum ChannelSettingActionType {
+  UniformUpdate = "UniformUpdate",
+  ArrayUpdate = "ArrayUpdate",
+  Init = "Init",
+}
 
 /** Set channel setting `key` on one or more channels specified by `index` to value `value`. */
-type ChannelSettingUniformUpdateAction<K extends keyof ChannelState> = {
+type ChannelSettingUniformUpdateAction<K extends ChannelStateKey> = {
+  type: ChannelSettingActionType.UniformUpdate;
   index: number | number[];
-  key: K;
-  value: ChannelState[K];
+  value: Partial<Record<K, ChannelState[K]>>;
 };
 /** Set the values of channel setting `key` for all channels from an array of values ordered by channel index */
-type ChannelSettingArrayUpdateAction<K extends keyof ChannelState> = {
+type ChannelSettingArrayUpdateAction<K extends ChannelStateKey> = {
+  type: ChannelSettingActionType.ArrayUpdate;
   key: K;
   value: ChannelState[K][];
 };
 /** Initialize list of channel states */
 type ChannelSettingInitAction = {
+  type: ChannelSettingActionType.Init;
   value: ChannelState[];
 };
 
-type ChannelStateAction<K extends keyof ChannelState> =
+type ChannelStateAction<K extends ChannelStateKey> =
   | ChannelSettingUniformUpdateAction<K>
-  | WithExplicitlyUndefined<"index", ChannelSettingArrayUpdateAction<K>>
-  | WithExplicitlyUndefined<"index" | "key", ChannelSettingInitAction>;
+  | ChannelSettingArrayUpdateAction<K>
+  | ChannelSettingInitAction;
 
-const channelSettingsReducer = <K extends keyof ChannelState>(
+const channelSettingsReducer = <K extends ChannelStateKey>(
   channelSettings: ChannelState[],
-  { index, key, value }: ChannelStateAction<K>
+  action: ChannelStateAction<K>
 ): ChannelState[] => {
-  if (key === undefined) {
+  if (action.type === ChannelSettingActionType.Init) {
     // ChannelSettingInitAction
-    return value as ChannelState[];
-  } else if (index === undefined) {
+    return action.value;
+  } else if (action.type === ChannelSettingActionType.ArrayUpdate) {
     // ChannelSettingArrayUpdateAction
     return channelSettings.map((channel, idx) => {
-      return value[idx] ? { ...channel, [key]: value[idx] } : channel;
+      return action.value[idx] ? { ...channel, [action.key]: action.value[idx] } : channel;
     });
-  } else if (Array.isArray(index)) {
-    // ChannelSettingUniformUpdateAction on potentially multiple channels
-    return channelSettings.map((channel, idx) => (index.includes(idx) ? { ...channel, [key]: value } : channel));
   } else {
-    // ChannelSettingUniformUpdateAction on a single channel
-    const newSettings = channelSettings.slice();
-    if (index >= 0 && index < channelSettings.length) {
-      newSettings[index] = { ...newSettings[index], [key]: value };
+    // type is ChannelSettingActionType.UniformUpdate
+    if (Array.isArray(action.index)) {
+      // ChannelSettingUniformUpdateAction on potentially multiple channels
+      return channelSettings.map((channel, idx) =>
+        (action.index as number[]).includes(idx) ? { ...channel, ...action.value } : channel
+      );
+    } else {
+      // ChannelSettingUniformUpdateAction on a single channel
+      const newSettings = channelSettings.slice();
+      if (action.index >= 0 && action.index < channelSettings.length) {
+        newSettings[action.index] = { ...newSettings[action.index], ...action.value };
+      }
+      return newSettings;
     }
-    return newSettings;
   }
 };
 
@@ -126,6 +146,13 @@ const DEFAULT_VIEWER_CONTEXT: ViewerStateContextType = {
   setChannelSettings: nullfn,
   changeChannelSetting: nullfn,
   applyColorPresets: nullfn,
+  resetToSavedViewerState: nullfn,
+  resetToDefaultViewerState: nullfn,
+  setSavedViewerChannelSettings: nullfn,
+  getCurrentViewerChannelSettings: () => getDefaultViewerChannelSettings(),
+  getChannelsAwaitingReset: () => new Set(),
+  getChannelsAwaitingResetOnLoad: () => new Set(),
+  onResetChannel: nullfn,
 };
 
 export const ALL_VIEWER_STATE_KEYS = Object.keys(DEFAULT_VIEWER_CONTEXT) as (keyof ViewerStateContextType)[];
@@ -138,22 +165,35 @@ type ContextRefType = NoNull<React.MutableRefObject<ViewerStateContextType>>;
 export const ViewerStateContext = React.createContext<{ ref: ContextRefType }>(DEFAULT_VIEWER_CONTEXT_OUTER);
 
 /** Provides a central store for the state of the viewer, and the methods to update it. */
-const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState> }> = (props) => {
+const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState>; children?: React.ReactNode }> = (
+  props
+) => {
   const [viewerSettings, viewerDispatch] = useReducer(viewerSettingsReducer, { ...getDefaultViewerState() });
   const [channelSettings, channelDispatch] = useReducer(channelSettingsReducer, []);
   // Provide viewer state via a ref, so that closures that run asynchronously can capture the ref instead of the
   // specific values they need and always have the most up-to-date state.
   const ref = useRef(DEFAULT_VIEWER_CONTEXT);
 
+  const resetProvider = useConstructor(() => new ResetStateProvider(ref));
+  useEffect(() => {
+    resetProvider.setSavedViewerState(props.viewerSettings || {});
+  }, [props.viewerSettings]);
+
   const changeViewerSetting = useCallback<ViewerSettingUpdater>((key, value) => viewerDispatch({ key, value }), []);
 
-  const changeChannelSetting = useCallback<ChannelSettingUpdater>((index, key, value) => {
-    channelDispatch({ index, key, value });
+  const changeChannelSetting = useCallback<ChannelSettingUpdater>((index, value) => {
+    channelDispatch({ type: ChannelSettingActionType.UniformUpdate, index, value });
   }, []);
 
-  const applyColorPresets = useCallback((value: ColorArray[]): void => channelDispatch({ key: "color", value }), []);
+  const applyColorPresets = useCallback(
+    (value: ColorArray[]): void => channelDispatch({ type: ChannelSettingActionType.ArrayUpdate, key: "color", value }),
+    []
+  );
 
-  const setChannelSettings = useCallback((channels: ChannelState[]) => channelDispatch({ value: channels }), []);
+  const setChannelSettings = useCallback(
+    (channels: ChannelState[]) => channelDispatch({ type: ChannelSettingActionType.Init, value: channels }),
+    []
+  );
 
   // Sync viewer settings prop with state
   // React docs seem to be fine with syncing state with props directly in the render function, but that caused an
@@ -177,6 +217,14 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState> }> =
       setChannelSettings,
       changeChannelSetting,
       applyColorPresets,
+      // Reset-related callbacks
+      setSavedViewerChannelSettings: resetProvider.setSavedViewerChannelSettings,
+      getCurrentViewerChannelSettings: resetProvider.getCurrentViewerChannelSettings,
+      getChannelsAwaitingReset: resetProvider.getChannelsAwaitingReset,
+      getChannelsAwaitingResetOnLoad: resetProvider.getChannelsAwaitingResetOnLoad,
+      onResetChannel: resetProvider.onResetChannel,
+      resetToSavedViewerState: resetProvider.resetToSavedViewerState,
+      resetToDefaultViewerState: resetProvider.resetToDefaultViewerState,
     };
 
     // `ref` is wrapped in another object to ensure that the context updates when state does.
@@ -205,8 +253,8 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState> }> =
  */
 export function connectToViewerState<
   Keys extends keyof ViewerStateContextType,
-  Props extends Pick<ViewerStateContextType, Keys>
->(component: React.ComponentType<Props>, keys: Keys[]): React.FC<Omit<Props, Keys>> {
+  Props extends Pick<ViewerStateContextType, Keys>,
+>(component: React.FC<Props>, keys: Keys[]): React.FC<Omit<Props, Keys>> {
   const MemoedComponent = React.memo(component);
 
   const ConnectedComponent: React.FC<Omit<Props, Keys>> = (props) => {

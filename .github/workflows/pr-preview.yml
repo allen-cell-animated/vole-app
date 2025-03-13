@@ -1,0 +1,30 @@
+# Adapted from https://github.com/marketplace/actions/deploy-pr-preview.
+name: GitHub Pages PR Preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency: preview-${{ github.ref }}
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+
+        # Must override default webpack build base so that assets can still be accessed when not placed in the root directory of gh-pages branch.
+      - name: Install and Build
+        run: npm ci && webpack --config webpack.dev.js --env env=production basename=/vole-app/pr-preview/pr-${PR_NUMBER}/
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@430e3dfc1de8a8ae77e77d862d25676ef9db55d1
+        with:
+          source-dir: ./imageviewer/

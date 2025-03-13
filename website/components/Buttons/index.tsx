@@ -6,7 +6,7 @@ import styled from "styled-components";
 // Ant button styling.
 
 // Enforce the primary type for behavior on hover.
-const PrimaryButton = React.forwardRef<HTMLButtonElement>((props, ref) => (
+const PrimaryButton = React.forwardRef<HTMLButtonElement, { children?: React.ReactNode }>((props, ref) => (
   <Button {...props} ref={ref} type="primary">
     {props.children}
   </Button>

@@ -2,7 +2,7 @@
 
 %axis-override {
   /*slider settings*/
-  .noUi-handle {
+  .noUi-horizontal .noUi-handle {
     box-shadow: none;
     cursor: pointer;
     pointer-events: inherit;

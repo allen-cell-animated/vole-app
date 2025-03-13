@@ -13,6 +13,8 @@ type SliderRowProps = {
   onUpdate?: NouisliderProps["onUpdate"];
   onChange?: NouisliderProps["onChange"];
   hideSlider?: boolean;
+
+  children?: React.ReactNode;
 };
 
 const INTEGER_FORMATTER = { to: Math.round, from: Number };

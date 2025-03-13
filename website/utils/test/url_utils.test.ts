@@ -1,32 +1,32 @@
-import { CameraState } from "@aics/volume-viewer";
+import { CameraState } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 
-import {
-  ViewerChannelSettingParams,
-  deserializeViewerChannelSetting,
-  parseViewerUrlParams,
-  parseKeyValueList,
-  parseHexColorAsColorArray,
-  parseStringEnum,
-  parseStringInt,
-  parseStringFloat,
-  serializeViewerChannelSetting,
-  serializeViewerState,
-  deserializeViewerState,
-  ViewerStateParams,
-  serializeViewerUrlParams,
-  CONTROL_POINTS_REGEX,
-  LEGACY_CONTROL_POINTS_REGEX,
-  serializeCameraState,
-} from "../url_utils";
 import { ChannelState, ViewerState } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
-import { ImageType, RenderMode, ViewMode } from "../../../src/aics-image-viewer/shared/enums";
-import { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
 import {
   getDefaultCameraState,
   getDefaultChannelState,
   getDefaultViewerState,
 } from "../../../src/aics-image-viewer/shared/constants";
+import { ImageType, RenderMode, ViewMode } from "../../../src/aics-image-viewer/shared/enums";
+import { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
+import {
+  CONTROL_POINTS_REGEX,
+  deserializeViewerChannelSetting,
+  deserializeViewerState,
+  LEGACY_CONTROL_POINTS_REGEX,
+  parseHexColorAsColorArray,
+  parseKeyValueList,
+  parseStringEnum,
+  parseStringFloat,
+  parseStringInt,
+  parseViewerUrlParams,
+  serializeCameraState,
+  serializeViewerChannelSetting,
+  serializeViewerState,
+  serializeViewerUrlParams,
+  ViewerChannelSettingParams,
+  ViewerStateParams,
+} from "../url_utils";
 
 const defaultSettings: ViewerChannelSetting = {
   match: 0,
@@ -232,6 +232,7 @@ describe("parseStringFloat", () => {
 describe("Channel state serialization", () => {
   const DEFAULT_CHANNEL_STATE: ChannelState = {
     name: "",
+    displayName: "",
     color: [255, 0, 0],
     volumeEnabled: true,
     isosurfaceEnabled: true,
@@ -368,6 +369,7 @@ describe("Channel state serialization", () => {
     it("serializes custom channel settings", () => {
       const customChannelState: ChannelState = {
         name: "a",
+        displayName: "a",
         color: [3, 255, 157],
         volumeEnabled: false,
         isosurfaceEnabled: false,
@@ -489,16 +491,15 @@ describe("Viewer state", () => {
       expect(serializeViewerState(CUSTOM_VIEWER_STATE, false)).toEqual(SERIALIZED_CUSTOM_VIEWER_STATE);
     });
 
-    it("deserializes partial camera settings", () => {
-      const state: Partial<ViewerState> = {
-        cameraState: {
-          position: [1.0, -1.4, 45],
-          up: [0, 1, 0],
-          fov: 43.5,
-        },
+    it("shortens long numbers in the slice and region parameters", () => {
+      // Floats should be rounded to 5 significant digits or less
+      let state: Partial<ViewerState> = {
+        region: { x: [0.4566666666, 0.8667332], y: [0.49999999, 0.8999999], z: [0.3000000001, 0.16467883] },
+        slice: { x: 0.41111186, y: 0.49999999, z: 0.677402 },
       };
-      const serializedState = "pos:1:-1.4:45,up:0:1:0,fov:43.5";
-      expect(deserializeViewerState({ cam: serializedState })).toEqual(state);
+      let serializedState = serializeViewerState(state, true);
+      expect(serializedState.reg).toEqual("0.45667:0.86673,0.5:0.9,0.3:0.16468");
+      expect(serializedState.slice).toEqual("0.41111,0.5,0.6774");
     });
   });
 
@@ -531,6 +532,18 @@ describe("Viewer state", () => {
         const state: ViewerState = { ...DEFAULT_VIEWER_STATE, renderMode };
         expect(deserializeViewerState(serializeViewerState(state, false)).renderMode).toEqual(renderMode);
       }
+    });
+
+    it("deserializes partial camera settings", () => {
+      const state: Partial<ViewerState> = {
+        cameraState: {
+          position: [1.0, -1.4, 45],
+          up: [0, 1, 0],
+          fov: 43.5,
+        },
+      };
+      const serializedState = "pos:1:-1.4:45,up:0:1:0,fov:43.5";
+      expect(deserializeViewerState({ cam: serializedState })).toEqual(state);
     });
   });
 });
@@ -794,6 +807,7 @@ describe("serializeViewerUrlParams", () => {
     const channelStates: ChannelState[] = [
       {
         name: "channel0",
+        displayName: "channel0",
         color: [255, 0, 0],
         volumeEnabled: true,
         isosurfaceEnabled: true,
@@ -810,6 +824,7 @@ describe("serializeViewerUrlParams", () => {
       },
       {
         name: "channel1",
+        displayName: "channel1",
         color: [128, 128, 128],
         volumeEnabled: false,
         isosurfaceEnabled: false,

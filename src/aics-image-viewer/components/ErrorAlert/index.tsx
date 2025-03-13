@@ -1,7 +1,7 @@
-import React from "react";
-import { Alert, Button } from "antd";
+import { VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
 import { RightOutlined } from "@ant-design/icons";
-import { VolumeLoadError, VolumeLoadErrorType } from "@aics/volume-viewer";
+import { Alert, Button } from "antd";
+import React from "react";
 
 import { useConstructor } from "../../shared/utils/hooks";
 
@@ -9,9 +9,7 @@ import "./styles.css";
 
 const IssueLink: React.FC<React.PropsWithChildren<{ bug?: boolean }>> = ({ bug, children }) => (
   <a
-    href={`https://github.com/allen-cell-animated/website-3d-cell-viewer/issues/new${
-      bug ? "?template=bug_report.md" : "/choose"
-    }`}
+    href={`https://github.com/allen-cell-animated/vole-app/issues/new${bug ? "?template=bug_report.md" : "/choose"}`}
     target="_blank"
     rel="noreferrer noopener"
   >
@@ -140,6 +138,7 @@ export const useErrorAlert = (): [React.ReactNode, (error: unknown) => void] => 
   const [errorCounts, setErrorCounts] = React.useState<number[]>([]);
 
   const addError = React.useCallback((error: unknown) => {
+    console.error(error);
     const errorTitle = getErrorTitle(error);
     const errorSeenCount = (seenErrors.get(errorTitle) ?? 0) + 1;
 

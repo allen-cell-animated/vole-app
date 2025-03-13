@@ -1,4 +1,4 @@
-import type { RawArrayData, RawArrayInfo, View3d, Volume } from "@aics/volume-viewer";
+import type { RawArrayData, RawArrayInfo, View3d, Volume } from "@aics/vole-core";
 import { MutableRefObject } from "react";
 
 import type { MetadataRecord } from "../../shared/types";

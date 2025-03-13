@@ -6,11 +6,11 @@ import { Styles } from "../shared/types";
 import { ViewerSettingUpdater } from "./ViewerStateProvider/types";
 import { connectToViewerState } from "./ViewerStateProvider";
 
-const ColorPickerRow: React.FC<{ color: ColorArray; onColorChange: (color: ColorArray) => void }> = ({
-  color,
-  onColorChange,
-  children,
-}) => (
+const ColorPickerRow: React.FC<{
+  color: ColorArray;
+  onColorChange: (color: ColorArray) => void;
+  children?: React.ReactNode;
+}> = ({ color, onColorChange, children }) => (
   <div style={STYLES.colorPickerRow}>
     <span style={STYLES.colorPicker}>
       <ColorPicker
