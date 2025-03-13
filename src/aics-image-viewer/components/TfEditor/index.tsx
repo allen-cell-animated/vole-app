@@ -42,6 +42,17 @@ const TFEDITOR_MARGINS = {
 
 const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
 
+const DTYPE_RANGE: { [T in Channel["dtype"]]: [number, number] } = {
+  int8: [-Math.pow(2, 7), Math.pow(2, 7) - 1],
+  int16: [-Math.pow(2, 15), Math.pow(2, 15) - 1],
+  int32: [-Math.pow(2, 31), Math.pow(2, 31) - 1],
+  uint8: [0, Math.pow(2, 8) - 1],
+  uint16: [0, Math.pow(2, 16) - 1],
+  uint32: [0, Math.pow(2, 32) - 1],
+  float32: [-Infinity, Infinity],
+  float64: [-Infinity, Infinity],
+};
+
 const enum TfEditorRampSliderHandle {
   Min = "min",
   Max = "max",
