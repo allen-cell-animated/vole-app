@@ -1,10 +1,11 @@
 import React, { lazy } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
 import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
+import LocalStorageReceiver from "./LocalStorageReceiver";
 
 import "./App.css";
 
@@ -33,15 +34,20 @@ if (locationUrl.hash !== "" || isEncodedPathUrl(locationUrl)) {
 }
 
 // TODO these components are now lazy loaded. Should they get `Suspense`s around them? What should we fall back to?
-const routes = [
+const routes: RouteObject[] = [
   {
     path: "/",
-    element: <LandingPage />,
+    Component: LandingPage,
     errorElement: <ErrorPage />,
   },
   {
     path: "viewer",
-    element: <AppWrapper />,
+    Component: AppWrapper,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "write_storage",
+    Component: LocalStorageReceiver,
     errorElement: <ErrorPage />,
   },
 ];
