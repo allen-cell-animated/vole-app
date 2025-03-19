@@ -1,7 +1,7 @@
 import React from "react";
 
 const LocalStorageReceiver: React.FC = () => {
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const receiveMessage = (e: MessageEvent) => {
       console.log(e.data);
     };

@@ -1,18 +1,14 @@
-import React, { lazy } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
 import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
+import ErrorPage from "../website/components/ErrorPage";
 import LocalStorageReceiver from "./LocalStorageReceiver";
 
 import "./App.css";
-
-// Components
-const AppWrapper = lazy(() => import("../website/components/AppWrapper"));
-const ErrorPage = lazy(() => import("../website/components/ErrorPage"));
-const LandingPage = lazy(() => import("../website/components/LandingPage"));
 
 // vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
@@ -37,17 +33,20 @@ if (locationUrl.hash !== "" || isEncodedPathUrl(locationUrl)) {
 const routes: RouteObject[] = [
   {
     path: "/",
-    Component: LandingPage,
+    lazy: async () => ({ Component: (await import("../website/components/LandingPage")).default }),
     errorElement: <ErrorPage />,
   },
   {
     path: "viewer",
-    Component: AppWrapper,
+    lazy: async () => {
+      console.log("lazy");
+      return { Component: (await import("../website/components/AppWrapper")).default };
+    },
     errorElement: <ErrorPage />,
   },
   {
     path: "write_storage",
-    Component: LocalStorageReceiver,
+    element: <LocalStorageReceiver />,
     errorElement: <ErrorPage />,
   },
 ];
