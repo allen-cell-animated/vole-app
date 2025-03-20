@@ -9,7 +9,7 @@ const LocalStorageReceiver: React.FC = () => {
         return;
       }
 
-      window.localStorage.setItem("scenes", encodeImageUrlProp(e.data));
+      window.localStorage.setItem("url", encodeImageUrlProp(e.data));
       (e.source as Window)?.postMessage("SUCCESS", e.origin);
     };
 
