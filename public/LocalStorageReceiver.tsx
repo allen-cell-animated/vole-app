@@ -1,5 +1,7 @@
 import React from "react";
 
+import { encodeImageUrlProp } from "../website/utils/url_utils.ts";
+
 const LocalStorageReceiver: React.FC = () => {
   React.useLayoutEffect(() => {
     const receiveMessage = (e: MessageEvent) => {
@@ -7,7 +9,7 @@ const LocalStorageReceiver: React.FC = () => {
         return;
       }
 
-      window.localStorage.setItem("scenes", e.data);
+      window.localStorage.setItem("scenes", encodeImageUrlProp(e.data));
       (e.source as Window)?.postMessage("SUCCESS", e.origin);
     };
 
