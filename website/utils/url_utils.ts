@@ -1,7 +1,7 @@
 import { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
-import FirebaseRequest, { DatasetMetaData } from "../../public/firebase";
+import FirebaseRequest, { type DatasetMetaData } from "../../public/firebase";
 import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 import type {
   ChannelState,
@@ -14,9 +14,9 @@ import {
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import { PerAxis } from "../../src/aics-image-viewer/shared/types";
+import type { PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
-import {
+import type {
   ViewerChannelSetting,
   ViewerChannelSettings,
 } from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
@@ -674,6 +674,15 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
 }
 
 //// DATA SERIALIZATION //////////////////////
+
+export function encodeImageUrlProp(imageUrl: string | string[] | MultisceneUrls): string {
+  // work with an array of scenes, even if there's only one scene
+  const scenes = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
+  // join urls in multi-source images with commas
+  const sceneUrlsUnencoded = scenes.map((scene) => (Array.isArray(scene) ? scene.join(",") : scene));
+  // join scenes with spaces, and encode the whole string
+  return encodeURIComponent(sceneUrlsUnencoded.join(" "));
+}
 
 /**
  * Parses a ViewerChannelSetting from a JSON object.

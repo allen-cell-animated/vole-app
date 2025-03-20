@@ -1,15 +1,14 @@
 import { faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Divider, Tooltip } from "antd";
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { type ReactElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
-import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import { BannerVideo } from "../../assets/videos";
-import { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
-import { parseViewerUrlParams } from "../../utils/url_utils";
+import type { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
+import { encodeImageUrlProp, parseViewerUrlParams } from "../../utils/url_utils";
 import { landingPageContent } from "./content";
 import { FlexColumn, FlexColumnAlignCenter, FlexRowAlignCenter, VisuallyHidden } from "./utils";
 
@@ -254,9 +253,7 @@ export default function LandingPage(): ReactElement {
   const onClickLoad = (appProps: AppDataProps): void => {
     // TODO: Make URL search params from the appProps and append it to the viewer URL so the URL can be shared directly.
     // Alternatively, AppWrapper should manage syncing URL and viewer props.
-    const urls = (appProps.imageUrl as MultisceneUrls).scenes ?? [appProps.imageUrl];
-    const sceneUrlsUnencoded = urls.map((scene) => (Array.isArray(scene) ? scene.join(",") : scene));
-    navigation(`/viewer?url=${encodeURIComponent(sceneUrlsUnencoded.join(" "))}`, {
+    navigation(`/viewer?url=${encodeImageUrlProp(appProps.imageUrl)}`, {
       state: appProps,
     });
   };
