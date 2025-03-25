@@ -108,6 +108,10 @@ function u8ToAbsolute(value: number, channel: Channel): number {
   return channel.rawMin + (value / 255) * (channel.rawMax - channel.rawMin);
 }
 
+function absoluteToU8(value: number, channel: Channel): number {
+  return ((value - channel.rawMin) / (channel.rawMax - channel.rawMin)) * 255;
+}
+
 function controlPointToAbsolute(cp: ControlPoint, channel: Channel): number {
   // the x value of the control point is in the range [0, 255]
   // because of the way the histogram is generated
@@ -516,7 +520,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             Min{" "}
             <InputNumber
               value={u8ToAbsolute(props.ramp[0], props.channelData)}
-              onChange={(v) => v !== null && setRamp([v, props.ramp[1]])}
+              onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
               formatter={numberFormatter}
               min={0}
               max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), props.channelData.rawMax)}
@@ -527,7 +531,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             Max{" "}
             <InputNumber
               value={u8ToAbsolute(props.ramp[1], props.channelData)}
-              onChange={(v) => v !== null && setRamp([props.ramp[0], v])}
+              onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
               formatter={numberFormatter}
               min={Math.max(0, u8ToAbsolute(props.ramp[0], props.channelData))}
               max={props.channelData.rawMax}
