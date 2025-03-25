@@ -10,6 +10,11 @@ const LocalStorageReceiver: React.FC = () => {
       }
 
       window.localStorage.setItem("url", encodeImageUrlProp(e.data));
+      if (e.data.meta !== undefined) {
+        window.localStorage.setItem("meta", JSON.stringify(e.data.meta));
+      } else {
+        window.localStorage.removeItem("meta");
+      }
       (e.source as Window)?.postMessage("SUCCESS", e.origin);
     };
 

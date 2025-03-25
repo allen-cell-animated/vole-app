@@ -971,7 +971,8 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
   // Parse data sources (URL or dataset/id pair)
   if (params.url) {
-    const urlParam = params.url === URL_FETCH_FROM_STORAGE ? (localStorage.getItem("url") ?? params.url) : params.url;
+    const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
+    const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url) : params.url;
     // split encoded url into a list of one or more scenes...
     const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
     // ...and each scene into a list of multiple sources, if any.
@@ -983,6 +984,11 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
     // Strip away unneeded structure from final prop (don't represent a multiscene or multi-source image unless needed)
     const imageUrls: string | string[] | MultisceneUrls =
       scenes.length > 1 ? { scenes } : firstScene.length > 1 ? firstScene : firstScene[0];
+
+    if (getFromStorage) {
+      const metadataJson = localStorage.getItem("meta");
+      args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
+    }
 
     args.cellId = "1";
     args.imageUrl = imageUrls;
