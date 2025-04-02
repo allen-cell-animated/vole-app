@@ -4,6 +4,7 @@ import { Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 
+import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import { ViewerStateContextType } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { AppDataProps } from "../../types";
 import { ENCODED_COLON_REGEX, ENCODED_COMMA_REGEX, serializeViewerUrlParams } from "../../utils/url_utils";
@@ -40,14 +41,20 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   };
 
   const urlParams: string[] = [];
+  const { imageUrl } = props.appProps;
 
-  if (props.appProps.imageUrl) {
-    let serializedUrl;
-    if (props.appProps.imageUrl instanceof Array) {
-      serializedUrl = props.appProps.imageUrl.map((url) => encodeURIComponent(url)).join(",");
-    } else {
-      serializedUrl = encodeURIComponent(props.appProps.imageUrl);
-    }
+  if (imageUrl) {
+    const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
+    const serializedUrl = urls
+      .map((scene) => {
+        if (Array.isArray(scene)) {
+          return scene.map((url) => encodeURIComponent(url)).join(",");
+        } else {
+          return encodeURIComponent(scene);
+        }
+      })
+      .join("+");
+
     urlParams.push(`url=${serializedUrl}`);
   }
 

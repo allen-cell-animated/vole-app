@@ -2,6 +2,7 @@ import { View3d, Volume } from "@aics/vole-core";
 import { LoadingOutlined } from "@ant-design/icons";
 import React from "react";
 
+import { CLIPPING_PANEL_HEIGHT_DEFAULT, CLIPPING_PANEL_HEIGHT_TALL } from "../../shared/constants";
 import { ViewMode } from "../../shared/enums";
 import { AxisName, PerAxis, Styles } from "../../shared/types";
 import PlayControls from "../../shared/utils/playControls";
@@ -24,10 +25,11 @@ type ViewerWrapperProps = {
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
   numTimesteps: number;
+  numScenes: number;
   visibleControls: {
     axisClipSliders: boolean;
   };
-  onClippingPanelVisibleChange?: (panelOpen: boolean, hasTime: boolean) => void;
+  onClippingPanelVisibleChange?: (panelOpen: boolean, hasTime: boolean, hasScenes: boolean, mode3d: boolean) => void;
   onClippingPanelVisibleChangeEnd?: (panelOpen: boolean) => void;
 
   // From viewer state
@@ -36,6 +38,7 @@ type ViewerWrapperProps = {
   region: PerAxis<[number, number]>;
   slice: PerAxis<number>;
   time: number;
+  scene: number;
   changeViewerSetting: ViewerSettingUpdater;
 };
 
@@ -69,28 +72,34 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
     return noImageText || spinner;
   };
 
-  const { appHeight, changeViewerSetting, visibleControls, numSlices, numTimesteps, viewMode, region, slice, time } =
+  const { appHeight, changeViewerSetting, visibleControls, numTimesteps, numScenes, viewMode, region, slice, time } =
     props;
+  const clippingPanelTall = numTimesteps > 1 && numScenes > 1 && viewMode === ViewMode.threeD;
 
   return (
     <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
       <div ref={view3dviewerRef} style={STYLES.view3d}></div>
       <BottomPanel
         title="Clipping"
-        onVisibleChange={(visible) => props.onClippingPanelVisibleChange?.(visible, numTimesteps > 1)}
+        onVisibleChange={(visible) => {
+          props.onClippingPanelVisibleChange?.(visible, numTimesteps > 1, numScenes > 1, viewMode === ViewMode.threeD);
+        }}
         onVisibleChangeEnd={props.onClippingPanelVisibleChangeEnd}
+        height={clippingPanelTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT}
       >
         {visibleControls.axisClipSliders && !!props.image && (
           <AxisClipSliders
             mode={viewMode}
             image={props.image}
             changeViewerSetting={changeViewerSetting}
-            numSlices={numSlices}
+            numSlices={props.numSlices}
             numSlicesLoaded={props.numSlicesLoaded}
+            numScenes={numScenes}
             region={region}
             slices={slice}
             numTimesteps={numTimesteps}
             time={time}
+            scene={props.scene}
             playControls={props.playControls}
             playingAxis={props.playingAxis}
           />
@@ -107,6 +116,7 @@ export default connectToViewerState(ViewerWrapper, [
   "region",
   "slice",
   "time",
+  "scene",
   "changeViewerSetting",
 ]);
 
