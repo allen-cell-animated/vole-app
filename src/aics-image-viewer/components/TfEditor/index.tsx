@@ -186,7 +186,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
-  const xScale = useMemo(
+  const xScaleU8 = useMemo(
     () => d3.scaleLinear().domain([0, TFEDITOR_MAX_BIN]).rangeRound([0, innerWidth]),
     [innerWidth]
   );
@@ -199,7 +199,10 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
     const svgRect = svgRef.current?.getBoundingClientRect() ?? { x: 0, y: 0 };
     return [
-      xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)),
+      absoluteToU8(
+        xScaleRaw.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)),
+        props.channelData
+      ),
       yScale.invert(clamp(event.clientY - svgRect.y - TFEDITOR_MARGINS.top, 0, innerHeight)),
     ];
   };
