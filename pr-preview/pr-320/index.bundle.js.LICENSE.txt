@@ -48,12 +48,6 @@ and limitations under the License.
 
 /**
  * @license
- * Copyright 2010-2022 Three.js Authors
- * SPDX-License-Identifier: MIT
- */
-
-/**
- * @license
  * Copyright 2010-2024 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
