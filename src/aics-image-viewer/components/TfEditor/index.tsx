@@ -191,14 +191,18 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [colorPickerPosition, setColorPickerPosition] = useState<[number, number] | null>(null);
   const lastColorRef = useRef<ColorArray>(TFEDITOR_DEFAULT_COLOR);
 
+  const [xScaleLockedToRange, setXScaleLockedToRange] = useState<boolean>(true);
+  const [xScaleMax, setXScaleMax] = useState<number>(DTYPE_RANGE[props.channelData.dtype][1]);
+
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
-  const xScale = useMemo(
-    () => d3.scaleLinear().domain([props.channelData.rawMin, props.channelData.rawMax]).range([0, innerWidth]),
-    [innerWidth, props.channelData]
-  );
+  const xScale = useMemo(() => {
+    const { rawMin, rawMax, dtype } = props.channelData;
+    const domain = xScaleLockedToRange ? [rawMin, rawMax] : [DTYPE_RANGE[dtype][0], xScaleMax];
+    return d3.scaleLinear().domain(domain).range([0, innerWidth]);
+  }, [innerWidth, props.channelData, xScaleLockedToRange, xScaleMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -404,7 +408,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [props.channelData.histogram, innerWidth, innerHeight]
+    [xScale, props.channelData.histogram, innerWidth, innerHeight]
   );
 
   const applyTFGenerator = useCallback(
@@ -520,6 +524,28 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           )}
         </g>
       </svg>
+
+      {/* ----- PLOT RAMGE ----- */}
+      <div className="tf-editor-numeric-input-row">
+        <span>
+          <Checkbox checked={xScaleLockedToRange} onChange={(e) => setXScaleLockedToRange(e.target.checked)}>
+            Lock to data range
+          </Checkbox>
+        </span>
+        {!xScaleLockedToRange && (
+          <span>
+            Plot max{" "}
+            <InputNumber
+              value={xScaleMax}
+              onChange={(v) => v !== null && setXScaleMax(v)}
+              formatter={numberFormatter}
+              min={DTYPE_RANGE[props.channelData.dtype][0]}
+              max={DTYPE_RANGE[props.channelData.dtype][1]}
+              size="small"
+            />
+          </span>
+        )}
+      </div>
 
       {/* ----- MIN/MAX SPINBOXES ----- */}
       {!props.useControlPoints && (
