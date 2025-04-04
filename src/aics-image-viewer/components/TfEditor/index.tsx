@@ -37,17 +37,17 @@ const TFEDITOR_MARGINS = {
 
 const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
 
-const DTYPE_RANGE: { [T in Channel["dtype"]]: [number, number] } = {
-  int8: [-Math.pow(2, 7), Math.pow(2, 7) - 1],
-  int16: [-Math.pow(2, 15), Math.pow(2, 15) - 1],
-  int32: [-Math.pow(2, 31), Math.pow(2, 31) - 1],
-  uint8: [0, Math.pow(2, 8) - 1],
-  uint16: [0, Math.pow(2, 16) - 1],
-  uint32: [0, Math.pow(2, 32) - 1],
+const DTYPE_RANGE: { [T in Channel["dtype"]]: { min: number; max: number } } = {
+  int8: { min: -Math.pow(2, 7), max: Math.pow(2, 7) - 1 },
+  int16: { min: -Math.pow(2, 15), max: Math.pow(2, 15) - 1 },
+  int32: { min: -Math.pow(2, 31), max: Math.pow(2, 31) - 1 },
+  uint8: { min: 0, max: Math.pow(2, 8) - 1 },
+  uint16: { min: 0, max: Math.pow(2, 16) - 1 },
+  uint32: { min: 0, max: Math.pow(2, 32) - 1 },
   // These are obviously not the actual min and max representable values for floats, but the actual ones (`-Infinity`
   // and `Infinity`) would give us nonsense. These may also produce nonsense, but these types should be rare anyways.
-  float32: [0, Math.pow(2, 8) - 1],
-  float64: [0, Math.pow(2, 8) - 1],
+  float32: { min: 0, max: Math.pow(2, 8) - 1 },
+  float64: { min: 0, max: Math.pow(2, 8) - 1 },
 };
 
 const enum TfEditorRampSliderHandle {
@@ -194,15 +194,16 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
   const { rawMin, rawMax, dtype } = props.channelData;
+  const typeRange = DTYPE_RANGE[dtype];
   const [xScaleLockedToRange, setXScaleLockedToRange] = useState<boolean>(true);
-  const [xScaleMax, setXScaleMax] = useState<number>(DTYPE_RANGE[dtype][1]);
+  const [xScaleMax, setXScaleMax] = useState<number>(typeRange.max);
   // data type can change when the channel loads
-  useEffect(() => setXScaleMax(DTYPE_RANGE[dtype][1]), [dtype]);
+  useEffect(() => setXScaleMax(typeRange.max), [typeRange]);
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
   const xScale = useMemo(() => {
-    const domain = xScaleLockedToRange ? [rawMin, rawMax] : [DTYPE_RANGE[dtype][0], xScaleMax];
+    const domain = xScaleLockedToRange ? [rawMin, rawMax] : [typeRange.min, xScaleMax];
     return d3.scaleLinear().domain(domain).range([0, innerWidth]);
   }, [innerWidth, rawMin, rawMax, dtype, xScaleLockedToRange, xScaleMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
@@ -346,10 +347,24 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     }
   };
 
-  const controlPointsToRender = useMemo(
-    () => (props.useControlPoints ? props.controlPoints : rampToControlPoints(props.ramp)),
-    [props.controlPoints, props.ramp, props.useControlPoints]
-  );
+  const controlPointsToRender = useMemo(() => {
+    const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
+
+    // Add some dummy points to get the function covering the full plot
+    const firstPoint = points[0];
+    if (u8ToAbsolute(firstPoint.x, props.channelData) > typeRange.min) {
+      const x = absoluteToU8(xScale.domain()[0], props.channelData);
+      const { opacity, color } = firstPoint;
+      points.unshift({ x, opacity, color });
+    }
+    const lastPoint = points[points.length - 1];
+    if (u8ToAbsolute(lastPoint.x, props.channelData) < typeRange.max) {
+      const x = absoluteToU8(xScale.domain()[1], props.channelData);
+      const { opacity, color } = lastPoint;
+      points.push({ x, opacity, color });
+    }
+    return points;
+  }, [props.controlPoints, props.ramp, props.useControlPoints, xScale, props.channelData, typeRange]);
 
   /** d3-generated svg data string representing both the line between points and the region filled with gradient */
   const areaPath = useMemo(() => {
