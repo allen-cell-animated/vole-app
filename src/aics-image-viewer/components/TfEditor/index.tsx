@@ -5,12 +5,7 @@ import "nouislider/distribute/nouislider.css";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
-import {
-  LUT_MAX_PERCENTILE,
-  LUT_MIN_PERCENTILE,
-  TFEDITOR_DEFAULT_COLOR,
-  TFEDITOR_MAX_BIN,
-} from "../../shared/constants";
+import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
 import {
   ColorArray,
   colorArrayToObject,
