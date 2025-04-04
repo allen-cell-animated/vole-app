@@ -267,10 +267,13 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
-  const xScale = useMemo(() => {
+  const [xScale, plotMinU8, plotMaxU8] = useMemo(() => {
     const domain = xScaleLockedToRange ? [rawMin, rawMax] : [typeRange.min, xScaleMax];
-    return d3.scaleLinear().domain(domain).range([0, innerWidth]);
-  }, [innerWidth, rawMin, rawMax, dtype, xScaleLockedToRange, xScaleMax]);
+    const scale = d3.scaleLinear().domain(domain).range([0, innerWidth]);
+    const plotMin = absoluteToU8(domain[0], props.channelData);
+    const plotMax = absoluteToU8(domain[1], props.channelData);
+    return [scale, plotMin, plotMax];
+  }, [innerWidth, rawMin, rawMax, typeRange, xScaleLockedToRange, xScaleMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -414,10 +417,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const controlPointsToRender = useMemo(() => {
     const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
-    const plotMin = absoluteToU8(xScale.domain()[0], props.channelData);
-    const plotMax = absoluteToU8(xScale.domain()[1], props.channelData);
-    return fitControlPointsToRange(points, plotMin, plotMax);
-  }, [props.controlPoints, props.ramp, props.useControlPoints, xScale, props.channelData, typeRange]);
+    return fitControlPointsToRange(points, plotMinU8, plotMaxU8);
+  }, [props.controlPoints, props.ramp, props.useControlPoints, plotMinU8, plotMaxU8]);
 
   /** d3-generated svg data string representing both the line between points and the region filled with gradient */
   const areaPath = useMemo(() => {
@@ -503,18 +504,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   // create one svg circle element for each control point
   const controlPointCircles = props.useControlPoints
-    ? props.controlPoints.map((cp, i) => (
-        <circle
-          key={i}
-          className={i === selectedPointIdx ? "selected" : ""}
-          cx={xScale(controlPointToAbsolute(cp, props.channelData))}
-          cy={yScale(cp.opacity)}
-          style={{ fill: colorArrayToString(cp.color) }}
-          r={5}
-          onPointerDown={() => setDraggedPointIdx(i)}
-          onContextMenu={handleControlPointContextMenu}
-        />
-      ))
+    ? props.controlPoints
+        .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
+        .map((cp, i) => (
+          <circle
+            key={i}
+            className={i === selectedPointIdx ? "selected" : ""}
+            cx={xScale(controlPointToAbsolute(cp, props.channelData))}
+            cy={yScale(cp.opacity)}
+            style={{ fill: colorArrayToString(cp.color) }}
+            r={5}
+            onPointerDown={() => setDraggedPointIdx(i)}
+            onContextMenu={handleControlPointContextMenu}
+          />
+        ))
     : null;
   // move selected control point to the end so it's not occluded by other nearby points
   if (controlPointCircles !== null && selectedPointIdx !== null) {
