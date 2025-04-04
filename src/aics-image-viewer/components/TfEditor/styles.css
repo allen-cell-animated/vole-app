@@ -64,7 +64,7 @@
 
   .line {
     stroke: $light-gray;
-    stroke-width: 1.5px;
+    stroke-width: 1px;
   }
 
   .ramp-sliders {
