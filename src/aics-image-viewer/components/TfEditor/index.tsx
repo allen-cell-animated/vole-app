@@ -127,6 +127,71 @@ function controlPointToAbsolute(cp: ControlPoint, channel: Channel): number {
   return u8ToAbsolute(cp.x, channel);
 }
 
+/** For when all control points are outside the plot's range: just fill the plot with the settings from 1 point */
+const coverRangeWithPoint = (point: ControlPoint, plotMin: number, plotMax: number): ControlPoint[] => {
+  return [
+    { ...point, x: plotMin },
+    { ...point, x: plotMax },
+  ];
+};
+
+/** For when some control points are outside the plot's range: create an intermediate point on the edge of the range */
+const createPointOnRangeBoundary = (outOfRangePt: ControlPoint, inRangePt: ControlPoint, x: number): ControlPoint => {
+  const rangeRatio = (x - outOfRangePt.x) / (inRangePt.x - outOfRangePt.x);
+  const opacity = outOfRangePt.opacity + (inRangePt.opacity - outOfRangePt.opacity) * rangeRatio;
+  const color = outOfRangePt.color.map((c, i) => c + (inRangePt.color[i] - c) * rangeRatio) as ColorArray;
+  return { x, opacity, color };
+};
+
+const fitControlPointsToRange = (controlPoints: ControlPoint[], plotMin: number, plotMax: number): ControlPoint[] => {
+  const points = controlPoints.slice();
+
+  const firstPoint = points[0];
+  const lastPoint = points[points.length - 1];
+
+  // If all control points are outside the range, just fill the range with the first or last point.
+  if (lastPoint.x < plotMin) {
+    return coverRangeWithPoint(lastPoint, plotMin, plotMax);
+  }
+  if (firstPoint.x > plotMax) {
+    return coverRangeWithPoint(firstPoint, plotMin, plotMax);
+  }
+
+  if (firstPoint.x > plotMin) {
+    // If the control points don't go all the way to the min, add a new point at the min.
+    points.unshift({ ...firstPoint, x: plotMin });
+  } else {
+    // If some control points are out of range, remove those points...
+    let outOfRangePoint: ControlPoint | undefined = undefined;
+    while (points[0].x < plotMin && points.length > 1) {
+      outOfRangePoint = points.shift();
+    }
+
+    // ...and create a new point at the edge of the range.
+    if (outOfRangePoint !== undefined) {
+      points.unshift(createPointOnRangeBoundary(outOfRangePoint, points[0], plotMin));
+    }
+  }
+
+  if (lastPoint.x < plotMax) {
+    // If the control points don't go all the way to the max, add a new point at the max.
+    points.push({ ...firstPoint, x: plotMax });
+  } else {
+    // If some control points are out of range, remove those points...
+    let outOfRangePoint: ControlPoint | undefined = undefined;
+    while (points[points.length - 1].x > plotMax && points.length > 1) {
+      outOfRangePoint = points.pop();
+    }
+
+    // ...and create a new point at the edge of the range.
+    if (outOfRangePoint !== undefined) {
+      points.push(createPointOnRangeBoundary(outOfRangePoint, points[points.length - 1], plotMax));
+    }
+  }
+
+  return points;
+};
+
 /** Defines an SVG gradient with id `id` based on the provided `controlPoints` */
 const ControlPointGradientDef: React.FC<{ controlPoints: ControlPoint[]; id: string }> = ({ controlPoints, id }) => {
   const range = controlPoints[controlPoints.length - 1].x - controlPoints[0].x;
@@ -351,59 +416,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
     const plotMin = absoluteToU8(xScale.domain()[0], props.channelData);
     const plotMax = absoluteToU8(xScale.domain()[1], props.channelData);
-
-    const firstPoint = points[0];
-    if (firstPoint.x > plotMin) {
-      // If the first control point is not at the min, add a new one at the min so the function covers the whole plot.
-      const { opacity, color } = firstPoint;
-      points.unshift({ x: plotMin, opacity, color });
-      // console.log(plotMin, points[0].x);
-    } else {
-      let outOfRangePoint: ControlPoint | undefined = undefined;
-      while (points[0].x < plotMin && points.length > 1) {
-        outOfRangePoint = points.shift();
-      }
-      if (outOfRangePoint !== undefined) {
-        if (points.length === 1 && outOfRangePoint.x < plotMin) {
-          const { opacity, color } = outOfRangePoint;
-          return [
-            { x: plotMin, opacity, color },
-            { x: plotMax, opacity, color },
-          ];
-        }
-        const inRangePoint = points[0];
-        const rangeRatio = (plotMin - outOfRangePoint.x) / (inRangePoint.x - outOfRangePoint.x);
-        const opacity = outOfRangePoint.opacity + (inRangePoint.opacity - outOfRangePoint.opacity) * rangeRatio;
-        const color = outOfRangePoint.color.map((c, i) => c + (inRangePoint.color[i] - c) * rangeRatio);
-        points.unshift({ x: plotMin, opacity, color: color as ColorArray });
-      }
-    }
-
-    const lastPoint = points[points.length - 1];
-    if (lastPoint.x < plotMax) {
-      const { opacity, color } = lastPoint;
-      points.push({ x: plotMax, opacity, color });
-    } else {
-      let outOfRangePoint: ControlPoint | undefined = undefined;
-      while (points[points.length - 1].x > plotMax && points.length > 1) {
-        outOfRangePoint = points.pop();
-      }
-      if (outOfRangePoint !== undefined) {
-        if (points.length === 1 && outOfRangePoint.x > plotMax) {
-          const { opacity, color } = outOfRangePoint;
-          return [
-            { x: plotMin, opacity, color },
-            { x: plotMax, opacity, color },
-          ];
-        }
-        const inRangePoint = points[points.length - 1];
-        const rangeRatio = (plotMax - outOfRangePoint.x) / (inRangePoint.x - outOfRangePoint.x);
-        const opacity = outOfRangePoint.opacity + (inRangePoint.opacity - outOfRangePoint.opacity) * rangeRatio;
-        const color = outOfRangePoint.color.map((c, i) => c + (inRangePoint.color[i] - c) * rangeRatio);
-        points.push({ x: plotMax, opacity, color: color as ColorArray });
-      }
-    }
-    return points;
+    return fitControlPointsToRange(points, plotMin, plotMax);
   }, [props.controlPoints, props.ramp, props.useControlPoints, xScale, props.channelData, typeRange]);
 
   /** d3-generated svg data string representing both the line between points and the region filled with gradient */
