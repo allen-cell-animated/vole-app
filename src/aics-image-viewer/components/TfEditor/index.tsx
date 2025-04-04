@@ -196,15 +196,13 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const { rawMin, rawMax, dtype } = props.channelData;
   const [xScaleLockedToRange, setXScaleLockedToRange] = useState<boolean>(true);
   const [xScaleMax, setXScaleMax] = useState<number>(DTYPE_RANGE[dtype][1]);
+  // data type can change when the channel loads
   useEffect(() => setXScaleMax(DTYPE_RANGE[dtype][1]), [dtype]);
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
   const xScale = useMemo(() => {
     const domain = xScaleLockedToRange ? [rawMin, rawMax] : [DTYPE_RANGE[dtype][0], xScaleMax];
-    if (!xScaleLockedToRange) {
-      console.log(rawMin, rawMax, dtype);
-    }
     return d3.scaleLinear().domain(domain).range([0, innerWidth]);
   }, [innerWidth, rawMin, rawMax, dtype, xScaleLockedToRange, xScaleMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
