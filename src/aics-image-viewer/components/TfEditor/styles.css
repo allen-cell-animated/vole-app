@@ -30,6 +30,7 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
+    min-height: 24px;
     color: var(--color-controlpanel-text);
 
     .ant-input-number {
