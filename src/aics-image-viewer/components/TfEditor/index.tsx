@@ -349,19 +349,59 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const controlPointsToRender = useMemo(() => {
     const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
+    const plotMin = absoluteToU8(xScale.domain()[0], props.channelData);
+    const plotMax = absoluteToU8(xScale.domain()[1], props.channelData);
 
-    // Add some dummy points to get the function covering the full plot
     const firstPoint = points[0];
-    if (u8ToAbsolute(firstPoint.x, props.channelData) > typeRange.min) {
-      const x = absoluteToU8(xScale.domain()[0], props.channelData);
+    if (firstPoint.x > plotMin) {
+      // If the first control point is not at the min, add a new one at the min so the function covers the whole plot.
       const { opacity, color } = firstPoint;
-      points.unshift({ x, opacity, color });
+      points.unshift({ x: plotMin, opacity, color });
+      // console.log(plotMin, points[0].x);
+    } else {
+      let outOfRangePoint: ControlPoint | undefined = undefined;
+      while (points[0].x < plotMin && points.length > 1) {
+        outOfRangePoint = points.shift();
+      }
+      if (outOfRangePoint !== undefined) {
+        if (points.length === 1 && outOfRangePoint.x < plotMin) {
+          const { opacity, color } = outOfRangePoint;
+          return [
+            { x: plotMin, opacity, color },
+            { x: plotMax, opacity, color },
+          ];
+        }
+        const inRangePoint = points[0];
+        const rangeRatio = (plotMin - outOfRangePoint.x) / (inRangePoint.x - outOfRangePoint.x);
+        const opacity = outOfRangePoint.opacity + (inRangePoint.opacity - outOfRangePoint.opacity) * rangeRatio;
+        const color = outOfRangePoint.color.map((c, i) => c + (inRangePoint.color[i] - c) * rangeRatio);
+        points.unshift({ x: plotMin, opacity, color: color as ColorArray });
+      }
     }
+
     const lastPoint = points[points.length - 1];
-    if (u8ToAbsolute(lastPoint.x, props.channelData) < typeRange.max) {
-      const x = absoluteToU8(xScale.domain()[1], props.channelData);
+    if (lastPoint.x < plotMax) {
       const { opacity, color } = lastPoint;
-      points.push({ x, opacity, color });
+      points.push({ x: plotMax, opacity, color });
+    } else {
+      let outOfRangePoint: ControlPoint | undefined = undefined;
+      while (points[points.length - 1].x > plotMax && points.length > 1) {
+        outOfRangePoint = points.pop();
+      }
+      if (outOfRangePoint !== undefined) {
+        if (points.length === 1 && outOfRangePoint.x > plotMax) {
+          const { opacity, color } = outOfRangePoint;
+          return [
+            { x: plotMin, opacity, color },
+            { x: plotMax, opacity, color },
+          ];
+        }
+        const inRangePoint = points[points.length - 1];
+        const rangeRatio = (plotMax - outOfRangePoint.x) / (inRangePoint.x - outOfRangePoint.x);
+        const opacity = outOfRangePoint.opacity + (inRangePoint.opacity - outOfRangePoint.opacity) * rangeRatio;
+        const color = outOfRangePoint.color.map((c, i) => c + (inRangePoint.color[i] - c) * rangeRatio);
+        points.push({ x: plotMax, opacity, color: color as ColorArray });
+      }
     }
     return points;
   }, [props.controlPoints, props.ramp, props.useControlPoints, xScale, props.channelData, typeRange]);
@@ -556,8 +596,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               value={xScaleMax}
               onChange={(v) => v !== null && setXScaleMax(v)}
               formatter={numberFormatter}
-              min={DTYPE_RANGE[props.channelData.dtype][0]}
-              max={DTYPE_RANGE[props.channelData.dtype][1]}
+              min={DTYPE_RANGE[props.channelData.dtype].min}
+              max={DTYPE_RANGE[props.channelData.dtype].max}
               size="small"
             />
           </span>
