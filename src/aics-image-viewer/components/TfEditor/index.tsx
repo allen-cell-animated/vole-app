@@ -5,12 +5,7 @@ import "nouislider/distribute/nouislider.css";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
-import {
-  LUT_MAX_PERCENTILE,
-  LUT_MIN_PERCENTILE,
-  TFEDITOR_DEFAULT_COLOR,
-  TFEDITOR_MAX_BIN,
-} from "../../shared/constants";
+import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
 import {
   ColorArray,
   colorArrayToObject,
@@ -49,8 +44,10 @@ const DTYPE_RANGE: { [T in Channel["dtype"]]: [number, number] } = {
   uint8: [0, Math.pow(2, 8) - 1],
   uint16: [0, Math.pow(2, 16) - 1],
   uint32: [0, Math.pow(2, 32) - 1],
-  float32: [-Infinity, Infinity],
-  float64: [-Infinity, Infinity],
+  // These are obviously not the actual min and max representable values for floats, but the actual ones (`-Infinity`
+  // and `Infinity`) would give us nonsense. These may also produce nonsense, but these types should be rare anyways.
+  float32: [0, Math.pow(2, 8) - 1],
+  float64: [0, Math.pow(2, 8) - 1],
 };
 
 const enum TfEditorRampSliderHandle {
