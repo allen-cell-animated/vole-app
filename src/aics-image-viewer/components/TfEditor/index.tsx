@@ -25,7 +25,7 @@ const TFEDITOR_COLOR_PICKER_MARGIN_X_PX = 2;
 /** If a control point is within this distance of the bottom of the screen, open the color picker upward */
 const TFEDITOR_COLOR_PICKER_OPEN_UPWARD_MARGIN_PX = 310;
 
-const TFEDITOR_GRADIENT_MAX_OPACITY = 0.9;
+const TFEDITOR_GRADIENT_MAX_OPACITY = 0.75;
 const TFEDITOR_NUM_TICKS = 4;
 
 const TFEDITOR_MARGINS = {
@@ -462,24 +462,30 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       if (el === null) {
         return;
       }
-      if (props.channelData.histogram.getNumBins() < 1) {
+      const numBins = props.channelData.histogram.getNumBins();
+      if (numBins < 1) {
         return;
       }
       const { binLengths, max } = getHistogramBinLengths(props.channelData.histogram);
-      const barWidth = innerWidth / props.channelData.histogram.getNumBins();
+      const start = Math.max(0, Math.ceil(plotMinU8));
+      const end = Math.min(numBins, Math.floor(plotMaxU8));
+      const binLengthsToRender = binLengths.slice(start, end);
+
+      // TODO this isn't right anymore
+      const barWidth = innerWidth / numBins;
       const binScale = d3.scaleLog().domain([0.1, max]).range([innerHeight, 0]).base(2).clamp(true);
 
       d3.select(el)
         .selectAll(".bar") // select all the bars of the histogram
-        .data(binLengths) // bind the histogram bins to this selection
+        .data(binLengthsToRender) // bind the histogram bins to this selection
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx, props.channelData))) // set position and height from data
+        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx + start, props.channelData))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [xScale, props.channelData.histogram, innerWidth, innerHeight]
+    [xScale, props.channelData, props.channelData.histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
   );
 
   const applyTFGenerator = useCallback(
