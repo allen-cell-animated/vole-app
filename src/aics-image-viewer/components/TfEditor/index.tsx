@@ -175,7 +175,7 @@ const fitControlPointsToRange = (controlPoints: ControlPoint[], plotMin: number,
 
   if (lastPoint.x < plotMax) {
     // If the control points don't go all the way to the max, add a new point at the max.
-    points.push({ ...firstPoint, x: plotMax });
+    points.push({ ...lastPoint, x: plotMax });
   } else {
     // If some control points are out of range, remove those points...
     let outOfRangePoint: ControlPoint | undefined = undefined;
