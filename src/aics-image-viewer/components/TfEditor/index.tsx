@@ -471,8 +471,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       const end = Math.min(numBins, Math.floor(plotMaxU8));
       const binLengthsToRender = binLengths.slice(start, end);
 
-      // TODO this isn't right anymore
-      const barWidth = innerWidth / numBins;
+      const barWidth = innerWidth / (plotMaxU8 - plotMinU8);
       const binScale = d3.scaleLog().domain([0.1, max]).range([innerHeight, 0]).base(2).clamp(true);
 
       d3.select(el)
