@@ -581,23 +581,27 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* plot axes */}
           <g ref={xAxisRef} className="axis" transform={`translate(0,${innerHeight})`} />
           <g ref={yAxisRef} className="axis" />
-          {/* control points */}
+          {/* "advanced mode" control points */}
           {controlPointCircles}
           {/* "basic mode" sliders */}
           {!props.useControlPoints && (
             <g className="ramp-sliders">
-              <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
-                <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
-                <path
-                  d={sliderHandlePath}
-                  transform={`translate(0,${innerHeight}) rotate(180)`}
-                  onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
-                />
-              </g>
-              <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
-                <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
-                <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
-              </g>
+              {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
+                <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
+                  <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <path
+                    d={sliderHandlePath}
+                    transform={`translate(0,${innerHeight}) rotate(180)`}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                  />
+                </g>
+              )}
+              {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
+                <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
+                  <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
+                </g>
+              )}
             </g>
           )}
         </g>
