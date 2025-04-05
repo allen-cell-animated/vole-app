@@ -596,7 +596,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   />
                 </g>
               )}
-              {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
+              {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
@@ -621,8 +621,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               value={xScaleMax}
               onChange={(v) => v !== null && setXScaleMax(v)}
               formatter={numberFormatter}
-              min={DTYPE_RANGE[props.channelData.dtype].min}
-              max={DTYPE_RANGE[props.channelData.dtype].max}
+              min={typeRange.min}
+              max={typeRange.max}
               size="small"
             />
           </span>
@@ -638,8 +638,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               value={u8ToAbsolute(props.ramp[0], props.channelData)}
               onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
               formatter={numberFormatter}
-              min={0}
-              max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), props.channelData.rawMax)}
+              min={typeRange.min}
+              max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
               size="small"
             />
           </span>
@@ -649,8 +649,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               value={u8ToAbsolute(props.ramp[1], props.channelData)}
               onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
               formatter={numberFormatter}
-              min={Math.max(0, u8ToAbsolute(props.ramp[0], props.channelData))}
-              max={props.channelData.rawMax}
+              min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
+              max={typeRange.max}
               size="small"
               width={45}
             />
