@@ -2,10 +2,10 @@ import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
-import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
+import { DTYPE_RANGE, LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
 import {
   ColorArray,
   colorArrayToObject,
@@ -45,19 +45,6 @@ const TFEDITOR_MARGINS = {
 };
 
 const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
-
-const DTYPE_RANGE: { [T in Channel["dtype"]]: { min: number; max: number } } = {
-  int8: { min: -Math.pow(2, 7), max: Math.pow(2, 7) - 1 },
-  int16: { min: -Math.pow(2, 15), max: Math.pow(2, 15) - 1 },
-  int32: { min: -Math.pow(2, 31), max: Math.pow(2, 31) - 1 },
-  uint8: { min: 0, max: Math.pow(2, 8) - 1 },
-  uint16: { min: 0, max: Math.pow(2, 16) - 1 },
-  uint32: { min: 0, max: Math.pow(2, 32) - 1 },
-  // These are obviously not the actual min and max representable values for floats, but the actual ones (`-Infinity`
-  // and `Infinity`) would give us nonsense. These may also produce nonsense, but these types should be rare anyways.
-  float32: { min: 0, max: Math.pow(2, 8) - 1 },
-  float64: { min: 0, max: Math.pow(2, 8) - 1 },
-};
 
 const enum TfEditorRampSliderHandle {
   Min = "min",
@@ -271,8 +258,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const typeRange = DTYPE_RANGE[dtype];
   const [xScaleLockedToRange, setXScaleLockedToRange] = useState<boolean>(true);
   const [xScaleMax, setXScaleMax] = useState<number>(typeRange.max);
-  // data type can change when the channel loads
-  useEffect(() => setXScaleMax(typeRange.max), [typeRange]);
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
