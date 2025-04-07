@@ -623,7 +623,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   />
                 </g>
               )}
-              {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
+              {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
