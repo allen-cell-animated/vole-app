@@ -27,6 +27,15 @@ const TFEDITOR_COLOR_PICKER_OPEN_UPWARD_MARGIN_PX = 310;
 
 const TFEDITOR_GRADIENT_MAX_OPACITY = 0.75;
 const TFEDITOR_NUM_TICKS = 4;
+/**
+ * If the first or last "round" tick mark is within this ratio of the end of the x axis, remove it to get it out of the
+ * way of the tick mark right at the end.
+ *
+ * For instance, if the x range is [0, 255], the last tick mark d3 generates will likely be at 250. That should be
+ * removed to get it out of the way of the tick mark at 255! But if the range is [0, 390], it may be that the last tick
+ * mark is at 300. It would make no sense to remove that tick mark to make space for one at 390.
+ */
+const TFEDITOR_END_TICK_MARGIN = 0.1;
 
 const TFEDITOR_MARGINS = {
   top: 18,
@@ -440,8 +449,26 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const xAxisRef = useCallback(
     (el: SVGGElement) => {
+      // generate tick marks
       const ticks = xScale.ticks(TFEDITOR_NUM_TICKS);
-      ticks[ticks.length - 1] = xScale.domain()[1];
+
+      // make sure we have sensible tick marks right at the min and max of the x axis
+      const [min, max] = xScale.domain();
+      const domain = max - min;
+
+      if ((ticks[0] - min) / domain < TFEDITOR_END_TICK_MARGIN) {
+        ticks[0] = min;
+      } else {
+        ticks.unshift(min);
+      }
+
+      if ((ticks[ticks.length - 1] - min) / domain > 1 - TFEDITOR_END_TICK_MARGIN) {
+        ticks[ticks.length - 1] = max;
+      } else {
+        ticks.push(max);
+      }
+
+      // now make the axis!
       d3.select(el).call(
         d3
           .axisBottom(xScale)
