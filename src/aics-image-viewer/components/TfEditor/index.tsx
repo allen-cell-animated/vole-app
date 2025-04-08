@@ -184,7 +184,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
   const xScale = useMemo(
     () => d3.scaleLinear().domain([props.channelData.rawMin, props.channelData.rawMax]).range([0, innerWidth]),
-    [innerWidth, props.channelData]
+    [innerWidth, props.channelData.rawMin, props.channelData.rawMax]
   );
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
