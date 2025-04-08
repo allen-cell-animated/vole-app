@@ -152,6 +152,10 @@ const createPointOnRangeBoundary = (outOfRangePt: ControlPoint, inRangePt: Contr
   return { x, opacity, color };
 };
 
+/**
+ * Ensures the list of `controlPoints` exactly covers the range from `plotMin` to `plotMax` by removing any
+ * out-of-range points and adding new points right at the edges of the range.
+ */
 const fitControlPointsToRange = (controlPoints: ControlPoint[], plotMin: number, plotMax: number): ControlPoint[] => {
   const points = controlPoints.slice();
 
