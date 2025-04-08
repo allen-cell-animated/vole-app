@@ -683,7 +683,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
               max={typeRange.max}
               size="small"
-              width={45}
             />
           </span>
         </div>
