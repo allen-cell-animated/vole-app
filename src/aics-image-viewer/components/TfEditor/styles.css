@@ -25,13 +25,21 @@
     bottom: 0;
   }
 
-  .tf-editor-numeric-input-row {
+  .tf-editor-control-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    min-height: 24px;
     color: var(--color-controlpanel-text);
+    align-items: center;
+    min-height: 24px;
+
+    &.ramp-row {
+      gap: 6px;
+      margin-top: 15px;
+    }
+
+    &.plot-range-row {
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
 
     .ant-input-number {
       border-color: var(--color-button-tertiary-outline);
