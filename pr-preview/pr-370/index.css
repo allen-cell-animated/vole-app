@@ -716,7 +716,7 @@
 }
 
 .channel-row .tf-editor-svg.dragging.basic{
-      cursor:pointer;
+      cursor:ew-resize;
     }
 
 .channel-row .tf-editor-svg.dragging.advanced{
@@ -737,16 +737,24 @@
     bottom:0;
   }
 
-.channel-row .tf-editor-numeric-input-row{
+.channel-row .tf-editor-control-row{
     display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:20px;
-    min-height:24px;
     color:var(--color-controlpanel-text);
+    align-items:center;
+    min-height:24px;
   }
 
-.channel-row .tf-editor-numeric-input-row .ant-input-number{
+.channel-row .tf-editor-control-row.ramp-row{
+      gap:6px;
+      margin-top:15px;
+    }
+
+.channel-row .tf-editor-control-row.plot-range-row{
+      justify-content:space-between;
+      margin-bottom:20px;
+    }
+
+.channel-row .tf-editor-control-row .ant-input-number{
       border-color:var(--color-button-tertiary-outline);
       width:72px;
     }
@@ -781,12 +789,17 @@
 
 .channel-row .ramp-sliders path{
       fill:var(--color-controlpanel-ramp-slider);
-      cursor:pointer;
+      cursor:ew-resize;
     }
 
 .channel-row .ramp-sliders line{
       stroke:var(--color-controlpanel-ramp-slider);
+      cursor:ew-resize;
     }
+
+.channel-row .ramp-sliders line.ramp-slider-click-target{
+        stroke:transparent;
+      }
 
 .channel-row circle{
     fill-opacity:0.6;
