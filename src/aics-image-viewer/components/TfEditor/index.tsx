@@ -482,7 +482,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <line
                   className="ramp-slider-click-target"
                   y1={innerHeight}
-                  strokeWidth={5}
+                  strokeWidth={6}
                   onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
                 />
                 <path
@@ -496,7 +496,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <line
                   className="ramp-slider-click-target"
                   y1={innerHeight}
-                  strokeWidth={5}
+                  strokeWidth={6}
                   onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
                 />
                 <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
