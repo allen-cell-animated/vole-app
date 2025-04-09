@@ -716,7 +716,7 @@
 }
 
 .channel-row .tf-editor-svg.dragging.basic{
-      cursor:pointer;
+      cursor:ew-resize;
     }
 
 .channel-row .tf-editor-svg.dragging.advanced{
@@ -780,12 +780,17 @@
 
 .channel-row .ramp-sliders path{
       fill:var(--color-controlpanel-ramp-slider);
-      cursor:pointer;
+      cursor:ew-resize;
     }
 
 .channel-row .ramp-sliders line{
       stroke:var(--color-controlpanel-ramp-slider);
+      cursor:ew-resize;
     }
+
+.channel-row .ramp-sliders line.ramp-slider-click-target{
+        stroke:transparent;
+      }
 
 .channel-row circle{
     fill-opacity:0.6;
