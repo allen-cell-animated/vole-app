@@ -643,6 +643,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <line
+                    className="ramp-slider-click-target"
+                    y1={innerHeight}
+                    strokeWidth={6}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                  />
                   <path
                     d={sliderHandlePath}
                     transform={`translate(0,${innerHeight}) rotate(180)`}
@@ -653,6 +659,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <line
+                    className="ramp-slider-click-target"
+                    y1={innerHeight}
+                    strokeWidth={6}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
+                  />
                   <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
                 </g>
               )}
