@@ -1,19 +1,18 @@
+import { Button, Collapse, CollapseProps, Dropdown, Flex, MenuProps, Tooltip } from "antd";
+import { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
-import { Button, Dropdown, Tooltip, MenuProps, Collapse, CollapseProps, Flex } from "antd";
-import { MenuInfo } from "rc-menu/lib/interface";
+import { PRESET_COLOR_MAP } from "../../shared/constants";
+import { MetadataRecord } from "../../shared/types";
 
 import ChannelsWidget from "../ChannelsWidget";
-import GlobalVolumeControls, { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import CustomizeWidget, { CustomizeWidgetProps } from "../CustomizeWidget";
+import GlobalVolumeControls, { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
-
-import { PRESET_COLOR_MAP } from "../../shared/constants";
+import ViewerIcon from "../shared/ViewerIcon";
+import { connectToViewerState } from "../ViewerStateProvider";
 
 import "./styles.css";
-import ViewerIcon from "../shared/ViewerIcon";
-import { MetadataRecord } from "../../shared/types";
-import { connectToViewerState } from "../ViewerStateProvider";
 
 type PropsOf<T> = T extends React.ComponentType<infer P> ? P : never;
 
@@ -46,7 +45,11 @@ const ControlTabNames = {
 };
 
 function ControlPanel(props: ControlPanelProps): React.ReactElement {
-  const [tab, setTab] = React.useState(ControlTab.Channels);
+  const [tab, _setTab] = React.useState(ControlTab.Channels);
+  const setTab = (newTab: ControlTab): void => {
+    _setTab(newTab);
+    props.setCollapsed(false);
+  };
 
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
