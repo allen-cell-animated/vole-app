@@ -3,7 +3,7 @@
 .channel-row {
   .tf-editor-svg.dragging {
     &.basic {
-      cursor: pointer;
+      cursor: ew-resize;
     }
 
     &.advanced {
@@ -25,17 +25,25 @@
     bottom: 0;
   }
 
-  .tf-editor-numeric-input-row {
+  .tf-editor-control-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    min-height: 24px;
     color: var(--color-controlpanel-text);
+    align-items: center;
+    min-height: 24px;
+
+    &.ramp-row {
+      gap: 6px;
+      margin-top: 15px;
+    }
+
+    &.plot-range-row {
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
 
     .ant-input-number {
       border-color: var(--color-button-tertiary-outline);
-      width: 60px;
+      width: 72px;
     }
   }
 
@@ -70,11 +78,16 @@
   .ramp-sliders {
     path {
       fill: var(--color-controlpanel-ramp-slider);
-      cursor: pointer;
+      cursor: ew-resize;
     }
 
     line {
       stroke: var(--color-controlpanel-ramp-slider);
+      cursor: ew-resize;
+
+      &.ramp-slider-click-target {
+        stroke: transparent;
+      }
     }
   }
 

@@ -141,6 +141,10 @@ const createPointOnRangeBoundary = (outOfRangePt: ControlPoint, inRangePt: Contr
   return { x, opacity, color };
 };
 
+/**
+ * Ensures the list of `controlPoints` exactly covers the range from `plotMin` to `plotMax` by removing any
+ * out-of-range points and adding new points right at the edges of the range.
+ */
 const fitControlPointsToRange = (controlPoints: ControlPoint[], plotMin: number, plotMax: number): ControlPoint[] => {
   const points = controlPoints.slice();
 
@@ -560,6 +564,29 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         </Checkbox>
       </div>
 
+      {/* ----- MIN/MAX SPINBOXES ----- */}
+      {!props.useControlPoints && (
+        <div className="tf-editor-control-row ramp-row">
+          Ramp min/max:
+          <InputNumber
+            value={u8ToAbsolute(props.ramp[0], props.channelData)}
+            onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
+            formatter={numberFormatter}
+            min={typeRange.min}
+            max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
+            size="small"
+          />
+          <InputNumber
+            value={u8ToAbsolute(props.ramp[1], props.channelData)}
+            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
+            formatter={numberFormatter}
+            min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
+            max={typeRange.max}
+            size="small"
+          />
+        </div>
+      )}
+
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
       {colorPickerPosition !== null && (
         <div className="tf-editor-popover">
@@ -601,6 +628,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <line
+                    className="ramp-slider-click-target"
+                    y1={innerHeight}
+                    strokeWidth={6}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                  />
                   <path
                     d={sliderHandlePath}
                     transform={`translate(0,${innerHeight}) rotate(180)`}
@@ -611,6 +644,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <line
+                    className="ramp-slider-click-target"
+                    y1={innerHeight}
+                    strokeWidth={6}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
+                  />
                   <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
                 </g>
               )}
@@ -620,7 +659,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       </svg>
 
       {/* ----- PLOT RANGE ----- */}
-      <div className="tf-editor-numeric-input-row">
+      <div className="tf-editor-control-row plot-range-row">
         <span>
           <Checkbox
             checked={props.lockPlotToDataRange}
@@ -643,35 +682,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           </span>
         )}
       </div>
-
-      {/* ----- MIN/MAX SPINBOXES ----- */}
-      {!props.useControlPoints && (
-        <div className="tf-editor-numeric-input-row">
-          <span>
-            Min{" "}
-            <InputNumber
-              value={u8ToAbsolute(props.ramp[0], props.channelData)}
-              onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
-              formatter={numberFormatter}
-              min={typeRange.min}
-              max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
-              size="small"
-            />
-          </span>
-          <span>
-            Max{" "}
-            <InputNumber
-              value={u8ToAbsolute(props.ramp[1], props.channelData)}
-              onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
-              formatter={numberFormatter}
-              min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
-              max={typeRange.max}
-              size="small"
-              width={45}
-            />
-          </span>
-        </div>
-      )}
 
       {/* ----- COLORIZE SLIDER ----- */}
       <SliderRow
