@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Drawer, Button } from "antd";
+import { Button, Drawer } from "antd";
+import React, { useEffect, useState } from "react";
 
 import ViewerIcon from "../shared/ViewerIcon";
+
 import "./styles.css";
 
 type BottomPanelProps = {
@@ -9,9 +10,10 @@ type BottomPanelProps = {
   onVisibleChange?: (visible: boolean) => void;
   onVisibleChangeEnd?: (visible: boolean) => void;
   children?: React.ReactNode;
+  height?: number;
 };
 
-const BottomPanel: React.FC<BottomPanelProps> = ({ children, title, onVisibleChange, onVisibleChangeEnd }) => {
+const BottomPanel: React.FC<BottomPanelProps> = ({ children, title, height, onVisibleChange, onVisibleChangeEnd }) => {
   const [isVisible, setIsVisible] = useState(true);
 
   // Call `onVisibleChange` on mount
@@ -21,6 +23,12 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ children, title, onVisibleCha
       onVisibleChangeEnd?.(isVisible);
     }
   }, []);
+
+  // Treat changes in height as a change in visibility if the panel is open
+  useEffect(() => {
+    onVisibleChange?.(isVisible);
+    window.setTimeout(() => onVisibleChangeEnd?.(isVisible), 300);
+  }, [height]);
 
   const toggleDrawer = (): void => {
     setIsVisible(!isVisible);
@@ -47,6 +55,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ children, title, onVisibleCha
         mask={false}
         title={optionsButton}
         afterOpenChange={onVisibleChangeEnd}
+        height={height ?? 190}
       >
         <div className="drawer-body-wrapper">{children}</div>
       </Drawer>

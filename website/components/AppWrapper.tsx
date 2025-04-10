@@ -3,10 +3,10 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
-import { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
+import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
-import { AppDataProps } from "../types";
-import { parseViewerUrlParams } from "../utils/url_utils";
+import type { AppDataProps } from "../types";
+import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
 import Header, { HEADER_HEIGHT_PX } from "./Header";
@@ -68,16 +68,9 @@ export default function AppWrapper(): ReactElement {
     // Force a page reload when loading new data. This prevents a bug where a desync in the number
     // of channels in the viewer can cause a crash. The root cause is React immediately forcing a
     // re-render every time `setState` is called in an async function.
-    const url = appProps.imageUrl;
-    if (Array.isArray(url)) {
-      navigation(`/viewer?url=${encodeURIComponent(url.join(","))}`, {
-        state: appProps,
-      });
-    } else {
-      navigation(`/viewer?url=${encodeURIComponent(url)}`, {
-        state: appProps,
-      });
-    }
+    navigation(`/viewer?url=${encodeImageUrlProp(appProps.imageUrl)}`, {
+      state: appProps,
+    });
     navigation(0);
   };
 
