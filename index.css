@@ -328,14 +328,13 @@
 }
 
   .bottom-panel .ant-drawer .ant-drawer-content-wrapper{
-    transform:translateY(69%);
+    transform:translateY(calc(100% - 55px));
   }
 
   .bottom-panel .ant-drawer-content-wrapper{
     display:flex;
     flex-direction:column;
     justify-content:flex-end;
-    height:190px !important;
     transition:all 0.3s, max-width 0s 0s;
     opacity:85%;
     box-shadow:none;
@@ -716,7 +715,7 @@
 }
 
 .channel-row .tf-editor-svg.dragging.basic{
-      cursor:pointer;
+      cursor:ew-resize;
     }
 
 .channel-row .tf-editor-svg.dragging.advanced{
@@ -780,12 +779,17 @@
 
 .channel-row .ramp-sliders path{
       fill:var(--color-controlpanel-ramp-slider);
-      cursor:pointer;
+      cursor:ew-resize;
     }
 
 .channel-row .ramp-sliders line{
       stroke:var(--color-controlpanel-ramp-slider);
+      cursor:ew-resize;
     }
+
+.channel-row .ramp-sliders line.ramp-slider-click-target{
+        stroke:transparent;
+      }
 
 .channel-row circle{
     fill-opacity:0.6;
