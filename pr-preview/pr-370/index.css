@@ -328,14 +328,13 @@
 }
 
   .bottom-panel .ant-drawer .ant-drawer-content-wrapper{
-    transform:translateY(69%);
+    transform:translateY(calc(100% - 55px));
   }
 
   .bottom-panel .ant-drawer-content-wrapper{
     display:flex;
     flex-direction:column;
     justify-content:flex-end;
-    height:190px !important;
     transition:all 0.3s, max-width 0s 0s;
     opacity:85%;
     box-shadow:none;
