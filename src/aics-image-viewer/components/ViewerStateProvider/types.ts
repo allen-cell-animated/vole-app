@@ -28,6 +28,7 @@ export interface ViewerState {
   // This state is active in x,y,z single slice modes.
   slice: PerAxis<number>;
   time: number;
+  scene: number;
   cameraState: Partial<CameraState> | undefined;
 }
 

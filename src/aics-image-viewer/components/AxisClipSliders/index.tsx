@@ -168,10 +168,12 @@ type AxisClipSlidersProps = {
   changeViewerSetting: ViewerSettingUpdater;
   numSlices: PerAxis<number>;
   numSlicesLoaded: PerAxis<number>;
+  numScenes: number;
   region: PerAxis<[number, number]>;
   slices: PerAxis<number>;
   numTimesteps: number;
   time: number;
+  scene: number;
   playingAxis: AxisName | "t" | null;
   playControls: PlayControls;
 };
@@ -283,6 +285,22 @@ const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
                 onChange={(time) => updateTime(time)}
                 onStart={() => props.playControls.startHold("t")}
                 onEnd={() => props.playControls.endHold()}
+              />
+            </div>
+          </span>
+        </span>
+      )}
+
+      {props.numScenes > 1 && (
+        <span className="slider-group">
+          <h4 className="slider-group-title">Scene</h4>
+          <span className="slider-group-rows">
+            <div className="slider-row slider-scene">
+              <SliderRow
+                label={""}
+                vals={[props.scene]}
+                max={props.numScenes}
+                onChange={([scene]) => props.changeViewerSetting("scene", scene)}
               />
             </div>
           </span>

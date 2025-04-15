@@ -1,8 +1,8 @@
 import { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
-import FirebaseRequest, { DatasetMetaData } from "../../public/firebase";
-import type { AppProps } from "../../src/aics-image-viewer/components/App/types";
+import FirebaseRequest, { type DatasetMetaData } from "../../public/firebase";
+import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 import type {
   ChannelState,
   ViewerState,
@@ -14,9 +14,9 @@ import {
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import { PerAxis } from "../../src/aics-image-viewer/shared/types";
+import type { PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
-import {
+import type {
   ViewerChannelSetting,
   ViewerChannelSettings,
 } from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
@@ -96,6 +96,7 @@ export enum ViewerStateKeys {
   Region = "reg",
   Slice = "slice",
   Time = "t",
+  Scene = "scene",
   CameraState = "cam",
 }
 
@@ -242,6 +243,8 @@ export class ViewerStateParams {
   [ViewerStateKeys.Slice]?: string = undefined;
   /** Frame number, for time-series volumes. 0 by default. */
   [ViewerStateKeys.Time]?: string = undefined;
+  /** Scene number, for multiscene images. 0 by default. */
+  [ViewerStateKeys.Scene]?: string = undefined;
   /**
    * Camera transform settings, as a list of `key:value` pairs separated by commas.
    * Valid keys are defined in `CameraTransformKeys`:
@@ -672,6 +675,15 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
 
 //// DATA SERIALIZATION //////////////////////
 
+export function encodeImageUrlProp(imageUrl: string | MultisceneUrls): string {
+  // work with an array of scenes, even if there's only one scene
+  const scenes = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
+  // join urls in multi-source images with commas
+  const sceneUrlsUnencoded = scenes.map((scene) => (Array.isArray(scene) ? scene.join(",") : scene));
+  // join scenes with spaces, and encode the whole string
+  return encodeURIComponent(sceneUrlsUnencoded.join(" "));
+}
+
 /**
  * Parses a ViewerChannelSetting from a JSON object.
  * @param channelIndex Index of the channel, to be turned into a `match` value.
@@ -761,6 +773,7 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
     region: parseStringRegion(params[ViewerStateKeys.Region]),
     slice: parseStringSlice(params[ViewerStateKeys.Slice]),
     time: parseStringInt(params[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
+    scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
     renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
     cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
   };
@@ -813,6 +826,7 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Slice]: state.slice && serializeSlice(state.slice),
     [ViewerStateKeys.Levels]: state.levels?.join(","),
     [ViewerStateKeys.Time]: state.time?.toString(),
+    [ViewerStateKeys.Scene]: state.scene?.toString(),
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };
@@ -955,8 +969,16 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
   // Parse data sources (URL or dataset/id pair)
   if (params.url) {
-    const imageUrls = tryDecodeURLList(params.url) ?? decodeURL(params.url);
-    const firstUrl = Array.isArray(imageUrls) ? imageUrls[0] : imageUrls;
+    // split encoded url into a list of one or more scenes...
+    const sceneUrls = tryDecodeURLList(params.url, " ") ?? [params.url];
+    // ...and each scene into a list of multiple sources, if any.
+    const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+
+    const firstScene = scenes[0];
+    // Get the very first URL for the download button
+    const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
+    // If there's only one url, just pass that
+    const imageUrls: string | MultisceneUrls = scenes.length > 1 || firstScene.length > 1 ? { scenes } : firstScene[0];
 
     args.cellId = "1";
     args.imageUrl = imageUrls;
