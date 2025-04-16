@@ -758,6 +758,10 @@
       width:72px;
     }
 
+.channel-row .tf-editor-control-row .ant-input-number input{
+        text-align:right;
+      }
+
 .channel-row .tick text{
     fill:var(--color-controlpanel-text);
     user-select:none;
