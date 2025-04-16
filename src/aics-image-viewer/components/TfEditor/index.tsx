@@ -590,6 +590,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             min={typeRange.min}
             max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
             size="small"
+            controls={false}
           />
           <InputNumber
             value={u8ToAbsolute(props.ramp[1], props.channelData)}
@@ -598,6 +599,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
             max={typeRange.max}
             size="small"
+            controls={false}
           />
         </div>
       )}
@@ -690,6 +692,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               min={typeRange.min}
               max={typeRange.max}
               size="small"
+              controls={false}
             />
           </span>
         )}

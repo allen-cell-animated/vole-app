@@ -44,6 +44,10 @@
     .ant-input-number {
       border-color: var(--color-button-tertiary-outline);
       width: 72px;
+
+      input {
+        text-align: right;
+      }
     }
   }
 
