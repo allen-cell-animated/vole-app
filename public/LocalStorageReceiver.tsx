@@ -16,6 +16,9 @@ const LocalStorageReceiver: React.FC = () => {
       }
 
       const message = e.data as Message;
+      if (message.scenes === undefined) {
+        return;
+      }
 
       window.localStorage.setItem("url", encodeImageUrlProp(message));
       if (e.data.meta !== undefined) {
