@@ -1,6 +1,12 @@
 import React from "react";
 
+import { MultisceneUrls } from "../src/aics-image-viewer/components/App/types.ts";
+import { MetadataRecord } from "../src/aics-image-viewer/shared/types.ts";
 import { encodeImageUrlProp } from "../website/utils/url_utils.ts";
+
+type Message = MultisceneUrls & {
+  meta?: MetadataRecord | MetadataRecord[];
+};
 
 const LocalStorageReceiver: React.FC = () => {
   React.useLayoutEffect(() => {
@@ -9,9 +15,11 @@ const LocalStorageReceiver: React.FC = () => {
         return;
       }
 
-      window.localStorage.setItem("url", encodeImageUrlProp(e.data));
+      const message = e.data as Message;
+
+      window.localStorage.setItem("url", encodeImageUrlProp(message));
       if (e.data.meta !== undefined) {
-        window.localStorage.setItem("meta", JSON.stringify(e.data.meta));
+        window.localStorage.setItem("meta", JSON.stringify(message.meta));
       } else {
         window.localStorage.removeItem("meta");
       }
