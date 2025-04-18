@@ -28,6 +28,7 @@ export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
+/** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
 const URL_FETCH_FROM_STORAGE = "storage";
 
 // TODO: refactor regexes to be composed of one another rather than duplicating code
