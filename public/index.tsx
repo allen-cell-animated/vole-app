@@ -38,10 +38,7 @@ const routes: RouteObject[] = [
   },
   {
     path: "viewer",
-    lazy: async () => {
-      console.log("lazy");
-      return { Component: (await import("../website/components/AppWrapper")).default };
-    },
+    lazy: async () => ({ Component: (await import("../website/components/AppWrapper")).default }),
     errorElement: <ErrorPage />,
   },
   {
