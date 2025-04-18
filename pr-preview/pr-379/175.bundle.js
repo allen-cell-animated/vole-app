@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunk_aics_vole_app=self.webpackChunk_aics_vole_app||[]).push([[175],{9175:(e,s,l)=>{l.r(s),l.d(s,{default:()=>o});var t,n=l(3056);const o=((t=class{constructor(e=1){if(e<0||e>9)throw new Error("Invalid gzip compression level, it should be between 0 and 9");this.level=e}static fromConfig({level:e}){return new t(e)}encode(e){return n.p.gzip(e,{level:this.level})}decode(e,s){const l=n.p.ungzip(e);return void 0!==s?(s.set(l),s):l}}).codecId="gzip",t)}}]);
+//# sourceMappingURL=175.bundle.js.map
