@@ -2,19 +2,21 @@ import { RightOutlined } from "@ant-design/icons";
 import React from "react";
 
 import { MetadataEntry, MetadataRecord } from "../../shared/types";
+
 import "./styles.css";
 
 type MetadataTableProps = {
-  metadata: MetadataRecord;
+  metadata: MetadataRecord | MetadataEntry[];
   topLevel?: boolean;
 };
 
 type CollapsibleCategoryProps = {
-  metadata: MetadataRecord;
+  metadata: MetadataRecord | MetadataEntry[];
   title: string;
 };
 
-const isCategory = (entry: MetadataEntry): entry is MetadataRecord => typeof entry === "object" && entry !== null;
+const isCategory = (entry: MetadataEntry): entry is MetadataRecord | MetadataEntry[] =>
+  typeof entry === "object" && entry !== null;
 
 const sortCategoriesFirst = (entry: MetadataEntry): MetadataEntry => {
   if (!isCategory(entry) || Array.isArray(entry)) {

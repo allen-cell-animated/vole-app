@@ -557,20 +557,22 @@ const App: React.FC<AppProps> = (props) => {
       imageMetadata = metadataFormatter(imageMetadata);
     }
 
-    // If metadata is an array, try to assume it contains metadata for each scene
-    // TODO just make top-level metadata arrays illegal
-    let sceneMeta = metadata;
-    if (Array.isArray(metadata) && metadata.length === numScenes) {
-      const maybeSceneMeta = metadata[viewerState.current.scene];
-      if (typeof maybeSceneMeta === "object" && maybeSceneMeta !== null) {
-        sceneMeta = maybeSceneMeta;
+    let sceneMeta: MetadataRecord | undefined;
+    if (Array.isArray(metadata)) {
+      // If metadata is an array, try to index it by scene
+      if (metadata.length >= numScenes) {
+        sceneMeta = metadata[viewerState.current.scene];
+      } else {
+        sceneMeta = metadata[0];
       }
+    } else {
+      sceneMeta = metadata;
     }
 
     if (imageMetadata && Object.keys(imageMetadata).length > 0) {
       return { Image: imageMetadata, ...sceneMeta };
     } else {
-      return metadata || {};
+      return sceneMeta ?? {};
     }
   }, [props.metadata, props.metadataFormatter, image]);
 
