@@ -1,14 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
 import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
-// Components
-import AppWrapper from "../website/components/AppWrapper";
 import ErrorPage from "../website/components/ErrorPage";
-import LandingPage from "../website/components/LandingPage";
+import LocalStorageReceiver from "./LocalStorageReceiver";
 
 import "./App.css";
 
@@ -31,15 +29,21 @@ if (locationUrl.hash !== "" || isEncodedPathUrl(locationUrl)) {
   window.history.replaceState(null, "", newRelativePath);
 }
 
-const routes = [
+// TODO these components are now lazy loaded. Should they get `Suspense`s around them? What should we fall back to?
+const routes: RouteObject[] = [
   {
     path: "/",
-    element: <LandingPage />,
+    lazy: async () => ({ Component: (await import("../website/components/LandingPage")).default }),
     errorElement: <ErrorPage />,
   },
   {
     path: "viewer",
-    element: <AppWrapper />,
+    lazy: async () => ({ Component: (await import("../website/components/AppWrapper")).default }),
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "write_storage",
+    element: <LocalStorageReceiver />,
     errorElement: <ErrorPage />,
   },
 ];

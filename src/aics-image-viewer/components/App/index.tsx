@@ -557,10 +557,22 @@ const App: React.FC<AppProps> = (props) => {
       imageMetadata = metadataFormatter(imageMetadata);
     }
 
-    if (imageMetadata && Object.keys(imageMetadata).length > 0) {
-      return { Image: imageMetadata, ...metadata };
+    let sceneMeta: MetadataRecord | undefined;
+    if (Array.isArray(metadata)) {
+      // If metadata is an array, try to index it by scene
+      if (metadata.length >= numScenes) {
+        sceneMeta = metadata[viewerState.current.scene];
+      } else {
+        sceneMeta = metadata[0];
+      }
     } else {
-      return metadata || {};
+      sceneMeta = metadata;
+    }
+
+    if (imageMetadata && Object.keys(imageMetadata).length > 0) {
+      return { Image: imageMetadata, ...sceneMeta };
+    } else {
+      return sceneMeta ?? {};
     }
   }, [props.metadata, props.metadataFormatter, image]);
 

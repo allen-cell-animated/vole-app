@@ -1,4 +1,5 @@
 import { CSSProperties } from "react";
+
 import { ViewMode } from "./enums";
 
 export type AxisName = "x" | "y" | "z";
@@ -14,5 +15,5 @@ export type IsosurfaceFormat = "GLTF" | "STL";
 
 export type Styles = { [key: string]: CSSProperties };
 
-export type MetadataEntry = string | number | boolean | MetadataRecord | null | undefined;
-export type MetadataRecord = { [key: string]: MetadataEntry } | MetadataEntry[];
+export type MetadataEntry = string | number | boolean | MetadataRecord | MetadataEntry[] | null | undefined;
+export type MetadataRecord = { [key: string]: MetadataEntry };
