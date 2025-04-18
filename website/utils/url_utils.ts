@@ -677,7 +677,7 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
 
 //// DATA SERIALIZATION //////////////////////
 
-export function encodeImageUrlProp(imageUrl: string | string[] | MultisceneUrls): string {
+export function encodeImageUrlProp(imageUrl: string | MultisceneUrls): string {
   // work with an array of scenes, even if there's only one scene
   const scenes = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
   // join urls in multi-source images with commas, and encode each url
@@ -981,9 +981,8 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
     const firstScene = scenes[0];
     // Get the very first URL for the download button
     const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
-    // Strip away unneeded structure from final prop (don't represent a multiscene or multi-source image unless needed)
-    const imageUrls: string | string[] | MultisceneUrls =
-      scenes.length > 1 ? { scenes } : firstScene.length > 1 ? firstScene : firstScene[0];
+    // If there's only one url, just pass that
+    const imageUrls: string | MultisceneUrls = scenes.length > 1 || firstScene.length > 1 ? { scenes } : firstScene[0];
 
     if (getFromStorage) {
       const metadataJson = localStorage.getItem("meta");

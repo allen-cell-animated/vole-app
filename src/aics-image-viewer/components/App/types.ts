@@ -47,8 +47,8 @@ export interface AppProps {
    * - Pass an object with a key `scenes: (string | string[])[]` to load multiple volumes as a *multi-scene collection*.
    *   Each string or string array within the `scenes` array is treated as a single volume with one or more sources.
    */
-  imageUrl: string | string[] | MultisceneUrls;
-  parentImageUrl?: string | string[] | MultisceneUrls;
+  imageUrl: string | MultisceneUrls;
+  parentImageUrl?: string | MultisceneUrls;
 
   viewerChannelSettings?: ViewerChannelSettings;
 

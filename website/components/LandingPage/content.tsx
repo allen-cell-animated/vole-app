@@ -1,7 +1,7 @@
 import React from "react";
 
-import { AppDataProps, ProjectEntry } from "../../types";
 import { ViewMode } from "../../../src";
+import { AppDataProps, ProjectEntry } from "../../types";
 import { ExternalLink } from "./utils";
 
 const nucmorphBaseViewerSettings: Partial<AppDataProps> = {
@@ -47,10 +47,14 @@ export const landingPageContent: ProjectEntry[] = [
       {
         name: "Small colony",
         loadParams: {
-          imageUrl: [
-            "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_09_small/raw.ome.zarr",
-            "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_09_small/seg.ome.zarr",
-          ],
+          imageUrl: {
+            scenes: [
+              [
+                "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_09_small/raw.ome.zarr",
+                "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_09_small/seg.ome.zarr",
+              ],
+            ],
+          },
           cellId: "",
           imageDownloadHref: "",
           parentImageDownloadHref: "",
@@ -60,10 +64,14 @@ export const landingPageContent: ProjectEntry[] = [
       {
         name: "Medium colony",
         loadParams: {
-          imageUrl: [
-            "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_06_medium/raw.ome.zarr",
-            "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_06_medium/seg.ome.zarr",
-          ],
+          imageUrl: {
+            scenes: [
+              [
+                "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_06_medium/raw.ome.zarr",
+                "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_06_medium/seg.ome.zarr",
+              ],
+            ],
+          },
           cellId: "",
           imageDownloadHref: "",
           parentImageDownloadHref: "",
@@ -73,10 +81,14 @@ export const landingPageContent: ProjectEntry[] = [
       {
         name: "Large colony",
         loadParams: {
-          imageUrl: [
-            "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_05_large/raw.ome.zarr",
-            "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_05_large/seg.ome.zarr",
-          ],
+          imageUrl: {
+            scenes: [
+              [
+                "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_05_large/raw.ome.zarr",
+                "https://allencell.s3.amazonaws.com/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/20200323_05_large/seg.ome.zarr",
+              ],
+            ],
+          },
           cellId: "",
           imageDownloadHref: "",
           parentImageDownloadHref: "",

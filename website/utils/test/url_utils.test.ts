@@ -768,7 +768,9 @@ describe("parseViewerUrlParams", () => {
     const { args, viewerSettings } = await parseViewerUrlParams(params);
 
     expect(viewerSettings.viewMode).toEqual(ViewMode.xy);
-    expect(args.imageUrl).toEqual(["https://example.com/image1.ome.zarr", "https://example.com/image2.ome.zarr"]);
+    expect(args.imageUrl).toEqual({
+      scenes: [["https://example.com/image1.ome.zarr", "https://example.com/image2.ome.zarr"]],
+    });
 
     // Check that channel settings have been loaded in.
     // Should be one group with three channels.

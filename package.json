@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "2.10.4",
+  "version": "2.11.0",
   "description": "web view of cell volume images",
   "repository": "github:allen-cell-animated/vole-app",
   "main": "es/index.js",
@@ -60,7 +60,7 @@
     "antd": "^5.16.2",
     "react": "18.x",
     "react-dom": "18.x",
-    "three": "^0.144.0"
+    "three": "^0.171.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",
@@ -78,7 +78,7 @@
     "@types/react": "^18.x",
     "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.x",
-    "@types/three": "^0.144.0",
+    "@types/three": "^0.171.0",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "antd": "^5.16.2",
