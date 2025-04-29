@@ -17,6 +17,7 @@ const LocalStorageReceiver: React.FC = () => {
 
       const message = e.data as Message;
       if (message.scenes === undefined) {
+        (e.source as Window)?.postMessage("ERROR: no scenes", e.origin);
         return;
       }
 
