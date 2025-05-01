@@ -2,7 +2,7 @@ import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
@@ -25,8 +25,17 @@ const TFEDITOR_COLOR_PICKER_MARGIN_X_PX = 2;
 /** If a control point is within this distance of the bottom of the screen, open the color picker upward */
 const TFEDITOR_COLOR_PICKER_OPEN_UPWARD_MARGIN_PX = 310;
 
-const TFEDITOR_GRADIENT_MAX_OPACITY = 0.9;
+const TFEDITOR_GRADIENT_MAX_OPACITY = 0.75;
 const TFEDITOR_NUM_TICKS = 4;
+/**
+ * If the first or last "round" tick mark is within this ratio of the end of the x axis, remove it to get it out of the
+ * way of the tick mark right at the end.
+ *
+ * For instance, if the x range is [0, 255], the last tick mark d3 generates will likely be at 250. That should be
+ * removed to get it out of the way of the tick mark at 255! But if the range is [0, 390], it may be that the last tick
+ * mark is at 300. It would make no sense to remove that tick mark to make space for one at 390.
+ */
+const TFEDITOR_END_TICK_MARGIN = 0.1;
 
 const TFEDITOR_MARGINS = {
   top: 18,
@@ -36,6 +45,19 @@ const TFEDITOR_MARGINS = {
 };
 
 const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
+
+const DTYPE_RANGE: { [T in Channel["dtype"]]: { min: number; max: number } } = {
+  int8: { min: -Math.pow(2, 7), max: Math.pow(2, 7) - 1 },
+  int16: { min: -Math.pow(2, 15), max: Math.pow(2, 15) - 1 },
+  int32: { min: -Math.pow(2, 31), max: Math.pow(2, 31) - 1 },
+  uint8: { min: 0, max: Math.pow(2, 8) - 1 },
+  uint16: { min: 0, max: Math.pow(2, 16) - 1 },
+  uint32: { min: 0, max: Math.pow(2, 32) - 1 },
+  // These are obviously not the actual min and max representable values for floats, but the actual ones (`-Infinity`
+  // and `Infinity`) would give us nonsense. These may also produce nonsense, but these types should be rare anyways.
+  float32: { min: 0, max: Math.pow(2, 8) - 1 },
+  float64: { min: 0, max: Math.pow(2, 8) - 1 },
+};
 
 const enum TfEditorRampSliderHandle {
   Min = "min",
@@ -114,6 +136,75 @@ function controlPointToAbsolute(cp: ControlPoint, channel: Channel): number {
   return u8ToAbsolute(cp.x, channel);
 }
 
+/** For when all control points are outside the plot's range: just fill the plot with the settings from 1 point */
+const coverRangeWithPoint = (point: ControlPoint, plotMin: number, plotMax: number): ControlPoint[] => {
+  return [
+    { ...point, x: plotMin },
+    { ...point, x: plotMax },
+  ];
+};
+
+/** For when some control points are outside the plot's range: create an intermediate point on the edge of the range */
+const createPointOnRangeBoundary = (outOfRangePt: ControlPoint, inRangePt: ControlPoint, x: number): ControlPoint => {
+  const rangeRatio = (x - outOfRangePt.x) / (inRangePt.x - outOfRangePt.x);
+  const opacity = outOfRangePt.opacity + (inRangePt.opacity - outOfRangePt.opacity) * rangeRatio;
+  const color = outOfRangePt.color.map((c, i) => c + (inRangePt.color[i] - c) * rangeRatio) as ColorArray;
+  return { x, opacity, color };
+};
+
+/**
+ * Ensures the list of `controlPoints` exactly covers the range from `plotMin` to `plotMax` by removing any
+ * out-of-range points and adding new points right at the edges of the range.
+ */
+const fitControlPointsToRange = (controlPoints: ControlPoint[], plotMin: number, plotMax: number): ControlPoint[] => {
+  const points = controlPoints.slice();
+
+  const firstPoint = points[0];
+  const lastPoint = points[points.length - 1];
+
+  // If all control points are outside the range, just fill the range with the first or last point.
+  if (lastPoint.x < plotMin) {
+    return coverRangeWithPoint(lastPoint, plotMin, plotMax);
+  }
+  if (firstPoint.x > plotMax) {
+    return coverRangeWithPoint(firstPoint, plotMin, plotMax);
+  }
+
+  if (firstPoint.x > plotMin) {
+    // If the control points don't go all the way to the min, add a new point at the min.
+    points.unshift({ ...firstPoint, x: plotMin });
+  } else {
+    // If some control points are out of range, remove those points...
+    let outOfRangePoint: ControlPoint | undefined = undefined;
+    while (points[0].x < plotMin && points.length > 1) {
+      outOfRangePoint = points.shift();
+    }
+
+    // ...and create a new point at the edge of the range.
+    if (outOfRangePoint !== undefined) {
+      points.unshift(createPointOnRangeBoundary(outOfRangePoint, points[0], plotMin));
+    }
+  }
+
+  if (lastPoint.x < plotMax) {
+    // If the control points don't go all the way to the max, add a new point at the max.
+    points.push({ ...lastPoint, x: plotMax });
+  } else {
+    // If some control points are out of range, remove those points...
+    let outOfRangePoint: ControlPoint | undefined = undefined;
+    while (points[points.length - 1].x > plotMax && points.length > 1) {
+      outOfRangePoint = points.pop();
+    }
+
+    // ...and create a new point at the edge of the range.
+    if (outOfRangePoint !== undefined) {
+      points.push(createPointOnRangeBoundary(outOfRangePoint, points[points.length - 1], plotMax));
+    }
+  }
+
+  return points;
+};
+
 /** Defines an SVG gradient with id `id` based on the provided `controlPoints` */
 const ControlPointGradientDef: React.FC<{ controlPoints: ControlPoint[]; id: string }> = ({ controlPoints, id }) => {
   const range = controlPoints[controlPoints.length - 1].x - controlPoints[0].x;
@@ -180,12 +271,22 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
+  const { rawMin, rawMax, dtype } = props.channelData;
+  const typeRange = DTYPE_RANGE[dtype];
+  const [xScaleLockedToRange, setXScaleLockedToRange] = useState<boolean>(true);
+  const [xScaleMax, setXScaleMax] = useState<number>(typeRange.max);
+  // data type can change when the channel loads
+  useEffect(() => setXScaleMax(typeRange.max), [typeRange]);
+
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
-  const xScale = useMemo(
-    () => d3.scaleLinear().domain([props.channelData.rawMin, props.channelData.rawMax]).range([0, innerWidth]),
-    [innerWidth, props.channelData.rawMin, props.channelData.rawMax]
-  );
+  const [xScale, plotMinU8, plotMaxU8] = useMemo(() => {
+    const domain = xScaleLockedToRange ? [rawMin, rawMax] : [typeRange.min, xScaleMax];
+    const scale = d3.scaleLinear().domain(domain).range([0, innerWidth]);
+    const plotMin = absoluteToU8(domain[0], props.channelData);
+    const plotMax = absoluteToU8(domain[1], props.channelData);
+    return [scale, plotMin, plotMax];
+  }, [innerWidth, rawMin, rawMax, typeRange, xScaleLockedToRange, xScaleMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -327,10 +428,10 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     }
   };
 
-  const controlPointsToRender = useMemo(
-    () => (props.useControlPoints ? props.controlPoints : rampToControlPoints(props.ramp)),
-    [props.controlPoints, props.ramp, props.useControlPoints]
-  );
+  const controlPointsToRender = useMemo(() => {
+    const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
+    return fitControlPointsToRange(points, plotMinU8, plotMaxU8);
+  }, [props.controlPoints, props.ramp, props.useControlPoints, plotMinU8, plotMaxU8]);
 
   /** d3-generated svg data string representing both the line between points and the region filled with gradient */
   const areaPath = useMemo(() => {
@@ -352,8 +453,26 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const xAxisRef = useCallback(
     (el: SVGGElement) => {
+      // generate tick marks
       const ticks = xScale.ticks(TFEDITOR_NUM_TICKS);
-      ticks[ticks.length - 1] = xScale.domain()[1];
+
+      // make sure we have sensible tick marks right at the min and max of the x axis
+      const [min, max] = xScale.domain();
+      const domain = max - min;
+
+      if ((ticks[0] - min) / domain < TFEDITOR_END_TICK_MARGIN) {
+        ticks[0] = min;
+      } else {
+        ticks.unshift(min);
+      }
+
+      if ((ticks[ticks.length - 1] - min) / domain > 1 - TFEDITOR_END_TICK_MARGIN) {
+        ticks[ticks.length - 1] = max;
+      } else {
+        ticks.push(max);
+      }
+
+      // now make the axis!
       d3.select(el).call(
         d3
           .axisBottom(xScale)
@@ -374,24 +493,29 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       if (el === null) {
         return;
       }
-      if (props.channelData.histogram.getNumBins() < 1) {
+      const numBins = props.channelData.histogram.getNumBins();
+      if (numBins < 1) {
         return;
       }
       const { binLengths, max } = getHistogramBinLengths(props.channelData.histogram);
-      const barWidth = innerWidth / props.channelData.histogram.getNumBins();
+      const start = Math.max(0, Math.ceil(plotMinU8));
+      const end = Math.min(numBins, Math.floor(plotMaxU8));
+      const binLengthsToRender = binLengths.slice(start, end);
+
+      const barWidth = innerWidth / (plotMaxU8 - plotMinU8);
       const binScale = d3.scaleLog().domain([0.1, max]).range([innerHeight, 0]).base(2).clamp(true);
 
       d3.select(el)
         .selectAll(".bar") // select all the bars of the histogram
-        .data(binLengths) // bind the histogram bins to this selection
+        .data(binLengthsToRender) // bind the histogram bins to this selection
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx, props.channelData))) // set position and height from data
+        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx + start, props.channelData))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [props.channelData.histogram, innerWidth, innerHeight]
+    [xScale, props.channelData, props.channelData.histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
   );
 
   const applyTFGenerator = useCallback(
@@ -416,18 +540,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   // create one svg circle element for each control point
   const controlPointCircles = props.useControlPoints
-    ? props.controlPoints.map((cp, i) => (
-        <circle
-          key={i}
-          className={i === selectedPointIdx ? "selected" : ""}
-          cx={xScale(controlPointToAbsolute(cp, props.channelData))}
-          cy={yScale(cp.opacity)}
-          style={{ fill: colorArrayToString(cp.color) }}
-          r={5}
-          onPointerDown={() => setDraggedPointIdx(i)}
-          onContextMenu={handleControlPointContextMenu}
-        />
-      ))
+    ? props.controlPoints
+        .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
+        .map((cp, i) => (
+          <circle
+            key={i}
+            className={i === selectedPointIdx ? "selected" : ""}
+            cx={xScale(controlPointToAbsolute(cp, props.channelData))}
+            cy={yScale(cp.opacity)}
+            style={{ fill: colorArrayToString(cp.color) }}
+            r={5}
+            onPointerDown={() => setDraggedPointIdx(i)}
+            onContextMenu={handleControlPointContextMenu}
+          />
+        ))
     : null;
   // move selected control point to the end so it's not occluded by other nearby points
   if (controlPointCircles !== null && selectedPointIdx !== null) {
@@ -452,6 +578,31 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           Advanced
         </Checkbox>
       </div>
+
+      {/* ----- MIN/MAX SPINBOXES ----- */}
+      {!props.useControlPoints && (
+        <div className="tf-editor-control-row ramp-row">
+          Ramp min/max
+          <InputNumber
+            value={u8ToAbsolute(props.ramp[0], props.channelData)}
+            onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
+            formatter={numberFormatter}
+            min={typeRange.min}
+            max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
+            size="small"
+            controls={false}
+          />
+          <InputNumber
+            value={u8ToAbsolute(props.ramp[1], props.channelData)}
+            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
+            formatter={numberFormatter}
+            min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
+            max={typeRange.max}
+            size="small"
+            controls={false}
+          />
+        </div>
+      )}
 
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
       {colorPickerPosition !== null && (
@@ -486,68 +637,66 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* plot axes */}
           <g ref={xAxisRef} className="axis" transform={`translate(0,${innerHeight})`} />
           <g ref={yAxisRef} className="axis" />
-          {/* control points */}
+          {/* "advanced mode" control points */}
           {controlPointCircles}
           {/* "basic mode" sliders */}
           {!props.useControlPoints && (
             <g className="ramp-sliders">
-              <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
-                <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
-                <line
-                  className="ramp-slider-click-target"
-                  y1={innerHeight}
-                  strokeWidth={6}
-                  onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
-                />
-                <path
-                  d={sliderHandlePath}
-                  transform={`translate(0,${innerHeight}) rotate(180)`}
-                  onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
-                />
-              </g>
-              <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
-                <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
-                <line
-                  className="ramp-slider-click-target"
-                  y1={innerHeight}
-                  strokeWidth={6}
-                  onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
-                />
-                <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
-              </g>
+              {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
+                <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
+                  <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <line
+                    className="ramp-slider-click-target"
+                    y1={innerHeight}
+                    strokeWidth={6}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                  />
+                  <path
+                    d={sliderHandlePath}
+                    transform={`translate(0,${innerHeight}) rotate(180)`}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                  />
+                </g>
+              )}
+              {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
+                <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
+                  <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+                  <line
+                    className="ramp-slider-click-target"
+                    y1={innerHeight}
+                    strokeWidth={6}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
+                  />
+                  <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
+                </g>
+              )}
             </g>
           )}
         </g>
       </svg>
 
-      {/* ----- MIN/MAX SPINBOXES ----- */}
-      {!props.useControlPoints && (
-        <div className="tf-editor-numeric-input-row">
+      {/* ----- PLOT RANGE ----- */}
+      <div className="tf-editor-control-row plot-range-row">
+        <span>
+          <Checkbox checked={xScaleLockedToRange} onChange={(e) => setXScaleLockedToRange(e.target.checked)}>
+            Lock to data range
+          </Checkbox>
+        </span>
+        {!xScaleLockedToRange && (
           <span>
-            Min{" "}
+            Plot max{" "}
             <InputNumber
-              value={u8ToAbsolute(props.ramp[0], props.channelData)}
-              onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
+              value={xScaleMax}
+              onChange={(v) => v !== null && setXScaleMax(v)}
               formatter={numberFormatter}
-              min={0}
-              max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), props.channelData.rawMax)}
+              min={typeRange.min}
+              max={typeRange.max}
               size="small"
+              controls={false}
             />
           </span>
-          <span>
-            Max{" "}
-            <InputNumber
-              value={u8ToAbsolute(props.ramp[1], props.channelData)}
-              onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
-              formatter={numberFormatter}
-              min={Math.max(0, u8ToAbsolute(props.ramp[0], props.channelData))}
-              max={props.channelData.rawMax}
-              size="small"
-              width={45}
-            />
-          </span>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ----- COLORIZE SLIDER ----- */}
       <SliderRow
