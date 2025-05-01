@@ -23,6 +23,8 @@ const HeaderTitleLink = styled(Link)`
     &:hover {
       color: var(--color-header-hover-title);
     }
+
+    text-decoration: none;
   }
 `;
 

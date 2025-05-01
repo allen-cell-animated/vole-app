@@ -256,13 +256,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
   a {
     color: var(--color-text-link);
-    &:not(:focus-visible) {
-      text-decoration: none;
-    }
-
-    &:focus-visible {
-      text-decoration: underline;
-    }
   }
 
   & *::selection {
