@@ -86,7 +86,8 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   );
 
   const createTFEditor = (): React.ReactNode => {
-    const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp } = channelState;
+    const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp, lockPlotToDataRange, plotMax } =
+      channelState;
     return (
       <TfEditor
         id={"TFEditor" + index}
@@ -99,6 +100,8 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         colorizeAlpha={colorizeAlpha}
         useControlPoints={useControlPoints}
         ramp={ramp}
+        lockPlotToDataRange={lockPlotToDataRange}
+        plotMax={plotMax}
       />
     );
   };

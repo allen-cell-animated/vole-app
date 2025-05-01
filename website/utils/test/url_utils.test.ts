@@ -246,6 +246,8 @@ describe("Channel state serialization", () => {
       { x: 255, opacity: 1.0, color: [255, 255, 255] },
     ],
     ramp: [0, 255],
+    lockPlotToDataRange: true,
+    plotMax: 255,
   };
   const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelSettingParams = {
     col: "ff0000",
@@ -380,6 +382,9 @@ describe("Channel state serialization", () => {
         useControlPoints: false,
         controlPoints: [],
         ramp: [0, 255],
+        // TODO: the settings below are not serialized. should they be? (see #384)
+        lockPlotToDataRange: true,
+        plotMax: 255,
       };
       const serializedCustomChannelState: Required<Omit<ViewerChannelSettingParams, "lut">> = {
         col: "03ff9d",
@@ -827,6 +832,8 @@ describe("serializeViewerUrlParams", () => {
           { x: 1, opacity: 1, color: [255, 0, 0] },
         ],
         ramp: [-10, 260.1],
+        lockPlotToDataRange: true,
+        plotMax: 255,
       },
       {
         name: "channel1",
@@ -847,6 +854,8 @@ describe("serializeViewerUrlParams", () => {
           { x: 260, opacity: 1.0, color: [0, 255, 180] },
         ],
         ramp: [50, 140],
+        lockPlotToDataRange: true,
+        plotMax: 255,
       },
     ];
     const serialized = serializeViewerUrlParams({ channelSettings: channelStates }, false);

@@ -22,6 +22,7 @@ import {
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
+  DTYPE_RANGE,
   getDefaultChannelColor,
   getDefaultViewerState,
   QUEUE_MAX_LOW_PRIORITY_SIZE,
@@ -285,7 +286,13 @@ const App: React.FC<AppProps> = (props) => {
     ) {
       const viewerChannelSettings = getCurrentViewerChannelSettings();
       const { ramp, controlPoints } = initializeLut(aimg, channelIndex, viewerChannelSettings);
-      changeChannelSetting(channelIndex, { controlPoints: controlPoints, ramp: controlPointsToRamp(ramp) });
+
+      changeChannelSetting(channelIndex, {
+        controlPoints: controlPoints,
+        ramp: controlPointsToRamp(ramp),
+        // set the default range of the transfer function editor to cover the full range of the data type
+        plotMax: DTYPE_RANGE[thisChannel.dtype].max,
+      });
       onResetChannel(channelIndex);
     } else {
       // try not to update lut from here if we are in play mode
@@ -297,8 +304,8 @@ const App: React.FC<AppProps> = (props) => {
       const oldRange = channelRangesRef.current[channelIndex];
       if (thisChannelsSettings.useControlPoints) {
         // control points were just automatically remapped - update in state
-        // now manually remap ramp using the channel's old range
         const rampControlPoints = rampToControlPoints(thisChannelsSettings.ramp);
+        // now manually remap ramp using the channel's old range
         const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, thisChannel);
         changeChannelSetting(channelIndex, {
           ramp: controlPointsToRamp(remappedRampControlPoints),

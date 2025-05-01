@@ -70,6 +70,8 @@ export interface ChannelState {
   ramp: [number, number];
   useControlPoints: boolean;
   controlPoints: ControlPoint[];
+  lockPlotToDataRange: boolean;
+  plotMax: number;
 }
 
 export type ChannelStateKey = keyof ChannelState;
