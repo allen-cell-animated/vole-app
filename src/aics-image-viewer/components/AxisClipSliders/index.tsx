@@ -86,7 +86,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
           <NumericInput
             min={min}
             max={max}
-            value={isRange ? valsReadout[0] : valsReadout[0] + 1}
+            value={valsReadout[0] + (isRange ? 0 : 1)}
             onChange={(value) => onChange?.(isRange ? [value, vals[1]] : [value - 1])}
           />
           {isRange && (
