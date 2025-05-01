@@ -23,7 +23,7 @@ const HeaderTitleLink = styled(Link)`
     &:hover {
       color: var(--color-header-hover-title);
     }
-
+    /* Do not show underline on app title link */
     text-decoration: none;
   }
 `;
