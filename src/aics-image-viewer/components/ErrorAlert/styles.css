@@ -17,6 +17,10 @@
 
   .ant-btn-text {
     color: var(--color-text-link);
+
+    &:hover {
+      color: #25affe !important;
+    }
   }
 
   .ant-alert-message div:first-child {
