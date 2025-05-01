@@ -567,7 +567,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       {/* ----- MIN/MAX SPINBOXES ----- */}
       {!props.useControlPoints && (
         <div className="tf-editor-control-row ramp-row">
-          Ramp min/max:
+          Ramp min/max
           <InputNumber
             value={u8ToAbsolute(props.ramp[0], props.channelData)}
             onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
@@ -575,6 +575,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             min={typeRange.min}
             max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
             size="small"
+            controls={false}
           />
           <InputNumber
             value={u8ToAbsolute(props.ramp[1], props.channelData)}
@@ -583,6 +584,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
             max={typeRange.max}
             size="small"
+            controls={false}
           />
         </div>
       )}
@@ -678,6 +680,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               min={typeRange.min}
               max={typeRange.max}
               size="small"
+              controls={false}
             />
           </span>
         )}

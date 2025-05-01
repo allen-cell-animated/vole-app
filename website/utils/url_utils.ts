@@ -1,8 +1,8 @@
 import { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
-import FirebaseRequest, { DatasetMetaData } from "../../public/firebase";
-import type { AppProps } from "../../src/aics-image-viewer/components/App/types";
+import FirebaseRequest, { type DatasetMetaData } from "../../public/firebase";
+import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 import type {
   ChannelState,
   ViewerState,
@@ -14,9 +14,9 @@ import {
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import { PerAxis } from "../../src/aics-image-viewer/shared/types";
+import type { PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
-import {
+import type {
   ViewerChannelSetting,
   ViewerChannelSettings,
 } from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
@@ -27,6 +27,9 @@ export const ENCODED_COMMA_REGEX = /%2C/g;
 export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
+
+/** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
+const URL_FETCH_FROM_STORAGE = "storage";
 
 // TODO: refactor regexes to be composed of one another rather than duplicating code
 // const COLOR_CODES: Record<string, ColorArray> = {
@@ -96,6 +99,7 @@ export enum ViewerStateKeys {
   Region = "reg",
   Slice = "slice",
   Time = "t",
+  Scene = "scene",
   CameraState = "cam",
 }
 
@@ -242,6 +246,8 @@ export class ViewerStateParams {
   [ViewerStateKeys.Slice]?: string = undefined;
   /** Frame number, for time-series volumes. 0 by default. */
   [ViewerStateKeys.Time]?: string = undefined;
+  /** Scene number, for multiscene images. 0 by default. */
+  [ViewerStateKeys.Scene]?: string = undefined;
   /**
    * Camera transform settings, as a list of `key:value` pairs separated by commas.
    * Valid keys are defined in `CameraTransformKeys`:
@@ -315,8 +321,8 @@ const decodeURL = (url: string): string => {
 };
 
 /** Try to parse a `string` as a list of 2 or more URLs. Returns `undefined` if the string is not a valid URL list. */
-const tryDecodeURLList = (url: string, delim = ","): string[] | undefined => {
-  if (!url.includes(delim)) {
+const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] | undefined => {
+  if (typeof delim === "string" ? !url.includes(delim) : !delim.test(url)) {
     return undefined;
   }
 
@@ -672,6 +678,15 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
 
 //// DATA SERIALIZATION //////////////////////
 
+export function encodeImageUrlProp(imageUrl: string | MultisceneUrls): string {
+  // work with an array of scenes, even if there's only one scene
+  const scenes = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
+  // join urls in multi-source images with commas, and encode each url
+  const sceneUrls = scenes.map((scene) => encodeURIComponent(Array.isArray(scene) ? scene.join(",") : scene));
+  // join scenes with `+`
+  return sceneUrls.join("+");
+}
+
 /**
  * Parses a ViewerChannelSetting from a JSON object.
  * @param channelIndex Index of the channel, to be turned into a `match` value.
@@ -761,6 +776,7 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
     region: parseStringRegion(params[ViewerStateKeys.Region]),
     slice: parseStringSlice(params[ViewerStateKeys.Slice]),
     time: parseStringInt(params[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
+    scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
     renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
     cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
   };
@@ -813,6 +829,7 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Slice]: state.slice && serializeSlice(state.slice),
     [ViewerStateKeys.Levels]: state.levels?.join(","),
     [ViewerStateKeys.Time]: state.time?.toString(),
+    [ViewerStateKeys.Scene]: state.scene?.toString(),
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };
@@ -955,8 +972,23 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
   // Parse data sources (URL or dataset/id pair)
   if (params.url) {
-    const imageUrls = tryDecodeURLList(params.url) ?? decodeURL(params.url);
-    const firstUrl = Array.isArray(imageUrls) ? imageUrls[0] : imageUrls;
+    const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
+    const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url) : params.url;
+    // split encoded url into a list of one or more scenes...
+    const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
+    // ...and each scene into a list of multiple sources, if any.
+    const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+
+    const firstScene = scenes[0];
+    // Get the very first URL for the download button
+    const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
+    // If there's only one url, just pass that
+    const imageUrls: string | MultisceneUrls = scenes.length > 1 || firstScene.length > 1 ? { scenes } : firstScene[0];
+
+    if (getFromStorage) {
+      const metadataJson = localStorage.getItem("meta");
+      args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
+    }
 
     args.cellId = "1";
     args.imageUrl = imageUrls;

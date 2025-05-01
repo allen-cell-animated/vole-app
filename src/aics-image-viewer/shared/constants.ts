@@ -8,6 +8,8 @@ import { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 // Add all exported constants here to prevent circular dependencies
 export const // Control panel will automatically close if viewport is less than this width
   CONTROL_PANEL_CLOSE_WIDTH = 970,
+  CLIPPING_PANEL_HEIGHT_DEFAULT = 200,
+  CLIPPING_PANEL_HEIGHT_TALL = 235,
   BACKGROUND_COLOR_DEFAULT: ColorArray = [0, 0, 0],
   BOUNDING_BOX_COLOR_DEFAULT: ColorArray = [255, 255, 255],
   AXIS_MARGIN_DEFAULT: [number, number] = [16, 16],
@@ -173,6 +175,7 @@ export const getDefaultViewerState = (): ViewerState => ({
   region: { x: [0, 1], y: [0, 1], z: [0, 1] },
   slice: { x: 0.5, y: 0.5, z: 0.5 },
   time: 0,
+  scene: 0,
   // Do not override camera position, target, etc. by default;
   // instead, let the viewer apply default camera settings based on the view mode.
   // This prevents a bug where the camera's position and view mode are set to
