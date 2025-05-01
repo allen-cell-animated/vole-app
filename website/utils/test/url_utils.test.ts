@@ -382,6 +382,7 @@ describe("Channel state serialization", () => {
         useControlPoints: false,
         controlPoints: [],
         ramp: [0, 255],
+        // TODO: the settings below are not serialized. should they be? (see #384)
         lockPlotToDataRange: true,
         plotMax: 255,
       };
