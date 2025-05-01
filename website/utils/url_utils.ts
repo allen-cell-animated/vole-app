@@ -28,6 +28,9 @@ export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
+/** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
+const URL_FETCH_FROM_STORAGE = "storage";
+
 // TODO: refactor regexes to be composed of one another rather than duplicating code
 // const COLOR_CODES: Record<string, ColorArray> = {
 //   "0": [0, 0, 0],
@@ -318,8 +321,8 @@ const decodeURL = (url: string): string => {
 };
 
 /** Try to parse a `string` as a list of 2 or more URLs. Returns `undefined` if the string is not a valid URL list. */
-const tryDecodeURLList = (url: string, delim = ","): string[] | undefined => {
-  if (!url.includes(delim)) {
+const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] | undefined => {
+  if (typeof delim === "string" ? !url.includes(delim) : !delim.test(url)) {
     return undefined;
   }
 
@@ -678,10 +681,10 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
 export function encodeImageUrlProp(imageUrl: string | MultisceneUrls): string {
   // work with an array of scenes, even if there's only one scene
   const scenes = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
-  // join urls in multi-source images with commas
-  const sceneUrlsUnencoded = scenes.map((scene) => (Array.isArray(scene) ? scene.join(",") : scene));
-  // join scenes with spaces, and encode the whole string
-  return encodeURIComponent(sceneUrlsUnencoded.join(" "));
+  // join urls in multi-source images with commas, and encode each url
+  const sceneUrls = scenes.map((scene) => encodeURIComponent(Array.isArray(scene) ? scene.join(",") : scene));
+  // join scenes with `+`
+  return sceneUrls.join("+");
 }
 
 /**
@@ -969,8 +972,10 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
   // Parse data sources (URL or dataset/id pair)
   if (params.url) {
+    const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
+    const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url) : params.url;
     // split encoded url into a list of one or more scenes...
-    const sceneUrls = tryDecodeURLList(params.url, " ") ?? [params.url];
+    const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
     // ...and each scene into a list of multiple sources, if any.
     const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
 
@@ -979,6 +984,11 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
     const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
     // If there's only one url, just pass that
     const imageUrls: string | MultisceneUrls = scenes.length > 1 || firstScene.length > 1 ? { scenes } : firstScene[0];
+
+    if (getFromStorage) {
+      const metadataJson = localStorage.getItem("meta");
+      args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
+    }
 
     args.cellId = "1";
     args.imageUrl = imageUrls;
