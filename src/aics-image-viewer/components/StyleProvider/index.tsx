@@ -349,7 +349,11 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   .ant-checkbox-inner {
-    background-color: transparent !important;
+    background-color: transparent;
+  }
+
+  & .ant-checkbox-indeterminate.checked .ant-checkbox-inner {
+    background-color: var(--color-checkbox-bg);
   }
 
   // Add outlines to modals and dropdowns
