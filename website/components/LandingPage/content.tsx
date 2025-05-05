@@ -27,22 +27,23 @@ const nucmorphBaseViewerSettings: Partial<AppDataProps> = {
 export const landingPageContent: ProjectEntry[] = [
   {
     name: "hiPSC FOV-nuclei timelapse datasets",
-    inReview: true,
+    inReview: false,
     description: (
       <p>
         3D timelapses of nuclei in growing hiPS cell colonies of three different starting sizes. Timelapse datasets
         include 3D transmitted-light bright-field and lamin B1-mEGFP fluorescence 20x images and 3D nuclear segmentation
-        images. These datasets are available for download on{" "}
+        images. These datasets are{" "}
         <ExternalLink href="https://open.quiltdata.com/b/allencell/tree/aics/nuc-morph-dataset/hipsc_fov_nuclei_timelapse_dataset/hipsc_fov_nuclei_timelapse_data_used_for_analysis/baseline_colonies_fov_timelapse_dataset/">
-          Quilt
+          available for download on Quilt
         </ExternalLink>{" "}
-        and analyzed in the study{" "}
-        <ExternalLink href="https://www.biorxiv.org/content/10.1101/2024.06.28.601071v1">
-          Dixon et al. 2024 (bioRxiv)
-        </ExternalLink>
         .
       </p>
     ),
+    publicationInfo: {
+      url: new URL("https://doi.org/10.1016/j.cels.2025.101265"),
+      name: "Colony context and size-dependent compensation mechanisms give rise to variations in nuclear growth trajectories",
+      citation: "Cell Systems, May 2025",
+    },
     datasets: [
       {
         name: "Small colony",

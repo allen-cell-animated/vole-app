@@ -35,10 +35,15 @@ const BannerTextContainer = styled(FlexColumnAlignCenter)`
   width: calc(90vw - var(--total-padding-x));
   border-radius: 5px;
   background-color: var(--color-landingpage-banner-highlight-bg);
-  gap: 10px;
+  gap: 20px;
 
-  & > h1 {
-    margin-top: 0;
+  & h1 {
+    margin: 0;
+  }
+
+  & h2 {
+    color: var(--color-text-body);
+    margin: 0;
   }
 
   && > p {
@@ -145,6 +150,7 @@ const ProjectCard = styled.li`
   display: flex;
   width: 100%;
   flex-direction: column;
+  gap: 10px;
 
   & h3 {
     font-weight: 600;
@@ -163,6 +169,7 @@ const ProjectCard = styled.li`
   & a {
     // Add 2px margin to maintain the same visual gap that text has
     margin-top: 2px;
+    text-decoration: underline;
   }
 
   & :first-child {
@@ -175,7 +182,6 @@ const DatasetList = styled.ul`
   padding: 0;
   width: 100%;
   display: grid;
-  margin: 4px 0 0 0;
 
   // Use grid + subgrid to align the title, description, and button for each horizontal
   // row of cards. repeat is used to tile the layout if the cards wrap to a new line.
@@ -287,20 +293,22 @@ export default function LandingPage(): ReactElement {
       <h2>{project.name}</h2>
     );
 
-    const publicationElement = project.publicationLink ? (
+    const publication = project.publicationInfo;
+    const publicationElement = publication ? (
       <p>
         Related publication:{" "}
         <a
-          href={project.publicationLink.toString()}
+          href={publication.url.toString()}
           target="_blank"
           rel="noopener noreferrer"
           style={{ color: "var(--color-text-link)" }}
         >
-          {project.publicationName}
+          {publication.name}
           {/* Icon offset slightly to align with text */}
           <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" style={{ marginBottom: "-1px", marginLeft: "3px" }} />
           <VisuallyHidden>(opens in new tab)</VisuallyHidden>
-        </a>
+        </a>{" "}
+        ({publication.citation})
       </p>
     ) : null;
 
@@ -358,9 +366,12 @@ export default function LandingPage(): ReactElement {
           <div></div>
         </BannerVideoContainer>
         <BannerTextContainer style={{ zIndex: 1 }}>
-          <h1>Welcome to Vol-E</h1>
+          <FlexColumnAlignCenter>
+            <h1>Vol-E</h1>
+            <h2>An interactive, web-based viewer for 3D volume data</h2>
+          </FlexColumnAlignCenter>
           <p>
-            Vol-E (Volume Explorer) is an open-use web-based tool designed to visualize, analyze, and interpret
+            Vol-E (Volume Explorer) is an open-use online tool designed to visualize, analyze, and interpret
             multi-channel 3D microscopy data. Ideal for researchers, educators, and students, the viewer offers powerful
             interactive tools to extract key insights from imaging data.
           </p>
@@ -371,7 +382,7 @@ export default function LandingPage(): ReactElement {
         <FeatureHighlightsContainer>
           <FeatureHighlightsItem>
             <h3>Multiresolution OME-Zarr support</h3>
-            <p>Load your cloud-hosted OME-Zarr v0.4 images via http(s).</p>
+            <p>Load your cloud-hosted OME-Zarr v0.4 and v0.5 images via http(s).</p>
           </FeatureHighlightsItem>
           <FeatureHighlightsItem>
             <h3>Multiple viewing modes</h3>
