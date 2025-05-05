@@ -1,4 +1,4 @@
-import { CameraState } from "@aics/vole-core";
+import type { CameraState, Channel } from "@aics/vole-core";
 
 import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
 import { ImageType, RenderMode, ViewMode } from "./enums";
@@ -34,6 +34,20 @@ export const TFEDITOR_MAX_BIN = 255;
 export const CACHE_MAX_SIZE = 1_000_000_000;
 export const QUEUE_MAX_SIZE = 10;
 export const QUEUE_MAX_LOW_PRIORITY_SIZE = 4;
+
+/** Maps channel data types to their minimum and maximum values */
+export const DTYPE_RANGE: { [T in Channel["dtype"]]: { min: number; max: number } } = {
+  int8: { min: -Math.pow(2, 7), max: Math.pow(2, 7) - 1 },
+  int16: { min: -Math.pow(2, 15), max: Math.pow(2, 15) - 1 },
+  int32: { min: -Math.pow(2, 31), max: Math.pow(2, 31) - 1 },
+  uint8: { min: 0, max: Math.pow(2, 8) - 1 },
+  uint16: { min: 0, max: Math.pow(2, 16) - 1 },
+  uint32: { min: 0, max: Math.pow(2, 32) - 1 },
+  // These are obviously not the actual min and max representable values for floats, but the actual ones (`-Infinity`
+  // and `Infinity`) would give us nonsense. These may also produce nonsense, but these types should be rare anyways.
+  float32: { min: 0, max: Math.pow(2, 8) - 1 },
+  float64: { min: 0, max: Math.pow(2, 8) - 1 },
+};
 
 export const PRESET_COLORS_1: ColorArray[] = [
   [190, 68, 171],
@@ -199,5 +213,7 @@ export const getDefaultChannelState = (index: number = 0): ChannelState => {
       { x: 0, opacity: 0, color: [255, 255, 255] },
       { x: 255, opacity: 1, color: [255, 255, 255] },
     ],
+    lockPlotToDataRange: true,
+    plotMax: TFEDITOR_MAX_BIN,
   };
 };

@@ -256,13 +256,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
   a {
     color: var(--color-text-link);
-    &:not(:focus-visible) {
-      text-decoration: none;
-    }
-
-    &:focus-visible {
-      text-decoration: underline;
-    }
   }
 
   & *::selection {
@@ -349,11 +342,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   .ant-checkbox-inner {
-    background-color: transparent;
-  }
-
-  & .ant-checkbox-indeterminate.checked .ant-checkbox-inner {
-    background-color: var(--color-checkbox-bg);
+    background-color: transparent !important;
   }
 
   // Add outlines to modals and dropdowns

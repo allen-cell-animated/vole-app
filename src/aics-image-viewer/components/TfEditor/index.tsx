@@ -2,10 +2,10 @@ import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
-import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
+import { DTYPE_RANGE, LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
 import {
   ColorArray,
   colorArrayToObject,
@@ -46,19 +46,6 @@ const TFEDITOR_MARGINS = {
 
 const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
 
-const DTYPE_RANGE: { [T in Channel["dtype"]]: { min: number; max: number } } = {
-  int8: { min: -Math.pow(2, 7), max: Math.pow(2, 7) - 1 },
-  int16: { min: -Math.pow(2, 15), max: Math.pow(2, 15) - 1 },
-  int32: { min: -Math.pow(2, 31), max: Math.pow(2, 31) - 1 },
-  uint8: { min: 0, max: Math.pow(2, 8) - 1 },
-  uint16: { min: 0, max: Math.pow(2, 16) - 1 },
-  uint32: { min: 0, max: Math.pow(2, 32) - 1 },
-  // These are obviously not the actual min and max representable values for floats, but the actual ones (`-Infinity`
-  // and `Infinity`) would give us nonsense. These may also produce nonsense, but these types should be rare anyways.
-  float32: { min: 0, max: Math.pow(2, 8) - 1 },
-  float64: { min: 0, max: Math.pow(2, 8) - 1 },
-};
-
 const enum TfEditorRampSliderHandle {
   Min = "min",
   Max = "max",
@@ -75,6 +62,8 @@ type TfEditorProps = {
   useControlPoints: boolean;
   controlPoints: ControlPoint[];
   ramp: [number, number];
+  lockPlotToDataRange: boolean;
+  plotMax: number;
 };
 
 const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
@@ -273,20 +262,16 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const { rawMin, rawMax, dtype } = props.channelData;
   const typeRange = DTYPE_RANGE[dtype];
-  const [xScaleLockedToRange, setXScaleLockedToRange] = useState<boolean>(true);
-  const [xScaleMax, setXScaleMax] = useState<number>(typeRange.max);
-  // data type can change when the channel loads
-  useEffect(() => setXScaleMax(typeRange.max), [typeRange]);
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
   const [xScale, plotMinU8, plotMaxU8] = useMemo(() => {
-    const domain = xScaleLockedToRange ? [rawMin, rawMax] : [typeRange.min, xScaleMax];
+    const domain = props.lockPlotToDataRange ? [rawMin, rawMax] : [typeRange.min, props.plotMax];
     const scale = d3.scaleLinear().domain(domain).range([0, innerWidth]);
-    const plotMin = absoluteToU8(domain[0], props.channelData);
-    const plotMax = absoluteToU8(domain[1], props.channelData);
-    return [scale, plotMin, plotMax];
-  }, [innerWidth, rawMin, rawMax, typeRange, xScaleLockedToRange, xScaleMax]);
+    const plotMinU8 = absoluteToU8(domain[0], props.channelData);
+    const plotMaxU8 = absoluteToU8(domain[1], props.channelData);
+    return [scale, plotMinU8, plotMaxU8];
+  }, [innerWidth, rawMin, rawMax, typeRange, props.lockPlotToDataRange, props.plotMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -678,16 +663,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       {/* ----- PLOT RANGE ----- */}
       <div className="tf-editor-control-row plot-range-row">
         <span>
-          <Checkbox checked={xScaleLockedToRange} onChange={(e) => setXScaleLockedToRange(e.target.checked)}>
+          <Checkbox
+            checked={props.lockPlotToDataRange}
+            onChange={(e) => changeChannelSetting({ lockPlotToDataRange: e.target.checked })}
+          >
             Lock to data range
           </Checkbox>
         </span>
-        {!xScaleLockedToRange && (
+        {!props.lockPlotToDataRange && (
           <span>
             Plot max{" "}
             <InputNumber
-              value={xScaleMax}
-              onChange={(v) => v !== null && setXScaleMax(v)}
+              value={props.plotMax}
+              onChange={(v) => v !== null && changeChannelSetting({ plotMax: v })}
               formatter={numberFormatter}
               min={typeRange.min}
               max={typeRange.max}
