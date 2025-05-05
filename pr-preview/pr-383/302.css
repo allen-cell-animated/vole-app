@@ -1125,6 +1125,9 @@
   .load-error-alert .ant-btn-text{
     color:var(--color-text-link);
   }
+  .load-error-alert .ant-btn-text:hover{
+      color:#25affe !important;
+    }
   .load-error-alert .ant-alert-message div:first-child{
     color:var(--color-text-section);
     font-weight:600;
