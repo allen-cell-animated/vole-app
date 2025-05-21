@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunk_aics_vole_app=self.webpackChunk_aics_vole_app||[]).push([[522],{8522:(e,l,t)=>{t.r(l),t.d(l,{default:()=>s});var r=t(9861),s=class e{static codecId="gzip";level;constructor(e=1){if(e<0||e>9)throw new Error("Invalid gzip compression level, it should be between 0 and 9");this.level=e}static fromConfig({level:l}){return new e(l)}encode(e){return r.u3(e,{level:this.level})}decode(e){return r.Wt(e)}}}}]);
+//# sourceMappingURL=522.bundle.js.map
