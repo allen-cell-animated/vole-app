@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunk_aics_vole_app=self.webpackChunk_aics_vole_app||[]).push([[31],{2031:(e,l,r)=>{r.r(l),r.d(l,{default:()=>t});var s=r(9861),t=class e{static codecId="zlib";level;constructor(e=1){if(e<-1||e>9)throw new Error("Invalid zlib compression level, it should be between -1 and 9");this.level=e}static fromConfig({level:l}){return new e(l)}encode(e){return s.$(e,{level:this.level})}decode(e){return s.a8(e)}}}}]);
-//# sourceMappingURL=31.bundle.js.map
