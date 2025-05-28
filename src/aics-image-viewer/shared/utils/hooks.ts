@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback, MutableRefObject } from "react";
+import { MutableRefObject, useCallback, useRef, useState } from "react";
 
 /** A `useState` that also creates a getter function for breaking through closures. */
+// TODO current branch will remove the last use of this; remove it!
 export function useStateWithGetter<T>(initialState: T | (() => T)): [T, (value: T) => void, () => T] {
   const [state, setState] = useState(initialState);
   const stateRef = useRef(state);
