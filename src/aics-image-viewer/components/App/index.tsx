@@ -549,7 +549,7 @@ const App: React.FC<AppProps> = (props) => {
       view3d.setShowTimestepIndicator(false);
       view3d.setShowAxis(false);
     },
-    [viewerSettings.showAxes]
+    [view3d]
   );
 
   const onClippingPanelVisibleChangeEnd = useCallback((): void => {
@@ -558,7 +558,7 @@ const App: React.FC<AppProps> = (props) => {
     if (viewerSettings.showAxes) {
       view3d.setShowAxis(true);
     }
-  }, [viewerSettings.showAxes]);
+  }, [viewerSettings.showAxes, view3d]);
 
   const getMetadata = useCallback((): MetadataRecord => {
     const { metadata, metadataFormatter } = props;
