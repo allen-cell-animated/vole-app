@@ -147,6 +147,10 @@ const setIndicatorPositions = (
   view3d.setScaleBarPosition(scaleBarX, scaleBarY);
 };
 
+// TODO this component, specifically its volume loading behavior, is way out of compliance with react-hooks lints
+//   and will need a larger refactoring pass to fix that.
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/rules-of-hooks */
 const App: React.FC<AppProps> = (props) => {
   props = { ...defaultProps, ...props };
 
