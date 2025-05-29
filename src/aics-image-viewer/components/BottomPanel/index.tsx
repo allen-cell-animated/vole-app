@@ -22,7 +22,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ children, title, height, onVi
     if (!isVisible) {
       onVisibleChangeEnd?.(isVisible);
     }
-  }, []);
+  });
 
   // Treat changes in height as a change in visibility if the panel is open
   useEffect(() => {
