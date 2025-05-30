@@ -177,7 +177,7 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState>; chi
   const resetProvider = useConstructor(() => new ResetStateProvider(ref));
   useEffect(() => {
     resetProvider.setSavedViewerState(props.viewerSettings || {});
-  }, [props.viewerSettings]);
+  }, [props.viewerSettings, resetProvider]);
 
   const changeViewerSetting = useCallback<ViewerSettingUpdater>((key, value) => viewerDispatch({ key, value }), []);
 

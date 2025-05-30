@@ -271,7 +271,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     const plotMinU8 = absoluteToU8(domain[0], props.channelData);
     const plotMaxU8 = absoluteToU8(domain[1], props.channelData);
     return [scale, plotMinU8, plotMaxU8];
-  }, [innerWidth, rawMin, rawMax, typeRange, props.lockPlotToDataRange, props.plotMax]);
+  }, [innerWidth, rawMin, rawMax, typeRange, props.lockPlotToDataRange, props.plotMax, props.channelData]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -427,7 +427,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight]);
+  }, [controlPointsToRender, xScale, yScale, innerHeight, props.channelData]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -500,7 +500,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [xScale, props.channelData, props.channelData.histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
+    [xScale, props.channelData, innerWidth, innerHeight, plotMinU8, plotMaxU8]
   );
 
   const applyTFGenerator = useCallback(
@@ -514,7 +514,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         setRamp(controlPointsToRamp(lut.controlPoints));
       }
     },
-    [props.channelData.histogram, props.useControlPoints]
+    [props.channelData.histogram, props.useControlPoints, setControlPoints, setRamp]
   );
 
   const createTFGeneratorButton = (generator: string, name: string, description: string): React.ReactNode => (

@@ -3,12 +3,13 @@ import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
-import ViewModeRadioButtons from "./ViewModeRadioButtons";
-import DownloadButton from "./DownloadButton";
-import { connectToViewerState } from "../ViewerStateProvider";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
+import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+
 import ViewerIcon from "../shared/ViewerIcon";
+import { connectToViewerState } from "../ViewerStateProvider";
+import DownloadButton from "./DownloadButton";
+import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
 import "./styles.css";
 
@@ -79,8 +80,10 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     setScrollBtnRight(barEl.scrollLeft < barEl.scrollWidth - barEl.clientWidth);
   }, []);
 
-  const checkSize = React.useCallback(
-    debounce((): void => {
+  // This is effectively a `useCallback` - it memoizes a function - but since we're feeding the whole function into
+  // lodash's `debounce`, using `useMemo` memoizes the transformation done by `debounce` as well.
+  const checkSize = React.useMemo(() => {
+    return debounce((): void => {
       if (!leftRef.current || !centerRef.current || !rightRef.current || !barRef.current) {
         return;
       }
@@ -106,11 +109,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
         }
       }
       checkScrollBtnVisible();
-    }, RESIZE_DEBOUNCE_DELAY),
-    [scrollMode, checkScrollBtnVisible]
-  );
+    }, RESIZE_DEBOUNCE_DELAY);
+  }, [scrollMode, checkScrollBtnVisible]);
 
-  React.useEffect(checkSize, []);
+  // Run `checkSize` on mount
+  React.useEffect(checkSize);
   React.useEffect(() => {
     window.addEventListener("resize", checkSize);
     return () => window.removeEventListener("resize", checkSize);
