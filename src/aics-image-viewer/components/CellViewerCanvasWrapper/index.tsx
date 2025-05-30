@@ -29,8 +29,8 @@ type ViewerWrapperProps = {
   visibleControls: {
     axisClipSliders: boolean;
   };
-  onClippingPanelVisibleChange?: (panelOpen: boolean, hasTime: boolean, hasScenes: boolean, mode3d: boolean) => void;
-  onClippingPanelVisibleChangeEnd?: (panelOpen: boolean) => void;
+  clippingPanelOpen?: boolean;
+  onClippingPanelOpenChange?: (visible: boolean) => void;
 
   // From viewer state
   autorotate: boolean;
@@ -48,10 +48,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
   React.useEffect(() => {
     view3dviewerRef.current!.appendChild(props.view3d.getDOMElement());
     props.view3d.setAutoRotate(props.autorotate);
-  }, []);
-
-  // TODO necessary?
-  React.useEffect(() => {
+    // TODO necessary?
     props.view3d.resize(null);
   });
 
@@ -81,10 +78,8 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
       <div ref={view3dviewerRef} style={STYLES.view3d}></div>
       <BottomPanel
         title="Clipping"
-        onVisibleChange={(visible) => {
-          props.onClippingPanelVisibleChange?.(visible, numTimesteps > 1, numScenes > 1, viewMode === ViewMode.threeD);
-        }}
-        onVisibleChangeEnd={props.onClippingPanelVisibleChangeEnd}
+        open={props.clippingPanelOpen}
+        onOpenChange={props.onClippingPanelOpenChange}
         height={clippingPanelTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT}
       >
         {visibleControls.axisClipSliders && !!props.image && (
