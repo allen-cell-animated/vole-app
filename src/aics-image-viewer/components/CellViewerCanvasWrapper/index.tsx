@@ -47,10 +47,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
 
   React.useEffect(() => {
     view3dviewerRef.current!.appendChild(props.view3d.getDOMElement());
-    props.view3d.setAutoRotate(props.autorotate);
-    // TODO necessary?
-    props.view3d.resize(null);
-  });
+  }, [props.view3d, view3dviewerRef]);
 
   const renderOverlay = (): React.ReactNode => {
     // Don't show spinner during playback - we may be constantly loading new data, it'll block the view!
