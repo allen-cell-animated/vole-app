@@ -37,7 +37,12 @@
     "react/no-deprecated": 0,
     "react/prop-types": 0,
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/exhaustive-deps": [
+      "warn",
+      {
+        "additionalHooks": "useImageEffect"
+      }
+    ],
     "semi": 2,
     "space-before-blocks": [1, "always"]
   }
