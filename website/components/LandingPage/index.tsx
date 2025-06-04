@@ -254,7 +254,7 @@ export default function LandingPage(): ReactElement {
         });
       }
     });
-  }, []);
+  }, [navigation, searchParams]);
 
   const onClickLoad = (appProps: AppDataProps): void => {
     // TODO: Make URL search params from the appProps and append it to the viewer URL so the URL can be shared directly.
