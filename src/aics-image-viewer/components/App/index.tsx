@@ -112,6 +112,8 @@ const axisToLoaderPriority: Record<AxisName | "t", PrefetchDirection> = {
   x: PrefetchDirection.X_PLUS,
 };
 
+const CLIPPING_PANEL_ANIMATION_DURATION = 300; // ms
+
 const setIndicatorPositions = (
   view3d: View3d,
   panelOpen: boolean,
@@ -563,7 +565,7 @@ const App: React.FC<AppProps> = (props) => {
           if (viewerSettings.showAxes) {
             view3d.setShowAxis(true);
           }
-        }, 300);
+        }, CLIPPING_PANEL_ANIMATION_DURATION);
       }
     },
     [view3d, numTimesteps, numScenes, viewerSettings.viewMode, viewerSettings.showAxes, clippingPanelOpen]
