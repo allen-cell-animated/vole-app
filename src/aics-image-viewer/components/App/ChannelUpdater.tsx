@@ -60,7 +60,7 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       view3d.setVolumeChannelOptions(currentImage, index, { color });
       view3d.updateLuts(currentImage);
     },
-    [color, view3d, index]
+    [color, index, view3d]
   );
 
   const { controlPoints, ramp, useControlPoints } = channelState;
