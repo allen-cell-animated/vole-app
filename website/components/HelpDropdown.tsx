@@ -59,7 +59,7 @@ export default function HelpDropdown(): ReactElement {
   // Otherwise, the `getContainer` callback will be undefined on the first render.
   useEffect(() => {
     setContainer(containerRef.current);
-  }, [containerRef.current]);
+  }, []);
   const getContainer = container !== null ? () => container! : undefined;
 
   const closeVersionModal = (): void => setShowVersionModal(false);

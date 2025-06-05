@@ -26,6 +26,8 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       if (image && version > 0) {
         return effect(image);
       }
+      // react-hooks will check that `deps` match `effect`'s dependencies, so we can safely exclude `effect` here
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [...deps, image, version]);
   };
 
@@ -35,19 +37,22 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       view3d.setVolumeChannelEnabled(image, index, volumeEnabled);
       view3d.updateLuts(image);
     }
-  }, [image, volumeEnabled]);
+  }, [image, volumeEnabled, index, view3d]);
 
   useEffect(() => {
     if (image) {
       view3d.setVolumeChannelOptions(image, index, { isosurfaceEnabled });
     }
-  }, [image, isosurfaceEnabled]);
+  }, [image, isosurfaceEnabled, index, view3d]);
 
-  useImageEffect((currentImage) => view3d.setVolumeChannelOptions(currentImage, index, { isovalue }), [isovalue]);
+  useImageEffect(
+    (currentImage) => view3d.setVolumeChannelOptions(currentImage, index, { isovalue }),
+    [isovalue, index, view3d]
+  );
 
   useImageEffect(
     (currentImage) => view3d.setVolumeChannelOptions(currentImage, index, { isosurfaceOpacity: opacity }),
-    [opacity]
+    [opacity, index, view3d]
   );
 
   useImageEffect(
@@ -55,7 +60,7 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       view3d.setVolumeChannelOptions(currentImage, index, { color });
       view3d.updateLuts(currentImage);
     },
-    [color]
+    [color, index, view3d]
   );
 
   const { controlPoints, ramp, useControlPoints } = channelState;
@@ -69,7 +74,7 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       currentImage.setLut(index, gradient);
       view3d.updateLuts(currentImage);
     },
-    [controlPoints, ramp, useControlPoints]
+    [controlPoints, ramp, useControlPoints, index, view3d]
   );
 
   useImageEffect(
@@ -78,13 +83,10 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
         // TODO get the labelColors from the tf editor component
         const lut = new Lut().createLabelColors(currentImage.getHistogram(index));
         currentImage.setColorPalette(index, lut.lut);
-        currentImage.setColorPaletteAlpha(index, colorizeAlpha);
-      } else {
-        currentImage.setColorPaletteAlpha(index, 0);
+        // following effect will also run and call `updateLuts`
       }
-      view3d.updateLuts(currentImage);
     },
-    [colorizeEnabled]
+    [colorizeEnabled, index, view3d]
   );
 
   useImageEffect(
@@ -92,7 +94,7 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       currentImage.setColorPaletteAlpha(index, colorizeEnabled ? colorizeAlpha : 0);
       view3d.updateLuts(currentImage);
     },
-    [colorizeAlpha]
+    [colorizeEnabled, colorizeAlpha, index, view3d]
   );
 
   return null;

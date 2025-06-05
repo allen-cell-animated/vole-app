@@ -4,11 +4,12 @@ import Fuse from "fuse.js";
 import React, { ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
-import MiddleTruncatedText from "../MiddleTruncatedText";
-import { FlexRow } from "../LandingPage/utils";
 import { AppDataProps } from "../../types";
 import { RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
 import { isValidUrl } from "../../utils/url_utils";
+import { FlexRow } from "../LandingPage/utils";
+
+import MiddleTruncatedText from "../MiddleTruncatedText";
 
 const MAX_RECENT_URLS_TO_DISPLAY = 20;
 
@@ -108,7 +109,7 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
         value: item.url,
       };
     });
-  }, [urlInput, fuse]);
+  }, [urlInput, fuse, recentDataUrls]);
 
   const getAutoCompletePopupContainer = modalContainerRef.current ? () => modalContainerRef.current! : undefined;
 

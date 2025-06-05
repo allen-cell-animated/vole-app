@@ -15,7 +15,7 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["react", "@typescript-eslint"],
+  "plugins": ["react", "react-hooks", "@typescript-eslint"],
   "rules": {
     "comma-style": [1, "last"],
     "curly": [1, "multi-line"],
@@ -36,6 +36,13 @@
     "react/jsx-uses-vars": 1,
     "react/no-deprecated": 0,
     "react/prop-types": 0,
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": [
+      "warn",
+      {
+        "additionalHooks": "useImageEffect"
+      }
+    ],
     "semi": 2,
     "space-before-blocks": [1, "always"]
   }

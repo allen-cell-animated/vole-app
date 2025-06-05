@@ -110,7 +110,7 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
-function u8ToAbsolute(value: number, channel: Channel): number {
+function u8ToAbsolute(value: number, channel: { rawMin: number; rawMax: number }): number {
   return channel.rawMin + (value / 255) * (channel.rawMax - channel.rawMin);
 }
 
@@ -118,7 +118,7 @@ function absoluteToU8(value: number, channel: Channel): number {
   return ((value - channel.rawMin) / (channel.rawMax - channel.rawMin)) * 255;
 }
 
-function controlPointToAbsolute(cp: ControlPoint, channel: Channel): number {
+function controlPointToAbsolute(cp: ControlPoint, channel: { rawMin: number; rawMax: number }): number {
   // the x value of the control point is in the range [0, 255]
   // because of the way the histogram is generated
   // (see LUT_ENTRIES and the fact that we use Uint8Array)
@@ -260,7 +260,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
-  const { rawMin, rawMax, dtype } = props.channelData;
+  const { rawMin, rawMax, dtype, histogram } = props.channelData;
   const typeRange = DTYPE_RANGE[dtype];
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
@@ -271,7 +271,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     const plotMinU8 = absoluteToU8(domain[0], props.channelData);
     const plotMaxU8 = absoluteToU8(domain[1], props.channelData);
     return [scale, plotMinU8, plotMaxU8];
-  }, [innerWidth, rawMin, rawMax, typeRange, props.lockPlotToDataRange, props.plotMax]);
+  }, [innerWidth, rawMin, rawMax, typeRange, props.lockPlotToDataRange, props.plotMax, props.channelData]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -422,12 +422,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const areaPath = useMemo(() => {
     const areaGenerator = d3
       .area<ControlPoint>()
-      .x((d) => xScale(controlPointToAbsolute(d, props.channelData)))
+      .x((d) => xScale(controlPointToAbsolute(d, { rawMin, rawMax })))
       .y0((d) => yScale(d.opacity))
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight]);
+  }, [controlPointsToRender, xScale, yScale, innerHeight, rawMin, rawMax]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -478,11 +478,11 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       if (el === null) {
         return;
       }
-      const numBins = props.channelData.histogram.getNumBins();
+      const numBins = histogram.getNumBins();
       if (numBins < 1) {
         return;
       }
-      const { binLengths, max } = getHistogramBinLengths(props.channelData.histogram);
+      const { binLengths, max } = getHistogramBinLengths(histogram);
       const start = Math.max(0, Math.ceil(plotMinU8));
       const end = Math.min(numBins, Math.floor(plotMaxU8));
       const binLengthsToRender = binLengths.slice(start, end);
@@ -496,25 +496,25 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx + start, props.channelData))) // set position and height from data
+        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx + start, { rawMin, rawMax }))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [xScale, props.channelData, props.channelData.histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
+    [xScale, rawMin, rawMax, histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
   );
 
   const applyTFGenerator = useCallback(
     (generator: string): void => {
       setSelectedPointIdx(null);
       lastColorRef.current = TFEDITOR_DEFAULT_COLOR;
-      const lut = TF_GENERATORS[generator](props.channelData.histogram);
+      const lut = TF_GENERATORS[generator](histogram);
       if (props.useControlPoints) {
         setControlPoints(lut.controlPoints.map((cp) => ({ ...cp, color: TFEDITOR_DEFAULT_COLOR })));
       } else {
         setRamp(controlPointsToRamp(lut.controlPoints));
       }
     },
-    [props.channelData.histogram, props.useControlPoints]
+    [histogram, props.useControlPoints, setControlPoints, setRamp]
   );
 
   const createTFGeneratorButton = (generator: string, name: string, description: string): React.ReactNode => (

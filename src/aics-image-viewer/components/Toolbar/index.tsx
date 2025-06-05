@@ -3,12 +3,13 @@ import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
-import ViewModeRadioButtons from "./ViewModeRadioButtons";
-import DownloadButton from "./DownloadButton";
-import { connectToViewerState } from "../ViewerStateProvider";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
+import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+
 import ViewerIcon from "../shared/ViewerIcon";
+import { connectToViewerState } from "../ViewerStateProvider";
+import DownloadButton from "./DownloadButton";
+import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
 import "./styles.css";
 
@@ -79,8 +80,10 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     setScrollBtnRight(barEl.scrollLeft < barEl.scrollWidth - barEl.clientWidth);
   }, []);
 
-  const checkSize = React.useCallback(
-    debounce((): void => {
+  // This is effectively a `useCallback` - it memoizes a function - but since we're feeding the whole function into
+  // lodash's `debounce`, using `useMemo` memoizes the transformation done by `debounce` as well.
+  const checkSize = React.useMemo(() => {
+    return debounce((): void => {
       if (!leftRef.current || !centerRef.current || !rightRef.current || !barRef.current) {
         return;
       }
@@ -92,26 +95,25 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       // for entering and leaving scroll mode never overlap (causing toolbar to rapidly switch when resizing)
       const SCROLL_OFF_EXTRA_WIDTH = 15;
 
-      if (scrollMode) {
-        // Leave scroll mode if there is enough space for centered controls not to overlap left/right-aligned ones
-        const barWidth = barRef.current!.getBoundingClientRect().width;
-        const requiredWidth = Math.max(leftRect.width, rightRect.width) * 2 + centerRect.width + SCROLL_OFF_EXTRA_WIDTH;
-        if (barWidth > requiredWidth) {
-          setScrollMode(false);
+      setScrollMode((mode) => {
+        if (mode) {
+          // Leave scroll mode if there is enough space for centered controls not to overlap left/right-aligned ones
+          const barWidth = barRef.current!.getBoundingClientRect().width;
+          const requiredWidth =
+            Math.max(leftRect.width, rightRect.width) * 2 + centerRect.width + SCROLL_OFF_EXTRA_WIDTH;
+          return barWidth <= requiredWidth;
+        } else {
+          // Enter scroll mode if centered controls are overlapping either left/right-aligned ones
+          return leftRect.right > centerRect.left || centerRect.right > rightRect.left;
         }
-      } else {
-        // Enter scroll mode if centered controls are overlapping either left/right-aligned ones
-        if (leftRect.right > centerRect.left || centerRect.right > rightRect.left) {
-          setScrollMode(true);
-        }
-      }
+      });
       checkScrollBtnVisible();
-    }, RESIZE_DEBOUNCE_DELAY),
-    [scrollMode, checkScrollBtnVisible]
-  );
+    }, RESIZE_DEBOUNCE_DELAY);
+  }, [checkScrollBtnVisible]);
 
-  React.useEffect(checkSize, []);
   React.useEffect(() => {
+    // Make sure `checkSize` is run once on mount
+    checkSize();
     window.addEventListener("resize", checkSize);
     return () => window.removeEventListener("resize", checkSize);
   }, [checkSize]);

@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
 /** Key for local storage to read/write recently opened datasets */
@@ -24,34 +25,38 @@ export const useRecentDataUrls = (): [RecentDataUrl[], (newEntry: RecentDataUrl)
   const [storedRecentEntries, setRecentEntries] = useLocalStorage<RecentDataUrl[]>(RECENT_DATASETS_STORAGE_KEY, []);
 
   // Sanitize/validate recent entries
-  let recentEntries: RecentDataUrl[] = storedRecentEntries.filter(
-    ({ url, label }) => typeof url === "string" && typeof label === "string"
+  let recentEntries: RecentDataUrl[] = useMemo(
+    () => storedRecentEntries.filter(({ url, label }) => typeof url === "string" && typeof label === "string"),
+    [storedRecentEntries]
   );
   if (recentEntries.length !== storedRecentEntries.length) {
     setRecentEntries(recentEntries);
   }
 
   /** Adds a new URL entry (url + label) to the list of recent datasets. */
-  const addRecentEntry = (newEntry: RecentDataUrl): void => {
-    if (recentEntries === null) {
-      setRecentEntries([newEntry]);
-      return;
-    }
+  const addRecentEntry = useCallback(
+    (newEntry: RecentDataUrl): void => {
+      if (recentEntries === null) {
+        setRecentEntries([newEntry]);
+        return;
+      }
 
-    // Find matches by absolute URL and move to front of the list if a match exists.
-    const datasetIndex = recentEntries.findIndex(({ url }) => url === newEntry.url);
-    if (datasetIndex === -1) {
-      // New entry, add to front while maintaining max length
-      setRecentEntries([newEntry as RecentDataUrl, ...recentEntries.slice(0, MAX_RECENT_URLS - 1)]);
-    } else {
-      // Move to front; this also updates the label if it changed.
-      setRecentEntries([
-        newEntry as RecentDataUrl,
-        ...recentEntries.slice(0, datasetIndex),
-        ...recentEntries.slice(datasetIndex + 1),
-      ]);
-    }
-  };
+      // Find matches by absolute URL and move to front of the list if a match exists.
+      const datasetIndex = recentEntries.findIndex(({ url }) => url === newEntry.url);
+      if (datasetIndex === -1) {
+        // New entry, add to front while maintaining max length
+        setRecentEntries([newEntry as RecentDataUrl, ...recentEntries.slice(0, MAX_RECENT_URLS - 1)]);
+      } else {
+        // Move to front; this also updates the label if it changed.
+        setRecentEntries([
+          newEntry as RecentDataUrl,
+          ...recentEntries.slice(0, datasetIndex),
+          ...recentEntries.slice(datasetIndex + 1),
+        ]);
+      }
+    },
+    [recentEntries, setRecentEntries]
+  );
 
   return [recentEntries || [], addRecentEntry];
 };
