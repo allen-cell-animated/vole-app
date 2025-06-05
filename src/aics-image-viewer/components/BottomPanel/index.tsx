@@ -1,5 +1,5 @@
 import { Button, Drawer } from "antd";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import ViewerIcon from "../shared/ViewerIcon";
 
@@ -16,9 +16,6 @@ type BottomPanelProps = {
 const BottomPanel: React.FC<BottomPanelProps> = ({ children, open: openProp, title, height, onOpenChange }) => {
   const [openState, setOpenState] = useState(true);
   const open = openProp ?? openState;
-
-  // Call `onOpenChange` on mount
-  useEffect(() => onOpenChange?.(open));
 
   const toggleDrawer = useCallback((): void => {
     if (openProp === undefined) {
