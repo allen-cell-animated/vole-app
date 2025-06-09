@@ -128,22 +128,23 @@ type PlaySliderRowProps = {
 
 /** Wrapper around `SliderRow` that adds a play button and accounts for the case where not all of an axis is loaded */
 const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
+  const { onChange, onStart, onEnd } = props;
   // In partially-loaded axes, stores the displayed value of the slider while the user is sliding it
   const [valReadout, setValReadout] = useState(props.val);
   // Tracks when the user is sliding the slider and `valReadout` may have to sub in for props
   const [sliderHeld, setSliderHeld] = useState(false);
 
-  const wrappedOnChange = useCallback(([val]: number[]) => props.onChange?.(val), [props.onChange]);
+  const wrappedOnChange = useCallback(([val]: number[]) => onChange?.(val), [onChange]);
   const wrappedSetValReadout = useCallback(([val]: number[]) => setValReadout(val), []);
   const wrappedOnStart = useCallback((): void => {
     setValReadout(props.val);
     setSliderHeld(true);
-    props.onStart?.();
-  }, [props.onStart]);
+    onStart?.();
+  }, [onStart, props.val]);
   const wrappedOnEnd = useCallback((): void => {
     setSliderHeld(false);
-    props.onEnd?.();
-  }, [props.onEnd]);
+    onEnd?.();
+  }, [onEnd]);
 
   return (
     <>
@@ -219,7 +220,7 @@ const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   };
 
   // Pause when view mode or volume size has changed
-  useEffect(() => props.playControls.pause(), [props.mode, props.image]);
+  useEffect(() => props.playControls.pause(), [props.mode, props.image, props.playControls]);
 
   const handlePlayPause = (axis: AxisName | "t", willPlay: boolean): void => {
     if (willPlay) {
