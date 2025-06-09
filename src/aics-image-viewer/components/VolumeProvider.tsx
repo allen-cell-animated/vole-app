@@ -20,7 +20,7 @@ import { ChannelState } from "./ViewerStateProvider/types";
 import { ViewerStateContext } from "./ViewerStateProvider";
 
 const useVolume = (view3d: View3d): void => {
-  const viewerState = useContext(ViewerStateContext).ref;
+  const viewerState = useContext(ViewerStateContext).ref.current;
   const {
     changeChannelSetting,
     changeViewerSetting,
@@ -29,7 +29,7 @@ const useVolume = (view3d: View3d): void => {
     getCurrentViewerChannelSettings,
     onResetChannel,
     setChannelSettings,
-  } = viewerState.current;
+  } = viewerState;
 
   const [image, setImage] = useState<Volume | null>(null);
   const loader = useRef<SceneStore>();
@@ -196,7 +196,7 @@ const useVolume = (view3d: View3d): void => {
       }),
     });
 
-    const mode3d = viewerSettings.viewMode === ViewMode.threeD;
+    const mode3d = viewerState.viewMode === ViewMode.threeD;
     setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
     imageLoadHandlers.current.forEach((effect) => effect(aimg));
 
