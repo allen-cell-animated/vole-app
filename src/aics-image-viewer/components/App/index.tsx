@@ -112,7 +112,7 @@ const axisToLoaderPriority: Record<AxisName | "t", PrefetchDirection> = {
   x: PrefetchDirection.X_PLUS,
 };
 
-const CLIPPING_PANEL_ANIMATION_DURATION = 300; // ms
+const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
 
 const setIndicatorPositions = (
   view3d: View3d,
