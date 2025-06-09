@@ -112,6 +112,8 @@ const axisToLoaderPriority: Record<AxisName | "t", PrefetchDirection> = {
   x: PrefetchDirection.X_PLUS,
 };
 
+const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
+
 const setIndicatorPositions = (
   view3d: View3d,
   panelOpen: boolean,
@@ -147,6 +149,10 @@ const setIndicatorPositions = (
   view3d.setScaleBarPosition(scaleBarX, scaleBarY);
 };
 
+// TODO this component, specifically its volume loading behavior, is way out of compliance with react-hooks lints
+//   and will need a larger refactoring pass to fix that.
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/rules-of-hooks */
 const App: React.FC<AppProps> = (props) => {
   props = { ...defaultProps, ...props };
 
@@ -223,8 +229,8 @@ const App: React.FC<AppProps> = (props) => {
   // Only allow auto-close once while the screen is too narrow.
   const [hasAutoClosedControlPanel, setHasAutoClosedControlPanel] = useState(false);
 
-  // Clipping panel state doesn't need to trigger renders on change, so it can go in a ref
-  const clippingPanelOpenRef = useRef(true);
+  const [clippingPanelOpen, setClippingPanelOpen] = useState(true);
+  const clippingPanelOpenTimeout = useRef<number>(0);
 
   // `PlayControls` manages playing through time and spatial axes, which isn't practical with "pure" React
   // Playback state goes here, but the play/pause buttons that mainly control this class are down in `AxisClipSliders`
@@ -398,7 +404,7 @@ const App: React.FC<AppProps> = (props) => {
     });
 
     const mode3d = viewerSettings.viewMode === ViewMode.threeD;
-    setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
+    setIndicatorPositions(view3d, clippingPanelOpen, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
     imageLoadHandlers.current.forEach((effect) => effect(aimg));
 
     playControls.stepAxis = (axis: AxisName | "t") => {
@@ -533,28 +539,37 @@ const App: React.FC<AppProps> = (props) => {
     });
   }, []);
 
-  const resetCamera = useCallback((): void => view3d.resetCamera(), []);
+  const onClippingPanelOpenChange = useCallback(
+    (panelOpen: boolean): void => {
+      if (panelOpen === clippingPanelOpen) {
+        return;
+      }
 
-  const onClippingPanelVisibleChange = useCallback(
-    (panelOpen: boolean, hasTime: boolean, hasScenes: boolean, mode3d: boolean): void => {
-      clippingPanelOpenRef.current = panelOpen;
+      const hasTime = numTimesteps > 1;
+      const hasScenes = numScenes > 1;
+      const mode3d = viewerSettings.viewMode === ViewMode.threeD;
+
+      setClippingPanelOpen(panelOpen);
       setIndicatorPositions(view3d, panelOpen, hasTime, hasScenes, mode3d);
 
       // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
-      view3d.setShowScaleBar(false);
-      view3d.setShowTimestepIndicator(false);
-      view3d.setShowAxis(false);
-    },
-    [viewerSettings.showAxes]
-  );
+      if (panelOpen) {
+        view3d.setShowScaleBar(false);
+        view3d.setShowTimestepIndicator(false);
+        view3d.setShowAxis(false);
 
-  const onClippingPanelVisibleChangeEnd = useCallback((): void => {
-    view3d.setShowScaleBar(true);
-    view3d.setShowTimestepIndicator(true);
-    if (viewerSettings.showAxes) {
-      view3d.setShowAxis(true);
-    }
-  }, [viewerSettings.showAxes]);
+        window.clearTimeout(clippingPanelOpenTimeout.current);
+        clippingPanelOpenTimeout.current = window.setTimeout(() => {
+          view3d.setShowScaleBar(true);
+          view3d.setShowTimestepIndicator(true);
+          if (viewerSettings.showAxes) {
+            view3d.setShowAxis(true);
+          }
+        }, CLIPPING_PANEL_ANIMATION_DURATION_MS);
+      }
+    },
+    [view3d, numTimesteps, numScenes, viewerSettings.viewMode, viewerSettings.showAxes, clippingPanelOpen]
+  );
 
   const getMetadata = useCallback((): MetadataRecord => {
     const { metadata, metadataFormatter } = props;
@@ -865,7 +880,7 @@ const App: React.FC<AppProps> = (props) => {
               hasParentImage={!!props.parentImageUrl}
               hasCellId={!!props.cellId}
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
-              resetCamera={resetCamera}
+              resetCamera={view3d.resetCamera}
               downloadScreenshot={saveScreenshot}
               visibleControls={visibleControls}
             />
@@ -881,8 +896,8 @@ const App: React.FC<AppProps> = (props) => {
               playingAxis={playingAxis}
               appHeight={props.appHeight}
               visibleControls={visibleControls}
-              onClippingPanelVisibleChange={onClippingPanelVisibleChange}
-              onClippingPanelVisibleChangeEnd={onClippingPanelVisibleChangeEnd}
+              clippingPanelOpen={clippingPanelOpen}
+              onClippingPanelOpenChange={onClippingPanelOpenChange}
             />
           </Content>
         </Layout>
