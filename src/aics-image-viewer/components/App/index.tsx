@@ -565,7 +565,7 @@ const App: React.FC<AppProps> = (props) => {
           if (viewerSettings.showAxes) {
             view3d.setShowAxis(true);
           }
-        }, CLIPPING_PANEL_ANIMATION_DURATION);
+        }, CLIPPING_PANEL_ANIMATION_DURATION_MS);
       }
     },
     [view3d, numTimesteps, numScenes, viewerSettings.viewMode, viewerSettings.showAxes, clippingPanelOpen]
