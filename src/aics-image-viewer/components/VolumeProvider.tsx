@@ -1,8 +1,14 @@
-import { LoadSpec, RawArrayLoaderOptions, View3d, Volume } from "@aics/vole-core";
-import { useContext, useRef, useState } from "react";
+import { LoadSpec, RawArrayLoaderOptions, Volume, VolumeLoaderContext } from "@aics/vole-core";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
-import { DTYPE_RANGE, getDefaultChannelColor } from "../shared/constants";
+import {
+  CACHE_MAX_SIZE,
+  DTYPE_RANGE,
+  getDefaultChannelColor,
+  QUEUE_MAX_LOW_PRIORITY_SIZE,
+  QUEUE_MAX_SIZE,
+} from "../shared/constants";
 import { ViewMode } from "../shared/enums";
 import { AxisName } from "../shared/types";
 import {
@@ -20,7 +26,12 @@ import { ChannelState } from "./ViewerStateProvider/types";
 
 import { ViewerStateContext } from "./ViewerStateProvider";
 
-const useVolume = (view3d: View3d): void => {
+export type UseVolumeOptions = {
+  onChannelLoaded?: (channelIndex: number, channelSettings: ChannelState) => void;
+  onError?: (error: unknown) => void;
+};
+
+const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], options?: UseVolumeOptions): void => {
   const viewerState = useContext(ViewerStateContext).ref.current;
   const {
     changeChannelSetting,
@@ -31,9 +42,13 @@ const useVolume = (view3d: View3d): void => {
     onResetChannel,
     setChannelSettings,
   } = viewerState;
+  const onError = options?.onError;
 
   const [image, setImage] = useState<Volume | null>(null);
-  const loader = useRef<SceneStore>();
+  const loadContext = useConstructor(
+    () => new VolumeLoaderContext(CACHE_MAX_SIZE, QUEUE_MAX_SIZE, QUEUE_MAX_LOW_PRIORITY_SIZE)
+  );
+  const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
 
   /** `true` when a channel's data has been loaded for the current image. */
@@ -219,82 +234,89 @@ const useVolume = (view3d: View3d): void => {
     view3d.setCameraMode(viewerState.viewMode);
   };
 
-  const openImage = async (
-    scenePaths: (string | string[] | RawArrayLoaderOptions)[],
-    onError: (error: unknown) => void
-  ): Promise<void> => {
-    const { channelSettings, scene, time } = viewerState;
-    setSendingQueryRequest(true);
-    setImageLoaded(false);
-    hasChannelLoadedRef.current = [];
+  useEffect(() => {
+    const openImage = async (): Promise<void> => {
+      const { channelSettings, scene, time } = viewerState;
+      setSendingQueryRequest(true);
+      setImageLoaded(false);
+      hasChannelLoadedRef.current = [];
 
-    const loadSpec = new LoadSpec();
-    loadSpec.time = time;
+      const loadSpec = new LoadSpec();
+      loadSpec.time = time;
 
-    let aimg: Volume;
-    try {
-      // TODO null-check view3d.loaderContext
-      loader.current = new SceneStore(view3d.loaderContext!, scenePaths);
-
-      aimg = await loader.current.createVolume(scene, loadSpec, (v, channelIndex) => {
-        // NOTE: this callback runs *after* `onNewVolumeCreated` below, for every loaded channel
-        // TODO is this search by name necessary or will the `channelIndex` passed to the callback always match state?
-        const thisChannelSettings = channelSettings[channelIndex];
-        onChannelDataLoaded(v, thisChannelSettings!, channelIndex);
-      });
-    } catch (e) {
-      onError(e);
-      throw e;
-    }
-
-    const channelNames = aimg.imageInfo.channelNames;
-    const newChannelSettings = setChannelStateForNewImage(channelNames);
-
-    // order is important:
-    // we need to remove the old volume before triggering channels unloaded,
-    // which may cause calls on View3d to the old volume.
-    view3d.removeAllVolumes();
-    setAllChannelsUnloaded(channelNames.length);
-    placeImageInViewer(aimg, newChannelSettings);
-    channelRangesRef.current = new Array(channelNames.length).fill(undefined);
-
-    const requiredLoadSpec = new LoadSpec();
-    requiredLoadSpec.time = time;
-
-    // make the currently enabled channels "required":
-    // find all enabled indices in newChannelSettings:
-    const requiredChannelsToLoad = newChannelSettings
-      ? newChannelSettings.map((channel, index) => (channel.volumeEnabled ? index : -1)).filter((index) => index >= 0)
-      : [];
-
-    // add mask channel to required channels, if specified
-    const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
-    if (maskChannelName) {
-      const maskChannelIndex = channelNames.indexOf(maskChannelName);
-      if (maskChannelIndex >= 0 && !requiredChannelsToLoad.includes(maskChannelIndex)) {
-        requiredChannelsToLoad.push(maskChannelIndex);
+      let aimg: Volume;
+      try {
+        aimg = await sceneLoader.createVolume(scene, loadSpec, (v, channelIndex) => {
+          // NOTE: this callback runs *after* `onNewVolumeCreated` below, for every loaded channel
+          // TODO is this search by name necessary or will the `channelIndex` passed to the callback always match state?
+          const thisChannelSettings = channelSettings[channelIndex];
+          onChannelDataLoaded(v, thisChannelSettings!, channelIndex);
+        });
+      } catch (e) {
+        onError?.(e);
+        throw e;
       }
-    }
-    requiredLoadSpec.channels = requiredChannelsToLoad;
 
-    // When in 2D Z-axis view mode, we restrict the subregion to only the current slice. This is
-    // to match an optimization that volume viewer does by loading Z-slices at a higher resolution,
-    // and ensures the very first volume that is loaded is the same as the one that
-    // will be shown whenever we switch back to the same viewer settings (2D Z-axis view mode).
-    // (We don't do this for ZX and YZ modes because we assume that the data won't be chunked along the
-    // X or Y axes in ways that would improve loading resolution, and we load the full 3D volume instead.)
-    if (viewerState.viewMode === ViewMode.xy) {
-      const slice = viewerState.slice;
-      requiredLoadSpec.subregion = new Box3(new Vector3(0, 0, slice.z), new Vector3(1, 1, slice.z));
-    }
+      const channelNames = aimg.imageInfo.channelNames;
+      const newChannelSettings = setChannelStateForNewImage(channelNames);
 
-    // initiate loading only after setting up new channel settings,
-    // in case the loader callback fires before the state is set
-    loader.current.loadScene(scene, aimg, requiredLoadSpec).catch((e) => {
-      onError(e);
-      throw e;
-    });
-  };
+      // order is important:
+      // we need to remove the old volume before triggering channels unloaded,
+      // which may cause calls on View3d to the old volume.
+      // view3d.removeAllVolumes();
+      // TODO: is removing the above call a problem?
+      setAllChannelsUnloaded(channelNames.length);
+      placeImageInViewer(aimg, newChannelSettings);
+      channelRangesRef.current = new Array(channelNames.length).fill(undefined);
+
+      const requiredLoadSpec = new LoadSpec();
+      requiredLoadSpec.time = time;
+
+      // make the currently enabled channels "required":
+      // find all enabled indices in newChannelSettings:
+      const requiredChannelsToLoad = newChannelSettings
+        ? newChannelSettings.map((channel, index) => (channel.volumeEnabled ? index : -1)).filter((index) => index >= 0)
+        : [];
+
+      // add mask channel to required channels, if specified
+      const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
+      if (maskChannelName) {
+        const maskChannelIndex = channelNames.indexOf(maskChannelName);
+        if (maskChannelIndex >= 0 && !requiredChannelsToLoad.includes(maskChannelIndex)) {
+          requiredChannelsToLoad.push(maskChannelIndex);
+        }
+      }
+      requiredLoadSpec.channels = requiredChannelsToLoad;
+
+      // When in 2D Z-axis view mode, we restrict the subregion to only the current slice. This is
+      // to match an optimization that volume viewer does by loading Z-slices at a higher resolution,
+      // and ensures the very first volume that is loaded is the same as the one that
+      // will be shown whenever we switch back to the same viewer settings (2D Z-axis view mode).
+      // (We don't do this for ZX and YZ modes because we assume that the data won't be chunked along the
+      // X or Y axes in ways that would improve loading resolution, and we load the full 3D volume instead.)
+      if (viewerState.viewMode === ViewMode.xy) {
+        const slice = viewerState.slice;
+        requiredLoadSpec.subregion = new Box3(new Vector3(0, 0, slice.z), new Vector3(1, 1, slice.z));
+      }
+
+      // initiate loading only after setting up new channel settings,
+      // in case the loader callback fires before the state is set
+      sceneLoader.loadScene(scene, aimg, requiredLoadSpec).catch((e) => {
+        onError?.(e);
+        throw e;
+      });
+    };
+    openImage();
+  }, [
+    sceneLoader,
+    getCurrentViewerChannelSettings,
+    onChannelDataLoaded,
+    onError,
+    placeImageInViewer,
+    setAllChannelsUnloaded,
+    setChannelStateForNewImage,
+    viewerState,
+  ]);
 };
 
 export default useVolume;
