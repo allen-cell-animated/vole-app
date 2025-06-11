@@ -1,3 +1,4 @@
+import { isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 
 import { getDefaultViewerChannelSettings, getDefaultViewerState } from "../../shared/constants";
@@ -196,12 +197,14 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState>; chi
   );
 
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  if (props.viewerSettings) {
+  const prevViewerSettingsPropsRef = useRef<Partial<ViewerState> | undefined>(undefined);
+  if (props.viewerSettings && !isEqual(props.viewerSettings, prevViewerSettingsPropsRef.current)) {
     for (const key of Object.keys(props.viewerSettings) as (keyof ViewerState)[]) {
       if (viewerSettings[key] !== props.viewerSettings[key]) {
         changeViewerSetting(key, props.viewerSettings[key] as any);
       }
     }
+    prevViewerSettingsPropsRef.current = props.viewerSettings;
   }
 
   const context = useMemo(() => {
