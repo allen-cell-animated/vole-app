@@ -1,4 +1,4 @@
-import { UndoOutlined } from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
@@ -162,7 +162,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
         <div className="viewer-toolbar-left" ref={leftRef}>
           <Tooltip placement="bottom" title="Reset to initial settings" trigger={["focus", "hover"]}>
             <Button className="ant-btn-icon-only btn-borderless" onClick={resetToSavedViewerState}>
-              <UndoOutlined />
+              <ReloadOutlined />
               <span style={visuallyHiddenStyle}>Reset to initial settings</span>
             </Button>
           </Tooltip>
