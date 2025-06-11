@@ -177,7 +177,7 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState>; chi
   const resetProvider = useConstructor(() => new ResetStateProvider(ref));
   useEffect(() => {
     resetProvider.setSavedViewerState(props.viewerSettings || {});
-  }, [props.viewerSettings]);
+  }, [props.viewerSettings, resetProvider]);
 
   const changeViewerSetting = useCallback<ViewerSettingUpdater>((key, value) => viewerDispatch({ key, value }), []);
 
@@ -195,19 +195,14 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState>; chi
     []
   );
 
-  // Sync viewer settings prop with state
-  // React docs seem to be fine with syncing state with props directly in the render function, but that caused an
-  // infinite render loop, so now it's in a `useMemo`:
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  useMemo(() => {
-    if (props.viewerSettings) {
-      for (const key of Object.keys(props.viewerSettings) as (keyof ViewerState)[]) {
-        if (viewerSettings[key] !== props.viewerSettings[key]) {
-          changeViewerSetting(key, props.viewerSettings[key] as any);
-        }
+  if (props.viewerSettings) {
+    for (const key of Object.keys(props.viewerSettings) as (keyof ViewerState)[]) {
+      if (viewerSettings[key] !== props.viewerSettings[key]) {
+        changeViewerSetting(key, props.viewerSettings[key] as any);
       }
     }
-  }, [props.viewerSettings]);
+  }
 
   const context = useMemo(() => {
     ref.current = {
@@ -230,7 +225,15 @@ const ViewerStateProvider: React.FC<{ viewerSettings?: Partial<ViewerState>; chi
     // `ref` is wrapped in another object to ensure that the context updates when state does.
     // (`ref` on its own would always compare equal to itself and the context would never update.)
     return { ref };
-  }, [viewerSettings, channelSettings]);
+  }, [
+    viewerSettings,
+    channelSettings,
+    applyColorPresets,
+    changeViewerSetting,
+    changeChannelSetting,
+    setChannelSettings,
+    resetProvider,
+  ]);
 
   return <ViewerStateContext.Provider value={context}>{props.children}</ViewerStateContext.Provider>;
 };

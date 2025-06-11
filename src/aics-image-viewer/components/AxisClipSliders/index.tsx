@@ -41,22 +41,25 @@ const SliderRow: React.FC<SliderRowProps> = ({
   onEnd,
 }) => {
   const isRange = vals.length > 1;
-  // If slider is a range, handles represent slice *edges*: the range around only the max slice is [max-1, max], e.g.
-  // If slider is not a range, handle represents 0-indexed slices: last slice is at max-1
-  const inputMax = isRange ? max : max - 1;
+  // If slider is a range, handles represent slice *edges*: the range around only the 1st slice is [0, 1]; the range
+  // around only the last is [max-1, max].
+  // If slider is not a range, just work with slices, but don't 0-index: 1st slice is 1, last is max
+  const min = isRange ? 0 : 1;
+  const wrappedOnSlide = isRange ? onSlide : (values: number[]) => onSlide?.([values[0] - 1]);
+  const wrappedOnChange = isRange ? onChange : (values: number[]) => onChange?.([values[0] - 1]);
 
   return (
     <span className="axis-slider-container">
       <span className="slider-name">{label}</span>
-      {inputMax === 0 ? (
+      {max === 0 ? (
         <i>No values to adjust</i>
       ) : (
         <span className="axis-slider">
           <SmarterSlider
             className={isRange ? "" : "slider-single-handle"}
             connect={true}
-            range={{ min: 0, max: inputMax }}
-            start={vals}
+            range={{ min, max }}
+            start={isRange ? vals : [vals[0] + 1]}
             step={1}
             margin={1}
             behaviour="drag"
@@ -71,28 +74,34 @@ const SliderRow: React.FC<SliderRowProps> = ({
             }}
             // round slider output to nearest slice; assume any string inputs represent ints
             format={{ to: Math.round, from: parseInt }}
-            onSlide={onSlide}
-            onChange={onChange}
+            onSlide={wrappedOnSlide}
+            onChange={wrappedOnChange}
             onStart={onStart}
             onEnd={onEnd}
           />
         </span>
       )}
-      {inputMax > 0 && (
+      {max > 0 && (
         <span className="slider-values">
           <NumericInput
-            max={inputMax}
-            value={valsReadout[0]}
-            onChange={(value) => onChange?.(isRange ? [value, vals[1]] : [value])}
+            min={min}
+            max={max}
+            value={valsReadout[0] + (isRange ? 0 : 1)}
+            onChange={(value) => onChange?.(isRange ? [value, vals[1]] : [value - 1])}
           />
           {isRange && (
             <>
               {" , "}
-              <NumericInput max={inputMax} value={valsReadout[1]} onChange={(value) => onChange?.([vals[0], value])} />
+              <NumericInput
+                min={min}
+                max={max}
+                value={valsReadout[1]}
+                onChange={(value) => onChange?.([vals[0], value])}
+              />
             </>
           )}
           {" / "}
-          {max - 1}
+          {max}
         </span>
       )}
     </span>
@@ -119,22 +128,23 @@ type PlaySliderRowProps = {
 
 /** Wrapper around `SliderRow` that adds a play button and accounts for the case where not all of an axis is loaded */
 const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
+  const { onChange, onStart, onEnd } = props;
   // In partially-loaded axes, stores the displayed value of the slider while the user is sliding it
   const [valReadout, setValReadout] = useState(props.val);
   // Tracks when the user is sliding the slider and `valReadout` may have to sub in for props
   const [sliderHeld, setSliderHeld] = useState(false);
 
-  const wrappedOnChange = useCallback(([val]: number[]) => props.onChange?.(val), [props.onChange]);
+  const wrappedOnChange = useCallback(([val]: number[]) => onChange?.(val), [onChange]);
   const wrappedSetValReadout = useCallback(([val]: number[]) => setValReadout(val), []);
   const wrappedOnStart = useCallback((): void => {
     setValReadout(props.val);
     setSliderHeld(true);
-    props.onStart?.();
-  }, [props.onStart]);
+    onStart?.();
+  }, [onStart, props.val]);
   const wrappedOnEnd = useCallback((): void => {
     setSliderHeld(false);
-    props.onEnd?.();
-  }, [props.onEnd]);
+    onEnd?.();
+  }, [onEnd]);
 
   return (
     <>
@@ -210,7 +220,7 @@ const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   };
 
   // Pause when view mode or volume size has changed
-  useEffect(() => props.playControls.pause(), [props.mode, props.image]);
+  useEffect(() => props.playControls.pause(), [props.mode, props.image, props.playControls]);
 
   const handlePlayPause = (axis: AxisName | "t", willPlay: boolean): void => {
     if (willPlay) {

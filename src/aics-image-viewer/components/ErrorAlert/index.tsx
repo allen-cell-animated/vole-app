@@ -137,15 +137,18 @@ export const useErrorAlert = (): [React.ReactNode, (error: unknown) => void] => 
   const seenErrors = useConstructor(() => new Map<string, number>());
   const [errorCounts, setErrorCounts] = React.useState<number[]>([]);
 
-  const addError = React.useCallback((error: unknown) => {
-    console.error(error);
-    const errorTitle = getErrorTitle(error);
-    const errorSeenCount = (seenErrors.get(errorTitle) ?? 0) + 1;
+  const addError = React.useCallback(
+    (error: unknown) => {
+      console.error(error);
+      const errorTitle = getErrorTitle(error);
+      const errorSeenCount = (seenErrors.get(errorTitle) ?? 0) + 1;
 
-    setErrorList((prev) => [...prev, error]);
-    setErrorCounts((prev) => [...prev, errorSeenCount]);
-    seenErrors.set(errorTitle, errorSeenCount);
-  }, []);
+      setErrorList((prev) => [...prev, error]);
+      setErrorCounts((prev) => [...prev, errorSeenCount]);
+      seenErrors.set(errorTitle, errorSeenCount);
+    },
+    [seenErrors]
+  );
 
   const onSkipError = React.useCallback(() => {
     setErrorList((prev) => prev.slice(1));
