@@ -11,7 +11,8 @@ import {
   rampToControlPoints,
   remapControlPointsForChannel,
 } from "../shared/utils/controlPointsToLut";
-import { useRefWithSetter } from "../shared/utils/hooks";
+import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
+import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
@@ -33,6 +34,7 @@ const useVolume = (view3d: View3d): void => {
 
   const [image, setImage] = useState<Volume | null>(null);
   const loader = useRef<SceneStore>();
+  const playControls = useConstructor(() => new PlayControls());
 
   /** `true` when a channel's data has been loaded for the current image. */
   const hasChannelLoadedRef = useRef<boolean[]>([]);
@@ -60,7 +62,7 @@ const useVolume = (view3d: View3d): void => {
   };
 
   const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
-    return (settings || viewerState.current.channelSettings).find((channel) => channel.name === channelName);
+    return (settings || viewerState.channelSettings).find((channel) => channel.name === channelName);
   };
 
   /**
@@ -198,29 +200,30 @@ const useVolume = (view3d: View3d): void => {
 
     const mode3d = viewerState.viewMode === ViewMode.threeD;
     setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
-    imageLoadHandlers.current.forEach((effect) => effect(aimg));
+    // TODO remove
+    // imageLoadHandlers.current.forEach((effect) => effect(aimg));
 
     playControls.stepAxis = (axis: AxisName | "t") => {
       if (axis === "t") {
-        changeViewerSetting("time", (viewerState.current.time + 1) % aimg.imageInfo.times);
+        changeViewerSetting("time", (viewerState.time + 1) % aimg.imageInfo.times);
       } else {
         const max = aimg.imageInfo.volumeSize[axis];
-        const current = viewerState.current.slice[axis] * max;
-        changeViewerSetting("slice", { ...viewerState.current.slice, [axis]: ((current + 1) % max) / max });
+        const current = viewerState.slice[axis] * max;
+        changeViewerSetting("slice", { ...viewerState.slice, [axis]: ((current + 1) % max) / max });
       }
     };
-    playControls.getVolumeIsLoaded = () => aimg.isLoaded();
+    playControls.getVolumeIsLoaded = aimg.isLoaded.bind(aimg);
 
     view3d.updateActiveChannels(aimg);
     // make sure we pick up whether the image needs to be in single-slice mode
-    view3d.setCameraMode(viewerSettings.viewMode);
+    view3d.setCameraMode(viewerState.viewMode);
   };
 
   const openImage = async (
     scenePaths: (string | string[] | RawArrayLoaderOptions)[],
     onError: (error: unknown) => void
   ): Promise<void> => {
-    const { channelSettings, scene, time } = viewerState.current;
+    const { channelSettings, scene, time } = viewerState;
     setSendingQueryRequest(true);
     setImageLoaded(false);
     hasChannelLoadedRef.current = [];
@@ -280,8 +283,8 @@ const useVolume = (view3d: View3d): void => {
     // will be shown whenever we switch back to the same viewer settings (2D Z-axis view mode).
     // (We don't do this for ZX and YZ modes because we assume that the data won't be chunked along the
     // X or Y axes in ways that would improve loading resolution, and we load the full 3D volume instead.)
-    if (viewerSettings.viewMode === ViewMode.xy) {
-      const slice = viewerSettings.slice;
+    if (viewerState.viewMode === ViewMode.xy) {
+      const slice = viewerState.slice;
       requiredLoadSpec.subregion = new Box3(new Vector3(0, 0, slice.z), new Vector3(1, 1, slice.z));
     }
 
