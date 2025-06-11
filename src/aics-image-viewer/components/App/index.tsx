@@ -832,6 +832,7 @@ const App: React.FC<AppProps> = (props) => {
     (): [number, number, number] => (image ? image.imageInfo.physicalPixelSize.toArray() : [1, 1, 1]),
     [image?.imageInfo.physicalPixelSize]
   );
+  const resetCamera = useMemo(() => view3d.resetCamera.bind(view3d), [view3d]);
 
   return (
     <StyleProvider>
@@ -880,7 +881,7 @@ const App: React.FC<AppProps> = (props) => {
               hasParentImage={!!props.parentImageUrl}
               hasCellId={!!props.cellId}
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
-              resetCamera={view3d.resetCamera}
+              resetCamera={resetCamera}
               downloadScreenshot={saveScreenshot}
               visibleControls={visibleControls}
             />
