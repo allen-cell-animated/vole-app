@@ -37,6 +37,15 @@ export const enum ImageLoadStatus {
   Loaded,
 }
 
+export type LoadedImage = {
+  image: Volume | null;
+  channelVersions: number[];
+  imageLoadStatus: ImageLoadStatus;
+  channelRanges: ([number, number] | undefined)[];
+  channelGroupedByType: ChannelGrouping;
+  playControls: PlayControls;
+};
+
 const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
   return (settings || viewerStateRef.current.channelSettings).find((channel) => channel.name === channelName);
 };
@@ -99,7 +108,10 @@ const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
   return callbackRef;
 };
 
-const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], options?: UseVolumeOptions): void => {
+const useVolume = (
+  scenePaths: (string | string[] | RawArrayLoaderOptions)[],
+  options?: UseVolumeOptions
+): LoadedImage => {
   const viewerStateRef = useContext(ViewerStateContext).ref;
   // const {
   //   changeChannelSetting,
@@ -370,6 +382,18 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
     playControls,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
+
+  return useMemo(
+    () => ({
+      image,
+      channelVersions,
+      imageLoadStatus,
+      channelRanges: channelRangesRef.current,
+      channelGroupedByType,
+      playControls,
+    }),
+    [channelGroupedByType, channelVersions, image, imageLoadStatus, playControls]
+  );
 };
 
 export default useVolume;
