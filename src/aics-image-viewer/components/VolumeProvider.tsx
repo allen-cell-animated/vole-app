@@ -31,6 +31,10 @@ export type UseVolumeOptions = {
   onError?: (error: unknown) => void;
 };
 
+const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
+  return (settings || viewerStateRef.current.channelSettings).find((channel) => channel.name === channelName);
+};
+
 const TEMP_placeImageInViewer = (): void => {
   const channelSetting = newChannelSettings || channelSettings;
   view3d.removeAllVolumes();
@@ -109,10 +113,6 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
   // channel indexes, sorted by category
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
-  const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
-    return (settings || viewerStateRef.current.channelSettings).find((channel) => channel.name === channelName);
-  };
-
   useEffect(() => {
     const {
       changeChannelSetting,
@@ -149,26 +149,6 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
       });
       setChannelSettings(newChannelSettings);
       return newChannelSettings;
-    };
-
-    const placeImageInViewer = (aimg: Volume, newChannelSettings?: ChannelState[]): void => {
-      setImage(aimg);
-
-      playControls.stepAxis = (axis: AxisName | "t") => {
-        const { time, slice } = viewerStateRef.current;
-        if (axis === "t") {
-          changeViewerSetting("time", (time + 1) % aimg.imageInfo.times);
-        } else {
-          const max = aimg.imageInfo.volumeSize[axis];
-          const current = slice[axis] * max;
-          changeViewerSetting("slice", { ...slice, [axis]: ((current + 1) % max) / max });
-        }
-      };
-      playControls.getVolumeIsLoaded = aimg.isLoaded.bind(aimg);
-    };
-
-    const setAllChannelsUnloaded = (numberOfChannels: number): void => {
-      setChannelVersions(new Array(numberOfChannels).fill(0));
     };
 
     const setOneChannelLoaded = (index: number): void => {
@@ -275,6 +255,7 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
       }
 
       const channelNames = aimg.imageInfo.channelNames;
+      // TODO where this go? used to go into `onNewVolumeCreated` callback
       const newChannelSettings = setChannelStateForNewImage(channelNames);
 
       // order is important:
@@ -282,8 +263,21 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
       // which may cause calls on View3d to the old volume.
       // view3d.removeAllVolumes();
       // TODO: is removing the above call a problem?
-      setAllChannelsUnloaded(channelNames.length);
-      placeImageInViewer(aimg, newChannelSettings);
+      setChannelVersions(new Array(channelNames.length).fill(0));
+      setImage(aimg);
+
+      playControls.stepAxis = (axis: AxisName | "t") => {
+        const { time, slice } = viewerStateRef.current;
+        if (axis === "t") {
+          changeViewerSetting("time", (time + 1) % aimg.imageInfo.times);
+        } else {
+          const max = aimg.imageInfo.volumeSize[axis];
+          const current = slice[axis] * max;
+          changeViewerSetting("slice", { ...slice, [axis]: ((current + 1) % max) / max });
+        }
+      };
+      playControls.getVolumeIsLoaded = aimg.isLoaded.bind(aimg);
+
       channelRangesRef.current = new Array(channelNames.length).fill(undefined);
 
       const requiredLoadSpec = new LoadSpec();
