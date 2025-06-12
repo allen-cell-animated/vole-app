@@ -78,6 +78,21 @@ const TEMP_onChannelDataLoaded = (): void => {
   }
 };
 
+/**
+ * Temporary hack while `useEffectEvent` is still experimental. For functions which play the role of event handlers
+ * _within_ a `useEffect`, which the linter insists need to be in the effect's dependencies even though it would make
+ * no sense to re-run the effect when the function changes. So we hide the handler behind a stable ref.
+ */
+const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
+  callback: T
+): React.MutableRefObject<T> => {
+  const callbackRef = useRef<T>(callback);
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+  return callbackRef;
+};
+
 const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], options?: UseVolumeOptions): void => {
   const viewerStateRef = useContext(ViewerStateContext).ref;
   // const {
@@ -89,7 +104,8 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
   //   onResetChannel,
   //   setChannelSettings,
   // } = viewerStateRef.current;
-  const onError = options?.onError;
+  const onErrorRef = useEffectEventRef(options?.onError);
+  const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
 
   const [image, setImage] = useState<Volume | null>(null);
   const loadContext = useConstructor(
@@ -226,6 +242,7 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
       // when any channel data has arrived:
       setSendingQueryRequest(false);
       setOneChannelLoaded(channelIndex);
+      onChannelLoadedRef.current?.(channelIndex, thisChannelsSettings);
       if (aimg.isLoaded()) {
         setImageLoaded(true);
         playControls.onImageLoaded();
@@ -250,7 +267,7 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
           onChannelDataLoaded(v, thisChannelSettings!, channelIndex);
         });
       } catch (e) {
-        onError?.(e);
+        onErrorRef.current?.(e);
         throw e;
       }
 
@@ -313,12 +330,21 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
       // initiate loading only after setting up new channel settings,
       // in case the loader callback fires before the state is set
       sceneLoader.loadScene(scene, aimg, requiredLoadSpec).catch((e) => {
-        onError?.(e);
+        onErrorRef.current?.(e);
         throw e;
       });
     };
+
     openImage();
-  }, [sceneLoader, onError, viewerStateRef, channelVersionsRef, setChannelVersions, playControls]);
+  }, [
+    sceneLoader,
+    onErrorRef,
+    onChannelLoadedRef,
+    viewerStateRef,
+    channelVersionsRef,
+    setChannelVersions,
+    playControls,
+  ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 };
 
