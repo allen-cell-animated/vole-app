@@ -31,6 +31,12 @@ export type UseVolumeOptions = {
   onError?: (error: unknown) => void;
 };
 
+export const enum ImageLoadStatus {
+  Unloaded,
+  Loading,
+  Loaded,
+}
+
 const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
   return (settings || viewerStateRef.current.channelSettings).find((channel) => channel.name === channelName);
 };
@@ -116,14 +122,36 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
 
   /** `true` when a channel's data has been loaded for the current image. */
   const hasChannelLoadedRef = useRef<boolean[]>([]);
+
   // TODO the following two states could be combined into an enum?
   // `true` when image data has been requested, but no data has been received yet
-  const [sendingQueryRequest, setSendingQueryRequest] = useState(false);
+  // const [sendingQueryRequest, setSendingQueryRequest] = useState(false);
   // `true` when all channels of the current image are loaded
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // const [imageLoaded, setImageLoaded] = useState(false);
+
   // tracks which channels have been loaded
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
+
+  const imageLoadStatus = useMemo(() => {
+    // TODO will an empty array cause a problem here?
+    let unloaded = true;
+    let loaded = true;
+    for (const version of channelVersions) {
+      if (version === 0) {
+        loaded = false;
+      } else {
+        unloaded = false;
+      }
+    }
+    if (unloaded) {
+      return ImageLoadStatus.Unloaded;
+    } else if (loaded) {
+      return ImageLoadStatus.Loaded;
+    }
+    return ImageLoadStatus.Loading;
+  }, [channelVersions]);
+
   // we need to keep track of channel ranges for remapping
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
   // channel indexes, sorted by category
@@ -240,19 +268,15 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
       hasChannelLoadedRef.current[channelIndex] = true;
 
       // when any channel data has arrived:
-      setSendingQueryRequest(false);
       setOneChannelLoaded(channelIndex);
       onChannelLoadedRef.current?.(channelIndex, thisChannelsSettings);
       if (aimg.isLoaded()) {
-        setImageLoaded(true);
         playControls.onImageLoaded();
       }
     };
 
     const openImage = async (): Promise<void> => {
       const { channelSettings, scene, time } = viewerStateRef.current;
-      setSendingQueryRequest(true);
-      setImageLoaded(false);
       hasChannelLoadedRef.current = [];
 
       const loadSpec = new LoadSpec();
