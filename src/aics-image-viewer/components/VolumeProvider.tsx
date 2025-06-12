@@ -31,6 +31,49 @@ export type UseVolumeOptions = {
   onError?: (error: unknown) => void;
 };
 
+const TEMP_placeImageInViewer = (): void => {
+  const channelSetting = newChannelSettings || channelSettings;
+  view3d.removeAllVolumes();
+  view3d.addVolume(aimg, {
+    // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
+    channels: aimg.channelNames.map((name) => {
+      const ch = getOneChannelSetting(name, channelSetting);
+      if (!ch) {
+        return {};
+      }
+      return {
+        enabled: ch.volumeEnabled,
+        isosurfaceEnabled: ch.isosurfaceEnabled,
+        isovalue: ch.isovalue,
+        isosurfaceOpacity: ch.opacity,
+        color: ch.color,
+      };
+    }),
+  });
+
+  const mode3d = viewerState.viewMode === ViewMode.threeD;
+  setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
+  // TODO remove
+  // imageLoadHandlers.current.forEach((effect) => effect(aimg));
+
+  view3d.updateActiveChannels(aimg);
+  // make sure we pick up whether the image needs to be in single-slice mode
+  view3d.setCameraMode(viewerState.viewMode);
+};
+
+const TEMP_onChannelDataLoaded = (): void => {
+  view3d.updateLuts(aimg);
+  view3d.onVolumeData(aimg, [channelIndex]);
+
+  view3d.setVolumeChannelEnabled(aimg, channelIndex, thisChannelsSettings.volumeEnabled);
+  if (aimg.channelNames[channelIndex] === getCurrentViewerChannelSettings()?.maskChannelName) {
+    view3d.setVolumeChannelAsMask(aimg, channelIndex);
+  }
+  if (aimg.isLoaded()) {
+    view3d.updateActiveChannels(aimg);
+  }
+};
+
 const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], options?: UseVolumeOptions): void => {
   const viewerStateRef = useContext(ViewerStateContext).ref;
   // const {
@@ -67,7 +110,7 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
   const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
-    return (settings || channelSettings).find((channel) => channel.name === channelName);
+    return (settings || viewerStateRef.current.channelSettings).find((channel) => channel.name === channelName);
   };
 
   useEffect(() => {
@@ -111,44 +154,17 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
     const placeImageInViewer = (aimg: Volume, newChannelSettings?: ChannelState[]): void => {
       setImage(aimg);
 
-      const channelSetting = newChannelSettings || channelSettings;
-      view3d.removeAllVolumes();
-      view3d.addVolume(aimg, {
-        // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-        channels: aimg.channelNames.map((name) => {
-          const ch = getOneChannelSetting(name, channelSetting);
-          if (!ch) {
-            return {};
-          }
-          return {
-            enabled: ch.volumeEnabled,
-            isosurfaceEnabled: ch.isosurfaceEnabled,
-            isovalue: ch.isovalue,
-            isosurfaceOpacity: ch.opacity,
-            color: ch.color,
-          };
-        }),
-      });
-
-      const mode3d = viewerState.viewMode === ViewMode.threeD;
-      setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
-      // TODO remove
-      // imageLoadHandlers.current.forEach((effect) => effect(aimg));
-
       playControls.stepAxis = (axis: AxisName | "t") => {
+        const { time, slice } = viewerStateRef.current;
         if (axis === "t") {
-          changeViewerSetting("time", (viewerState.time + 1) % aimg.imageInfo.times);
+          changeViewerSetting("time", (time + 1) % aimg.imageInfo.times);
         } else {
           const max = aimg.imageInfo.volumeSize[axis];
-          const current = viewerState.slice[axis] * max;
-          changeViewerSetting("slice", { ...viewerState.slice, [axis]: ((current + 1) % max) / max });
+          const current = slice[axis] * max;
+          changeViewerSetting("slice", { ...slice, [axis]: ((current + 1) % max) / max });
         }
       };
       playControls.getVolumeIsLoaded = aimg.isLoaded.bind(aimg);
-
-      view3d.updateActiveChannels(aimg);
-      // make sure we pick up whether the image needs to be in single-slice mode
-      view3d.setCameraMode(viewerState.viewMode);
     };
 
     const setAllChannelsUnloaded = (numberOfChannels: number): void => {
@@ -225,21 +241,12 @@ const useVolume = (scenePaths: (string | string[] | RawArrayLoaderOptions)[], op
 
       // save the channel's new range for remapping next time
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
-
-      view3d.updateLuts(aimg);
-      view3d.onVolumeData(aimg, [channelIndex]);
-
-      view3d.setVolumeChannelEnabled(aimg, channelIndex, thisChannelsSettings.volumeEnabled);
-      if (aimg.channelNames[channelIndex] === getCurrentViewerChannelSettings()?.maskChannelName) {
-        view3d.setVolumeChannelAsMask(aimg, channelIndex);
-      }
       hasChannelLoadedRef.current[channelIndex] = true;
 
       // when any channel data has arrived:
       setSendingQueryRequest(false);
       setOneChannelLoaded(channelIndex);
       if (aimg.isLoaded()) {
-        view3d.updateActiveChannels(aimg);
         setImageLoaded(true);
         playControls.onImageLoaded();
       }
