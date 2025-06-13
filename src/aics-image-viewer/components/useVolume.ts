@@ -1,4 +1,11 @@
-import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } from "@aics/vole-core";
+import {
+  LoadSpec,
+  PrefetchDirection,
+  RawArrayLoaderOptions,
+  View3d,
+  Volume,
+  VolumeLoaderContext,
+} from "@aics/vole-core";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
@@ -45,8 +52,17 @@ export type LoadedImage = {
   setTime: (view3d: View3d, time: number) => void;
   setScene: (scene: number) => void;
   playControls: PlayControls;
+  playingAxis: AxisName | "t" | null;
   channelRanges: ([number, number] | undefined)[];
   channelGroupedByType: ChannelGrouping;
+};
+
+// TODO move to constants
+const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
+  t: PrefetchDirection.T_PLUS,
+  z: PrefetchDirection.Z_PLUS,
+  y: PrefetchDirection.Y_PLUS,
+  x: PrefetchDirection.X_PLUS,
 };
 
 const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
@@ -130,6 +146,24 @@ const useVolume = (
   );
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
+  // TODO odd that this isn't just a member of `playControls`?
+  const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
+  useEffect(() => {
+    playControls.onPlayingAxisChanged = (axis) => {
+      const isPlaying = axis !== null;
+      setPlayingAxis(axis);
+      // prioritize prefetching along the playing axis
+      sceneLoader.setPrefetchPriority(axis ? [AXIS_TO_LOADER_PRIORITY[axis]] : []);
+      // sync multichannel loading so we don't show loaded channels one at a time
+      sceneLoader.syncMultichannelLoading(isPlaying);
+      if (image) {
+        // If we're playing and entire axis is not in memory (T always, Z likely), downlevel to speed things up
+        const { volumeSize, subregionSize } = image.imageInfo;
+        const shouldDownlevel = isPlaying && (axis === "t" || volumeSize[axis] !== subregionSize[axis]);
+        image.updateRequiredData({ scaleLevelBias: shouldDownlevel ? 1 : 0 });
+      }
+    };
+  }, [sceneLoader, playControls, image]);
 
   // track which channels have been loaded
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
@@ -406,6 +440,7 @@ const useVolume = (
     [image, onError, sceneLoader, setIsLoading]
   );
 
+  // TODO reorder for consistency with type, dependencies
   return useMemo(
     () => ({
       image,
@@ -416,8 +451,9 @@ const useVolume = (
       channelRanges: channelRangesRef.current,
       channelGroupedByType,
       playControls,
+      playingAxis,
     }),
-    [channelGroupedByType, channelVersions, image, imageLoadStatus, playControls, setScene, setTime]
+    [channelGroupedByType, channelVersions, image, imageLoadStatus, playControls, playingAxis, setScene, setTime]
   );
 };
 
