@@ -34,15 +34,15 @@ import { ChannelState } from "./ViewerStateProvider/types";
 import { ViewerStateContext } from "./ViewerStateProvider";
 
 export type UseVolumeOptions = {
-  onChannelLoaded?: (channelIndex: number, channelSettings: ChannelState) => void;
+  onChannelLoaded?: (image: Volume, channelIndex: number, channelSettings: ChannelState) => void;
   onError?: (error: unknown) => void;
 };
 
 export const enum ImageLoadStatus {
-  Unloaded,
-  Loading,
-  Loaded,
-  Error,
+  UNLOADED,
+  LOADING,
+  LOADED,
+  ERROR,
 }
 
 export type LoadedImage = {
@@ -117,7 +117,7 @@ const TEMP_onChannelDataLoaded = (): void => {
  *
  * Some functions play the role of event handlers (called to notify that something has happened) _within_ an effect.
  * Without any intervention, the linter will insist the function needs to be in the effect's dependencies,  even though
- * it would make no sense to re-run the effect when the function changes. So we hide the function behind a stable ref.
+ * it would make no sense to re-run the effect when the handler changes. So we hide the function behind a stable ref.
  *
  * See https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
  */
@@ -173,7 +173,7 @@ const useVolume = (
   const [loadDidError, setLoadDidError] = useState(false);
   const imageLoadStatus = useMemo(() => {
     if (loadDidError) {
-      return ImageLoadStatus.Error;
+      return ImageLoadStatus.ERROR;
     }
 
     let unloaded = true;
@@ -186,11 +186,11 @@ const useVolume = (
       }
     }
     if (unloaded) {
-      return ImageLoadStatus.Unloaded;
+      return ImageLoadStatus.UNLOADED;
     } else if (loaded) {
-      return ImageLoadStatus.Loaded;
+      return ImageLoadStatus.LOADED;
     }
-    return ImageLoadStatus.Loading;
+    return ImageLoadStatus.LOADING;
   }, [channelVersions, loadDidError]);
 
   const setIsLoading = useCallback(() => {
@@ -324,7 +324,7 @@ const useVolume = (
 
       // when any channel data has arrived:
       setOneChannelLoaded(channelIndex);
-      onChannelLoadedRef.current?.(channelIndex, thisChannelsSettings);
+      onChannelLoadedRef.current?.(aimg, channelIndex, thisChannelsSettings);
       if (aimg.isLoaded()) {
         playControls.onImageLoaded();
       }
