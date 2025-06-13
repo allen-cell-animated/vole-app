@@ -39,7 +39,7 @@ export type UseVolumeOptions = {
 };
 
 export const enum ImageLoadStatus {
-  UNLOADED,
+  REQUESTED,
   LOADING,
   LOADED,
   ERROR,
@@ -63,53 +63,6 @@ const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
   z: PrefetchDirection.Z_PLUS,
   y: PrefetchDirection.Y_PLUS,
   x: PrefetchDirection.X_PLUS,
-};
-
-const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
-  return (settings || viewerStateRef.current.channelSettings).find((channel) => channel.name === channelName);
-};
-
-const TEMP_placeImageInViewer = (): void => {
-  const channelSetting = newChannelSettings || channelSettings;
-  view3d.removeAllVolumes();
-  view3d.addVolume(aimg, {
-    // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-    channels: aimg.channelNames.map((name) => {
-      const ch = getOneChannelSetting(name, channelSetting);
-      if (!ch) {
-        return {};
-      }
-      return {
-        enabled: ch.volumeEnabled,
-        isosurfaceEnabled: ch.isosurfaceEnabled,
-        isovalue: ch.isovalue,
-        isosurfaceOpacity: ch.opacity,
-        color: ch.color,
-      };
-    }),
-  });
-
-  const mode3d = viewerState.viewMode === ViewMode.threeD;
-  setIndicatorPositions(view3d, clippingPanelOpenRef.current, aimg.imageInfo.times > 1, numScenes > 1, mode3d);
-  // TODO remove
-  // imageLoadHandlers.current.forEach((effect) => effect(aimg));
-
-  view3d.updateActiveChannels(aimg);
-  // make sure we pick up whether the image needs to be in single-slice mode
-  view3d.setCameraMode(viewerState.viewMode);
-};
-
-const TEMP_onChannelDataLoaded = (): void => {
-  view3d.updateLuts(aimg);
-  view3d.onVolumeData(aimg, [channelIndex]);
-
-  view3d.setVolumeChannelEnabled(aimg, channelIndex, thisChannelsSettings.volumeEnabled);
-  if (aimg.channelNames[channelIndex] === getCurrentViewerChannelSettings()?.maskChannelName) {
-    view3d.setVolumeChannelAsMask(aimg, channelIndex);
-  }
-  if (aimg.isLoaded()) {
-    view3d.updateActiveChannels(aimg);
-  }
 };
 
 /**
@@ -186,7 +139,7 @@ const useVolume = (
       }
     }
     if (unloaded) {
-      return ImageLoadStatus.UNLOADED;
+      return ImageLoadStatus.REQUESTED;
     } else if (loaded) {
       return ImageLoadStatus.LOADED;
     }
@@ -316,10 +269,10 @@ const useVolume = (
     };
 
     const onChannelDataLoaded = (aimg: Volume, thisChannelsSettings: ChannelState, channelIndex: number): void => {
-      const thisChannel = aimg.getChannel(channelIndex);
       updateChannelTransferFunction(aimg, thisChannelsSettings, channelIndex);
 
       // save the channel's new range for remapping next time
+      const thisChannel = aimg.getChannel(channelIndex);
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
 
       // when any channel data has arrived:
