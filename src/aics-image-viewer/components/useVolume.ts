@@ -1,5 +1,5 @@
-import { LoadSpec, RawArrayLoaderOptions, Volume, VolumeLoaderContext } from "@aics/vole-core";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } from "@aics/vole-core";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
 import {
@@ -35,15 +35,18 @@ export const enum ImageLoadStatus {
   Unloaded,
   Loading,
   Loaded,
+  Error,
 }
 
 export type LoadedImage = {
   image: Volume | null;
   channelVersions: number[];
   imageLoadStatus: ImageLoadStatus;
+  setTime: (view3d: View3d, time: number) => void;
+  setScene: (scene: number) => void;
+  playControls: PlayControls;
   channelRanges: ([number, number] | undefined)[];
   channelGroupedByType: ChannelGrouping;
-  playControls: PlayControls;
 };
 
 const getOneChannelSetting = (channelName: string, settings?: ChannelState[]): ChannelState | undefined => {
@@ -94,9 +97,13 @@ const TEMP_onChannelDataLoaded = (): void => {
 };
 
 /**
- * Temporary hack while `useEffectEvent` is still experimental. For functions which play the role of event handlers
- * _within_ a `useEffect`, which the linter insists need to be in the effect's dependencies even though it would make
- * no sense to re-run the effect when the function changes. So we hide the handler behind a stable ref.
+ * Temporary hack while `useEffectEvent` is still experimental.
+ *
+ * Some functions play the role of event handlers (called to notify that something has happened) _within_ an effect.
+ * Without any intervention, the linter will insist the function needs to be in the effect's dependencies,  even though
+ * it would make no sense to re-run the effect when the function changes. So we hide the function behind a stable ref.
+ *
+ * See https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
  */
 const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
   callback: T
@@ -113,18 +120,10 @@ const useVolume = (
   options?: UseVolumeOptions
 ): LoadedImage => {
   const viewerStateRef = useContext(ViewerStateContext).ref;
-  // const {
-  //   changeChannelSetting,
-  //   changeViewerSetting,
-  //   channelSettings,
-  //   getChannelsAwaitingResetOnLoad,
-  //   getCurrentViewerChannelSettings,
-  //   onResetChannel,
-  //   setChannelSettings,
-  // } = viewerStateRef.current;
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
 
+  // set up our big objects: the image, its loading infrastructure, and controls for playback
   const [image, setImage] = useState<Volume | null>(null);
   const loadContext = useConstructor(
     () => new VolumeLoaderContext(CACHE_MAX_SIZE, QUEUE_MAX_SIZE, QUEUE_MAX_LOW_PRIORITY_SIZE)
@@ -132,21 +131,17 @@ const useVolume = (
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
 
-  /** `true` when a channel's data has been loaded for the current image. */
-  const hasChannelLoadedRef = useRef<boolean[]>([]);
-
-  // TODO the following two states could be combined into an enum?
-  // `true` when image data has been requested, but no data has been received yet
-  // const [sendingQueryRequest, setSendingQueryRequest] = useState(false);
-  // `true` when all channels of the current image are loaded
-  // const [imageLoaded, setImageLoaded] = useState(false);
-
-  // tracks which channels have been loaded
+  // track which channels have been loaded
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
 
+  // derive whether the image is loaded from whether any and/or all channels are loaded
+  const [loadDidError, setLoadDidError] = useState(false);
   const imageLoadStatus = useMemo(() => {
-    // TODO will an empty array cause a problem here?
+    if (loadDidError) {
+      return ImageLoadStatus.Error;
+    }
+
     let unloaded = true;
     let loaded = true;
     for (const version of channelVersions) {
@@ -162,13 +157,28 @@ const useVolume = (
       return ImageLoadStatus.Loaded;
     }
     return ImageLoadStatus.Loading;
-  }, [channelVersions]);
+  }, [channelVersions, loadDidError]);
+
+  const setIsLoading = useCallback(() => {
+    setLoadDidError(false);
+    setChannelVersions(new Array(channelVersionsRef.current.length).fill(0));
+  }, [channelVersionsRef, setChannelVersions]);
+
+  const onError = useCallback(
+    (e: unknown): never => {
+      setLoadDidError(true);
+      onErrorRef.current?.(e);
+      throw e;
+    },
+    [onErrorRef]
+  );
 
   // we need to keep track of channel ranges for remapping
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
   // channel indexes, sorted by category
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
+  // very big effect for loading the image!
   useEffect(() => {
     const {
       changeChannelSetting,
@@ -228,7 +238,7 @@ const useVolume = (
 
       // If this is the first load of this image, auto-generate initial LUTs
       if (
-        !hasChannelLoadedRef.current[channelIndex] ||
+        channelVersionsRef.current[channelIndex] === 0 ||
         !thisChannelsSettings.controlPoints ||
         !thisChannelsSettings.ramp ||
         getChannelsAwaitingResetOnLoad().has(channelIndex)
@@ -277,7 +287,6 @@ const useVolume = (
 
       // save the channel's new range for remapping next time
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
-      hasChannelLoadedRef.current[channelIndex] = true;
 
       // when any channel data has arrived:
       setOneChannelLoaded(channelIndex);
@@ -289,23 +298,19 @@ const useVolume = (
 
     const openImage = async (): Promise<void> => {
       const { channelSettings, scene, time } = viewerStateRef.current;
-      hasChannelLoadedRef.current = [];
+      setIsLoading();
 
       const loadSpec = new LoadSpec();
       loadSpec.time = time;
 
-      let aimg: Volume;
-      try {
-        aimg = await sceneLoader.createVolume(scene, loadSpec, (v, channelIndex) => {
+      const aimg = await sceneLoader
+        .createVolume(scene, loadSpec, (v, channelIndex) => {
           // NOTE: this callback runs *after* `onNewVolumeCreated` below, for every loaded channel
           // TODO is this search by name necessary or will the `channelIndex` passed to the callback always match state?
           const thisChannelSettings = channelSettings[channelIndex];
           onChannelDataLoaded(v, thisChannelSettings!, channelIndex);
-        });
-      } catch (e) {
-        onErrorRef.current?.(e);
-        throw e;
-      }
+        })
+        .catch(onError);
 
       const channelNames = aimg.imageInfo.channelNames;
       // TODO where this go? used to go into `onNewVolumeCreated` callback
@@ -365,21 +370,19 @@ const useVolume = (
 
       // initiate loading only after setting up new channel settings,
       // in case the loader callback fires before the state is set
-      sceneLoader.loadScene(scene, aimg, requiredLoadSpec).catch((e) => {
-        onErrorRef.current?.(e);
-        throw e;
-      });
+      sceneLoader.loadScene(scene, aimg, requiredLoadSpec).catch(onError);
     };
 
     openImage();
   }, [
     sceneLoader,
-    onErrorRef,
+    onError,
     onChannelLoadedRef,
     viewerStateRef,
     channelVersionsRef,
     setChannelVersions,
     playControls,
+    setIsLoading,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 
