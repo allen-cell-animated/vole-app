@@ -386,16 +386,38 @@ const useVolume = (
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 
+  const setTime = useCallback(
+    (view3d: View3d, time: number): void => {
+      if (image) {
+        view3d.setTime(image, time).catch(onError);
+        setIsLoading();
+      }
+    },
+    [image, onError, setIsLoading]
+  );
+
+  const setScene = useCallback(
+    (scene: number): void => {
+      if (image) {
+        sceneLoader.loadScene(scene, image).catch(onError);
+        setIsLoading();
+      }
+    },
+    [image, onError, sceneLoader, setIsLoading]
+  );
+
   return useMemo(
     () => ({
       image,
       channelVersions,
       imageLoadStatus,
+      setTime,
+      setScene,
       channelRanges: channelRangesRef.current,
       channelGroupedByType,
       playControls,
     }),
-    [channelGroupedByType, channelVersions, image, imageLoadStatus, playControls]
+    [channelGroupedByType, channelVersions, image, imageLoadStatus, playControls, setScene, setTime]
   );
 };
 
