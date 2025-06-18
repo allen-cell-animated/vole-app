@@ -69,7 +69,7 @@ const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
  * Temporary hack while `useEffectEvent` is still experimental.
  *
  * Some functions play the role of event handlers (called to notify that something has happened) _within_ an effect.
- * Without any intervention, the linter will insist the function needs to be in the effect's dependencies,  even though
+ * Without any intervention, the linter will insist the function needs to be in the effect's dependencies, even though
  * it would make no sense to re-run the effect when the handler changes. So we hide the function behind a stable ref.
  *
  * See https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
@@ -123,37 +123,31 @@ const useVolume = (
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
 
   // derive whether the image is loaded from whether any and/or all channels are loaded
-  const [loadDidError, setLoadDidError] = useState(false);
+  const [loadThrewError, setLoadThrewError] = useState(false);
   const imageLoadStatus = useMemo(() => {
-    if (loadDidError) {
+    if (loadThrewError) {
       return ImageLoadStatus.ERROR;
     }
 
-    let unloaded = true;
-    let loaded = true;
-    for (const version of channelVersions) {
-      if (version === 0) {
-        loaded = false;
-      } else {
-        unloaded = false;
-      }
-    }
-    if (unloaded) {
-      return ImageLoadStatus.REQUESTED;
-    } else if (loaded) {
-      return ImageLoadStatus.LOADED;
-    }
-    return ImageLoadStatus.LOADING;
-  }, [channelVersions, loadDidError]);
+    const [allLoaded, noneLoaded] = channelVersions.reduce(
+      ([allLoaded, noneLoaded], version) => {
+        const loaded = version > 0;
+        return [allLoaded && loaded, noneLoaded && !loaded];
+      },
+      [true, true]
+    );
+
+    return noneLoaded ? ImageLoadStatus.REQUESTED : allLoaded ? ImageLoadStatus.LOADED : ImageLoadStatus.LOADING;
+  }, [channelVersions, loadThrewError]);
 
   const setIsLoading = useCallback(() => {
-    setLoadDidError(false);
+    setLoadThrewError(false);
     setChannelVersions(new Array(channelVersionsRef.current.length).fill(0));
   }, [channelVersionsRef, setChannelVersions]);
 
   const onError = useCallback(
     (e: unknown): never => {
-      setLoadDidError(true);
+      setLoadThrewError(true);
       onErrorRef.current?.(e);
       throw e;
     },
