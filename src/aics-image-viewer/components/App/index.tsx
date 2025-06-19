@@ -198,7 +198,6 @@ const App: React.FC<AppProps> = (props) => {
 
     const { channelSettings } = viewerState.current;
 
-    view3d.removeAllVolumes();
     view3d.addVolume(image, {
       // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
       channels: image.channelNames.map((name) => {
@@ -226,6 +225,7 @@ const App: React.FC<AppProps> = (props) => {
     // make sure we pick up whether the image needs to be in single-slice mode
     // TODO is this handled properly by the effect?
     // view3d.setCameraMode(viewMode);
+    return view3d.removeAllVolumes.bind(view3d);
   }, [image, view3d, viewerState]);
 
   const hasRawImage = !!(props.rawData && props.rawDims);
