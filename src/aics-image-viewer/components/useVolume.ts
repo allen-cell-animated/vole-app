@@ -45,8 +45,21 @@ export const enum ImageLoadStatus {
   ERROR,
 }
 
+// Used by `channelVersions` (see below)
+const CHANNEL_INITIAL_LOAD = -1;
+const CHANNEL_RELOAD = 0;
+
 export type LoadedImage = {
   image: Volume | null;
+  /**
+   * Indicates the load status of each channel:
+   *
+   * - `-1` indicates the channel has not yet loaded and will get some extra initialization (e.g. LUTs) when it loads.
+   * - `0` indicates the channel has been loaded once, but is currently waiting for new data.
+   * - `1` or greater indicates the channel is loaded. Note this is not exactly `1` to handle multiple simultaneous
+   *   loads: if multiple loads are issued before the first one completes, _incrementing_ rather than _setting_ the
+   *   version number means we react to each load when it completes, rather than just the first.
+   */
   channelVersions: number[];
   imageLoadStatus: ImageLoadStatus;
   setTime: (view3d: View3d, time: number) => void;
@@ -69,7 +82,7 @@ const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
  * Temporary hack while `useEffectEvent` is still experimental.
  *
  * Some functions play the role of event handlers (called to notify that something has happened) _within_ an effect.
- * Without any intervention, the linter will insist the function needs to be in the effect's dependencies,  even though
+ * Without any intervention, the linter will insist the function needs to be in the effect's dependencies, even though
  * it would make no sense to re-run the effect when the handler changes. So we hide the function behind a stable ref.
  *
  * See https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
@@ -91,6 +104,8 @@ const useVolume = (
   const viewerStateRef = useContext(ViewerStateContext).ref;
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
+  // TODO replace
+  const maskChannelName = "TEMP_REPLACEME";
 
   // set up our big objects: the image, its loading infrastructure, and controls for playback
   const [image, setImage] = useState<Volume | null>(null);
@@ -123,37 +138,37 @@ const useVolume = (
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
 
   // derive whether the image is loaded from whether any and/or all channels are loaded
-  const [loadDidError, setLoadDidError] = useState(false);
-  const imageLoadStatus = useMemo(() => {
-    if (loadDidError) {
-      return ImageLoadStatus.ERROR;
+  const { channelSettings } = viewerStateRef.current;
+  const [loadThrewError, setLoadThrewError] = useState(false);
+  const [imageLoadStatus, inInitialLoad] = useMemo(() => {
+    if (loadThrewError) {
+      return [ImageLoadStatus.ERROR, false];
     }
 
-    let unloaded = true;
-    let loaded = true;
-    for (const version of channelVersions) {
-      if (version === 0) {
-        loaded = false;
-      } else {
-        unloaded = false;
-      }
-    }
-    if (unloaded) {
-      return ImageLoadStatus.REQUESTED;
-    } else if (loaded) {
-      return ImageLoadStatus.LOADED;
-    }
-    return ImageLoadStatus.LOADING;
-  }, [channelVersions, loadDidError]);
+    const [allLoaded, noneLoaded, inInitialLoad] = channelVersions.reduce(
+      ([allLoaded, noneLoaded, inInitialLoad], version, idx) => {
+        const setting = channelSettings[idx];
+        if (setting && (setting.volumeEnabled || setting.isosurfaceEnabled || maskChannelName === setting.name)) {
+          const loaded = version > 0;
+          return [allLoaded && loaded, noneLoaded && !loaded, inInitialLoad || version === CHANNEL_INITIAL_LOAD];
+        }
+        return [allLoaded, noneLoaded, inInitialLoad];
+      },
+      [true, true, false]
+    );
+
+    const stat = noneLoaded ? ImageLoadStatus.REQUESTED : allLoaded ? ImageLoadStatus.LOADED : ImageLoadStatus.LOADING;
+    return [stat, inInitialLoad];
+  }, [channelVersions, channelSettings, maskChannelName, loadThrewError]);
 
   const setIsLoading = useCallback(() => {
-    setLoadDidError(false);
-    setChannelVersions(new Array(channelVersionsRef.current.length).fill(0));
+    setLoadThrewError(false);
+    setChannelVersions(channelVersionsRef.current.map((version) => Math.min(version, CHANNEL_RELOAD)));
   }, [channelVersionsRef, setChannelVersions]);
 
   const onError = useCallback(
     (e: unknown): never => {
-      setLoadDidError(true);
+      setLoadThrewError(true);
       onErrorRef.current?.(e);
       throw e;
     },
@@ -163,6 +178,7 @@ const useVolume = (
   // we need to keep track of channel ranges for remapping
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
   // channel indexes, sorted by category
+  // TODO memoize
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
   // very big effect for loading the image!
@@ -206,7 +222,7 @@ const useVolume = (
 
     const setOneChannelLoaded = (index: number): void => {
       const newVersions = channelVersionsRef.current.slice();
-      newVersions[index]++;
+      newVersions[index] = Math.max(newVersions[index], CHANNEL_RELOAD) + 1;
       setChannelVersions(newVersions);
     };
 
@@ -225,7 +241,7 @@ const useVolume = (
 
       // If this is the first load of this image, auto-generate initial LUTs
       if (
-        channelVersionsRef.current[channelIndex] === 0 ||
+        channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD ||
         !thisChannelsSettings.controlPoints ||
         !thisChannelsSettings.ramp ||
         getChannelsAwaitingResetOnLoad().has(channelIndex)
@@ -268,8 +284,10 @@ const useVolume = (
       }
     };
 
-    const onChannelDataLoaded = (aimg: Volume, thisChannelsSettings: ChannelState, channelIndex: number): void => {
-      updateChannelTransferFunction(aimg, thisChannelsSettings, channelIndex);
+    const onChannelDataLoaded = (aimg: Volume, channelIndex: number): void => {
+      // TODO this was once a search by name - is that still necessary or will the index always be correct?
+      const channelSettings = viewerStateRef.current.channelSettings[channelIndex];
+      updateChannelTransferFunction(aimg, channelSettings, channelIndex);
 
       // save the channel's new range for remapping next time
       const thisChannel = aimg.getChannel(channelIndex);
@@ -277,27 +295,21 @@ const useVolume = (
 
       // when any channel data has arrived:
       setOneChannelLoaded(channelIndex);
-      onChannelLoadedRef.current?.(aimg, channelIndex, thisChannelsSettings);
+      onChannelLoadedRef.current?.(aimg, channelIndex, channelSettings);
       if (aimg.isLoaded()) {
         playControls.onImageLoaded();
       }
     };
 
     const openImage = async (): Promise<void> => {
-      const { channelSettings, scene, time } = viewerStateRef.current;
-      setIsLoading();
+      const { scene, time } = viewerStateRef.current;
+      setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
+      setLoadThrewError(false);
 
       const loadSpec = new LoadSpec();
       loadSpec.time = time;
 
-      const aimg = await sceneLoader
-        .createVolume(scene, loadSpec, (v, channelIndex) => {
-          // NOTE: this callback runs *after* `onNewVolumeCreated` below, for every loaded channel
-          // TODO is this search by name necessary or will the `channelIndex` passed to the callback always match state?
-          const thisChannelSettings = channelSettings[channelIndex];
-          onChannelDataLoaded(v, thisChannelSettings!, channelIndex);
-        })
-        .catch(onError);
+      const aimg = await sceneLoader.createVolume(scene, loadSpec, onChannelDataLoaded).catch(onError);
 
       const channelNames = aimg.imageInfo.channelNames;
       // TODO where this go? used to go into `onNewVolumeCreated` callback
@@ -308,7 +320,7 @@ const useVolume = (
       // which may cause calls on View3d to the old volume.
       // view3d.removeAllVolumes();
       // TODO: is removing the above call a problem?
-      setChannelVersions(new Array(channelNames.length).fill(0));
+      setChannelVersions(new Array(channelNames.length).fill(CHANNEL_INITIAL_LOAD));
       setImage(aimg);
 
       playControls.stepAxis = (axis: AxisName | "t") => {
@@ -375,22 +387,22 @@ const useVolume = (
 
   const setTime = useCallback(
     (view3d: View3d, time: number): void => {
-      if (image) {
+      if (image && !inInitialLoad) {
         view3d.setTime(image, time).catch(onError);
         setIsLoading();
       }
     },
-    [image, onError, setIsLoading]
+    [image, onError, setIsLoading, inInitialLoad]
   );
 
   const setScene = useCallback(
     (scene: number): void => {
-      if (image) {
+      if (image && !inInitialLoad) {
         sceneLoader.loadScene(scene, image).catch(onError);
         setIsLoading();
       }
     },
-    [image, onError, sceneLoader, setIsLoading]
+    [image, onError, sceneLoader, setIsLoading, inInitialLoad]
   );
 
   // TODO reorder for consistency with type, dependencies
