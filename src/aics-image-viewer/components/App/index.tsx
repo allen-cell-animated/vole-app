@@ -339,11 +339,6 @@ const App: React.FC<AppProps> = (props) => {
     return () => window.removeEventListener("resize", onResizeDebounced);
   }, [hasAutoClosedControlPanel]);
 
-  // one-time init after view3d exists and before we start loading images
-  // useEffect(() => {
-  //   view3d.setCameraMode(viewerSettings.viewMode);
-  // }, [view3d]);
-
   // Hook to trigger image load: on mount, when image source props/state change (`cellId`, `imageType`, `rawData`, etc)
   // TODO this once depended on `cellId`. Problem?
   // useEffect(() => {
