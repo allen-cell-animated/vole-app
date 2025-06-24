@@ -140,25 +140,29 @@ const useVolume = (
   // derive whether the image is loaded from whether any and/or all channels are loaded
   const { channelSettings } = viewerStateRef.current;
   const [loadThrewError, setLoadThrewError] = useState(false);
-  const [imageLoadStatus, inInitialLoad] = useMemo(() => {
+  const inInitialLoadRef = useRef(true);
+  const imageLoadStatus = useMemo(() => {
     if (loadThrewError) {
-      return [ImageLoadStatus.ERROR, false];
+      return ImageLoadStatus.ERROR;
     }
 
-    const [allLoaded, noneLoaded, inInitialLoad] = channelVersions.reduce(
-      ([allLoaded, noneLoaded, inInitialLoad], version, idx) => {
+    const [allLoaded, noneLoaded] = channelVersions.reduce(
+      ([allLoaded, noneLoaded], version, idx) => {
         const setting = channelSettings[idx];
         if (setting && (setting.volumeEnabled || setting.isosurfaceEnabled || maskChannelName === setting.name)) {
           const loaded = version > 0;
-          return [allLoaded && loaded, noneLoaded && !loaded, inInitialLoad || version === CHANNEL_INITIAL_LOAD];
+          return [allLoaded && loaded, noneLoaded && !loaded];
         }
-        return [allLoaded, noneLoaded, inInitialLoad];
+        return [allLoaded, noneLoaded];
       },
-      [true, true, false]
+      [true, true]
     );
 
-    const stat = noneLoaded ? ImageLoadStatus.REQUESTED : allLoaded ? ImageLoadStatus.LOADED : ImageLoadStatus.LOADING;
-    return [stat, inInitialLoad];
+    if (allLoaded && inInitialLoadRef.current) {
+      inInitialLoadRef.current = false;
+    }
+
+    return noneLoaded ? ImageLoadStatus.REQUESTED : allLoaded ? ImageLoadStatus.LOADED : ImageLoadStatus.LOADING;
   }, [channelVersions, channelSettings, maskChannelName, loadThrewError]);
 
   const setIsLoading = useCallback(() => {
@@ -274,6 +278,9 @@ const useVolume = (
   useEffect(() => {
     const { changeViewerSetting, channelSettings, getCurrentViewerChannelSettings, setChannelSettings } =
       viewerStateRef.current;
+    setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
+    setLoadThrewError(false);
+    inInitialLoadRef.current = true;
 
     const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
       const grouping = makeChannelIndexGrouping(channelNames, getCurrentViewerChannelSettings());
@@ -304,8 +311,6 @@ const useVolume = (
 
     const openImage = async (): Promise<void> => {
       const { scene, time } = viewerStateRef.current;
-      setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
-      setLoadThrewError(false);
 
       const loadSpec = new LoadSpec();
       loadSpec.time = time;
@@ -316,11 +321,6 @@ const useVolume = (
       // TODO where this go? used to go into `onNewVolumeCreated` callback
       const newChannelSettings = setChannelStateForNewImage(channelNames);
 
-      // order is important:
-      // we need to remove the old volume before triggering channels unloaded,
-      // which may cause calls on View3d to the old volume.
-      // view3d.removeAllVolumes();
-      // TODO: is removing the above call a problem?
       setChannelVersions(new Array(channelNames.length).fill(CHANNEL_INITIAL_LOAD));
       setImage(aimg);
 
@@ -389,22 +389,22 @@ const useVolume = (
 
   const setTime = useCallback(
     (view3d: View3d, time: number): void => {
-      if (image && !inInitialLoad) {
+      if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time, onChannelDataLoaded).catch(onError);
         setIsLoading();
       }
     },
-    [image, onError, setIsLoading, inInitialLoad, onChannelDataLoaded]
+    [image, onError, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
   );
 
   const setScene = useCallback(
     (scene: number): void => {
-      if (image && !inInitialLoad) {
+      if (image && !inInitialLoadRef.current) {
         sceneLoader.loadScene(scene, image, undefined, onChannelDataLoaded).catch(onError);
         setIsLoading();
       }
     },
-    [image, onError, sceneLoader, setIsLoading, inInitialLoad, onChannelDataLoaded]
+    [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
   );
 
   // TODO reorder for consistency with type, dependencies
