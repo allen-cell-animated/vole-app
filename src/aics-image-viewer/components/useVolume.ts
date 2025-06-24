@@ -167,7 +167,6 @@ const useVolume = (
   // we need to keep track of channel ranges for remapping
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
   // channel indexes, sorted by category
-  // TODO memoize
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
   /**
@@ -189,8 +188,7 @@ const useVolume = (
         !thisChannelsSettings.ramp ||
         getChannelsAwaitingResetOnLoad().has(channelIndex)
       ) {
-        const viewerChannelSettings = getCurrentViewerChannelSettings();
-        const { ramp, controlPoints } = initializeLut(aimg, channelIndex, viewerChannelSettings);
+        const { ramp, controlPoints } = initializeLut(aimg, channelIndex, getCurrentViewerChannelSettings());
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
@@ -268,13 +266,14 @@ const useVolume = (
     inInitialLoadRef.current = true;
 
     const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
-      const grouping = makeChannelIndexGrouping(channelNames, getCurrentViewerChannelSettings());
+      const viewerChannelSettings = getCurrentViewerChannelSettings();
+      const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
       // compare each channel's new displayName to the old displayNames currently in state:
       // same number of channels, and each channel has same displayName
       const allNamesAreEqual = channelNames.every((name, idx) => {
-        const displayName = getDisplayName(name, idx, getCurrentViewerChannelSettings());
+        const displayName = getDisplayName(name, idx, viewerChannelSettings);
         return displayName === channelSettings[idx]?.displayName;
       });
 
@@ -288,7 +287,7 @@ const useVolume = (
 
       const newChannelSettings = channelNames.map((channel, index) => {
         const color = getDefaultChannelColor(index);
-        return initializeOneChannelSetting(channel, index, color, getCurrentViewerChannelSettings());
+        return initializeOneChannelSetting(channel, index, color, viewerChannelSettings);
       });
       setChannelSettings(newChannelSettings);
       return newChannelSettings;
