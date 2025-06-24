@@ -172,23 +172,24 @@ const App: React.FC<AppProps> = (props) => {
     }
   }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
 
+  const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
   const onChannelLoaded = useCallback(
     (image: Volume, channelIndex: number): void => {
       view3d.updateLuts(image);
       view3d.onVolumeData(image, [channelIndex]);
 
       view3d.setVolumeChannelEnabled(image, channelIndex, channelSettings[channelIndex].volumeEnabled);
-      if (image.channelNames[channelIndex] === getCurrentViewerChannelSettings()?.maskChannelName) {
+      if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
       }
       if (image.isLoaded()) {
         view3d.updateActiveChannels(image);
       }
     },
-    [view3d, channelSettings, getCurrentViewerChannelSettings]
+    [view3d, channelSettings, maskChannelName]
   );
 
-  const volume = useVolume(scenes, { onChannelLoaded, onError: showError });
+  const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
   const { image, setTime, setScene } = volume;
 
   useEffect(() => {

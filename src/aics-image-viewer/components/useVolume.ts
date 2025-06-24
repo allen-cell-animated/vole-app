@@ -30,6 +30,7 @@ import { ViewerStateContext } from "./ViewerStateProvider";
 export type UseVolumeOptions = {
   onChannelLoaded?: (image: Volume, channelIndex: number, channelSettings: ChannelState) => void;
   onError?: (error: unknown) => void;
+  maskChannelName?: string;
 };
 
 export const enum ImageLoadStatus {
@@ -90,8 +91,7 @@ const useVolume = (
   const viewerStateRef = useContext(ViewerStateContext).ref;
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
-  // TODO replace
-  const maskChannelName = "TEMP_REPLACEME";
+  const maskChannelName = options?.maskChannelName;
 
   // set up our big objects: the image, its loading infrastructure, and controls for playback
   const [image, setImage] = useState<Volume | null>(null);
@@ -100,7 +100,6 @@ const useVolume = (
   );
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
-  // TODO odd that this isn't just a member of `playControls`?
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
   useEffect(() => {
     playControls.onPlayingAxisChanged = (axis) => {
