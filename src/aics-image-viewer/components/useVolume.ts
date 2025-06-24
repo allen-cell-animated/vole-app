@@ -181,62 +181,16 @@ const useVolume = (
   // TODO memoize
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
-  // very big effect for loading the image!
-  useEffect(() => {
-    const {
-      changeChannelSetting,
-      changeViewerSetting,
-      channelSettings,
-      getChannelsAwaitingResetOnLoad,
-      getCurrentViewerChannelSettings,
-      onResetChannel,
-      setChannelSettings,
-    } = viewerStateRef.current;
-
-    const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
-      const grouping = makeChannelIndexGrouping(channelNames, getCurrentViewerChannelSettings());
-      setChannelGroupedByType(grouping);
-
-      // compare each channel's new displayName to the old displayNames currently in state:
-      // same number of channels, and each channel has same displayName
-      const allNamesAreEqual = channelNames.every((name, idx) => {
-        const displayName = getDisplayName(name, idx, getCurrentViewerChannelSettings());
-        return displayName === channelSettings[idx]?.displayName;
-      });
-
-      if (allNamesAreEqual) {
-        const newChannelSettings = channelNames.map((channel, index) => {
-          return { ...channelSettings[index], name: channel };
-        });
-        setChannelSettings(newChannelSettings);
-        return newChannelSettings;
-      }
-
-      const newChannelSettings = channelNames.map((channel, index) => {
-        const color = getDefaultChannelColor(index);
-        return initializeOneChannelSetting(channel, index, color, getCurrentViewerChannelSettings());
-      });
-      setChannelSettings(newChannelSettings);
-      return newChannelSettings;
-    };
-
-    const setOneChannelLoaded = (index: number): void => {
-      const newVersions = channelVersionsRef.current.slice();
-      newVersions[index] = Math.max(newVersions[index], CHANNEL_RELOAD) + 1;
-      setChannelVersions(newVersions);
-    };
-
-    /**
-     * Updates a channel's ramp and control points after new data has been loaded.
-     *
-     * Also handles initializing the ramp/control points on initial load and resetting
-     * them when the channel is reset.
-     */
-    const updateChannelTransferFunction = (
-      aimg: Volume,
-      thisChannelsSettings: ChannelState,
-      channelIndex: number
-    ): void => {
+  /**
+   * Updates a channel's ramp and control points after new data has been loaded.
+   *
+   * Also handles initializing the ramp/control points on initial load and resetting
+   * them when the channel is reset.
+   */
+  const updateChannelTransferFunction = useCallback(
+    (aimg: Volume, thisChannelsSettings: ChannelState, channelIndex: number): void => {
+      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting, onResetChannel } =
+        viewerStateRef.current;
       const thisChannel = aimg.getChannel(channelIndex);
 
       // If this is the first load of this image, auto-generate initial LUTs
@@ -282,9 +236,12 @@ const useVolume = (
           changeChannelSetting(channelIndex, { controlPoints: remappedControlPoints, ramp: ramp });
         }
       }
-    };
+    },
+    [channelVersionsRef, viewerStateRef]
+  );
 
-    const onChannelDataLoaded = (aimg: Volume, channelIndex: number): void => {
+  const onChannelDataLoaded = useCallback(
+    (aimg: Volume, channelIndex: number): void => {
       // TODO this was once a search by name - is that still necessary or will the index always be correct?
       const channelSettings = viewerStateRef.current.channelSettings[channelIndex];
       updateChannelTransferFunction(aimg, channelSettings, channelIndex);
@@ -293,12 +250,56 @@ const useVolume = (
       const thisChannel = aimg.getChannel(channelIndex);
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
 
-      // when any channel data has arrived:
-      setOneChannelLoaded(channelIndex);
+      // set this channel as loaded:
+      const newVersions = channelVersionsRef.current.slice();
+      newVersions[channelIndex] = Math.max(newVersions[channelIndex], CHANNEL_RELOAD) + 1;
+      setChannelVersions(newVersions);
       onChannelLoadedRef.current?.(aimg, channelIndex, channelSettings);
+
       if (aimg.isLoaded()) {
         playControls.onImageLoaded();
       }
+    },
+    [
+      channelVersionsRef,
+      onChannelLoadedRef,
+      playControls,
+      setChannelVersions,
+      updateChannelTransferFunction,
+      viewerStateRef,
+    ]
+  );
+
+  // effect to start the initial load of the image
+  useEffect(() => {
+    const { changeViewerSetting, channelSettings, getCurrentViewerChannelSettings, setChannelSettings } =
+      viewerStateRef.current;
+
+    const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
+      const grouping = makeChannelIndexGrouping(channelNames, getCurrentViewerChannelSettings());
+      setChannelGroupedByType(grouping);
+
+      // compare each channel's new displayName to the old displayNames currently in state:
+      // same number of channels, and each channel has same displayName
+      const allNamesAreEqual = channelNames.every((name, idx) => {
+        const displayName = getDisplayName(name, idx, getCurrentViewerChannelSettings());
+        return displayName === channelSettings[idx]?.displayName;
+      });
+
+      if (allNamesAreEqual) {
+        const newChannelSettings = channelNames.map((channel, index) => {
+          return { ...channelSettings[index], name: channel };
+        });
+        setChannelSettings(newChannelSettings);
+        return newChannelSettings;
+      }
+
+      const newChannelSettings = channelNames.map((channel, index) => {
+        const color = getDefaultChannelColor(index);
+        return initializeOneChannelSetting(channel, index, color, getCurrentViewerChannelSettings());
+      });
+      setChannelSettings(newChannelSettings);
+      return newChannelSettings;
     };
 
     const openImage = async (): Promise<void> => {
@@ -382,27 +383,28 @@ const useVolume = (
     setChannelVersions,
     playControls,
     setIsLoading,
+    onChannelDataLoaded,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 
   const setTime = useCallback(
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoad) {
-        view3d.setTime(image, time).catch(onError);
+        view3d.setTime(image, time, onChannelDataLoaded).catch(onError);
         setIsLoading();
       }
     },
-    [image, onError, setIsLoading, inInitialLoad]
+    [image, onError, setIsLoading, inInitialLoad, onChannelDataLoaded]
   );
 
   const setScene = useCallback(
     (scene: number): void => {
       if (image && !inInitialLoad) {
-        sceneLoader.loadScene(scene, image).catch(onError);
+        sceneLoader.loadScene(scene, image, undefined, onChannelDataLoaded).catch(onError);
         setIsLoading();
       }
     },
-    [image, onError, sceneLoader, setIsLoading, inInitialLoad]
+    [image, onError, sceneLoader, setIsLoading, inInitialLoad, onChannelDataLoaded]
   );
 
   // TODO reorder for consistency with type, dependencies
