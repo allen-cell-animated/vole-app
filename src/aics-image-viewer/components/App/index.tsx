@@ -494,7 +494,8 @@ const App: React.FC<AppProps> = (props) => {
         view3d.setAxisClip(currentImage, axis, axismin - 0.5, axismax - 0.5, isOrthoAxis);
         view3d.setCameraMode(viewMode);
         // TODO under some circumstances, this effect will trigger a load. Ideally, this would be reflected in the load
-        //   state managed by `useVolume`.
+        //   state managed by `useVolume`. This is complicated by the fact that the relevant methods (`setAxisClip` and
+        //   `setZSlice`) don't provide a channel load callback like other load-triggering methods (e.g. `setTime`).
       },
       [axis, minval, maxval, slice, viewMode]
     );
