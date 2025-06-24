@@ -393,7 +393,6 @@ const useVolume = (
     [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
   );
 
-  // TODO reorder for consistency with type, dependencies
   return useMemo(
     () => ({
       image,
@@ -401,12 +400,12 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
-      channelRanges: channelRangesRef.current,
-      channelGroupedByType,
       playControls,
       playingAxis,
+      channelRanges: channelRangesRef.current,
+      channelGroupedByType,
     }),
-    [channelGroupedByType, channelVersions, image, imageLoadStatus, playControls, playingAxis, setScene, setTime]
+    [image, channelVersions, imageLoadStatus, setTime, setScene, playControls, playingAxis, channelGroupedByType]
   );
 };
 
