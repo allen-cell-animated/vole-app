@@ -216,15 +216,7 @@ const App: React.FC<AppProps> = (props) => {
       }),
     });
 
-    // TODO give `setIndicatorPositions` its very own effect
-    // setIndicatorPositions(view3d, clippingPanelOpen, image.imageInfo.times > 1, numScenes > 1, mode3d);
-    // TODO remove
-    // imageLoadHandlers.current.forEach((effect) => effect(image));
-
     view3d.updateActiveChannels(image);
-    // make sure we pick up whether the image needs to be in single-slice mode
-    // TODO is this handled properly by the effect?
-    // view3d.setCameraMode(viewMode);
     return view3d.removeAllVolumes.bind(view3d);
   }, [image, view3d, viewerState]);
 
@@ -262,38 +254,6 @@ const App: React.FC<AppProps> = (props) => {
     });
   }, [view3d]);
 
-  const onClippingPanelOpenChange = useCallback(
-    (panelOpen: boolean): void => {
-      if (panelOpen === clippingPanelOpen) {
-        return;
-      }
-
-      const hasTime = numTimesteps > 1;
-      const hasScenes = numScenes > 1;
-      const mode3d = viewerSettings.viewMode === ViewMode.threeD;
-
-      setClippingPanelOpen(panelOpen);
-      setIndicatorPositions(view3d, panelOpen, hasTime, hasScenes, mode3d);
-
-      // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
-      if (panelOpen) {
-        view3d.setShowScaleBar(false);
-        view3d.setShowTimestepIndicator(false);
-        view3d.setShowAxis(false);
-
-        window.clearTimeout(clippingPanelOpenTimeout.current);
-        clippingPanelOpenTimeout.current = window.setTimeout(() => {
-          view3d.setShowScaleBar(true);
-          view3d.setShowTimestepIndicator(true);
-          if (viewerSettings.showAxes) {
-            view3d.setShowAxis(true);
-          }
-        }, CLIPPING_PANEL_ANIMATION_DURATION_MS);
-      }
-    },
-    [view3d, numTimesteps, numScenes, viewerSettings.viewMode, viewerSettings.showAxes, clippingPanelOpen]
-  );
-
   const getMetadata = useCallback((): MetadataRecord => {
     let imageMetadata = image?.imageMetadata as MetadataRecord;
     if (imageMetadata && metadataFormatter) {
@@ -318,6 +278,30 @@ const App: React.FC<AppProps> = (props) => {
       return sceneMeta ?? {};
     }
   }, [metadata, metadataFormatter, image, numScenes, viewerState]);
+
+  useEffect((): void => {
+    const hasTime = numTimesteps > 1;
+    const hasScenes = numScenes > 1;
+    const mode3d = viewerSettings.viewMode === ViewMode.threeD;
+
+    setIndicatorPositions(view3d, clippingPanelOpen, hasTime, hasScenes, mode3d);
+
+    // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
+    if (clippingPanelOpen) {
+      view3d.setShowScaleBar(false);
+      view3d.setShowTimestepIndicator(false);
+      view3d.setShowAxis(false);
+
+      window.clearTimeout(clippingPanelOpenTimeout.current);
+      clippingPanelOpenTimeout.current = window.setTimeout(() => {
+        view3d.setShowScaleBar(true);
+        view3d.setShowTimestepIndicator(true);
+        if (viewerSettings.showAxes) {
+          view3d.setShowAxis(true);
+        }
+      }, CLIPPING_PANEL_ANIMATION_DURATION_MS);
+    }
+  }, [view3d, numTimesteps, numScenes, viewerSettings.viewMode, viewerSettings.showAxes, clippingPanelOpen]);
 
   // Effects //////////////////////////////////////////////////////////////////
 
@@ -604,7 +588,7 @@ const App: React.FC<AppProps> = (props) => {
               appHeight={props.appHeight}
               visibleControls={visibleControls}
               clippingPanelOpen={clippingPanelOpen}
-              onClippingPanelOpenChange={onClippingPanelOpenChange}
+              onClippingPanelOpenChange={setClippingPanelOpen}
             />
           </Content>
         </Layout>
