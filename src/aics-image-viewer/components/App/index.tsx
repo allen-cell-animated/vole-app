@@ -323,12 +323,6 @@ const App: React.FC<AppProps> = (props) => {
     return () => window.removeEventListener("resize", onResizeDebounced);
   }, [hasAutoClosedControlPanel]);
 
-  // Hook to trigger image load: on mount, when image source props/state change (`cellId`, `imageType`, `rawData`, etc)
-  // TODO this once depended on `cellId`. Problem?
-  // useEffect(() => {
-  //   openImage();
-  // }, [props.imageUrl, props.cellId, viewerSettings.imageType, props.rawDims, props.rawData]);
-
   useEffect(
     () => onControlPanelToggle && onControlPanelToggle(controlPanelClosed),
     [controlPanelClosed, onControlPanelToggle]
