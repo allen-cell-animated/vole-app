@@ -1,15 +1,9 @@
-import {
-  LoadSpec,
-  PrefetchDirection,
-  RawArrayLoaderOptions,
-  View3d,
-  Volume,
-  VolumeLoaderContext,
-} from "@aics/vole-core";
+import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } from "@aics/vole-core";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
 import {
+  AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
   DTYPE_RANGE,
   getDefaultChannelColor,
@@ -68,14 +62,6 @@ export type LoadedImage = {
   playingAxis: AxisName | "t" | null;
   channelRanges: ([number, number] | undefined)[];
   channelGroupedByType: ChannelGrouping;
-};
-
-// TODO move to constants
-const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
-  t: PrefetchDirection.T_PLUS,
-  z: PrefetchDirection.Z_PLUS,
-  y: PrefetchDirection.Y_PLUS,
-  x: PrefetchDirection.X_PLUS,
 };
 
 /**
