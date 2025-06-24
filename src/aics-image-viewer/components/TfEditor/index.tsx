@@ -519,7 +519,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const createTFGeneratorButton = (generator: string, name: string, description: string): React.ReactNode => (
     <Tooltip title={description} placement="top">
-      <Button onClick={() => applyTFGenerator(generator)}>{name}</Button>
+      <Button size="small" onClick={() => applyTFGenerator(generator)}>
+        {name}
+      </Button>
     </Tooltip>
   );
 
@@ -550,7 +552,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   return (
     <div>
       {/* ----- PRESET BUTTONS ----- */}
-      <div className="button-row">
+      <div className="tf-editor-control-row button-row">
         {createTFGeneratorButton("resetXF", "None", "Reset transfer function to full range.")}
         {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th.")}
         {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button.`)}

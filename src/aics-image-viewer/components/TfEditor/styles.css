@@ -49,6 +49,10 @@
         text-align: right;
       }
     }
+
+    .ant-btn.ant-btn-sm {
+      padding: 12px 8px;
+    }
   }
 
   .tick text {
