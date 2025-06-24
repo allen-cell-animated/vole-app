@@ -488,15 +488,13 @@ const App: React.FC<AppProps> = (props) => {
           axismax = isOrthoAxis ? slice + oneSlice : 1.0;
           if (axis === "z" && viewMode === ViewMode.xy) {
             view3d.setZSlice(currentImage, Math.floor(slice * currentImage.imageInfo.volumeSize.z));
-            // TODO problem that we can't set this anymore?
-            // if (!currentImage.isLoaded()) {
-            //   setImageLoaded(false);
-            // }
           }
         }
         // view3d wants the coordinates in the -0.5 to 0.5 range
         view3d.setAxisClip(currentImage, axis, axismin - 0.5, axismax - 0.5, isOrthoAxis);
         view3d.setCameraMode(viewMode);
+        // TODO under some circumstances, this effect will trigger a load. Ideally, this would be reflected in the load
+        //   state managed by `useVolume`.
       },
       [axis, minval, maxval, slice, viewMode]
     );
