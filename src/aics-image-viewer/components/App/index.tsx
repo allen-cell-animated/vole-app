@@ -192,6 +192,7 @@ const App: React.FC<AppProps> = (props) => {
   const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
   const { image, setTime, setScene } = volume;
 
+  // add the image to the viewer on load
   useEffect(() => {
     if (image === null) {
       return;

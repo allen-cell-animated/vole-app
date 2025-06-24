@@ -44,7 +44,7 @@ export const enum ImageLoadStatus {
 const CHANNEL_INITIAL_LOAD = -1;
 const CHANNEL_RELOAD = 0;
 
-export type LoadedImage = {
+export type ReactiveVolume = {
   image: Volume | null;
   /**
    * Indicates the load status of each channel:
@@ -87,7 +87,7 @@ const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
 const useVolume = (
   scenePaths: (string | string[] | RawArrayLoaderOptions)[],
   options?: UseVolumeOptions
-): LoadedImage => {
+): ReactiveVolume => {
   const viewerStateRef = useContext(ViewerStateContext).ref;
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
@@ -303,7 +303,6 @@ const useVolume = (
       const aimg = await sceneLoader.createVolume(scene, loadSpec, onChannelDataLoaded).catch(onError);
 
       const channelNames = aimg.imageInfo.channelNames;
-      // TODO where this go? used to go into `onNewVolumeCreated` callback
       const newChannelSettings = setChannelStateForNewImage(channelNames);
 
       setChannelVersions(new Array(channelNames.length).fill(CHANNEL_INITIAL_LOAD));
