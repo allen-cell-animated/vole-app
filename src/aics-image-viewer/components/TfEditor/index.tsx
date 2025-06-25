@@ -682,7 +682,11 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           size="small"
           controls={false}
         />
-        <Button size="small" onClick={() => changeChannelSetting({ plotMin: rawMin, plotMax: rawMax })}>
+        <Button
+          size="small"
+          style={{ marginLeft: "12px" }}
+          onClick={() => changeChannelSetting({ plotMin: rawMin, plotMax: rawMax })}
+        >
           Fit to data
         </Button>
         <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
