@@ -552,7 +552,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   return (
     <div>
       {/* ----- PRESET BUTTONS ----- */}
-      <div className="tf-editor-control-row button-row">
+      <div className="button-row">
         {createTFGeneratorButton("resetXF", "None", "Reset transfer function to full range.")}
         {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th.")}
         {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button.`)}

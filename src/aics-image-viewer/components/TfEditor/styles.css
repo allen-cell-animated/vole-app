@@ -30,9 +30,9 @@
     color: var(--color-controlpanel-text);
     align-items: center;
     min-height: 24px;
+    gap: 5px;
 
     &.ramp-row {
-      gap: 6px;
       margin-top: 15px;
     }
 
@@ -48,10 +48,6 @@
       input {
         text-align: right;
       }
-    }
-
-    .ant-btn.ant-btn-sm {
-      padding: 12px 8px;
     }
   }
 
