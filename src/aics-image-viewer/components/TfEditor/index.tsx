@@ -542,7 +542,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           />
         ))
     : null;
-  // move selected control point to the end so it's not occluded by other nearby points
+  // move selected control point to the end so it's drawn last and not occluded by other nearby points
   if (controlPointCircles !== null && selectedPointIdx !== null) {
     controlPointCircles.push(controlPointCircles.splice(selectedPointIdx, 1)[0]);
   }
@@ -683,6 +683,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           size="small"
           controls={false}
         />
+        <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
+          Full range
+        </Button>
       </div>
 
       {/* ----- COLORIZE SLIDER ----- */}
