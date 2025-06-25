@@ -235,7 +235,7 @@ const numberFormatter = (v: number | string | undefined): string => (v === undef
 const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
 
 const TfEditor: React.FC<TfEditorProps> = (props) => {
-  const { changeChannelSetting } = props;
+  const { changeChannelSetting, plotMin, plotMax } = props;
 
   const innerWidth = props.width - TFEDITOR_MARGINS.left - TFEDITOR_MARGINS.right;
   const innerHeight = props.height - TFEDITOR_MARGINS.top - TFEDITOR_MARGINS.bottom;
@@ -265,14 +265,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
-  const [xScale, plotMinU8, plotMaxU8] = useMemo(() => {
-    const domain = [props.plotMin, props.plotMax];
-    const scale = d3.scaleLinear().domain(domain).range([0, innerWidth]);
-    const channelRange = { rawMin, rawMax };
-    const plotMinU8 = absoluteToU8(props.plotMin, channelRange);
-    const plotMaxU8 = absoluteToU8(props.plotMax, channelRange);
-    return [scale, plotMinU8, plotMaxU8];
-  }, [innerWidth, props.plotMin, props.plotMax, rawMin, rawMax]);
+  const xScale = useMemo(
+    () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
+    [innerWidth, plotMin, plotMax]
+  );
+  const plotMinU8 = useMemo(() => absoluteToU8(plotMin, { rawMin, rawMax }), [plotMin, rawMin, rawMax]);
+  const plotMaxU8 = useMemo(() => absoluteToU8(plotMax, { rawMin, rawMax }), [plotMax, rawMin, rawMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -667,8 +665,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       <div className="tf-editor-control-row plot-range-row">
         Plot min/max
         <InputNumber
-          value={props.plotMin}
-          onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, props.plotMax) })}
+          value={plotMin}
+          onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
           formatter={numberFormatter}
           min={typeRange.min}
           max={typeRange.max - 1}
@@ -676,8 +674,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           controls={false}
         />
         <InputNumber
-          value={props.plotMax}
-          onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, props.plotMin) })}
+          value={plotMax}
+          onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
           formatter={numberFormatter}
           min={typeRange.min + 1}
           max={typeRange.max}
