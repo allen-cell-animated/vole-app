@@ -664,18 +664,25 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
       {/* ----- PLOT RANGE ----- */}
       <div className="tf-editor-control-row plot-range-row">
-        <span>
-          Plot max{" "}
-          <InputNumber
-            value={props.plotMax}
-            onChange={(v) => v !== null && changeChannelSetting({ plotMax: v })}
-            formatter={numberFormatter}
-            min={typeRange.min}
-            max={typeRange.max}
-            size="small"
-            controls={false}
-          />
-        </span>
+        Plot min/max{" "}
+        <InputNumber
+          value={props.plotMin}
+          onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, props.plotMax) })}
+          formatter={numberFormatter}
+          min={typeRange.min}
+          max={typeRange.max}
+          size="small"
+          controls={false}
+        />
+        <InputNumber
+          value={props.plotMax}
+          onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, props.plotMin) })}
+          formatter={numberFormatter}
+          min={typeRange.min}
+          max={typeRange.max}
+          size="small"
+          controls={false}
+        />
       </div>
 
       {/* ----- COLORIZE SLIDER ----- */}
