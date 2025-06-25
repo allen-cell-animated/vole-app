@@ -213,7 +213,7 @@ export const getDefaultChannelState = (index: number = 0): ChannelState => {
       { x: 0, opacity: 0, color: [255, 255, 255] },
       { x: 255, opacity: 1, color: [255, 255, 255] },
     ],
-    lockPlotToDataRange: true,
+    plotMin: 0,
     plotMax: TFEDITOR_MAX_BIN,
   };
 };
