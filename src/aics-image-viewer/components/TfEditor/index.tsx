@@ -114,7 +114,7 @@ function u8ToAbsolute(value: number, channel: { rawMin: number; rawMax: number }
   return channel.rawMin + (value / 255) * (channel.rawMax - channel.rawMin);
 }
 
-function absoluteToU8(value: number, channel: Channel): number {
+function absoluteToU8(value: number, channel: { rawMin: number; rawMax: number }): number {
   return ((value - channel.rawMin) / (channel.rawMax - channel.rawMin)) * 255;
 }
 
@@ -268,10 +268,11 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [xScale, plotMinU8, plotMaxU8] = useMemo(() => {
     const domain = [props.plotMin, props.plotMax];
     const scale = d3.scaleLinear().domain(domain).range([0, innerWidth]);
-    const plotMinU8 = absoluteToU8(domain[0], props.channelData);
-    const plotMaxU8 = absoluteToU8(domain[1], props.channelData);
+    const channelRange = { rawMin, rawMax };
+    const plotMinU8 = absoluteToU8(props.plotMin, channelRange);
+    const plotMaxU8 = absoluteToU8(props.plotMax, channelRange);
     return [scale, plotMinU8, plotMaxU8];
-  }, [innerWidth, props.plotMin, props.plotMax, props.channelData]);
+  }, [innerWidth, props.plotMin, props.plotMax, rawMin, rawMax]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -683,6 +684,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           size="small"
           controls={false}
         />
+        <Button size="small" onClick={() => changeChannelSetting({ plotMin: rawMin, plotMax: rawMax })}>
+          Fit to data
+        </Button>
         <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
           Full range
         </Button>
