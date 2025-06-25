@@ -52,7 +52,7 @@ export type ReactiveVolume = {
    * - `-1` indicates the channel has not yet loaded and will get some extra initialization (e.g. LUTs) when it loads.
    * - `0` indicates the channel has been loaded once, but is currently waiting for new data.
    * - `1` or greater indicates the channel is loaded. Note this is not exactly `1` to handle multiple simultaneous
-   *   loads: if multiple loads are issued before the first one completes, _incrementing_ rather than _setting_ the
+   *   loads; if multiple loads are issued before the first one completes, _incrementing_ rather than _setting_ the
    *   version number means we react to each load when it completes, rather than just the first.
    */
   channelVersions: number[];
