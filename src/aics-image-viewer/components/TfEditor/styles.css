@@ -42,7 +42,7 @@
 
     .ant-input-number {
       border-color: var(--color-button-tertiary-outline);
-      width: 72px;
+      width: 64px;
 
       input {
         text-align: right;
