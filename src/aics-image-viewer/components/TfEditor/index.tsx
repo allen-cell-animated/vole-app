@@ -552,10 +552,10 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     <div>
       {/* ----- PRESET BUTTONS ----- */}
       <div className="button-row">
-        {createTFGeneratorButton("resetXF", "None", "Reset transfer function to full range.")}
-        {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th.")}
-        {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button.`)}
-        {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data.")}
+        {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
+        {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
+        {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
+        {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
         <Checkbox
           checked={props.useControlPoints}
           onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
