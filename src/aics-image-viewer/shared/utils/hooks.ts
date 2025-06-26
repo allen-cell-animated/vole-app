@@ -1,16 +1,4 @@
-import { MutableRefObject, useCallback, useRef, useState } from "react";
-
-/** A `useState` that also creates a getter function for breaking through closures. */
-export function useStateWithGetter<T>(initialState: T | (() => T)): [T, (value: T) => void, () => T] {
-  const [state, setState] = useState(initialState);
-  const stateRef = useRef(state);
-  const wrappedSetState = useCallback((value: T) => {
-    stateRef.current = value;
-    setState(value);
-  }, []);
-  const getState = useCallback(() => stateRef.current, []);
-  return [state, wrappedSetState, getState];
-}
+import { MutableRefObject, useCallback, useRef } from "react";
 
 /**
  * Wraps a setter function and keeps a ref updated to follow the set value. Useful for making the most up-to-date value
