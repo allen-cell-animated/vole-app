@@ -70,7 +70,7 @@ export interface ChannelState {
   ramp: [number, number];
   useControlPoints: boolean;
   controlPoints: ControlPoint[];
-  lockPlotToDataRange: boolean;
+  plotMin: number;
   plotMax: number;
 }
 

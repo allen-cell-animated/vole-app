@@ -30,7 +30,11 @@
     display: flex;
     justify-content: start;
     align-items: end;
-    gap: 6px;
+    gap: 5px;
+
+    .ant-btn.ant-btn-sm {
+      padding: 12px 8px;
+    }
   }
 
   &.controls-closed .ant-btn-text:not(:focus-visible) {

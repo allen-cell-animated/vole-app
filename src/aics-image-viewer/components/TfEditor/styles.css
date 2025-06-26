@@ -30,20 +30,19 @@
     color: var(--color-controlpanel-text);
     align-items: center;
     min-height: 24px;
+    gap: 5px;
 
     &.ramp-row {
-      gap: 6px;
       margin-top: 15px;
     }
 
     &.plot-range-row {
-      justify-content: space-between;
       margin-bottom: 20px;
     }
 
     .ant-input-number {
       border-color: var(--color-button-tertiary-outline);
-      width: 72px;
+      width: 64px;
 
       input {
         text-align: right;

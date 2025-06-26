@@ -82,7 +82,7 @@ export function initializeOneChannelSetting(
     useControlPoints: initSettings.controlPointsEnabled ?? defaultChannelState.useControlPoints,
     controlPoints: initSettings.controlPoints ?? defaultChannelState.controlPoints,
     ramp: initSettings.ramp ?? defaultChannelState.ramp,
-    lockPlotToDataRange: defaultChannelState.lockPlotToDataRange,
+    plotMin: defaultChannelState.plotMin,
     plotMax: defaultChannelState.plotMax,
   };
 }
