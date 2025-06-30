@@ -14,6 +14,7 @@ import {
 } from "../../shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { activeAxisMap, AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
+import useVolume, { ImageLoadStatus } from "../../shared/useVolume";
 import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
 import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
@@ -23,7 +24,6 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../../shared/utils/sliderValuesToImageValues";
-import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
 import CellViewerCanvasWrapper from "../CellViewerCanvasWrapper";
