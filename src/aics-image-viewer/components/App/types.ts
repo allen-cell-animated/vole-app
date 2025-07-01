@@ -75,5 +75,6 @@ export type AppProps = AppPropsBase & {
 };
 
 export type ViewerProps = AppPropsBase & {
-  image?: ReactiveVolume;
+  volume: ReactiveVolume;
+  hasParentImage: boolean;
 };

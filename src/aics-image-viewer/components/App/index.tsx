@@ -24,7 +24,7 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../../shared/utils/sliderValuesToImageValues";
-import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
+import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType, ViewerProps } from "./types";
 
 import CellViewerCanvasWrapper from "../CellViewerCanvasWrapper";
 import ControlPanel from "../ControlPanel";
@@ -116,13 +116,12 @@ const setIndicatorPositions = (
   view3d.setScaleBarPosition(scaleBarX, scaleBarY);
 };
 
-const App: React.FC<AppProps> = (props) => {
+const Viewer: React.FC<ViewerProps> = (props) => {
   props = { ...defaultProps, ...props };
 
   // State management /////////////////////////////////////////////////////////
   const viewerState = useContext(ViewerStateContext).ref;
   const {
-    imageType,
     viewMode,
     channelSettings,
     changeChannelSetting,
@@ -133,7 +132,7 @@ const App: React.FC<AppProps> = (props) => {
     getChannelsAwaitingReset,
     onResetChannel,
   } = viewerState.current;
-  const { onControlPanelToggle, metadata, metadataFormatter } = props;
+  const { volume, onControlPanelToggle, metadata, metadataFormatter } = props;
 
   useMemo(() => {
     if (props.viewerChannelSettings) {
@@ -154,24 +153,6 @@ const App: React.FC<AppProps> = (props) => {
     return () => view3d.setLoadErrorHandler(undefined);
   }, [view3d, showError]);
 
-  const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
-  const { imageUrl, parentImageUrl, rawData, rawDims } = props;
-  const scenes = useMemo((): (string | string[])[] | [RawArrayLoaderOptions] => {
-    if (rawData && rawDims) {
-      return [{ data: rawData, metadata: rawDims }];
-    } else {
-      const showParentImage = imageType === ImageType.fullField && parentImageUrl !== undefined;
-      const path = showParentImage ? parentImageUrl : imageUrl;
-      // Don't reload if we're already looking at this image
-      if (isEqual(path, imageUrlRef.current)) {
-        return scenes;
-      }
-      imageUrlRef.current = path;
-
-      return (path as MultisceneUrls).scenes ?? [path];
-    }
-  }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
-
   const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
   const onChannelLoaded = useCallback(
     (image: Volume, channelIndex: number): void => {
@@ -189,8 +170,7 @@ const App: React.FC<AppProps> = (props) => {
     [view3d, channelSettings, maskChannelName]
   );
 
-  const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
-  const { image, setTime, setScene } = volume;
+  const { image, setTime, setScene, numScenes } = volume;
 
   // add the image to the viewer on load
   useEffect(() => {
@@ -222,8 +202,6 @@ const App: React.FC<AppProps> = (props) => {
     return view3d.removeAllVolumes.bind(view3d);
   }, [image, view3d, viewerState]);
 
-  const hasRawImage = !!(props.rawData && props.rawDims);
-  const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
   const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 0, y: 0, z: 0 };
   const numSlicesLoaded: PerAxis<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
   const numTimesteps = image?.imageInfo.times ?? 1;
@@ -563,7 +541,7 @@ const App: React.FC<AppProps> = (props) => {
             <Toolbar
               fovDownloadHref={props.parentImageDownloadHref}
               cellDownloadHref={props.imageDownloadHref}
-              hasParentImage={!!props.parentImageUrl}
+              hasParentImage={props.hasParentImage}
               hasCellId={!!props.cellId}
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
               resetCamera={resetCamera}
@@ -590,6 +568,34 @@ const App: React.FC<AppProps> = (props) => {
       </Layout>
     </StyleProvider>
   );
+};
+
+const App: React.FC<AppProps> = (props) => {
+  const { imageUrl, parentImageUrl, rawData, rawDims } = props;
+
+  const { imageType, getCurrentViewerChannelSettings } = useContext(ViewerStateContext).ref.current;
+  const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
+
+  const scenes = useMemo((): (string | string[])[] | [RawArrayLoaderOptions] => {
+    if (rawData && rawDims) {
+      return [{ data: rawData, metadata: rawDims }];
+    } else {
+      const showParentImage = imageType === ImageType.fullField && parentImageUrl !== undefined;
+      const path = showParentImage ? parentImageUrl : imageUrl;
+      // Don't reload if we're already looking at this image
+      if (isEqual(path, imageUrlRef.current)) {
+        return scenes;
+      }
+      imageUrlRef.current = path;
+
+      return (path as MultisceneUrls).scenes ?? [path];
+    }
+  }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
+
+  const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
+  const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
+
+  return <Viewer {...props} volume={volume} hasParentImage={!!parentImageUrl} />;
 };
 
 export default App;
