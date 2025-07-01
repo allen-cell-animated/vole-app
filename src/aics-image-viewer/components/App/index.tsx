@@ -202,7 +202,7 @@ const Viewer: React.FC<ViewerProps> = (props) => {
     return view3d.removeAllVolumes.bind(view3d);
   }, [image, view3d, viewerState]);
 
-  const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 0, y: 0, z: 0 };
+  const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 1, y: 1, z: 1 };
   const numSlicesLoaded: PerAxis<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
   const numTimesteps = image?.imageInfo.times ?? 1;
 

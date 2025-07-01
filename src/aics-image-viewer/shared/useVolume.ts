@@ -28,8 +28,11 @@ import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { ViewerStateContext } from "../components/ViewerStateProvider";
 
 export type UseVolumeOptions = {
+  /** Callback for when a single channel of the volume has loaded. */
   onChannelLoaded?: (image: Volume, channelIndex: number, channelSettings: ChannelState) => void;
+  /** Callback for when image loading encounters an error. */
   onError?: (error: unknown) => void;
+  /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
 };
 
@@ -85,6 +88,16 @@ const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
   return callbackRef;
 };
 
+/**
+ * Hook to open a volume from one or more sources (URLs or raw data) and provide controls for (re)loading and playback.
+ *
+ * @param scenePaths An array of volume data sources, one per scene. These can be:
+ * - a string URL to a single source, or
+ * - an array of strings to load multiple sources as a single volume, or
+ * - a `RawArrayLoaderOptions` object to load raw data directly.
+ * @param options An optional object with callbacks and other info. See docs for `UseVolumeOptions`.
+ * @returns An object with the current image, its load status, and controls for playback and loading.
+ */
 const useVolume = (
   scenePaths: (string | string[] | RawArrayLoaderOptions)[],
   options?: UseVolumeOptions
@@ -123,10 +136,12 @@ const useVolume = (
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
 
-  // derive whether the image is loaded from whether any and/or all channels are loaded
   const { channelSettings } = viewerStateRef.current;
+  // Some extra items for tracking load status
   const [loadThrewError, setLoadThrewError] = useState(false);
   const inInitialLoadRef = useRef(true);
+
+  // derive whether the image is loaded from whether any and/or all channels are loaded
   const imageLoadStatus = useMemo(() => {
     if (loadThrewError) {
       return ImageLoadStatus.ERROR;
@@ -195,16 +210,11 @@ const useVolume = (
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
           // set the default range of the transfer function editor to cover the full range of the data type
+          plotMin: DTYPE_RANGE[thisChannel.dtype].min,
           plotMax: DTYPE_RANGE[thisChannel.dtype].max,
         });
         onResetChannel(channelIndex);
       } else {
-        // try not to update lut from here if we are in play mode
-        // if (playingAxis !== null) {
-        // do nothing here?
-        // tell gui that we have updated control pts?
-        //changeChannelSetting(channelIndex, "controlPoints", aimg.getChannel(channelIndex).lut.controlPoints);
-        // }
         const oldRange = channelRangesRef.current[channelIndex];
         if (thisChannelsSettings.useControlPoints) {
           // control points were just automatically remapped - update in state
