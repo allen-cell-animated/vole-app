@@ -200,12 +200,6 @@ const useVolume = (
         });
         onResetChannel(channelIndex);
       } else {
-        // try not to update lut from here if we are in play mode
-        // if (playingAxis !== null) {
-        // do nothing here?
-        // tell gui that we have updated control pts?
-        //changeChannelSetting(channelIndex, "controlPoints", aimg.getChannel(channelIndex).lut.controlPoints);
-        // }
         const oldRange = channelRangesRef.current[channelIndex];
         if (thisChannelsSettings.useControlPoints) {
           // control points were just automatically remapped - update in state
