@@ -59,6 +59,7 @@ export type ReactiveVolume = {
   imageLoadStatus: ImageLoadStatus;
   setTime: (view3d: View3d, time: number) => void;
   setScene: (scene: number) => void;
+  numScenes: number;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
   channelRanges: ([number, number] | undefined)[];
@@ -397,12 +398,23 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
+      numScenes: sceneLoader.numScenes(),
       playControls,
       playingAxis,
       channelRanges: channelRangesRef.current,
       channelGroupedByType,
     }),
-    [image, channelVersions, imageLoadStatus, setTime, setScene, playControls, playingAxis, channelGroupedByType]
+    [
+      image,
+      channelVersions,
+      imageLoadStatus,
+      setTime,
+      setScene,
+      sceneLoader,
+      playControls,
+      playingAxis,
+      channelGroupedByType,
+    ]
   );
 };
 

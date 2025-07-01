@@ -60,6 +60,10 @@ export default class SceneStore {
     loader.loadVolumeData(image, spec, onChannelLoaded);
   }
 
+  public numScenes(): number {
+    return this.paths.length;
+  }
+
   public async createVolume(scene: number, loadSpec: LoadSpec, onChannelLoaded?: PerChannelCallback): Promise<Volume> {
     const loader = await this.getLoader(scene);
     return loader.createVolume(loadSpec, onChannelLoaded);
