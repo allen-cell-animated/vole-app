@@ -28,8 +28,11 @@ import { ChannelState } from "./ViewerStateProvider/types";
 import { ViewerStateContext } from "./ViewerStateProvider";
 
 export type UseVolumeOptions = {
+  /** Callback for when a single channel of the volume has loaded. */
   onChannelLoaded?: (image: Volume, channelIndex: number, channelSettings: ChannelState) => void;
+  /** Callback for when image loading encounters an error. */
   onError?: (error: unknown) => void;
+  /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
 };
 
@@ -84,6 +87,16 @@ const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
   return callbackRef;
 };
 
+/**
+ * Hook to open a volume from one or more sources (URLs or raw data) and provide controls for (re)loading and playback.
+ *
+ * @param scenePaths An array of volume data sources, one per scene. These can be:
+ * - a string URL to a single source, or
+ * - an array of strings to load multiple sources as a single volume, or
+ * - a `RawArrayLoaderOptions` object to load raw data directly.
+ * @param options An optional object with callbacks and other info. See docs for `UseVolumeOptions`.
+ * @returns An object with the current image, its load status, and controls for playback and loading.
+ */
 const useVolume = (
   scenePaths: (string | string[] | RawArrayLoaderOptions)[],
   options?: UseVolumeOptions
