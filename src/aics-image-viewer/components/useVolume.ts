@@ -122,10 +122,12 @@ const useVolume = (
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
 
-  // derive whether the image is loaded from whether any and/or all channels are loaded
   const { channelSettings } = viewerStateRef.current;
+  // Some extra items for tracking load status
   const [loadThrewError, setLoadThrewError] = useState(false);
   const inInitialLoadRef = useRef(true);
+
+  // derive whether the image is loaded from whether any and/or all channels are loaded
   const imageLoadStatus = useMemo(() => {
     if (loadThrewError) {
       return ImageLoadStatus.ERROR;
