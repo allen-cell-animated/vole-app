@@ -2,6 +2,7 @@ import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
+import { ChannelState } from "../components/ViewerStateProvider/types";
 import {
   AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
@@ -23,9 +24,8 @@ import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
-import { ChannelState } from "./ViewerStateProvider/types";
 
-import { ViewerStateContext } from "./ViewerStateProvider";
+import { ViewerStateContext } from "../components/ViewerStateProvider";
 
 export type UseVolumeOptions = {
   onChannelLoaded?: (image: Volume, channelIndex: number, channelSettings: ChannelState) => void;
