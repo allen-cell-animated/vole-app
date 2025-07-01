@@ -209,6 +209,7 @@ const useVolume = (
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
           // set the default range of the transfer function editor to cover the full range of the data type
+          plotMin: DTYPE_RANGE[thisChannel.dtype].min,
           plotMax: DTYPE_RANGE[thisChannel.dtype].max,
         });
         onResetChannel(channelIndex);
