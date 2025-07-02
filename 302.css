@@ -741,21 +741,20 @@
     color:var(--color-controlpanel-text);
     align-items:center;
     min-height:24px;
+    gap:5px;
   }
 
 .channel-row .tf-editor-control-row.ramp-row{
-      gap:6px;
       margin-top:15px;
     }
 
 .channel-row .tf-editor-control-row.plot-range-row{
-      justify-content:space-between;
       margin-bottom:20px;
     }
 
 .channel-row .tf-editor-control-row .ant-input-number{
       border-color:var(--color-button-tertiary-outline);
-      width:72px;
+      width:64px;
     }
 
 .channel-row .tf-editor-control-row .ant-input-number input{
@@ -848,8 +847,12 @@
     display:flex;
     justify-content:start;
     align-items:end;
-    gap:6px;
+    gap:5px;
   }
+
+.channel-rows-list .ant-list-item.channel-row .button-row .ant-btn.ant-btn-sm{
+      padding:12px 8px;
+    }
 
 .channel-rows-list .ant-list-item.channel-row.controls-closed .ant-btn-text:not(:focus-visible){
     color:var(--color-controlpanel-text);
