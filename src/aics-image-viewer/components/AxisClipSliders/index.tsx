@@ -81,7 +81,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
           />
         </span>
       )}
-      {max > 0 && (
+      {max > min && (
         <span className="slider-values">
           <NumericInput
             min={min}
