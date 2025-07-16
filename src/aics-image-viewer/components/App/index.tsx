@@ -9,13 +9,19 @@ import {
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
+  DTYPE_RANGE,
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { activeAxisMap, AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
 import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
-import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
+import {
+  controlPointsToRamp,
+  initializeLut,
+  rampToControlPoints,
+  remapControlPointsForChannel,
+} from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import {
   alphaSliderToImageValue,
@@ -173,12 +179,60 @@ const App: React.FC<AppProps> = (props) => {
   }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
 
   const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
+
+  // we need to keep track of channel ranges for remapping control points
+  const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
+
   const onChannelLoaded = useCallback(
-    (image: Volume, channelIndex: number): void => {
+    (image: Volume, channelIndex: number, isInitialLoad: boolean): void => {
+      // TODO this was once a search by name - is that still necessary or will the index always be correct?
+      const thisChannelSettings = channelSettings[channelIndex];
+      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
+        viewerState.current;
+      const { ramp, controlPoints } = thisChannelSettings;
+      const thisChannel = image.getChannel(channelIndex);
+
+      if (isInitialLoad || !controlPoints || !ramp || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+        // This channel needs its LUT initialized
+        const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
+        const { dtype } = thisChannel;
+
+        changeChannelSetting(channelIndex, {
+          controlPoints: controlPoints,
+          ramp: controlPointsToRamp(ramp),
+          // set the default range of the transfer function editor to cover the full range of the data type
+          plotMin: DTYPE_RANGE[dtype].min,
+          plotMax: DTYPE_RANGE[dtype].max,
+        });
+      } else {
+        // This channel has already been initialized, but its LUT was just remapped and we need to update some things
+        const oldRange = channelRangesRef.current[channelIndex];
+        if (thisChannelSettings.useControlPoints) {
+          // control points were just automatically remapped - update in state
+          const rampControlPoints = rampToControlPoints(thisChannelSettings.ramp);
+          // now manually remap ramp using the channel's old range
+          const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, thisChannel);
+          changeChannelSetting(channelIndex, {
+            ramp: controlPointsToRamp(remappedRampControlPoints),
+            controlPoints: thisChannel.lut.controlPoints,
+          });
+        } else {
+          // ramp was just automatically remapped - update in state
+          const ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
+          // now manually remap control points using the channel's old range
+          const { controlPoints } = thisChannelSettings;
+          const remappedControlPoints = remapControlPointsForChannel(controlPoints, oldRange, thisChannel);
+          changeChannelSetting(channelIndex, { controlPoints: remappedControlPoints, ramp: ramp });
+        }
+      }
+
+      // save the channel's new range for remapping next time
+      channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
+
       view3d.updateLuts(image);
       view3d.onVolumeData(image, [channelIndex]);
 
-      view3d.setVolumeChannelEnabled(image, channelIndex, channelSettings[channelIndex].volumeEnabled);
+      view3d.setVolumeChannelEnabled(image, channelIndex, thisChannelSettings.volumeEnabled);
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
       }
@@ -186,7 +240,7 @@ const App: React.FC<AppProps> = (props) => {
         view3d.updateActiveChannels(image);
       }
     },
-    [view3d, channelSettings, maskChannelName]
+    [view3d, channelSettings, maskChannelName, viewerState]
   );
 
   const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
@@ -197,6 +251,8 @@ const App: React.FC<AppProps> = (props) => {
     if (image === null) {
       return;
     }
+
+    channelRangesRef.current = new Array(image.channelNames.length).fill(undefined);
 
     const { channelSettings } = viewerState.current;
 
