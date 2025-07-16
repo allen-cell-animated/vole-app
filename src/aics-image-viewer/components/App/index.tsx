@@ -161,6 +161,7 @@ const App: React.FC<AppProps> = (props) => {
   }, [view3d, showError]);
 
   const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
+  const scenesRef = useRef<(string | string[])[] | [RawArrayLoaderOptions]>([]);
   const { imageUrl, parentImageUrl, rawData, rawDims } = props;
   const scenes = useMemo((): (string | string[])[] | [RawArrayLoaderOptions] => {
     if (rawData && rawDims) {
@@ -170,11 +171,13 @@ const App: React.FC<AppProps> = (props) => {
       const path = showParentImage ? parentImageUrl : imageUrl;
       // Don't reload if we're already looking at this image
       if (isEqual(path, imageUrlRef.current)) {
-        return scenes;
+        return scenesRef.current;
       }
       imageUrlRef.current = path;
 
-      return (path as MultisceneUrls).scenes ?? [path];
+      const result = (path as MultisceneUrls).scenes ?? [path];
+      scenesRef.current = result;
+      return result;
     }
   }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
 
