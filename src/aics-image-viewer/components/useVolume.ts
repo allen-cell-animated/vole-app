@@ -57,7 +57,6 @@ export type ReactiveVolume = {
   setScene: (scene: number) => void;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
-  channelRanges: ([number, number] | undefined)[];
   channelGroupedByType: ChannelGrouping;
 };
 
@@ -172,24 +171,21 @@ const useVolume = (
     [onErrorRef]
   );
 
-  // we need to keep track of channel ranges for remapping
-  const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
   // channel indexes, sorted by category
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
-      // save the channel's new range for remapping next time
-      const thisChannel = aimg.getChannel(channelIndex);
-      channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
-
-      // set this channel as loaded:
+      // let the hook caller know that this channel has loaded
       const isInitialLoad = channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD;
+      onChannelLoadedRef.current?.(aimg, channelIndex, isInitialLoad);
+
+      // set this channel as loaded
       const newVersions = channelVersionsRef.current.slice();
       newVersions[channelIndex] = Math.max(newVersions[channelIndex], CHANNEL_RELOAD) + 1;
       setChannelVersions(newVersions);
-      onChannelLoadedRef.current?.(aimg, channelIndex, isInitialLoad);
 
+      // if the whole image has loaded, let `playControls` know (if we're playing, it may want to go to the next frame)
       if (aimg.isLoaded()) {
         playControls.onImageLoaded();
       }
@@ -258,8 +254,6 @@ const useVolume = (
         }
       };
       playControls.getVolumeIsLoaded = aimg.isLoaded.bind(aimg);
-
-      channelRangesRef.current = new Array(channelNames.length).fill(undefined);
 
       const requiredLoadSpec = new LoadSpec();
       requiredLoadSpec.time = time;
@@ -339,7 +333,6 @@ const useVolume = (
       setScene,
       playControls,
       playingAxis,
-      channelRanges: channelRangesRef.current,
       channelGroupedByType,
     }),
     [image, channelVersions, imageLoadStatus, setTime, setScene, playControls, playingAxis, channelGroupedByType]
