@@ -51,7 +51,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   return (
     <span className="axis-slider-container">
       <span className="slider-name">{label}</span>
-      {max === 0 ? (
+      {max <= min ? (
         <i>No values to adjust</i>
       ) : (
         <span className="axis-slider">
@@ -81,7 +81,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
           />
         </span>
       )}
-      {max > 0 && (
+      {max > min && (
         <span className="slider-values">
           <NumericInput
             min={min}

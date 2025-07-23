@@ -6,19 +6,12 @@ import { ChannelState } from "../components/ViewerStateProvider/types";
 import {
   AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
-  DTYPE_RANGE,
   getDefaultChannelColor,
   QUEUE_MAX_LOW_PRIORITY_SIZE,
   QUEUE_MAX_SIZE,
 } from "../shared/constants";
 import { ViewMode } from "../shared/enums";
 import { AxisName } from "../shared/types";
-import {
-  controlPointsToRamp,
-  initializeLut,
-  rampToControlPoints,
-  remapControlPointsForChannel,
-} from "../shared/utils/controlPointsToLut";
 import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
@@ -29,7 +22,7 @@ import { ViewerStateContext } from "../components/ViewerStateProvider";
 
 export type UseVolumeOptions = {
   /** Callback for when a single channel of the volume has loaded. */
-  onChannelLoaded?: (image: Volume, channelIndex: number, channelSettings: ChannelState) => void;
+  onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
   onError?: (error: unknown) => void;
   /** The name of a channel which should be treated as a mask rather than as viewable data. */
@@ -65,7 +58,6 @@ export type ReactiveVolume = {
   numScenes: number;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
-  channelRanges: ([number, number] | undefined)[];
   channelGroupedByType: ChannelGrouping;
 };
 
@@ -180,92 +172,26 @@ const useVolume = (
     [onErrorRef]
   );
 
-  // we need to keep track of channel ranges for remapping
-  const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
   // channel indexes, sorted by category
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
-  /**
-   * Updates a channel's ramp and control points after new data has been loaded.
-   *
-   * Also handles initializing the ramp/control points on initial load and resetting
-   * them when the channel is reset.
-   */
-  const updateChannelTransferFunction = useCallback(
-    (aimg: Volume, thisChannelsSettings: ChannelState, channelIndex: number): void => {
-      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting, onResetChannel } =
-        viewerStateRef.current;
-      const thisChannel = aimg.getChannel(channelIndex);
-
-      // If this is the first load of this image, auto-generate initial LUTs
-      if (
-        channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD ||
-        !thisChannelsSettings.controlPoints ||
-        !thisChannelsSettings.ramp ||
-        getChannelsAwaitingResetOnLoad().has(channelIndex)
-      ) {
-        const { ramp, controlPoints } = initializeLut(aimg, channelIndex, getCurrentViewerChannelSettings());
-
-        changeChannelSetting(channelIndex, {
-          controlPoints: controlPoints,
-          ramp: controlPointsToRamp(ramp),
-          // set the default range of the transfer function editor to cover the full range of the data type
-          plotMin: DTYPE_RANGE[thisChannel.dtype].min,
-          plotMax: DTYPE_RANGE[thisChannel.dtype].max,
-        });
-        onResetChannel(channelIndex);
-      } else {
-        const oldRange = channelRangesRef.current[channelIndex];
-        if (thisChannelsSettings.useControlPoints) {
-          // control points were just automatically remapped - update in state
-          const rampControlPoints = rampToControlPoints(thisChannelsSettings.ramp);
-          // now manually remap ramp using the channel's old range
-          const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, thisChannel);
-          changeChannelSetting(channelIndex, {
-            ramp: controlPointsToRamp(remappedRampControlPoints),
-            controlPoints: thisChannel.lut.controlPoints,
-          });
-        } else {
-          // ramp was just automatically remapped - update in state
-          const ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
-          // now manually remap control points using the channel's old range
-          const { controlPoints } = thisChannelsSettings;
-          const remappedControlPoints = remapControlPointsForChannel(controlPoints, oldRange, thisChannel);
-          changeChannelSetting(channelIndex, { controlPoints: remappedControlPoints, ramp: ramp });
-        }
-      }
-    },
-    [channelVersionsRef, viewerStateRef]
-  );
-
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
-      // TODO this was once a search by name - is that still necessary or will the index always be correct?
-      const channelSettings = viewerStateRef.current.channelSettings[channelIndex];
-      updateChannelTransferFunction(aimg, channelSettings, channelIndex);
+      // let the hook caller know that this channel has loaded
+      const isInitialLoad = channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD;
+      onChannelLoadedRef.current?.(aimg, channelIndex, isInitialLoad);
 
-      // save the channel's new range for remapping next time
-      const thisChannel = aimg.getChannel(channelIndex);
-      channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
-
-      // set this channel as loaded:
+      // set this channel as loaded
       const newVersions = channelVersionsRef.current.slice();
       newVersions[channelIndex] = Math.max(newVersions[channelIndex], CHANNEL_RELOAD) + 1;
       setChannelVersions(newVersions);
-      onChannelLoadedRef.current?.(aimg, channelIndex, channelSettings);
 
+      // if the whole image has loaded, let `playControls` know (if we're playing, it may want to go to the next frame)
       if (aimg.isLoaded()) {
         playControls.onImageLoaded();
       }
     },
-    [
-      channelVersionsRef,
-      onChannelLoadedRef,
-      playControls,
-      setChannelVersions,
-      updateChannelTransferFunction,
-      viewerStateRef,
-    ]
+    [channelVersionsRef, onChannelLoadedRef, playControls, setChannelVersions]
   );
 
   // effect to start the initial load of the image
@@ -329,8 +255,6 @@ const useVolume = (
         }
       };
       playControls.getVolumeIsLoaded = aimg.isLoaded.bind(aimg);
-
-      channelRangesRef.current = new Array(channelNames.length).fill(undefined);
 
       const requiredLoadSpec = new LoadSpec();
       requiredLoadSpec.time = time;
@@ -411,7 +335,6 @@ const useVolume = (
       numScenes: sceneLoader.numScenes(),
       playControls,
       playingAxis,
-      channelRanges: channelRangesRef.current,
       channelGroupedByType,
     }),
     [
