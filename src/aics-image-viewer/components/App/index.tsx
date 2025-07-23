@@ -632,6 +632,7 @@ const App: React.FC<AppProps> = (props) => {
   const { imageType, getCurrentViewerChannelSettings } = useContext(ViewerStateContext).ref.current;
   const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
 
+  const scenesRef = useRef<(string | string[])[] | [RawArrayLoaderOptions]>([]);
   const scenes = useMemo((): (string | string[])[] | [RawArrayLoaderOptions] => {
     if (rawData && rawDims) {
       return [{ data: rawData, metadata: rawDims }];
@@ -640,11 +641,13 @@ const App: React.FC<AppProps> = (props) => {
       const path = showParentImage ? parentImageUrl : imageUrl;
       // Don't reload if we're already looking at this image
       if (isEqual(path, imageUrlRef.current)) {
-        return scenes;
+        return scenesRef.current;
       }
       imageUrlRef.current = path;
 
-      return (path as MultisceneUrls).scenes ?? [path];
+      const result = (path as MultisceneUrls).scenes ?? [path];
+      scenesRef.current = result;
+      return result;
     }
   }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
 
