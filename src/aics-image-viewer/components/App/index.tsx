@@ -186,9 +186,6 @@ const App: React.FC<AppProps> = (props) => {
     () => new VolumeLoaderContext(CACHE_MAX_SIZE, QUEUE_MAX_SIZE, QUEUE_MAX_LOW_PRIORITY_SIZE)
   );
 
-  // install loadContext into view3d
-  view3d.loaderContext = loadContext;
-
   const loader = useRef<SceneStore>();
   const [image, setImage] = useState<Volume | null>(null);
   const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
