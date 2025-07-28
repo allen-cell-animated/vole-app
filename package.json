@@ -41,7 +41,7 @@
   "author": "Megan Riel-Mehan",
   "license": "ISC",
   "dependencies": {
-    "@aics/vole-core": "file:../vole-core",
+    "@aics/vole-core": "^3.15.6",
     "@ant-design/icons": "^5.2.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
