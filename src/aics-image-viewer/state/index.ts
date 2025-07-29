@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import { RenderMode, ViewMode } from "../shared/enums";
 
-import { ViewerState } from "../components/ViewerStateProvider/types.js";
+import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types.js";
 import { getDefaultViewerState } from "../shared/constants.js";
 
 // TODO move back to a new `types` module (?)
@@ -44,23 +44,43 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
 
 type ViewerStateActions = {
   changeViewerSetting: <K extends keyof ViewerState>(key: K, value: ViewerState[K]) => void;
+  changeChannelSetting: <K extends keyof ChannelState>(
+    index: number | number[],
+    value: Partial<Record<K, ChannelState[K]>>
+  ) => void;
+  initChannelSettings: (channelSettings: ChannelState[]) => void;
 };
 
-type ViewerStore = ViewerState & ViewerStateActions;
+type ViewerStore = ViewerState &
+  ViewerStateActions & {
+    channelSettings: ChannelState[];
+  };
 
 export const useViewerState = create<ViewerStore>((set) => ({
   ...getDefaultViewerState(),
+  channelSettings: [],
   changeViewerSetting: (key, value) => {
     set((state) => {
       let changeHandler = VIEWER_SETTINGS_CHANGE_HANDLERS[key];
 
       if (changeHandler) {
+        // some settings have custom change handlers to avoid creating illegal states; if this one has one, call it
         return changeHandler(value, state);
       } else {
+        // if not, merge the new value to the current one (if applicable) and return
         let currentValue = state[key];
         let nextValue = isRecord(currentValue) && isRecord(value) ? { ...currentValue, ...value } : value;
         return { [key]: nextValue };
       }
     });
   },
+  changeChannelSetting: (index, value) => {
+    set(({ channelSettings }) => ({
+      channelSettings: channelSettings.map((channel, channelIndex) => {
+        const changeThisChannel = Array.isArray(index) ? index.includes(channelIndex) : index === channelIndex;
+        return changeThisChannel ? { ...channel, ...value } : channel;
+      }),
+    }));
+  },
+  initChannelSettings: (channelSettings) => set({ channelSettings }),
 }));
