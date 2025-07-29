@@ -40,7 +40,15 @@ See the Apache Version 2.0 License for specific language governing permissions
 and limitations under the License.
 ***************************************************************************** */
 
+/*! Tweakpane 3.1.10 (c) 2016 cocopon, licensed under the MIT license. */
+
 /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+
+/**
+ * @license
+ * Copyright 2010-2024 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */
 
 /**
  * @license
