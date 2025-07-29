@@ -10,7 +10,7 @@ type ViewerSettingChangeHandlers = {
   [K in keyof ViewerState]?: (value: Partial<ViewerState[K]>, settings: ViewerState) => Partial<ViewerState>;
 };
 
-const isObject = <T>(val: T): val is Extract<T, Record<string, unknown>> =>
+const isRecord = <T>(val: T): val is Extract<T, Record<string, unknown>> =>
   typeof val === "object" && val !== null && !Array.isArray(val);
 
 const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
@@ -58,7 +58,7 @@ export const useViewerState = create<ViewerStore>((set) => ({
         return changeHandler(value, state);
       } else {
         let currentValue = state[key];
-        let nextValue = isObject(currentValue) && isObject(value) ? { ...currentValue, ...value } : value;
+        let nextValue = isRecord(currentValue) && isRecord(value) ? { ...currentValue, ...value } : value;
         return { [key]: nextValue };
       }
     });
