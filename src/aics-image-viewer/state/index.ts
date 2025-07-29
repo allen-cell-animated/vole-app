@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { RenderMode, ViewMode } from "../shared/enums";
+import { ColorArray } from "../shared/utils/colorRepresentations";
 
 import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types.js";
 import { getDefaultViewerState } from "../shared/constants.js";
@@ -49,6 +50,7 @@ type ViewerStateActions = {
     value: Partial<Record<K, ChannelState[K]>>
   ) => void;
   initChannelSettings: (channelSettings: ChannelState[]) => void;
+  applyColorPresets: (colors: ColorArray[]) => void;
 };
 
 type ViewerStore = ViewerState &
@@ -59,6 +61,7 @@ type ViewerStore = ViewerState &
 export const useViewerState = create<ViewerStore>((set) => ({
   ...getDefaultViewerState(),
   channelSettings: [],
+
   changeViewerSetting: (key, value) => {
     set((state) => {
       let changeHandler = VIEWER_SETTINGS_CHANGE_HANDLERS[key];
@@ -74,6 +77,7 @@ export const useViewerState = create<ViewerStore>((set) => ({
       }
     });
   },
+
   changeChannelSetting: (index, value) => {
     set(({ channelSettings }) => ({
       channelSettings: channelSettings.map((channel, channelIndex) => {
@@ -82,5 +86,15 @@ export const useViewerState = create<ViewerStore>((set) => ({
       }),
     }));
   },
+
   initChannelSettings: (channelSettings) => set({ channelSettings }),
+
+  applyColorPresets: (colors) => {
+    set(({ channelSettings }) => ({
+      channelSettings: channelSettings.map((channel, channelIndex) => ({
+        ...channel,
+        color: colors[channelIndex % colors.length],
+      })),
+    }));
+  },
 }));
