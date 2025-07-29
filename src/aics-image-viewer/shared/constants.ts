@@ -1,7 +1,8 @@
-import type { CameraState, Channel } from "@aics/vole-core";
+import { type CameraState, type Channel, PrefetchDirection } from "@aics/vole-core";
 
 import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
 import { ImageType, RenderMode, ViewMode } from "./enums";
+import { AxisName } from "./types";
 import { ColorArray } from "./utils/colorRepresentations";
 import { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
@@ -34,6 +35,14 @@ export const TFEDITOR_MAX_BIN = 255;
 export const CACHE_MAX_SIZE = 1_000_000_000;
 export const QUEUE_MAX_SIZE = 10;
 export const QUEUE_MAX_LOW_PRIORITY_SIZE = 4;
+
+/** Maps an axis the user can "play" through to the direction to prefetch while playing that axis */
+export const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
+  t: PrefetchDirection.T_PLUS,
+  z: PrefetchDirection.Z_PLUS,
+  y: PrefetchDirection.Y_PLUS,
+  x: PrefetchDirection.X_PLUS,
+};
 
 /** Maps channel data types to their minimum and maximum values */
 export const DTYPE_RANGE: { [T in Channel["dtype"]]: { min: number; max: number } } = {

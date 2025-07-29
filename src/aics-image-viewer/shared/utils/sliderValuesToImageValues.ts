@@ -29,11 +29,15 @@ export const gammaSliderToImageValues = (sliderValues: [number, number, number])
   };
 };
 
-// Density and brightness are overloaded for the two supported rendering modes in the volume viewer.
-// These formulae are somewhat ad-hoc based on what will subjectively look reasonable in the viewer, and should be considered tweakable.
-// vole-core expects to see numbers from 0..1 for density, brightness, and alpha.
-export const densitySliderToImageValue = (sliderValues: number, _isPT: boolean): number => +sliderValues / 100.0;
+// Density and brightness were once overloaded for the two rendering modes in the volume viewer (raymarch & pathtrace).
+// Now both work the same, and the mapping from slider values to numbers in vole-core is relatively straightforward.
+// But the mapping can still be tweaked here in the future, should we want to.
 
-export const brightnessSliderToImageValue = (sliderValues: number, _isPT: boolean): number => +sliderValues / 100.0;
+/** vole-core expects a value from 0..1 for density. */
+export const densitySliderToImageValue = (sliderValue: number): number => sliderValue / 100.0;
 
-export const alphaSliderToImageValue = (sliderValues: number): number => 1 - sliderValues / 100.0;
+/** vole-core expects a value from 0..1 for brigness. */
+export const brightnessSliderToImageValue = (sliderValue: number): number => sliderValue / 100.0;
+
+/** vole-core expects a value from 0..1 for alpha, and its scale is inverted from the app's slider. */
+export const alphaSliderToImageValue = (sliderValue: number): number => 1 - sliderValue / 100.0;
