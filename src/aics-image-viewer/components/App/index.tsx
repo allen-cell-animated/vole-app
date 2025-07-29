@@ -29,6 +29,7 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../../shared/utils/sliderValuesToImageValues";
+import { useViewerState } from "../../state";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -128,17 +129,20 @@ const App: React.FC<AppProps> = (props) => {
   // State management /////////////////////////////////////////////////////////
   const viewerState = useContext(ViewerStateContext).ref;
   const {
-    imageType,
-    viewMode,
-    channelSettings,
-    changeChannelSetting,
-    applyColorPresets,
     setSavedViewerChannelSettings,
     getCurrentViewerChannelSettings,
     // TODO: Show a loading spinner while any channels are awaiting reset.
     getChannelsAwaitingReset,
     onResetChannel,
   } = viewerState.current;
+  const imageType = useViewerState(({ imageType }) => imageType);
+  const viewMode = useViewerState(({ viewMode }) => viewMode);
+  const scene = useViewerState(({ scene }) => scene);
+  const showAxes = useViewerState(({ showAxes }) => showAxes);
+  const channelSettings = useViewerState(({ channelSettings }) => channelSettings);
+  const changeChannelSetting = useViewerState(({ changeChannelSetting }) => changeChannelSetting);
+  const applyColorPresets = useViewerState(({ applyColorPresets }) => applyColorPresets);
+
   const { onControlPanelToggle, metadata, metadataFormatter } = props;
 
   useMemo(() => {
@@ -190,8 +194,7 @@ const App: React.FC<AppProps> = (props) => {
     (image: Volume, channelIndex: number, isInitialLoad: boolean): void => {
       // TODO this was once a search by name - is that still necessary or will the index always be correct?
       const thisChannelSettings = channelSettings[channelIndex];
-      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
-        viewerState.current;
+      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings } = viewerState.current;
       const { ramp, controlPoints } = thisChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
 
@@ -243,7 +246,7 @@ const App: React.FC<AppProps> = (props) => {
         view3d.updateActiveChannels(image);
       }
     },
-    [view3d, channelSettings, maskChannelName, viewerState]
+    [view3d, channelSettings, changeChannelSetting, maskChannelName, viewerState]
   );
 
   const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
@@ -256,8 +259,7 @@ const App: React.FC<AppProps> = (props) => {
     }
 
     channelRangesRef.current = new Array(image.channelNames.length).fill(undefined);
-
-    const { channelSettings } = viewerState.current;
+    const { channelSettings } = useViewerState.getState();
 
     view3d.addVolume(image, {
       // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
@@ -279,7 +281,7 @@ const App: React.FC<AppProps> = (props) => {
 
     view3d.updateActiveChannels(image);
     return view3d.removeAllVolumes.bind(view3d);
-  }, [image, view3d, viewerState]);
+  }, [image, view3d]);
 
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
@@ -296,8 +298,6 @@ const App: React.FC<AppProps> = (props) => {
   const clippingPanelOpenTimeout = useRef<number>(0);
 
   // Imperative callbacks /////////////////////////////////////////////////////
-
-  const viewerSettings = viewerState.current;
 
   const saveIsosurface = useCallback(
     (channelIndex: number, type: IsosurfaceFormat): void => {
@@ -325,7 +325,7 @@ const App: React.FC<AppProps> = (props) => {
     if (Array.isArray(metadata)) {
       // If metadata is an array, try to index it by scene
       if (metadata.length >= numScenes) {
-        sceneMeta = metadata[viewerState.current.scene];
+        sceneMeta = metadata[scene];
       } else {
         sceneMeta = metadata[0];
       }
@@ -338,12 +338,12 @@ const App: React.FC<AppProps> = (props) => {
     } else {
       return sceneMeta ?? {};
     }
-  }, [metadata, metadataFormatter, image, numScenes, viewerState]);
+  }, [metadata, metadataFormatter, image, numScenes, scene]);
 
   useEffect((): void => {
     const hasTime = numTimesteps > 1;
     const hasScenes = numScenes > 1;
-    const mode3d = viewerSettings.viewMode === ViewMode.threeD;
+    const mode3d = viewMode === ViewMode.threeD;
 
     setIndicatorPositions(view3d, clippingPanelOpen, hasTime, hasScenes, mode3d);
 
@@ -357,12 +357,12 @@ const App: React.FC<AppProps> = (props) => {
       clippingPanelOpenTimeout.current = window.setTimeout(() => {
         view3d.setShowScaleBar(true);
         view3d.setShowTimestepIndicator(true);
-        if (viewerSettings.showAxes) {
+        if (showAxes) {
           view3d.setShowAxis(true);
         }
       }, CLIPPING_PANEL_ANIMATION_DURATION_MS);
     }
-  }, [view3d, numTimesteps, numScenes, viewerSettings.viewMode, viewerSettings.showAxes, clippingPanelOpen]);
+  }, [view3d, numTimesteps, numScenes, viewMode, showAxes, clippingPanelOpen]);
 
   // Effects //////////////////////////////////////////////////////////////////
 
