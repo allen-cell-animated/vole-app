@@ -50,17 +50,17 @@ type ViewerStore = ViewerState & ViewerStateActions;
 
 export const useViewerState = create<ViewerStore>((set) => ({
   ...getDefaultViewerState(),
-  changeViewerSetting: <K extends keyof ViewerState>(key: K, value: ViewerState[K]) => {
-    let changeHandler = VIEWER_SETTINGS_CHANGE_HANDLERS[key];
+  changeViewerSetting: (key, value) => {
+    set((state) => {
+      let changeHandler = VIEWER_SETTINGS_CHANGE_HANDLERS[key];
 
-    if (changeHandler) {
-      set((state) => changeHandler(value, state));
-    } else {
-      set((state) => {
+      if (changeHandler) {
+        return changeHandler(value, state);
+      } else {
         let currentValue = state[key];
         let nextValue = isObject(currentValue) && isObject(value) ? { ...currentValue, ...value } : value;
         return { [key]: nextValue };
-      });
-    }
+      }
+    });
   },
 }));
