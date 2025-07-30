@@ -10,15 +10,10 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../shared/utils/sliderValuesToImageValues";
-import type { useViewerState, ViewerStore } from "./store";
+import { select, type useViewerState, type ViewerStore } from "./store";
 
 const REF_EQ = { fireImmediately: true };
 const DEEP_EQ = { fireImmediately: true, equalityFn: shallow };
-
-const select =
-  <K extends string>(key: K) =>
-  <V>(settings: Record<K, V>) =>
-    settings[key];
 
 export const subscribeViewToState = (store: typeof useViewerState, view3d: View3d): (() => void) => {
   const unsubscribers = [

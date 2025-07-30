@@ -45,7 +45,7 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
 };
 
 type ViewerStateActions = {
-  changeViewerSetting: <K extends keyof ViewerState>(key: K, value: ViewerState[K]) => void;
+  changeViewerSetting: <K extends keyof ViewerState>(key: K, value: Partial<ViewerState[K]>) => void;
   changeChannelSetting: <K extends keyof ChannelState>(
     index: number | number[],
     value: Partial<Record<K, ChannelState[K]>>
@@ -101,3 +101,8 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set) => ({
 });
 
 export const useViewerState = create<ViewerStore>()(subscribeWithSelector(createViewerStateStore));
+
+export const select =
+  <K extends string>(key: K) =>
+  <V>(settings: Record<K, V>) =>
+    settings[key];

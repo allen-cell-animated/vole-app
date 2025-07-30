@@ -22,7 +22,7 @@ import {
   remapControlPointsForChannel,
 } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
-import { useViewerState } from "../../state/store";
+import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
@@ -129,14 +129,14 @@ const App: React.FC<AppProps> = (props) => {
     getChannelsAwaitingReset,
     onResetChannel,
   } = viewerState.current;
-  const imageType = useViewerState(({ imageType }) => imageType);
-  const viewMode = useViewerState(({ viewMode }) => viewMode);
-  const scene = useViewerState(({ scene }) => scene);
-  const time = useViewerState(({ time }) => time);
-  const showAxes = useViewerState(({ showAxes }) => showAxes);
-  const channelSettings = useViewerState(({ channelSettings }) => channelSettings);
-  const changeChannelSetting = useViewerState(({ changeChannelSetting }) => changeChannelSetting);
-  const applyColorPresets = useViewerState(({ applyColorPresets }) => applyColorPresets);
+  const imageType = useViewerState(select("imageType"));
+  const viewMode = useViewerState(select("viewMode"));
+  const scene = useViewerState(select("scene"));
+  const time = useViewerState(select("time"));
+  const showAxes = useViewerState(select("showAxes"));
+  const channelSettings = useViewerState(select("channelSettings"));
+  const changeChannelSetting = useViewerState(select("changeChannelSetting"));
+  const applyColorPresets = useViewerState(select("applyColorPresets"));
 
   const { onControlPanelToggle, metadata, metadataFormatter } = props;
 
