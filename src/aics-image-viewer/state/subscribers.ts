@@ -12,7 +12,8 @@ import {
 } from "../shared/utils/sliderValuesToImageValues";
 import type { useViewerState, ViewerStore } from "./store";
 
-const DEEP_EQ = { equalityFn: shallow };
+const REF_EQ = { fireImmediately: true };
+const DEEP_EQ = { fireImmediately: true, equalityFn: shallow };
 
 const select =
   <K extends string>(key: K) =>
@@ -22,10 +23,14 @@ const select =
 export const subscribeViewToState = (store: typeof useViewerState, view3d: View3d): (() => void) => {
   const unsubscribers = [
     // view mode
-    store.subscribe(select("viewMode"), (viewMode) => {
-      view3d.setCameraMode(viewMode);
-      view3d.resize(null);
-    }),
+    store.subscribe(
+      select("viewMode"),
+      (viewMode) => {
+        view3d.setCameraMode(viewMode);
+        view3d.resize(null);
+      },
+      REF_EQ
+    ),
 
     // camera state
     store.subscribe(
@@ -39,19 +44,25 @@ export const subscribeViewToState = (store: typeof useViewerState, view3d: View3
     ),
 
     // autorotate
-    store.subscribe(select("autorotate"), view3d.setAutoRotate),
+    store.subscribe(select("autorotate"), view3d.setAutoRotate, REF_EQ),
 
     // show axes
-    store.subscribe(select("showAxes"), view3d.setShowAxis),
+    store.subscribe(select("showAxes"), view3d.setShowAxis, REF_EQ),
 
     // background color
-    store.subscribe(select("backgroundColor"), (backgroundColor) => {
-      view3d.setBackgroundColor(colorArrayToFloats(backgroundColor));
-    }),
+    store.subscribe(
+      select("backgroundColor"),
+      (backgroundColor) => view3d.setBackgroundColor(colorArrayToFloats(backgroundColor)),
+      REF_EQ
+    ),
 
     // brightness
-    store.subscribe(select("brightness"), (brightness) =>
-      view3d.updateExposure(brightnessSliderToImageValue(brightness))
+    store.subscribe(
+      select("brightness"),
+      (brightness) => {
+        view3d.updateExposure(brightnessSliderToImageValue(brightness));
+      },
+      REF_EQ
     ),
   ];
 
@@ -103,37 +114,63 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
 
   const unsubscribers = [
     // show bounding box
-    store.subscribe(select("showBoundingBox"), (showBoundingBox) => view3d.setShowBoundingBox(image, showBoundingBox)),
+    store.subscribe(
+      select("showBoundingBox"),
+      (showBoundingBox) => view3d.setShowBoundingBox(image, showBoundingBox),
+      REF_EQ
+    ),
 
     // bounding box color
-    store.subscribe(select("boundingBoxColor"), (boundingBoxColor) => {
-      view3d.setBoundingBoxColor(image, boundingBoxColor);
-    }),
+    store.subscribe(
+      select("boundingBoxColor"),
+      (boundingBoxColor) => view3d.setBoundingBoxColor(image, boundingBoxColor),
+      REF_EQ
+    ),
 
     // render mode
-    store.subscribe(select("renderMode"), (renderMode) => {
-      view3d.setMaxProjectMode(image, renderMode === RenderMode.maxProject);
-      view3d.setVolumeRenderMode(renderMode === RenderMode.pathTrace ? RENDERMODE_PATHTRACE : RENDERMODE_RAYMARCH);
-      view3d.updateActiveChannels(image);
-    }),
+    store.subscribe(
+      select("renderMode"),
+      (renderMode) => {
+        view3d.setMaxProjectMode(image, renderMode === RenderMode.maxProject);
+        view3d.setVolumeRenderMode(renderMode === RenderMode.pathTrace ? RENDERMODE_PATHTRACE : RENDERMODE_RAYMARCH);
+        view3d.updateActiveChannels(image);
+      },
+      REF_EQ
+    ),
 
     // mask alpha
-    store.subscribe(select("maskAlpha"), (maskAlpha) => {
-      view3d.updateMaskAlpha(image, alphaSliderToImageValue(maskAlpha));
-      view3d.updateActiveChannels(image);
-    }),
+    store.subscribe(
+      select("maskAlpha"),
+      (maskAlpha) => {
+        view3d.updateMaskAlpha(image, alphaSliderToImageValue(maskAlpha));
+        view3d.updateActiveChannels(image);
+      },
+      REF_EQ
+    ),
 
     // density
-    store.subscribe(select("density"), (density) => view3d.updateDensity(image, densitySliderToImageValue(density))),
+    store.subscribe(
+      select("density"),
+      (density) => view3d.updateDensity(image, densitySliderToImageValue(density)),
+      REF_EQ
+    ),
 
     // gamma
-    store.subscribe(select("levels"), (levels) => {
-      const { min, max, scale } = gammaSliderToImageValues(levels);
-      view3d.setGamma(image, min, max, scale);
-    }),
+    store.subscribe(
+      select("levels"),
+      (levels) => {
+        const { min, max, scale } = gammaSliderToImageValues(levels);
+        view3d.setGamma(image, min, max, scale);
+      },
+      REF_EQ
+    ),
 
     // interpolation
-    store.subscribe(select("interpolationEnabled"), (enabled) => view3d.setInterpolationEnabled(image, enabled)),
+    store.subscribe(
+      select("interpolationEnabled"),
+      (enabled) => view3d.setInterpolationEnabled(image, enabled),
+      REF_EQ
+    ),
 
     // clipping
     store.subscribe(selectAxisClipUpdateInfo("x"), axisClipUpdater("x"), DEEP_EQ),
