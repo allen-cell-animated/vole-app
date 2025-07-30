@@ -16,6 +16,7 @@ import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
+import { select, useViewerState } from "../state/store";
 import { ChannelState } from "./ViewerStateProvider/types";
 
 import { ViewerStateContext } from "./ViewerStateProvider";
@@ -94,6 +95,10 @@ const useVolume = (
   options?: UseVolumeOptions
 ): ReactiveVolume => {
   const viewerStateRef = useContext(ViewerStateContext).ref;
+  const channelSettings = useViewerState(select("channelSettings"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
+  const initChannelSettings = useViewerState(select("initChannelSettings"));
+
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
   const maskChannelName = options?.maskChannelName;
@@ -127,7 +132,6 @@ const useVolume = (
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
 
-  const { channelSettings } = viewerStateRef.current;
   // Some extra items for tracking load status
   const [loadThrewError, setLoadThrewError] = useState(false);
   const inInitialLoadRef = useRef(true);
@@ -195,8 +199,8 @@ const useVolume = (
 
   // effect to start the initial load of the image
   useEffect(() => {
-    const { changeViewerSetting, channelSettings, getCurrentViewerChannelSettings, setChannelSettings } =
-      viewerStateRef.current;
+    const { getCurrentViewerChannelSettings } = viewerStateRef.current;
+    const channelSettings = useViewerState.getState().channelSettings;
     setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
     setLoadThrewError(false);
     inInitialLoadRef.current = true;
@@ -217,7 +221,7 @@ const useVolume = (
         const newChannelSettings = channelNames.map((channel, index) => {
           return { ...channelSettings[index], name: channel };
         });
-        setChannelSettings(newChannelSettings);
+        initChannelSettings(newChannelSettings);
         return newChannelSettings;
       }
 
@@ -225,12 +229,13 @@ const useVolume = (
         const color = getDefaultChannelColor(index);
         return initializeOneChannelSetting(channel, index, color, viewerChannelSettings);
       });
-      setChannelSettings(newChannelSettings);
+      initChannelSettings(newChannelSettings);
       return newChannelSettings;
     };
 
     const openImage = async (): Promise<void> => {
-      const { scene, time } = viewerStateRef.current;
+      const scene = useViewerState.getState().scene;
+      const time = useViewerState.getState().time;
 
       const loadSpec = new LoadSpec();
       loadSpec.time = time;
@@ -244,7 +249,9 @@ const useVolume = (
       setImage(aimg);
 
       playControls.stepAxis = (axis: AxisName | "t") => {
-        const { time, slice } = viewerStateRef.current;
+        const time = useViewerState.getState().time;
+        const slice = useViewerState.getState().slice;
+
         if (axis === "t") {
           changeViewerSetting("time", (time + 1) % aimg.imageInfo.times);
         } else {
@@ -274,14 +281,16 @@ const useVolume = (
       }
       requiredLoadSpec.channels = requiredChannelsToLoad;
 
+      const viewMode = useViewerState.getState().viewMode;
+      const slice = useViewerState.getState().slice;
+
       // When in 2D Z-axis view mode, we restrict the subregion to only the current slice. This is
       // to match an optimization that volume viewer does by loading Z-slices at a higher resolution,
       // and ensures the very first volume that is loaded is the same as the one that
       // will be shown whenever we switch back to the same viewer settings (2D Z-axis view mode).
       // (We don't do this for ZX and YZ modes because we assume that the data won't be chunked along the
       // X or Y axes in ways that would improve loading resolution, and we load the full 3D volume instead.)
-      if (viewerStateRef.current.viewMode === ViewMode.xy) {
-        const slice = viewerStateRef.current.slice;
+      if (viewMode === ViewMode.xy) {
         requiredLoadSpec.subregion = new Box3(new Vector3(0, 0, slice.z), new Vector3(1, 1, slice.z));
       }
 
@@ -301,6 +310,8 @@ const useVolume = (
     playControls,
     setIsLoading,
     onChannelDataLoaded,
+    changeViewerSetting,
+    initChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 

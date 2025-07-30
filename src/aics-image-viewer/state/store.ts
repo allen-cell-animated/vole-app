@@ -1,11 +1,10 @@
 import { create, type StateCreator } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
+import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
+import { getDefaultViewerState } from "../shared/constants";
 import { RenderMode, ViewMode } from "../shared/enums";
 import { ColorArray } from "../shared/utils/colorRepresentations";
-
-import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types.js";
-import { getDefaultViewerState } from "../shared/constants.js";
 
 // TODO move back to a new `types` module (?)
 type ViewerSettingChangeHandlers = {
