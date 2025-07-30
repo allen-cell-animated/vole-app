@@ -34,13 +34,6 @@ type ToolbarProps = {
   };
 
   // From viewer state
-  // imageType: ImageType;
-  // renderMode: RenderMode;
-  // viewMode: ViewMode;
-  // autorotate: boolean;
-  // showAxes: boolean;
-  // showBoundingBox: boolean;
-  // changeViewerSetting: ViewerSettingUpdater;
   resetToSavedViewerState: () => void;
 };
 
