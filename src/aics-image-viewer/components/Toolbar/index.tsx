@@ -14,7 +14,6 @@ import ViewModeRadioButtons from "./ViewModeRadioButtons";
 import "./styles.css";
 
 type ToolbarProps = {
-  // From parent
   cellDownloadHref: string;
   fovDownloadHref: string;
   hasCellId: boolean;

@@ -14,7 +14,6 @@ import BottomPanel from "../BottomPanel";
 import "./styles.css";
 
 type ViewerWrapperProps = {
-  // From parent
   view3d: View3d;
   loadingImage: boolean;
   appHeight: string;
