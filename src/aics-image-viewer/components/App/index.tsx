@@ -132,6 +132,7 @@ const App: React.FC<AppProps> = (props) => {
   const imageType = useViewerState(({ imageType }) => imageType);
   const viewMode = useViewerState(({ viewMode }) => viewMode);
   const scene = useViewerState(({ scene }) => scene);
+  const time = useViewerState(({ time }) => time);
   const showAxes = useViewerState(({ showAxes }) => showAxes);
   const channelSettings = useViewerState(({ channelSettings }) => channelSettings);
   const changeChannelSetting = useViewerState(({ changeChannelSetting }) => changeChannelSetting);
@@ -424,8 +425,8 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   // `time` and `scene` have their own special handlers via `volume`, since they both trigger loads
-  useEffect(() => setTime(view3d, viewerSettings.time), [view3d, viewerSettings.time, setTime]);
-  useEffect(() => setScene(viewerSettings.scene), [viewerSettings.scene, setScene]);
+  useEffect(() => setTime(view3d, time), [view3d, time, setTime]);
+  useEffect(() => setScene(scene), [scene, setScene]);
 
   useImageEffect(
     (currentImage) => view3d.setVolumeTranslation(currentImage, props.transform?.translation || [0, 0, 0]),
