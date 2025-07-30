@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { create, type StateCreator } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
 import { RenderMode, ViewMode } from "../shared/enums";
 import { ColorArray } from "../shared/utils/colorRepresentations";
@@ -53,12 +54,12 @@ type ViewerStateActions = {
   applyColorPresets: (colors: ColorArray[]) => void;
 };
 
-type ViewerStore = ViewerState &
+export type ViewerStore = ViewerState &
   ViewerStateActions & {
     channelSettings: ChannelState[];
   };
 
-export const useViewerState = create<ViewerStore>((set) => ({
+const createViewerStateStore: StateCreator<ViewerStore> = (set) => ({
   ...getDefaultViewerState(),
   channelSettings: [],
 
@@ -97,4 +98,6 @@ export const useViewerState = create<ViewerStore>((set) => ({
       })),
     }));
   },
-}));
+});
+
+export const useViewerState = create<ViewerStore>()(subscribeWithSelector(createViewerStateStore));
