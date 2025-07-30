@@ -13,7 +13,6 @@ import ChannelsWidgetRow from "./ChannelsWidgetRow";
 import SharedCheckBox from "./shared/SharedCheckBox";
 
 export type ChannelsWidgetProps = {
-  // From parent
   channelDataChannels: Channel[] | undefined;
   channelGroupedByType: ChannelGrouping;
   viewerChannelSettings?: ViewerChannelSettings;
