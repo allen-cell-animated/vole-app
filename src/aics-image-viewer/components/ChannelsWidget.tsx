@@ -6,11 +6,11 @@ import type { IsosurfaceFormat } from "../shared/types";
 import type { ColorArray, ColorObject } from "../shared/utils/colorRepresentations";
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { getDisplayName } from "../shared/utils/viewerChannelSettings";
-import type { ChannelSettingUpdater, ChannelState, ChannelStateKey } from "./ViewerStateProvider/types";
+import { select, useViewerState } from "../state/store";
+import type { ChannelStateKey } from "./ViewerStateProvider/types";
 
 import ChannelsWidgetRow from "./ChannelsWidgetRow";
 import SharedCheckBox from "./shared/SharedCheckBox";
-import { connectToViewerState } from "./ViewerStateProvider";
 
 export type ChannelsWidgetProps = {
   // From parent
@@ -23,17 +23,16 @@ export type ChannelsWidgetProps = {
 
   filterFunc?: (key: string) => boolean;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
-
-  // From viewer state
-  channelSettings: ChannelState[];
-  changeChannelSetting: ChannelSettingUpdater;
 };
 
 const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProps) => {
-  const { channelGroupedByType, channelSettings, channelDataChannels, filterFunc, viewerChannelSettings } = props;
+  const { channelGroupedByType, channelDataChannels, filterFunc, viewerChannelSettings } = props;
+
+  const changeChannelSetting = useViewerState(select("changeChannelSetting"));
+  const channelSettings = useViewerState(select("channelSettings"));
 
   const createCheckboxHandler = (key: ChannelStateKey) => (value: boolean, channelArray: number[]) => {
-    props.changeChannelSetting(channelArray, { [key]: value });
+    changeChannelSetting(channelArray, { [key]: value });
   };
 
   const showVolumes = createCheckboxHandler("volumeEnabled");
@@ -81,7 +80,7 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
         channelDataForChannel={channelDataChannels![channelIndex]}
         name={getDisplayName(thisChannelSettings.name, channelIndex, viewerChannelSettings)}
         channelState={thisChannelSettings}
-        changeChannelSetting={props.changeChannelSetting}
+        changeChannelSetting={changeChannelSetting}
         onColorChangeComplete={props.onColorChangeComplete}
         saveIsosurface={props.saveIsosurface}
       />
@@ -107,4 +106,4 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   return <Collapse bordered={false} defaultActiveKey={firstKey} items={rows} collapsible="icon" />;
 };
 
-export default connectToViewerState(ChannelsWidget, ["channelSettings", "changeChannelSetting"]);
+export default ChannelsWidget;
