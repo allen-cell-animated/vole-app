@@ -1,5 +1,5 @@
 // 3rd Party Imports
-import { RawArrayLoaderOptions, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
+import { RawArrayLoaderOptions, View3d, Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -13,9 +13,8 @@ import {
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
-import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
-import { activeAxisMap, AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
-import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
+import { ImageType, ViewMode } from "../../shared/enums";
+import type { IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
 import {
   controlPointsToRamp,
   initializeLut,
@@ -23,13 +22,8 @@ import {
   remapControlPointsForChannel,
 } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
-import {
-  alphaSliderToImageValue,
-  brightnessSliderToImageValue,
-  densitySliderToImageValue,
-  gammaSliderToImageValues,
-} from "../../shared/utils/sliderValuesToImageValues";
-import { useViewerState } from "../../state";
+import { useViewerState } from "../../state/store";
+import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -155,6 +149,7 @@ const App: React.FC<AppProps> = (props) => {
   if (props.view3dRef !== undefined) {
     props.view3dRef.current = view3d;
   }
+  useEffect(() => subscribeViewToState(useViewerState, view3d), [view3d]);
 
   const [errorAlert, showError] = useErrorAlert();
 
@@ -279,8 +274,12 @@ const App: React.FC<AppProps> = (props) => {
       }),
     });
 
+    const unsubscribeImage = subscribeImageToState(useViewerState, view3d, image);
     view3d.updateActiveChannels(image);
-    return view3d.removeAllVolumes.bind(view3d);
+    return () => {
+      unsubscribeImage();
+      view3d.removeAllVolumes();
+    };
   }, [image, view3d]);
 
   const hasRawImage = !!(props.rawData && props.rawDims);
@@ -408,44 +407,6 @@ const App: React.FC<AppProps> = (props) => {
   };
 
   // Effects to imperatively sync `viewerSettings` to `view3d`
-  useImageEffect(
-    (_currentImage) => {
-      view3d.setCameraMode(viewerSettings.viewMode);
-      view3d.resize(null);
-    },
-    [viewerSettings.viewMode, view3d]
-  );
-
-  useImageEffect(
-    (_currentImage) => {
-      if (viewerSettings.cameraState) {
-        view3d.setCameraState(viewerSettings.cameraState);
-      }
-    },
-    [viewerSettings.cameraState, view3d]
-  );
-
-  useImageEffect(
-    (_currentImage) => view3d.setAutoRotate(viewerSettings.autorotate),
-    [viewerSettings.autorotate, view3d]
-  );
-
-  useImageEffect((_currentImage) => view3d.setShowAxis(viewerSettings.showAxes), [viewerSettings.showAxes, view3d]);
-
-  useImageEffect(
-    (_currentImage) => view3d.setBackgroundColor(colorArrayToFloats(viewerSettings.backgroundColor)),
-    [viewerSettings.backgroundColor, view3d]
-  );
-
-  useImageEffect(
-    (currentImage) => view3d.setBoundingBoxColor(currentImage, colorArrayToFloats(viewerSettings.boundingBoxColor)),
-    [viewerSettings.boundingBoxColor, view3d]
-  );
-
-  useImageEffect(
-    (currentImage) => view3d.setShowBoundingBox(currentImage, viewerSettings.showBoundingBox),
-    [viewerSettings.showBoundingBox, view3d]
-  );
 
   useImageEffect(
     (image) => {
@@ -462,56 +423,9 @@ const App: React.FC<AppProps> = (props) => {
     [changeChannelSetting, channelSettings, getChannelsAwaitingReset, getCurrentViewerChannelSettings, onResetChannel]
   );
 
-  useImageEffect(
-    (currentImage) => {
-      const renderMode = viewerSettings.renderMode;
-      view3d.setMaxProjectMode(currentImage, renderMode === RenderMode.maxProject);
-      view3d.setVolumeRenderMode(renderMode === RenderMode.pathTrace ? RENDERMODE_PATHTRACE : RENDERMODE_RAYMARCH);
-      view3d.updateActiveChannels(currentImage);
-    },
-    [viewerSettings.renderMode, view3d]
-  );
-
-  useImageEffect(
-    (currentImage) => {
-      view3d.updateMaskAlpha(currentImage, alphaSliderToImageValue(viewerSettings.maskAlpha));
-      view3d.updateActiveChannels(currentImage);
-    },
-    [viewerSettings.maskAlpha, view3d]
-  );
-
-  useImageEffect(
-    (_currentImage) => {
-      const brightness = brightnessSliderToImageValue(viewerSettings.brightness);
-      view3d.updateExposure(brightness);
-    },
-    [viewerSettings.brightness, view3d]
-  );
-
-  useImageEffect(
-    (currentImage) => {
-      const density = densitySliderToImageValue(viewerSettings.density);
-      view3d.updateDensity(currentImage, density);
-    },
-    [viewerSettings.density, view3d]
-  );
-
-  useImageEffect(
-    (currentImage) => {
-      const imageValues = gammaSliderToImageValues(viewerSettings.levels);
-      view3d.setGamma(currentImage, imageValues.min, imageValues.scale, imageValues.max);
-    },
-    [viewerSettings.levels, view3d]
-  );
-
   // `time` and `scene` have their own special handlers via `volume`, since they both trigger loads
   useEffect(() => setTime(view3d, viewerSettings.time), [view3d, viewerSettings.time, setTime]);
   useEffect(() => setScene(viewerSettings.scene), [viewerSettings.scene, setScene]);
-
-  useImageEffect(
-    (currentImage) => view3d.setInterpolationEnabled(currentImage, viewerSettings.interpolationEnabled),
-    [viewerSettings.interpolationEnabled, view3d]
-  );
 
   useImageEffect(
     (currentImage) => view3d.setVolumeTranslation(currentImage, props.transform?.translation || [0, 0, 0]),
@@ -522,49 +436,6 @@ const App: React.FC<AppProps> = (props) => {
     (currentImage) => view3d.setVolumeRotation(currentImage, props.transform?.rotation || [0, 0, 0]),
     [props.transform?.rotation, view3d]
   );
-
-  const usePerAxisClippingUpdater = (
-    axis: AxisName,
-    [minval, maxval]: [number, number],
-    slice: number,
-    viewMode: ViewMode
-  ): void => {
-    useImageEffect(
-      // Logic to determine axis clipping range, for each of x,y,z,3d slider:
-      // if slider was same as active axis view mode:  [viewerSettings.slice[axis], viewerSettings.slice[axis] + 1.0/volumeSize[axis]]
-      // if in 3d mode: viewerSettings.region[axis]
-      // else: [0,1]
-      (currentImage) => {
-        let isOrthoAxis = false;
-        let axismin = 0.0;
-        let axismax = 1.0;
-        if (viewMode === ViewMode.threeD) {
-          axismin = minval;
-          axismax = maxval;
-          isOrthoAxis = false;
-        } else {
-          isOrthoAxis = activeAxisMap[viewMode] === axis;
-          const oneSlice = 1 / currentImage.imageInfo.volumeSize[axis];
-          axismin = isOrthoAxis ? slice : 0.0;
-          axismax = isOrthoAxis ? slice + oneSlice : 1.0;
-          if (axis === "z" && viewMode === ViewMode.xy) {
-            view3d.setZSlice(currentImage, Math.floor(slice * currentImage.imageInfo.volumeSize.z));
-          }
-        }
-        // view3d wants the coordinates in the -0.5 to 0.5 range
-        view3d.setAxisClip(currentImage, axis, axismin - 0.5, axismax - 0.5, isOrthoAxis);
-        view3d.setCameraMode(viewMode);
-        // TODO under some circumstances, this effect will trigger a load. Ideally, this would be reflected in the load
-        //   state managed by `useVolume`. This is complicated by the fact that the relevant methods (`setAxisClip` and
-        //   `setZSlice`) don't provide a channel load callback like other load-triggering methods (e.g. `setTime`).
-      },
-      [axis, minval, maxval, slice, viewMode]
-    );
-  };
-
-  usePerAxisClippingUpdater("x", viewerSettings.region.x, viewerSettings.slice.x, viewMode);
-  usePerAxisClippingUpdater("y", viewerSettings.region.y, viewerSettings.slice.y, viewMode);
-  usePerAxisClippingUpdater("z", viewerSettings.region.z, viewerSettings.slice.z, viewMode);
 
   // Rendering ////////////////////////////////////////////////////////////////
 
