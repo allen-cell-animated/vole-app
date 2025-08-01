@@ -33,6 +33,7 @@ export default class SceneStore {
       let options: Partial<CreateLoaderOptions> = {};
       if (typeof path === "object" && !Array.isArray(path)) {
         options.rawArrayOptions = path;
+        options.fileType = VolumeFileFormat.DATA;
         path = "";
       }
 
