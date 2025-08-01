@@ -5,6 +5,7 @@ import {
   PrefetchDirection,
   RawArrayLoaderOptions,
   Volume,
+  VolumeFileFormat,
   VolumeLoaderContext,
 } from "@aics/vole-core";
 import { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
