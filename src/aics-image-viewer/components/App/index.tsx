@@ -150,7 +150,6 @@ const App: React.FC<AppProps> = (props) => {
   if (props.view3dRef !== undefined) {
     props.view3dRef.current = view3d;
   }
-  useEffect(() => subscribeViewToState(useViewerState, view3d), [view3d]);
 
   const [errorAlert, showError] = useErrorAlert();
 
@@ -275,9 +274,11 @@ const App: React.FC<AppProps> = (props) => {
       }),
     });
 
-    const unsubscribeImage = subscribeImageToState(useViewerState, view3d, image);
     view3d.updateActiveChannels(image);
+    const unsubscribeView = subscribeViewToState(useViewerState, view3d);
+    const unsubscribeImage = subscribeImageToState(useViewerState, view3d, image);
     return () => {
+      unsubscribeView();
       unsubscribeImage();
       view3d.removeAllVolumes();
     };

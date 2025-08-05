@@ -39,10 +39,10 @@ export const subscribeViewToState = (store: typeof useViewerState, view3d: View3
     ),
 
     // autorotate
-    store.subscribe(select("autorotate"), view3d.setAutoRotate, REF_EQ),
+    store.subscribe(select("autorotate"), view3d.setAutoRotate.bind(view3d), REF_EQ),
 
     // show axes
-    store.subscribe(select("showAxes"), view3d.setShowAxis, REF_EQ),
+    store.subscribe(select("showAxes"), view3d.setShowAxis.bind(view3d), REF_EQ),
 
     // background color
     store.subscribe(
