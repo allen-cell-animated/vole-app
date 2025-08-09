@@ -1,20 +1,9 @@
-import { RawArrayInfo, RawArrayLoaderOptions, VolumeMaker } from "@aics/vole-core";
+import { type NumberType, RawArrayInfo, RawArrayLoaderOptions, VolumeMaker } from "@aics/vole-core";
 
 import { ViewMode } from "../../../src";
 import { AppDataProps, ProjectEntry } from "../../types";
 
-function concatenateArrays(arrays: Uint8Array[]): Uint8Array {
-  const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const arr of arrays) {
-    result.set(arr, offset);
-    offset += arr.length;
-  }
-  return result;
-}
-
-function createTestVolume(dtype: string): RawArrayLoaderOptions {
+function createTestVolume(dtype: NumberType): RawArrayLoaderOptions {
   const sizeX = 64;
   const sizeY = 64;
   const sizeZ = 64;
@@ -35,7 +24,7 @@ function createTestVolume(dtype: string): RawArrayLoaderOptions {
     VolumeMaker.createTorus(sizeX, sizeY, sizeZ, 24, 8, dtype),
     VolumeMaker.createCone(sizeX, sizeY, sizeZ, 24, 24, dtype),
   ];
-  const alldata = concatenateArrays(channelVolumes);
+  const alldata = VolumeMaker.concatenateArrays(channelVolumes, dtype);
   return {
     metadata: imgData,
     data: {
@@ -47,6 +36,7 @@ function createTestVolume(dtype: string): RawArrayLoaderOptions {
     },
   };
 }
+
 const v0 = createTestVolume("uint8");
 const v1 = createTestVolume("uint16");
 const v2 = createTestVolume("float32");
