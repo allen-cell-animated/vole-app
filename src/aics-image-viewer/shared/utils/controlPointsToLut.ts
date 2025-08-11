@@ -31,6 +31,9 @@ function parseLutValue(value: string, histogram: Histogram): number {
     // percentile
     const parsedValue = parseFloat(value.substring(1)) / 100.0;
     return histogram.findBinOfPercentile(parsedValue);
+  } else if (firstChar === "v") {
+    const parsedValue = parseFloat(value.substring(1));
+    return histogram.findBinOfValue(parsedValue);
   } else {
     // plain number
     return parseFloat(value);
@@ -44,15 +47,17 @@ function parseLutValue(value: string, histogram: Histogram): number {
  * @returns a Lut object if the `lut` field is valid; otherwise, returns undefined.
  *
  * Min and max values are determined as following:
- * - Plain numbers are direct intensity values.
+ * - Plain numbers are indices of histogram bins, in the range [0, 255].
+ * - `v{n}` represents a raw intensity value, where `n` is an integer.
  * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
  * - `m{n}` represents the median multiplied by `n / 100`.
  * - `autoij` in either the min or max fields will use the "auto" algorithm
- * from ImageJ to select the min AND max.
+ * from ImageJ to select the min and max.
  *
  * @example
  * ```
- * "0:255"    // min: intensity 0, max: intensity 255.
+ * "0:255"    // min: bin 0, max: bin 255.
+ * "v100:v150" // min: intensity 100, max: intensity 150.
  * "p50:p90"  // min: 50th percentile, max: 90th percentile.
  * "m1:p75"   // min: median, max: 75th percentile.
  * "autoij:0" // use Auto-IJ to calculate min and max.
