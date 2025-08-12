@@ -33,7 +33,7 @@ function parseLutValue(value: string, histogram: Histogram): number {
     return histogram.findBinOfPercentile(parsedValue);
   } else if (firstChar === "v") {
     const parsedValue = parseFloat(value.substring(1));
-    return histogram.findBinOfValue(parsedValue);
+    return histogram.findFractionalBinOfValue(parsedValue);
   } else {
     // plain number
     return parseFloat(value);

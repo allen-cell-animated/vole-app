@@ -542,7 +542,7 @@ function parseStringRegion(region: string | undefined): PerAxis<[number, number]
  * Formats a float or integer value to a string with a maximum precision for float values.
  * @param value The number to format.
  * @param maxPrecision The maximum number of significant digits to display for float values.
- * Default is 5.
+ * Default is 7.
  * @returns
  * - For integers, the integer value as a string.
  * - For floats, the float value as a string with a maximum of `maxPrecision` significant digits
@@ -555,7 +555,7 @@ function parseStringRegion(region: string | undefined): PerAxis<[number, number]
  * formatFloat(1.3999999999999999, 3) // "1.4"
  * ```
  */
-function formatFloat(value: number, maxPrecision: number = 5): string {
+function formatFloat(value: number, maxPrecision: number = 7): string {
   if (Number.isInteger(value)) {
     return value.toString();
   }
