@@ -225,10 +225,10 @@ const App: React.FC<AppProps> = (props) => {
       const thisChannelSettings = channelSettings[channelIndex];
       const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
         viewerState.current;
-      const { ramp, controlPoints } = thisChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
+      const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
 
-      if (isInitialLoad || !controlPoints || !ramp || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+      if (isInitialLoad || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
         const { dtype } = thisChannel;
@@ -268,7 +268,6 @@ const App: React.FC<AppProps> = (props) => {
       view3d.updateLuts(image);
       view3d.onVolumeData(image, [channelIndex]);
 
-      view3d.setVolumeChannelEnabled(image, channelIndex, thisChannelSettings.volumeEnabled);
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
       }
