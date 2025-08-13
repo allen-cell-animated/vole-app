@@ -178,11 +178,6 @@ const useVolume = (
   const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
 
   const onChannelDataLoaded = useCallback(
-    // TODO FIXME this can be called immediately during volume creation, before
-    // the channel settings are set up.  This can happen during RawArrayLoader usage.
-    // The Raw Array Loader does not go across thread boundaries and it doesn't ahve to do
-    // anything asynchronous, so this just gets called immediately.
-    // But the onChannelLoadedRef callback is going to index into the channel state array, which is not set up yet.
     (aimg: Volume, channelIndex: number): void => {
       // let the hook caller know that this channel has loaded
       const isInitialLoad = channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD;
