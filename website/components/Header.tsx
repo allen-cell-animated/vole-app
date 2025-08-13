@@ -131,7 +131,7 @@ export default function Header(props: PropsWithChildren<HeaderProps>): ReactElem
     <StickyContainer>
       <HeaderContainer>
         <HeaderLogo noNavigate={props.noNavigate} />
-        {props.title && <h2 style={{ margin: 0 }}>{props.title}</h2>}
+        {props.title && <h3 style={{ margin: 0 }}>{props.title}</h3>}
         {props.children}
       </HeaderContainer>
       {props.alertElement}
