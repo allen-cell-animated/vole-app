@@ -286,38 +286,6 @@ const App: React.FC<AppProps> = (props) => {
   });
   const { image, setTime, setScene } = volume;
 
-  // add the image to the viewer on load
-  useEffect(() => {
-    if (image === null) {
-      return;
-    }
-
-    channelRangesRef.current = new Array(image.channelNames.length).fill(undefined);
-
-    const { channelSettings } = viewerState.current;
-
-    view3d.addVolume(image, {
-      // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-      channels: image.channelNames.map((name) => {
-        // TODO do we really need to be searching by name here?
-        const ch = channelSettings.find((channel) => channel.name === name);
-        if (!ch) {
-          return {};
-        }
-        return {
-          enabled: ch.volumeEnabled,
-          isosurfaceEnabled: ch.isosurfaceEnabled,
-          isovalue: ch.isovalue,
-          isosurfaceOpacity: ch.opacity,
-          color: ch.color,
-        };
-      }),
-    });
-
-    view3d.updateActiveChannels(image);
-    return view3d.removeAllVolumes.bind(view3d);
-  }, [image, view3d, viewerState]);
-
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
   const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 1, y: 1, z: 1 };
