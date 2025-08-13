@@ -33,6 +33,7 @@ export default function AppWrapper(): ReactElement {
   const view3dRef = React.useRef<View3d | null>(null);
   const [viewerSettings, setViewerSettings] = useState<Partial<ViewerState>>({});
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
+  const [imageTitle, setImageTitle] = useState<string | undefined>(undefined);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function AppWrapper(): ReactElement {
   return (
     <div>
       <ViewerStateProvider viewerSettings={viewerSettings}>
-        <Header noNavigate>
+        <Header title={imageTitle} noNavigate>
           <FlexRowAlignCenter $gap={12}>
             <FlexRowAlignCenter $gap={2}>
               <LoadModal onLoad={onLoad} />
@@ -92,6 +93,7 @@ export default function AppWrapper(): ReactElement {
             appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
             canvasMargin="0 0 0 0"
             view3dRef={view3dRef}
+            onImageTitleChange={setImageTitle}
           />
         )}
       </ViewerStateProvider>
