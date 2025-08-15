@@ -271,6 +271,12 @@ class DataParams {
    */
   url?: string = undefined;
   /**
+   * The URL of a JSON manifest. The JSON should contain two properties:
+   *  - "scenes": A string array of volume URLs.
+   *  - "meta": An array of metadata dictionary objects.
+   */
+  manifest?: string = undefined;
+  /**
    * The name of a dataset in the Cell Feature Explorer database. Used with `id`.
    */
   dataset?: string = undefined;
@@ -971,24 +977,40 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
   args.viewerChannelSettings = channelSettings ?? deprecatedChannelSettings;
 
   // Parse data sources (URL or dataset/id pair)
-  if (params.url) {
-    const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
-    const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url) : params.url;
-    // split encoded url into a list of one or more scenes...
-    const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
-    // ...and each scene into a list of multiple sources, if any.
-    const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+  if (params.manifest !== undefined || params.url !== undefined) {
+    let scenes: (string | string[])[];
+
+    if (params.manifest) {
+      console.log("Fetching manifest from " + params.manifest);
+      const manifestResult = await fetch(params.manifest);
+      if (manifestResult.ok) {
+        const manifestJson = await manifestResult.json();
+        const sceneUrls = manifestJson.scenes as string[];
+        scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+        const metadataJson = manifestJson.meta;
+        args.metadata = metadataJson ?? undefined;
+        console.log("Fetched manifest successfully", sceneUrls, metadataJson);
+      } else {
+        throw new Error("Bad manifest");
+      }
+    } else {
+      const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
+      const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url!) : params.url!;
+      // split encoded url into a list of one or more scenes...
+      const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
+      // ...and each scene into a list of multiple sources, if any.
+      scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+      if (getFromStorage) {
+        const metadataJson = localStorage.getItem("meta");
+        args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
+      }
+    }
 
     const firstScene = scenes[0];
     // Get the very first URL for the download button
     const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
     // If there's only one url, just pass that
     const imageUrls: string | MultisceneUrls = scenes.length > 1 || firstScene.length > 1 ? { scenes } : firstScene[0];
-
-    if (getFromStorage) {
-      const metadataJson = localStorage.getItem("meta");
-      args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
-    }
 
     args.cellId = "1";
     args.imageUrl = imageUrls;
