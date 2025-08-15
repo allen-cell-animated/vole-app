@@ -1,5 +1,5 @@
 import { View3d } from "@aics/vole-core";
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
@@ -33,6 +33,7 @@ export default function AppWrapper(): ReactElement {
   const view3dRef = React.useRef<View3d | null>(null);
   const [viewerSettings, setViewerSettings] = useState<Partial<ViewerState>>({});
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
+  const [imageTitle, setImageTitle] = useState<string | undefined>(undefined);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -64,6 +65,14 @@ export default function AppWrapper(): ReactElement {
   //   }
   // }, [viewerArgs]);
 
+  const onImageTitleChange = useCallback(
+    (title: string | undefined) => {
+      setImageTitle(title);
+      document.title = title ? `Vol-E — ${title}` : "Vol-E";
+    },
+    [setImageTitle]
+  );
+
   const onLoad = (appProps: AppDataProps): void => {
     // Force a page reload when loading new data. This prevents a bug where a desync in the number
     // of channels in the viewer can cause a crash. The root cause is React immediately forcing a
@@ -77,7 +86,7 @@ export default function AppWrapper(): ReactElement {
   return (
     <div>
       <ViewerStateProvider viewerSettings={viewerSettings}>
-        <Header noNavigate>
+        <Header title={imageTitle} noNavigate>
           <FlexRowAlignCenter $gap={12}>
             <FlexRowAlignCenter $gap={2}>
               <LoadModal onLoad={onLoad} />
@@ -92,6 +101,7 @@ export default function AppWrapper(): ReactElement {
             appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
             canvasMargin="0 0 0 0"
             view3dRef={view3dRef}
+            onImageTitleChange={onImageTitleChange}
           />
         )}
       </ViewerStateProvider>
