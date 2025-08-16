@@ -14,7 +14,7 @@ import {
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import type { PerAxis } from "../../src/aics-image-viewer/shared/types";
+import type { MetadataRecord, PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
 import type {
   ViewerChannelSetting,
@@ -957,6 +957,53 @@ async function loadDataset(dataset: string, id: string): Promise<Partial<AppProp
   return args;
 }
 
+export async function loadFromManifest(
+  manifestUrl: string
+): Promise<{ scenes: (string | string[])[]; metadata?: MetadataRecord[] }> {
+  let response: Response;
+  let manifestJson: any;
+  // Fetch manifest
+  try {
+    response = await fetch(manifestUrl);
+    if (!response.ok) {
+      throw new Error("JSON manifest could not be fetched from URL '" + manifestUrl + "': " + (await response.text()));
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error("Could not fetch JSON manifest from URL '" + manifestUrl + "': " + error);
+  }
+  // Parse JSON
+  try {
+    manifestJson = await response.json();
+  } catch (error) {
+    throw new Error("Could not parse JSON manifest from URL '" + manifestUrl + "': " + error);
+  }
+
+  // Parse scenes
+  let sceneUrls = manifestJson.scenes;
+  if (sceneUrls === undefined) {
+    throw new Error("No 'scenes' property was found in JSON manifest from URL '" + manifestUrl + "'");
+  }
+  if (typeof sceneUrls === "string") {
+    sceneUrls = [sceneUrls];
+  }
+  if (!Array.isArray(sceneUrls) || sceneUrls.length === 0) {
+    throw new Error(
+      "Invalid 'scenes' property found in JSON manifest from URL '" +
+        manifestUrl +
+        "'. 'scenes' must be a non-empty array of strings or string arrays."
+    );
+  }
+  const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+
+  // Parse metadata
+  let metadata: Array<any> | undefined = undefined;
+  if (manifestJson.meta !== undefined && Array.isArray(manifestJson.meta)) {
+    metadata = manifestJson.meta;
+  }
+  return { scenes, metadata };
+}
+
 /**
  * Parses a set of URL search parameters into a set of args/props for the viewer.
  * @param urlSearchParams
@@ -981,28 +1028,11 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
     let scenes: (string | string[])[];
 
     if (params.manifest) {
-      console.log("Fetching manifest from " + params.manifest);
-      try {
-        const manifestResult = await fetch(params.manifest);
-        if (manifestResult.ok) {
-          const manifestJson = await manifestResult.json();
-          const sceneUrls = manifestJson.scenes as string[];
-          scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
-          const metadataJson = manifestJson.meta;
-          args.metadata = metadataJson ?? undefined;
-          console.log("Fetched manifest successfully", sceneUrls, metadataJson);
-        } else {
-          throw new Error(
-            "JSON manifest could not be fetched from URL '" +
-              params.manifest +
-              "'. Received error message: " +
-              (await manifestResult.text())
-          );
-        }
-      } catch (error) {
-        throw new Error("Could not read JSON manifest from URL '" + params.manifest + "'");
-      }
+      const { scenes: manifestScenes, metadata: manifestMetadata } = await loadFromManifest(params.manifest);
+      scenes = manifestScenes;
+      args.metadata = manifestMetadata ?? undefined;
     } else {
+      // Load from URL
       const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
       const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url!) : params.url!;
       // split encoded url into a list of one or more scenes...
