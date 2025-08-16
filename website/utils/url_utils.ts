@@ -982,16 +982,25 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
 
     if (params.manifest) {
       console.log("Fetching manifest from " + params.manifest);
-      const manifestResult = await fetch(params.manifest);
-      if (manifestResult.ok) {
-        const manifestJson = await manifestResult.json();
-        const sceneUrls = manifestJson.scenes as string[];
-        scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
-        const metadataJson = manifestJson.meta;
-        args.metadata = metadataJson ?? undefined;
-        console.log("Fetched manifest successfully", sceneUrls, metadataJson);
-      } else {
-        throw new Error("Bad manifest");
+      try {
+        const manifestResult = await fetch(params.manifest);
+        if (manifestResult.ok) {
+          const manifestJson = await manifestResult.json();
+          const sceneUrls = manifestJson.scenes as string[];
+          scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+          const metadataJson = manifestJson.meta;
+          args.metadata = metadataJson ?? undefined;
+          console.log("Fetched manifest successfully", sceneUrls, metadataJson);
+        } else {
+          throw new Error(
+            "JSON manifest could not be fetched from URL '" +
+              params.manifest +
+              "'. Received error message: " +
+              (await manifestResult.text())
+          );
+        }
+      } catch (error) {
+        throw new Error("Could not read JSON manifest from URL '" + params.manifest + "'");
       }
     } else {
       const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
