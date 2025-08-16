@@ -69,4 +69,5 @@ export interface AppProps {
   view3dRef?: MutableRefObject<View3d | null>;
   metadataFormatter?: (metadata: MetadataRecord) => MetadataRecord;
   onControlPanelToggle?: (collapsed: boolean) => void;
+  showError?: (error: any) => void;
 }
