@@ -957,6 +957,14 @@ async function loadDataset(dataset: string, id: string): Promise<Partial<AppProp
   return args;
 }
 
+function isStringArray(arr: any[]): arr is string[] {
+  return Array.isArray(arr) && arr.every((item) => typeof item === "string");
+}
+
+function isValidScenesArray(arr: any[]): arr is (string | string[])[] {
+  return Array.isArray(arr) && arr.every((item) => typeof item === "string" || isStringArray(item));
+}
+
 export async function loadFromManifest(
   manifestUrl: string
 ): Promise<{ scenes: (string | string[])[]; metadata?: MetadataRecord[] }> {
@@ -990,7 +998,7 @@ export async function loadFromManifest(
   if (typeof scenes === "string") {
     scenes = [scenes];
   }
-  if (!Array.isArray(scenes) || scenes.length === 0) {
+  if (!Array.isArray(scenes) || scenes.length === 0 || !isValidScenesArray(scenes)) {
     throw new Error(
       `Invalid 'scenes' property found in JSON manifest from URL '${manifestUrl}'. 'scenes' must be a non-empty array of strings or string arrays.`
     );
