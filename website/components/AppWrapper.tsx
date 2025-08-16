@@ -47,7 +47,6 @@ export default function AppWrapper(): ReactElement {
       },
       (reason) => {
         showErrorAlert("Failed to parse URL parameters: " + reason);
-        console.warn(reason);
         setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
