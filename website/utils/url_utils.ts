@@ -14,7 +14,7 @@ import {
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import type { MetadataRecord, PerAxis } from "../../src/aics-image-viewer/shared/types";
+import type { ManifestJson, MetadataRecord, PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
 import type {
   ViewerChannelSetting,
@@ -961,13 +961,14 @@ export async function loadFromManifest(
   manifestUrl: string
 ): Promise<{ scenes: (string | string[])[]; metadata?: MetadataRecord[] }> {
   let response: Response;
-  let manifestJson: any;
+  let manifestJson: ManifestJson;
+
   // Fetch manifest
   try {
     response = await fetch(manifestUrl);
   } catch (error) {
     console.error(error);
-    throw new Error("JSON manifest could not be fetched from URL '" + manifestUrl + "': " + error);
+    throw new Error(`JSON manifest could not be fetched from URL '${manifestUrl}': ${error}`);
   }
   if (!response.ok) {
     throw new Error(
@@ -978,28 +979,25 @@ export async function loadFromManifest(
   try {
     manifestJson = await response.json();
   } catch (error) {
-    throw new Error("Could not parse JSON manifest from URL '" + manifestUrl + "': " + error);
+    throw new Error(`Could not parse JSON manifest from URL '${manifestUrl}': ${error}`);
   }
 
   // Parse scenes
-  let sceneUrls = manifestJson.scenes;
-  if (sceneUrls === undefined) {
-    throw new Error("No 'scenes' property was found in JSON manifest from URL '" + manifestUrl + "'");
+  let scenes = manifestJson.scenes;
+  if (scenes === undefined) {
+    throw new Error(`No 'scenes' property was found in JSON manifest from URL '${manifestUrl}'`);
   }
-  if (typeof sceneUrls === "string") {
-    sceneUrls = [sceneUrls];
+  if (typeof scenes === "string") {
+    scenes = [scenes];
   }
-  if (!Array.isArray(sceneUrls) || sceneUrls.length === 0) {
+  if (!Array.isArray(scenes) || scenes.length === 0) {
     throw new Error(
-      "Invalid 'scenes' property found in JSON manifest from URL '" +
-        manifestUrl +
-        "'. 'scenes' must be a non-empty array of strings or string arrays."
+      `Invalid 'scenes' property found in JSON manifest from URL '${manifestUrl}'. 'scenes' must be a non-empty array of strings or string arrays.`
     );
   }
-  const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
 
   // Parse metadata
-  let metadata: Array<any> | undefined = undefined;
+  let metadata: MetadataRecord[] | undefined = undefined;
   if (manifestJson.meta !== undefined && Array.isArray(manifestJson.meta)) {
     metadata = manifestJson.meta;
   }
