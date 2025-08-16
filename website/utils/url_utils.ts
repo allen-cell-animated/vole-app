@@ -965,12 +965,14 @@ export async function loadFromManifest(
   // Fetch manifest
   try {
     response = await fetch(manifestUrl);
-    if (!response.ok) {
-      throw new Error("JSON manifest could not be fetched from URL '" + manifestUrl + "': " + (await response.text()));
-    }
   } catch (error) {
     console.error(error);
-    throw new Error("Could not fetch JSON manifest from URL '" + manifestUrl + "': " + error);
+    throw new Error("JSON manifest could not be fetched from URL '" + manifestUrl + "': " + error);
+  }
+  if (!response.ok) {
+    throw new Error(
+      `JSON manifest could not be fetched from URL '${manifestUrl}': Received ${response.status} ${response.statusText}`
+    );
   }
   // Parse JSON
   try {
