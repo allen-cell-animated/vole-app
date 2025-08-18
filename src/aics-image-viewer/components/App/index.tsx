@@ -185,15 +185,60 @@ const App: React.FC<AppProps> = (props) => {
   // we need to keep track of channel ranges for remapping control points
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
 
+  const removePreviousImage = useRef<(() => void) | undefined>(undefined);
+
+  const onCreateImage = useCallback(
+    (newImage: Volume): void => {
+      removePreviousImage.current?.();
+
+      if (newImage === null) {
+        return;
+      }
+
+      channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
+
+      const { channelSettings } = viewerState.current;
+
+      view3d.addVolume(newImage, {
+        // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
+        channels: newImage.channelNames.map((name) => {
+          // TODO do we really need to be searching by name here?
+          const ch = channelSettings.find((channel) => channel.name === name);
+          if (!ch) {
+            return {};
+          }
+          return {
+            enabled: ch.volumeEnabled,
+            isosurfaceEnabled: ch.isosurfaceEnabled,
+            isovalue: ch.isovalue,
+            isosurfaceOpacity: ch.opacity,
+            color: ch.color,
+          };
+        }),
+      });
+
+      view3d.updateActiveChannels(newImage);
+      const unsubscribeView = subscribeViewToState(useViewerState, view3d);
+      const unsubscribeImage = subscribeImageToState(useViewerState, view3d, newImage);
+      removePreviousImage.current = () => {
+        unsubscribeView();
+        unsubscribeImage();
+        view3d.removeAllVolumes();
+        removePreviousImage.current = undefined;
+      };
+    },
+    [view3d, viewerState]
+  );
+
   const onChannelLoaded = useCallback(
     (image: Volume, channelIndex: number, isInitialLoad: boolean): void => {
       // TODO this was once a search by name - is that still necessary or will the index always be correct?
       const thisChannelSettings = channelSettings[channelIndex];
       const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings } = viewerState.current;
-      const { ramp, controlPoints } = thisChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
+      const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
 
-      if (isInitialLoad || !controlPoints || !ramp || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+      if (isInitialLoad || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
         const { dtype } = thisChannel;
@@ -233,7 +278,6 @@ const App: React.FC<AppProps> = (props) => {
       view3d.updateLuts(image);
       view3d.onVolumeData(image, [channelIndex]);
 
-      view3d.setVolumeChannelEnabled(image, channelIndex, thisChannelSettings.volumeEnabled);
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
       }
@@ -244,45 +288,13 @@ const App: React.FC<AppProps> = (props) => {
     [view3d, channelSettings, changeChannelSetting, maskChannelName, viewerState]
   );
 
-  const volume = useVolume(scenes, { onChannelLoaded, onError: showError, maskChannelName });
+  const volume = useVolume(scenes, {
+    onCreateImage,
+    onChannelLoaded,
+    onError: showError,
+    maskChannelName,
+  });
   const { image, setTime, setScene } = volume;
-
-  // add the image to the viewer on load
-  useEffect(() => {
-    if (image === null) {
-      return;
-    }
-
-    channelRangesRef.current = new Array(image.channelNames.length).fill(undefined);
-    const { channelSettings } = useViewerState.getState();
-
-    view3d.addVolume(image, {
-      // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-      channels: image.channelNames.map((name) => {
-        // TODO do we really need to be searching by name here?
-        const ch = channelSettings.find((channel) => channel.name === name);
-        if (!ch) {
-          return {};
-        }
-        return {
-          enabled: ch.volumeEnabled,
-          isosurfaceEnabled: ch.isosurfaceEnabled,
-          isovalue: ch.isovalue,
-          isosurfaceOpacity: ch.opacity,
-          color: ch.color,
-        };
-      }),
-    });
-
-    view3d.updateActiveChannels(image);
-    const unsubscribeView = subscribeViewToState(useViewerState, view3d);
-    const unsubscribeImage = subscribeImageToState(useViewerState, view3d, image);
-    return () => {
-      unsubscribeView();
-      unsubscribeImage();
-      view3d.removeAllVolumes();
-    };
-  }, [image, view3d]);
 
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
