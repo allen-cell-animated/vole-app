@@ -156,11 +156,11 @@ following:
 
 Examples:
 
-| `lut` value | Description                                                                   |
-| ----------- | ----------------------------------------------------------------------------- |
-| `0:255`     | Linear mapping from bin 0 to bin 255.                                         |
-| `0:v200`    | Linear mapping from bin 0 (minimum intensity value) to the raw intensity 200. |
-| `0:p90`     | Linear mapping from bin 0 to the 90th percentile.                             |
-| `p10:p95`   | Linear mapping from the 10th percentile to the 95th.                          |
-| `m100:m150` | Linear mapping from the median to 1.5 times the median.                       |
-| `autoij:0`  | Uses the "auto" algorithm from ImageJ.                                        |
+| `lut` value | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| `0:255`     | Linear mapping from bin 0 to bin 255.                      |
+| `v10:v200`  | Linear mapping from raw intensity 10 to raw intensity 200. |
+| `0:p90`     | Linear mapping from bin 0 to the 90th percentile.          |
+| `p10:p95`   | Linear mapping from the 10th percentile to the 95th.       |
+| `m100:m150` | Linear mapping from the median to 1.5 times the median.    |
+| `autoij:0`  | Uses the "auto" algorithm from ImageJ.                     |
