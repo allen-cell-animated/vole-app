@@ -331,8 +331,3 @@ export const testDataContent: ProjectEntry[] = [
     ],
   },
 ];
-
-//   procedural: { type: VolumeFileFormat.DATA, url: "", dtype: "uint8" },
-//   procedural2: { type: VolumeFileFormat.DATA, url: "", dtype: "uint16" },
-//   procedural3: { type: VolumeFileFormat.DATA, url: "", dtype: "float32" },
-// };
