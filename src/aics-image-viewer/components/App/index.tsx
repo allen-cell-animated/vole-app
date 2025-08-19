@@ -225,10 +225,10 @@ const App: React.FC<AppProps> = (props) => {
       const thisChannelSettings = channelSettings[channelIndex];
       const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
         viewerState.current;
-      const { ramp, controlPoints } = thisChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
+      const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
 
-      if (isInitialLoad || !controlPoints || !ramp || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+      if (isInitialLoad || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
         const { dtype } = thisChannel;
@@ -268,7 +268,6 @@ const App: React.FC<AppProps> = (props) => {
       view3d.updateLuts(image);
       view3d.onVolumeData(image, [channelIndex]);
 
-      view3d.setVolumeChannelEnabled(image, channelIndex, thisChannelSettings.volumeEnabled);
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
       }
@@ -286,38 +285,6 @@ const App: React.FC<AppProps> = (props) => {
     maskChannelName,
   });
   const { image, setTime, setScene } = volume;
-
-  // add the image to the viewer on load
-  useEffect(() => {
-    if (image === null) {
-      return;
-    }
-
-    channelRangesRef.current = new Array(image.channelNames.length).fill(undefined);
-
-    const { channelSettings } = viewerState.current;
-
-    view3d.addVolume(image, {
-      // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-      channels: image.channelNames.map((name) => {
-        // TODO do we really need to be searching by name here?
-        const ch = channelSettings.find((channel) => channel.name === name);
-        if (!ch) {
-          return {};
-        }
-        return {
-          enabled: ch.volumeEnabled,
-          isosurfaceEnabled: ch.isosurfaceEnabled,
-          isovalue: ch.isovalue,
-          isosurfaceOpacity: ch.opacity,
-          color: ch.color,
-        };
-      }),
-    });
-
-    view3d.updateActiveChannels(image);
-    return view3d.removeAllVolumes.bind(view3d);
-  }, [image, view3d, viewerState]);
 
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
