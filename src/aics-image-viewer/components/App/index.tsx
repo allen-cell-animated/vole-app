@@ -153,6 +153,8 @@ const App: React.FC<AppProps> = (props) => {
     props.view3dRef.current = view3d;
   }
 
+  // Allows AppWrapper to pass in its own `useErrorAlert` callbacks, but still keeps error
+  // messaging when App is used standalone.
   const [errorAlert, _showError] = useErrorAlert();
   const showError = props.showError ?? _showError;
 
