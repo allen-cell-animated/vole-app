@@ -269,8 +269,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
     [innerWidth, plotMin, plotMax]
   );
-  const plotMinU8 = useMemo(() => absoluteToBin(plotMin, histogram), [plotMin, rawMin, rawMax]);
-  const plotMaxU8 = useMemo(() => absoluteToBin(plotMax, histogram), [plotMax, rawMin, rawMax]);
+  const plotMinU8 = useMemo(() => absoluteToBin(plotMin, histogram), [plotMin, histogram]);
+  const plotMaxU8 = useMemo(() => absoluteToBin(plotMax, histogram), [plotMax, histogram]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -423,7 +423,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight, rawMin, rawMax]);
+  }, [controlPointsToRender, xScale, yScale, innerHeight, histogram]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -496,7 +496,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [xScale, rawMin, rawMax, histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
+    [xScale, histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
   );
 
   const applyTFGenerator = useCallback(
