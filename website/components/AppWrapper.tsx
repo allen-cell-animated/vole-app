@@ -57,7 +57,7 @@ export default function AppWrapper(): ReactElement {
       ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
 
-        const viewerSettings = { ...urlViewerSettings, locationArgs };
+        const viewerSettings = { ...urlViewerSettings, ...locationArgs?.viewerSettings };
         if (viewerSettings && !isEqual(viewerSettings, prevViewerSettingsRef.current)) {
           mergeToViewerSettings(viewerSettings);
           prevViewerSettingsRef.current = viewerSettings;
