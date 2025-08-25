@@ -146,6 +146,7 @@ linearly from an opacity of `0` to `1`. The `min` and `max` can match any of the
 following:
 
 - Plain numbers are treated as bin indices, in a `[0, 255]` range.
+- `v{n}` represents an image intensity value, where `n` is an integer.
 - `p{n}` represents a percentile, where `n` is a percentile in the `[0, 100]` range.
 - `m{n}` represents the volume's median intensity multiplied by `n / 100`.
 - `autoij` in either the min or max fields will approximate the ["auto"
@@ -155,10 +156,11 @@ following:
 
 Examples:
 
-| `lut` value | Description                                                 |
-| ----------- | ----------------------------------------------------------- |
-| `0:255`     | Linear mapping from intensity bin 0 to intensity bin 255.   |
-| `0:p90`     | Linear mapping from intensity bin 0 to the 90th percentile. |
-| `p10:p95`   | Linear mapping from the 10th percentile to the 95th.        |
-| `m100:m150` | Linear mapping from the median to 1.5 times the median.     |
-| `autoij:0`  | Uses the "auto" algorithm from ImageJ.                      |
+| `lut` value | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| `0:255`     | Linear mapping from bin 0 to bin 255.                      |
+| `v10:v200`  | Linear mapping from raw intensity 10 to raw intensity 200. |
+| `0:p90`     | Linear mapping from bin 0 to the 90th percentile.          |
+| `p10:p95`   | Linear mapping from the 10th percentile to the 95th.       |
+| `m100:m150` | Linear mapping from the median to 1.5 times the median.    |
+| `autoij:0`  | Uses the "auto" algorithm from ImageJ.                     |

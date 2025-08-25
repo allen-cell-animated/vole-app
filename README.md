@@ -15,7 +15,7 @@ The volume shader itself is a heavily modified version of one that has distant o
 ## to use
 
 - `https://vole.allencell.org/?url=path/to/ZARR`
-- for more url parameters, see [`URL_SPEC.md`](documentation\URL_SPEC.md)
+- for more url parameters, see [`URL_SPEC.md`](documentation/URL_SPEC.md)
 
 or as React component:
 

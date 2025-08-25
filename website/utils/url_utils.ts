@@ -146,18 +146,22 @@ export class ViewerChannelSettingParams {
   /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
   [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string = undefined;
   /**
-   * Lookup table (LUT) to map from volume intensity to opacity. Should be two alphanumeric values
-   * separated by a colon, where the first value is the minimum and the second is the maximum.
-   * Defaults to [0, 255].
+   * Lookup table (LUT) to map from volume intensity to opacity. Should be two
+   * alphanumeric values separated by a colon, where the first value is the
+   * minimum and the second is the maximum. Defaults to [0, 255].
    *
-   * - Plain numbers are treated as direct intensity values.
-   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
+   * Min and max values are determined as following:
+   * - Plain numbers are indices of histogram bins, typically in the range [0,
+   *   255].
+   * - `v{n}` represents a raw intensity value, where `n` is a number.
+   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
+   *   range.
    * - `m{n}` represents the median multiplied by `n / 100`.
    * - `autoij` in either the min or max fields will use the "auto" algorithm
-   * from ImageJ to select the min and max.
+   *   from ImageJ to select the min and max.
    *
-   * Values will be used to determine the initial control points and ramp if those
-   * fields are not provided.
+   * Values will be used to determine the initial control points and ramp if
+   * those fields are not provided.
    *
    * @example
    * ```
@@ -540,7 +544,7 @@ function parseStringRegion(region: string | undefined): PerAxis<[number, number]
  * Formats a float or integer value to a string with a maximum precision for float values.
  * @param value The number to format.
  * @param maxPrecision The maximum number of significant digits to display for float values.
- * Default is 5.
+ * Default is 7.
  * @returns
  * - For integers, the integer value as a string.
  * - For floats, the float value as a string with a maximum of `maxPrecision` significant digits
@@ -553,7 +557,7 @@ function parseStringRegion(region: string | undefined): PerAxis<[number, number]
  * formatFloat(1.3999999999999999, 3) // "1.4"
  * ```
  */
-function formatFloat(value: number, maxPrecision: number = 5): string {
+function formatFloat(value: number, maxPrecision: number = 7): string {
   if (Number.isInteger(value)) {
     return value.toString();
   }
