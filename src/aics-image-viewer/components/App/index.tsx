@@ -83,6 +83,7 @@ const defaultProps: AppProps = {
   pixelSize: undefined,
   canvasMargin: "0 0 0 0",
   view3dRef: undefined,
+  showError: undefined,
 };
 
 const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
@@ -152,7 +153,10 @@ const App: React.FC<AppProps> = (props) => {
     props.view3dRef.current = view3d;
   }
 
-  const [errorAlert, showError] = useErrorAlert();
+  // Allows AppWrapper to pass in its own `useErrorAlert` callbacks, but still keeps error
+  // messaging when App is used standalone.
+  const [errorAlert, _showError] = useErrorAlert();
+  const showError = props.showError ?? _showError;
 
   useEffect(() => {
     // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
