@@ -41,18 +41,21 @@ function parseLutValue(value: string, histogram: Histogram): number {
 }
 
 /**
- * Parses a lookup table (LUT) from a `ViewerChannelSetting` object, where the `lut` field is an
- * array of two alphanumeric strings.
+ * Parses a lookup table (LUT) from a `ViewerChannelSetting` object, where the
+ * `lut` field is an array of two alphanumeric strings.
  *
- * @returns a Lut object if the `lut` field is valid; otherwise, returns undefined.
+ * @returns a Lut object if the `lut` field is valid; otherwise, returns
+ * undefined.
  *
  * Min and max values are determined as following:
- * - Plain numbers are indices of histogram bins, in the range [0, 255].
- * - `v{n}` represents a raw intensity value, where `n` is an integer.
- * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
+ * - Plain numbers are indices of histogram bins, typically in the range [0,
+ *   255].
+ * - `v{n}` represents a raw intensity value, where `n` is a number.
+ * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
+ *   range.
  * - `m{n}` represents the median multiplied by `n / 100`.
- * - `autoij` in either the min or max fields will use the "auto" algorithm
- * from ImageJ to select the min and max.
+ * - `autoij` in either the min or max fields will use the "auto" algorithm from
+ *   ImageJ to select the min and max.
  *
  * @example
  * ```

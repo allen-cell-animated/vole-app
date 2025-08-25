@@ -146,20 +146,22 @@ export class ViewerChannelSettingParams {
   /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
   [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string = undefined;
   /**
-   * Lookup table (LUT) to map from volume intensity to opacity. Should be two alphanumeric values
-   * separated by a colon, where the first value is the minimum and the second is the maximum.
-   * Defaults to [0, 255].
+   * Lookup table (LUT) to map from volume intensity to opacity. Should be two
+   * alphanumeric values separated by a colon, where the first value is the
+   * minimum and the second is the maximum. Defaults to [0, 255].
    *
    * Min and max values are determined as following:
-   * - Plain numbers are indices of histogram bins, in the range [0, 255].
-   * - `v{n}` represents a raw intensity value, where `n` is an integer.
-   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
+   * - Plain numbers are indices of histogram bins, typically in the range [0,
+   *   255].
+   * - `v{n}` represents a raw intensity value, where `n` is a number.
+   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
+   *   range.
    * - `m{n}` represents the median multiplied by `n / 100`.
    * - `autoij` in either the min or max fields will use the "auto" algorithm
-   * from ImageJ to select the min and max.
+   *   from ImageJ to select the min and max.
    *
-   * Values will be used to determine the initial control points and ramp if those
-   * fields are not provided.
+   * Values will be used to determine the initial control points and ramp if
+   * those fields are not provided.
    *
    * @example
    * ```
