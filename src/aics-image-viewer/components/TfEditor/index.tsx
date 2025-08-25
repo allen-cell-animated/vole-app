@@ -260,8 +260,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
-  const { rawMin, rawMax, dtype, histogram } = props.channelData;
-  const typeRange = DTYPE_RANGE[dtype];
+  const { histogram } = props.channelData;
+  const typeRange = DTYPE_RANGE[props.channelData.dtype];
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
@@ -682,7 +682,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         <Button
           size="small"
           style={{ marginLeft: "12px" }}
-          onClick={() => changeChannelSetting({ plotMin: rawMin, plotMax: rawMax })}
+          onClick={() => changeChannelSetting({ plotMin: props.channelData.rawMin, plotMax: props.channelData.rawMax })}
         >
           Fit to data
         </Button>
