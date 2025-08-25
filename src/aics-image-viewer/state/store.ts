@@ -101,6 +101,27 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set) => ({
 
 export const useViewerState = create<ViewerStore>()(subscribeWithSelector(createViewerStateStore));
 
+export const selectViewerSettings = (store: ViewerStore): ViewerState => ({
+  viewMode: store.viewMode,
+  renderMode: store.renderMode,
+  imageType: store.imageType,
+  showAxes: store.showAxes,
+  showBoundingBox: store.showBoundingBox,
+  boundingBoxColor: store.boundingBoxColor,
+  backgroundColor: store.backgroundColor,
+  autorotate: store.autorotate,
+  maskAlpha: store.maskAlpha,
+  brightness: store.brightness,
+  density: store.density,
+  levels: store.levels,
+  interpolationEnabled: store.interpolationEnabled,
+  region: store.region,
+  slice: store.slice,
+  time: store.time,
+  scene: store.scene,
+  cameraState: store.cameraState,
+});
+
 export const select =
   <K extends string>(key: K) =>
   <V>(settings: Record<K, V>) =>

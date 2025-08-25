@@ -3,27 +3,29 @@ import { ShareAltOutlined } from "@ant-design/icons";
 import { Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
+import { useShallow } from "zustand/shallow";
 
 import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
-import { ViewerStateContextType } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
+import { selectViewerSettings, useViewerState, ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import { AppDataProps } from "../../types";
 import { ENCODED_COLON_REGEX, ENCODED_COMMA_REGEX, serializeViewerUrlParams } from "../../utils/url_utils";
 import { FlexRow } from "../LandingPage/utils";
-
-import {
-  ALL_VIEWER_STATE_KEYS,
-  connectToViewerState,
-} from "../../../src/aics-image-viewer/components/ViewerStateProvider";
 
 type ShareModalProps = {
   appProps: AppDataProps;
   // Used to retrieve the current camera position information
   view3dRef?: React.RefObject<View3d | null>;
-} & ViewerStateContextType;
+};
 
 const ModalContainer = styled.div``;
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
+  const selectViewerSettingsShallow = useShallow(selectViewerSettings);
+  const selectChannelSettingsShallow = useShallow((store: ViewerStore) => store.channelSettings);
+
+  const viewerSettings = useViewerState(selectViewerSettingsShallow);
+  const channelSettings = useViewerState(selectChannelSettingsShallow);
+
   const [showModal, setShowModal] = useState(false);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +38,8 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   // location.pathname will include up to `.../viewer`
   const baseUrl = location.protocol + "//" + location.host + location.pathname;
   const paramProps = {
-    ...props,
+    ...viewerSettings,
+    channelSettings,
     cameraState: props.view3dRef?.current?.getCameraState(),
   };
 
@@ -110,4 +113,4 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   );
 };
 
-export default connectToViewerState(ShareModal, ALL_VIEWER_STATE_KEYS);
+export default ShareModal;
