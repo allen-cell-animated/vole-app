@@ -24,18 +24,6 @@ const DEFAULT_APP_PROPS: AppDataProps = {
   viewerChannelSettings: getDefaultViewerChannelSettings(),
 };
 
-const mergeToViewerSettings = (newSettings: Partial<ViewerState>): void => {
-  const currentSettings = useViewerState.getState();
-  const { changeViewerSetting } = currentSettings;
-
-  for (const key of Object.keys(newSettings) as (keyof ViewerState)[]) {
-    if (key in currentSettings && currentSettings[key] !== newSettings[key]) {
-      // merging properties one-by-one via this function ensures that state is kept valid
-      changeViewerSetting(key, newSettings[key]);
-    }
-  }
-};
-
 /**
  * Wrapper around the main ImageViewer component. Handles the collection of parameters from the
  * URL and location state (from routing) to pass to the viewer.
@@ -46,7 +34,7 @@ export default function AppWrapper(): ReactElement {
 
   const view3dRef = React.useRef<View3d | null>(null);
   const prevViewerSettingsRef = React.useRef<Partial<ViewerState> | undefined>(undefined);
-  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
+  const mergeViewerSettings = useViewerState(select("mergeViewerSettings"));
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
   const [searchParams] = useSearchParams();
 
@@ -59,7 +47,7 @@ export default function AppWrapper(): ReactElement {
 
         const viewerSettings = { ...urlViewerSettings, ...locationArgs?.viewerSettings };
         if (viewerSettings && !isEqual(viewerSettings, prevViewerSettingsRef.current)) {
-          mergeToViewerSettings(viewerSettings);
+          mergeViewerSettings(viewerSettings);
           prevViewerSettingsRef.current = viewerSettings;
         }
       },
@@ -68,7 +56,7 @@ export default function AppWrapper(): ReactElement {
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams, changeViewerSetting]);
+  }, [location.state, searchParams, mergeViewerSettings]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful

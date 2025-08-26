@@ -43,8 +43,27 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
   }),
 };
 
+const validateStateValue = <K extends keyof ViewerState>(
+  currentState: ViewerState,
+  key: K,
+  value: Partial<ViewerState[K]>
+): Partial<ViewerState> => {
+  const changeHandler = VIEWER_SETTINGS_CHANGE_HANDLERS[key];
+
+  if (changeHandler) {
+    // some settings have custom change handlers to avoid creating illegal states; if this one has one, call it
+    return changeHandler(value, currentState);
+  } else {
+    // if not, merge the new value to the current one (if applicable) and return
+    const currentValue = currentState[key];
+    const nextValue = isRecord(currentValue) && isRecord(value) ? { ...currentValue, ...value } : value;
+    return { [key]: nextValue };
+  }
+};
+
 type ViewerStateActions = {
   changeViewerSetting: <K extends keyof ViewerState>(key: K, value: Partial<ViewerState[K]>) => void;
+  mergeViewerSettings: (value: Partial<{ [K in keyof ViewerState]: Partial<ViewerState[K]> }>) => void;
   changeChannelSetting: <K extends keyof ChannelState>(
     index: number | number[],
     value: Partial<Record<K, ChannelState[K]>>
@@ -63,18 +82,18 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set) => ({
   channelSettings: [],
 
   changeViewerSetting: (key, value) => {
-    set((state) => {
-      let changeHandler = VIEWER_SETTINGS_CHANGE_HANDLERS[key];
+    set((state) => validateStateValue(state, key, value));
+  },
 
-      if (changeHandler) {
-        // some settings have custom change handlers to avoid creating illegal states; if this one has one, call it
-        return changeHandler(value, state);
-      } else {
-        // if not, merge the new value to the current one (if applicable) and return
-        let currentValue = state[key];
-        let nextValue = isRecord(currentValue) && isRecord(value) ? { ...currentValue, ...value } : value;
-        return { [key]: nextValue };
+  mergeViewerSettings: (settings): void => {
+    set((state) => {
+      const validated = {};
+
+      for (const key of Object.keys(settings) as (keyof ViewerState)[]) {
+        Object.assign(validated, validateStateValue(state, key, settings[key]));
       }
+
+      return validated;
     });
   },
 
