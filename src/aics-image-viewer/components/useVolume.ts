@@ -1,5 +1,5 @@
 import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } from "@aics/vole-core";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
 import {
@@ -16,10 +16,9 @@ import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
+import { selectCurrentViewerChannelSettings } from "../state/reset";
 import { select, useViewerState } from "../state/store";
 import { ChannelState } from "./ViewerStateProvider/types";
-
-import { ViewerStateContext } from "./ViewerStateProvider";
 
 export type UseVolumeOptions = {
   /** Callback for when the volume is created. */
@@ -96,7 +95,6 @@ const useVolume = (
   scenePaths: (string | string[] | RawArrayLoaderOptions)[],
   options?: UseVolumeOptions
 ): ReactiveVolume => {
-  const viewerStateRef = useContext(ViewerStateContext).ref;
   const channelSettings = useViewerState(select("channelSettings"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const initChannelSettings = useViewerState(select("initChannelSettings"));
@@ -202,14 +200,13 @@ const useVolume = (
 
   // effect to start the initial load of the image
   useEffect(() => {
-    const { getCurrentViewerChannelSettings } = viewerStateRef.current;
     const channelSettings = useViewerState.getState().channelSettings;
     setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
     setLoadThrewError(false);
     inInitialLoadRef.current = true;
 
     const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
-      const viewerChannelSettings = getCurrentViewerChannelSettings();
+      const viewerChannelSettings = selectCurrentViewerChannelSettings(useViewerState.getState());
       const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
@@ -277,7 +274,8 @@ const useVolume = (
         : [];
 
       // add mask channel to required channels, if specified
-      const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
+      const viewerChannelSettings = selectCurrentViewerChannelSettings(useViewerState.getState());
+      const maskChannelName = viewerChannelSettings?.maskChannelName;
       if (maskChannelName) {
         const maskChannelIndex = channelNames.indexOf(maskChannelName);
         if (maskChannelIndex >= 0 && !requiredChannelsToLoad.includes(maskChannelIndex)) {
@@ -310,7 +308,6 @@ const useVolume = (
     onError,
     onCreateImageRef,
     onChannelLoadedRef,
-    viewerStateRef,
     channelVersionsRef,
     setChannelVersions,
     playControls,

@@ -6,6 +6,7 @@ import {
   getDefaultCameraState,
   getDefaultChannelColor,
   getDefaultChannelState,
+  getDefaultViewerChannelSettings,
   getDefaultViewerState,
 } from "../shared/constants";
 import { ViewMode } from "../shared/enums";
@@ -22,15 +23,6 @@ export type ResetStateActions = {
    * or the URL parameters.
    */
   setSavedViewerChannelSettings: (settings: ViewerChannelSettings | undefined) => void;
-  /**
-   * Returns the current viewer channel settings that should be used when resetting
-   * the channel transfer functions (control points and ramp).
-   */
-  //   getCurrentViewerChannelSettings: () => ViewerChannelSettings | undefined;
-  /** Channels that should be immediately reset on next render. */
-  //   getChannelsAwaitingReset: () => Set<number>;
-  /** Channels that should be reset once new data is loaded. */
-  //   getChannelsAwaitingResetOnLoad: () => Set<number>;
   /**
    * Removes the channel from the list of channels to be reset (as given by
    * `getChannelsAwaitingReset()` or `getChannelsAwaitingResetOnLoad()`).
@@ -109,18 +101,18 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
   savedViewerChannelSettings: undefined,
   useDefaultViewerChannelSettings: false,
 
-  setSavedViewerChannelSettings: (settings: ViewerChannelSettings | undefined): void => {
+  setSavedViewerChannelSettings: (settings) => {
     set({ savedViewerChannelSettings: settings });
   },
 
-  onResetChannel: (channelIndex: number): void => {
+  onResetChannel: (channelIndex) => {
     set(({ channelsToReset, channelsToResetOnLoad }) => ({
       channelsToReset: channelsToReset.filter((ch) => ch !== channelIndex),
       channelsToResetOnLoad: channelsToResetOnLoad.filter((ch) => ch !== channelIndex),
     }));
   },
 
-  resetToSavedViewerState: (): void => {
+  resetToSavedViewerState: () => {
     set((currentState) => {
       const { channelSettings, savedViewerState, savedViewerChannelSettings } = currentState;
       const newViewerState = {
@@ -144,7 +136,7 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
     });
   },
 
-  resetToDefaultViewerState: (): void => {
+  resetToDefaultViewerState: () => {
     set((currentState) => {
       const { channelSettings } = currentState;
       const defaultViewerState = {
@@ -164,3 +156,14 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
     });
   },
 });
+
+/**
+ * Selects the current viewer channel settings that should be used when resetting
+ * the channel transfer functions (control points and ramp).
+ */
+export const selectCurrentViewerChannelSettings = (store: ResetStateSlice): ViewerChannelSettings | undefined => {
+  if (store.useDefaultViewerChannelSettings) {
+    return getDefaultViewerChannelSettings();
+  }
+  return store.savedViewerChannelSettings;
+};

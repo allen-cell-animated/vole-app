@@ -7,7 +7,6 @@ import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { select, useViewerState } from "../../state/store";
 
 import ViewerIcon from "../shared/ViewerIcon";
-import { connectToViewerState } from "../ViewerStateProvider";
 import DownloadButton from "./DownloadButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
@@ -31,9 +30,6 @@ type ToolbarProps = {
     showAxesButton: boolean;
     showBoundingBoxButton: boolean;
   };
-
-  // From viewer state
-  resetToSavedViewerState: () => void;
 };
 
 const RESIZE_DEBOUNCE_DELAY = 50;
@@ -68,6 +64,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const showAxes = useViewerState(select("showAxes"));
   const showBoundingBox = useViewerState(select("showBoundingBox"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
+  const resetToSavedViewerState = useViewerState(select("resetToSavedViewerState"));
 
   // Scroll buttons are only visible when toolbar can be scrolled in that direction.
   // This may change on either scroll or resize.
@@ -135,7 +132,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const classForToggleBtn = (active: boolean): string =>
     "ant-btn-icon-only btn-borderless" + (active ? " btn-active" : "");
 
-  const { resetToSavedViewerState, visibleControls } = props;
+  const { visibleControls } = props;
   const twoDMode = viewMode !== ViewMode.threeD;
 
   const renderGroup1 =
@@ -273,4 +270,4 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   );
 };
 
-export default connectToViewerState(Toolbar, ["resetToSavedViewerState"]);
+export default Toolbar;
