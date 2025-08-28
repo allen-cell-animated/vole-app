@@ -4,9 +4,9 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp } from "../../src";
-import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
+import type { ViewerState } from "../../src/aics-image-viewer/state/types";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
 import { FlexRowAlignCenter } from "./LandingPage/utils";

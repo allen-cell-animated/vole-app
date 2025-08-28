@@ -1,9 +1,9 @@
 import { create, type StateCreator } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
 import { getDefaultViewerState } from "../shared/constants";
-import { ColorArray } from "../shared/utils/colorRepresentations";
+import type { ColorArray } from "../shared/utils/colorRepresentations";
+import type { ChannelState, ViewerState } from "../state/types";
 import { createResetSlice, ResetStateSlice } from "./reset";
 import { validateState, validateStateValue } from "./util";
 

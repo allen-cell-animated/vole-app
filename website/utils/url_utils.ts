@@ -3,11 +3,6 @@ import { isEqual } from "lodash";
 
 import FirebaseRequest, { type DatasetMetaData } from "../../public/firebase";
 import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
-import type {
-  ChannelState,
-  ViewerState,
-  ViewerStateContextType,
-} from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import {
   getDefaultCameraState,
   getDefaultChannelState,
@@ -20,6 +15,8 @@ import type {
   ViewerChannelSetting,
   ViewerChannelSettings,
 } from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
+import type { ViewerStore } from "../../src/aics-image-viewer/state/store";
+import type { ChannelState, ViewerState } from "../../src/aics-image-viewer/state/types";
 import { removeMatchingProperties, removeUndefinedProperties } from "./datatype_utils";
 import { clamp } from "./math_utils";
 
@@ -1028,10 +1025,7 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
  * @param removeDefaults If true, shortens parameters by removing any properties that match the default state.
  * This includes the output of GET_DEFAULT_VIEWER_STATE and GET_DEFAULT_CHANNEL_STATE.
  */
-export function serializeViewerUrlParams(
-  state: Partial<ViewerStateContextType>,
-  removeDefaults: boolean = true
-): AppParams {
+export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefaults: boolean = true): AppParams {
   const params = serializeViewerState(state, removeDefaults);
 
   const channelParams = state.channelSettings?.reduce<Record<string, string>>(

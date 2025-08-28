@@ -1,5 +1,5 @@
-import { ViewerState } from "../components/ViewerStateProvider/types";
 import { RenderMode, ViewMode } from "../shared/enums";
+import type { ViewerState } from "../state/types";
 
 // TODO move back to a new `types` module (?)
 type ViewerSettingChangeHandlers = {

@@ -1,14 +1,14 @@
 import { CameraState } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 
-import { ChannelState, ViewerState } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import {
   getDefaultCameraState,
   getDefaultChannelState,
   getDefaultViewerState,
 } from "../../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../../src/aics-image-viewer/shared/enums";
-import { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
+import type { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
+import type { ChannelState, ViewerState } from "../../../src/aics-image-viewer/state/types";
 import {
   CONTROL_POINTS_REGEX,
   deserializeViewerChannelSetting,
