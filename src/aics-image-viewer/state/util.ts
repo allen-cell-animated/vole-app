@@ -38,6 +38,10 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
   }),
 };
 
+/**
+ * Accepts a `key` and a new (potentially partial) `value` for a single field of `ViewerState`, & returns a fragment of
+ * `ViewerState` that can safely be merged into `currentState` to apply that value without creating an illegal state.
+ */
 export const validateStateValue = <K extends keyof ViewerState>(
   currentState: ViewerState,
   key: K,
@@ -56,6 +60,7 @@ export const validateStateValue = <K extends keyof ViewerState>(
   }
 };
 
+/** Ensures a fragment of `ViewerState` can be safely merged into `currentState` without creating an illegal state. */
 export const validateState = (
   currentState: ViewerState,
   newState: Partial<{ [K in keyof ViewerState]: Partial<ViewerState[K]> }>
