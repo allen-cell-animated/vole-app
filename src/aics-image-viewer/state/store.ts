@@ -3,8 +3,8 @@ import { subscribeWithSelector } from "zustand/middleware";
 
 import { getDefaultViewerState } from "../shared/constants";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
-import type { ChannelState, ViewerState } from "../state/types";
 import { createResetSlice, ResetStateSlice } from "./reset";
+import type { ChannelState, ViewerState } from "./types";
 import { validateState, validateStateValue } from "./util";
 
 export type ViewerStateActions = {
