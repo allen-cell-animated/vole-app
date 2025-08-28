@@ -14,7 +14,6 @@ import type { ChannelState, ViewerState } from "../state/types";
 import type { ViewerStore } from "./store";
 import { validateState } from "./util";
 
-// TODO move to types?
 export type ResetStateActions = {
   /**
    * Removes the channel from the list of channels to be reset (as given by
