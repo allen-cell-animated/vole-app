@@ -139,7 +139,7 @@ const App: React.FC<AppProps> = (props) => {
     getChannelsAwaitingReset,
     onResetChannel,
   } = viewerState.current;
-  const { onControlPanelToggle, metadata, metadataFormatter } = props;
+  const { onControlPanelToggle, onImageTitleChange, metadata, metadataFormatter } = props;
 
   useMemo(() => {
     if (props.viewerChannelSettings) {
@@ -214,9 +214,10 @@ const App: React.FC<AppProps> = (props) => {
         }),
       });
 
+      onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState]
+    [view3d, viewerState, onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
@@ -278,10 +279,18 @@ const App: React.FC<AppProps> = (props) => {
     [view3d, channelSettings, maskChannelName, viewerState]
   );
 
+  const onError = useCallback(
+    (error: unknown) => {
+      showError(error);
+      onImageTitleChange?.(undefined);
+    },
+    [showError, onImageTitleChange]
+  );
+
   const volume = useVolume(scenes, {
     onCreateImage,
     onChannelLoaded,
-    onError: showError,
+    onError,
     maskChannelName,
   });
   const { image, setTime, setScene } = volume;
