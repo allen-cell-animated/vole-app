@@ -68,8 +68,11 @@ function parseLutValue(value: string, histogram: Histogram): number {
  * ```
  */
 export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerChannelSetting): Lut | undefined {
-  // TODO: This function is really only returning a set of control points, and doesn't need to know about ViewerChannelSetting.
-  // Consider refactoring to make it more minimal? (takes in lutParam => returns control point array)
+  // TODO: Consider minimizing the types/classes this function is interacting
+  // with, since it is only using `initSettings.lut` and the returned Lut is a
+  // wrapper around the control point array, e.g.
+  // `parseControlPointsFromLutParam(histogram: Histogram, lutParam: [string,
+  // string] | undefined): ControlPoint[] | undefined`
   if (initSettings.lut === undefined || initSettings.lut.length !== 2) {
     return undefined;
   }
