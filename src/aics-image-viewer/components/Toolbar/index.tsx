@@ -21,6 +21,7 @@ type ToolbarProps = {
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
+  resetToSavedViewerState: () => void;
 
   visibleControls: {
     autoRotateButton: boolean;
@@ -64,7 +65,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const showAxes = useViewerState(select("showAxes"));
   const showBoundingBox = useViewerState(select("showBoundingBox"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
-  const resetToSavedViewerState = useViewerState(select("resetToSavedViewerState"));
 
   // Scroll buttons are only visible when toolbar can be scrolled in that direction.
   // This may change on either scroll or resize.
@@ -157,7 +157,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       <div className="viewer-toolbar" ref={barRef} onWheel={wheelHandler} onScroll={checkScrollBtnVisible}>
         <div className="viewer-toolbar-left" ref={leftRef}>
           <Tooltip placement="bottom" title="Reset to initial settings" trigger={["focus", "hover"]}>
-            <Button className="ant-btn-icon-only btn-borderless" onClick={resetToSavedViewerState}>
+            <Button className="ant-btn-icon-only btn-borderless" onClick={props.resetToSavedViewerState}>
               <ReloadOutlined />
               <span style={visuallyHiddenStyle}>Reset to initial settings</span>
             </Button>

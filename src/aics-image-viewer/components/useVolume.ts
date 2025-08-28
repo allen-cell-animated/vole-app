@@ -6,6 +6,7 @@ import {
   AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
   getDefaultChannelColor,
+  getDefaultViewerChannelSettings,
   QUEUE_MAX_LOW_PRIORITY_SIZE,
   QUEUE_MAX_SIZE,
 } from "../shared/constants";
@@ -14,13 +15,18 @@ import { AxisName } from "../shared/types";
 import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
-import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
+import {
+  ChannelGrouping,
+  getDisplayName,
+  makeChannelIndexGrouping,
+  ViewerChannelSettings,
+} from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
-import { selectCurrentViewerChannelSettings } from "../state/reset";
 import { select, useViewerState } from "../state/store";
 import { ChannelState } from "./ViewerStateProvider/types";
 
 export type UseVolumeOptions = {
+  viewerChannelSettings?: ViewerChannelSettings;
   /** Callback for when the volume is created. */
   onCreateImage?: (image: Volume) => void;
   /** Callback for when a single channel of the volume has loaded. */
@@ -206,7 +212,10 @@ const useVolume = (
     inInitialLoadRef.current = true;
 
     const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
-      const viewerChannelSettings = selectCurrentViewerChannelSettings(useViewerState.getState());
+      const { useDefaultViewerChannelSettings } = useViewerState.getState();
+      const viewerChannelSettings = useDefaultViewerChannelSettings
+        ? getDefaultViewerChannelSettings()
+        : options?.viewerChannelSettings;
       const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
@@ -274,7 +283,10 @@ const useVolume = (
         : [];
 
       // add mask channel to required channels, if specified
-      const viewerChannelSettings = selectCurrentViewerChannelSettings(useViewerState.getState());
+      const { useDefaultViewerChannelSettings } = useViewerState.getState();
+      const viewerChannelSettings = useDefaultViewerChannelSettings
+        ? getDefaultViewerChannelSettings()
+        : options?.viewerChannelSettings;
       const maskChannelName = viewerChannelSettings?.maskChannelName;
       if (maskChannelName) {
         const maskChannelIndex = channelNames.indexOf(maskChannelName);
@@ -315,6 +327,7 @@ const useVolume = (
     onChannelDataLoaded,
     changeViewerSetting,
     initChannelSettings,
+    options?.viewerChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 
