@@ -68,6 +68,8 @@ function parseLutValue(value: string, histogram: Histogram): number {
  * ```
  */
 export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerChannelSetting): Lut | undefined {
+  // TODO: This function is really only returning a set of control points, and doesn't need to know about ViewerChannelSetting.
+  // Consider refactoring to make it more minimal? (takes in lutParam => returns control point array)
   if (initSettings.lut === undefined || initSettings.lut.length !== 2) {
     return undefined;
   }
@@ -78,7 +80,25 @@ export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerC
   } else {
     lutValues = [parseLutValue(initSettings.lut[0], histogram), parseLutValue(initSettings.lut[1], histogram)];
   }
-  return new Lut().createFromMinMax(Math.min(lutValues[0], lutValues[1]), Math.max(lutValues[0], lutValues[1]));
+  if (Number.isNaN(lutValues[0]) || Number.isNaN(lutValues[1])) {
+    return undefined;
+  }
+  const sortedLutValues = [Math.min(lutValues[0], lutValues[1]), Math.max(lutValues[0], lutValues[1])];
+  const controlPoints = [
+    {
+      x: sortedLutValues[0],
+      opacity: 0,
+      color: TFEDITOR_DEFAULT_COLOR,
+    },
+    {
+      x: sortedLutValues[1],
+      opacity: 1,
+      color: TFEDITOR_DEFAULT_COLOR,
+    },
+  ];
+  // Create directly from control points instead of using
+  // `Lut.createFromMinMax()` because it applies clamping to the [0, 255] range.
+  return new Lut().createFromControlPoints(controlPoints);
 }
 
 /**
