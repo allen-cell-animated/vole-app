@@ -3,7 +3,7 @@ import { isEqual } from "lodash";
 import React, { ReactElement, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { ImageViewerApp, ViewerStateProvider } from "../../src";
+import { ImageViewerApp } from "../../src";
 import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
@@ -83,25 +83,23 @@ export default function AppWrapper(): ReactElement {
 
   return (
     <div>
-      <ViewerStateProvider>
-        <Header noNavigate>
-          <FlexRowAlignCenter $gap={12}>
-            <FlexRowAlignCenter $gap={2}>
-              <LoadModal onLoad={onLoad} />
-              {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
-            </FlexRowAlignCenter>
-            <HelpDropdown />
+      <Header noNavigate>
+        <FlexRowAlignCenter $gap={12}>
+          <FlexRowAlignCenter $gap={2}>
+            <LoadModal onLoad={onLoad} />
+            {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
           </FlexRowAlignCenter>
-        </Header>
-        {viewerProps && (
-          <ImageViewerApp
-            {...viewerProps}
-            appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
-            canvasMargin="0 0 0 0"
-            view3dRef={view3dRef}
-          />
-        )}
-      </ViewerStateProvider>
+          <HelpDropdown />
+        </FlexRowAlignCenter>
+      </Header>
+      {viewerProps && (
+        <ImageViewerApp
+          {...viewerProps}
+          appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
+          canvasMargin="0 0 0 0"
+          view3dRef={view3dRef}
+        />
+      )}
     </div>
   );
 }
