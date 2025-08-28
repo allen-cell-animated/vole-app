@@ -23,7 +23,7 @@ import {
 } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { select, useViewerState } from "../state/store";
-import { ChannelState } from "./ViewerStateProvider/types";
+import { ChannelState } from "../state/types";
 
 export type UseVolumeOptions = {
   viewerChannelSettings?: ViewerChannelSettings;

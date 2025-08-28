@@ -7,7 +7,7 @@ import { ColorArray } from "../shared/utils/colorRepresentations";
 import { createResetSlice, ResetStateSlice } from "./reset";
 import { validateState, validateStateValue } from "./util";
 
-type ViewerStateActions = {
+export type ViewerStateActions = {
   changeViewerSetting: <K extends keyof ViewerState>(key: K, value: Partial<ViewerState[K]>) => void;
   mergeViewerSettings: (value: Partial<{ [K in keyof ViewerState]: Partial<ViewerState[K]> }>) => void;
   changeChannelSetting: <K extends keyof ChannelState>(
@@ -31,7 +31,7 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set, ...etc) => ({
 
   changeViewerSetting: (key, value) => set((state) => validateStateValue(state, key, value)),
 
-  mergeViewerSettings: (settings): void => set((state) => validateState(state, settings)),
+  mergeViewerSettings: (settings) => set((state) => validateState(state, settings)),
 
   changeChannelSetting: (index, value) => {
     set(({ channelSettings }) => ({
