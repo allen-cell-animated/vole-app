@@ -1,9 +1,10 @@
-import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
+import { Lut, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
 import { shallow } from "zustand/shallow";
 
 import { RenderMode, ViewMode } from "../shared/enums";
 import { activeAxisMap, type AxisName } from "../shared/types";
 import { colorArrayToFloats } from "../shared/utils/colorRepresentations";
+import { controlPointsToLut, rampToControlPoints } from "../shared/utils/controlPointsToLut";
 import {
   alphaSliderToImageValue,
   brightnessSliderToImageValue,
@@ -11,6 +12,7 @@ import {
   gammaSliderToImageValues,
 } from "../shared/utils/sliderValuesToImageValues";
 import { select, type useViewerState, type ViewerStore } from "./store";
+import { ChannelState } from "./types";
 
 const REF_EQ = { fireImmediately: true };
 const DEEP_EQ = { fireImmediately: true, equalityFn: shallow };
@@ -174,6 +176,95 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
 
     // TODO reset channels, time, scene?
   ];
+
+  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+};
+
+export const subscribeChannelToState = (
+  store: typeof useViewerState,
+  view3d: View3d,
+  image: Volume,
+  index: number
+): (() => void) => {
+  const subscribeChannel = <T>(selector: (settings: ChannelState) => T, handler: (value: T) => void): (() => void) => {
+    return store.subscribe(
+      (store): [number, T] => [store.channelVersions[index], selector(store.channelSettings[index])],
+      ([version, value]) => {
+        if (version > 0) {
+          handler(value);
+        }
+      },
+      DEEP_EQ
+    );
+  };
+
+  const unsubscribers = [
+    subscribeChannel(select("volumeEnabled"), (volumeEnabled) => {
+      view3d.setVolumeChannelEnabled(image, index, volumeEnabled);
+      view3d.updateLuts(image);
+    }),
+
+    subscribeChannel(select("isosurfaceEnabled"), (isosurfaceEnabled) => {
+      view3d.setVolumeChannelOptions(image, index, { isosurfaceEnabled });
+    }),
+
+    subscribeChannel(select("isovalue"), (isovalue) => view3d.setVolumeChannelOptions(image, index, { isovalue })),
+
+    subscribeChannel(select("opacity"), (isosurfaceOpacity) => {
+      view3d.setVolumeChannelOptions(image, index, { isosurfaceOpacity });
+    }),
+
+    subscribeChannel(select("color"), (color) => {
+      view3d.setVolumeChannelOptions(image, index, { color });
+      view3d.updateLuts(image);
+    }),
+
+    subscribeChannel(
+      ({ controlPoints, ramp, useControlPoints }) => ({ controlPoints, ramp, useControlPoints }),
+      ({ controlPoints, ramp, useControlPoints }) => {
+        if (useControlPoints && controlPoints.length < 2) {
+          return;
+        }
+
+        const controlPointsToUse = useControlPoints ? controlPoints : rampToControlPoints(ramp);
+        const gradient = controlPointsToLut(controlPointsToUse);
+        image.setLut(index, gradient);
+        view3d.updateLuts(image);
+      }
+    ),
+
+    subscribeChannel(select("colorizeEnabled"), (colorizeEnabled) => {
+      if (colorizeEnabled) {
+        // TODO get the labelColors from the tf editor component
+        const lut = new Lut().createLabelColors(image.getHistogram(index));
+        image.setColorPalette(index, lut.lut);
+        // following subscriber will also run and call `updateLuts`
+      }
+    }),
+
+    subscribeChannel(
+      ({ colorizeEnabled, colorizeAlpha }) => ({ colorizeEnabled, colorizeAlpha }),
+      ({ colorizeEnabled, colorizeAlpha }) => {
+        image.setColorPaletteAlpha(index, colorizeEnabled ? colorizeAlpha : 0);
+        view3d.updateLuts(image);
+      }
+    ),
+  ];
+
+  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+};
+
+export const subscribeChannelsToState = (
+  store: typeof useViewerState,
+  view3d: View3d,
+  image: Volume,
+  numChannels: number
+): (() => void) => {
+  const unsubscribers: (() => void)[] = [];
+
+  for (let i = 0; i < numChannels; i++) {
+    unsubscribers.push(subscribeChannelToState(store, view3d, image, i));
+  }
 
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };
