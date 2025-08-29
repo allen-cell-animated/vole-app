@@ -24,7 +24,7 @@ import {
 } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import { select, useViewerState } from "../../state/store";
-import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
+import { subscribeChannelsToState, subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -213,9 +213,16 @@ const App: React.FC<AppProps> = (props) => {
       view3d.updateActiveChannels(newImage);
       const unsubscribeView = subscribeViewToState(useViewerState, view3d);
       const unsubscribeImage = subscribeImageToState(useViewerState, view3d, newImage);
+      const unsubscribeChannels = subscribeChannelsToState(
+        useViewerState,
+        view3d,
+        newImage,
+        newImage.channelNames.length
+      );
       removePreviousImage.current = () => {
         unsubscribeView();
         unsubscribeImage();
+        unsubscribeChannels();
         view3d.removeAllVolumes();
         removePreviousImage.current = undefined;
       };
@@ -469,7 +476,7 @@ const App: React.FC<AppProps> = (props) => {
     <StyleProvider>
       {errorAlert}
       <Layout className="cell-viewer-app" style={{ height: props.appHeight }}>
-        {channelSettings.map(({ name }, index) => (
+        {/* {channelSettings.map(({ name }, index) => (
           <ChannelUpdater
             key={`${index}_${name}`}
             index={index}
@@ -477,7 +484,7 @@ const App: React.FC<AppProps> = (props) => {
             image={image}
             version={volume.channelVersions[index]}
           />
-        ))}
+        ))} */}
         <Sider
           className="control-panel-holder"
           collapsible={true}
