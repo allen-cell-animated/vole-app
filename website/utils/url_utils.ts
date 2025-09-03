@@ -278,6 +278,8 @@ class DataParams {
    * The URL of a JSON manifest. The JSON should contain two properties:
    *  - "scenes": A string array of volume URLs.
    *  - "meta": An array of metadata dictionary objects.
+   *
+   * See `ManifestJson` for the type definition.
    */
   manifest?: string = undefined;
   /**
