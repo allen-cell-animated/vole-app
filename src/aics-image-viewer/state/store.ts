@@ -101,7 +101,6 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set) => ({
 
 export const useViewerState = create<ViewerStore>()(subscribeWithSelector(createViewerStateStore));
 
-export const select =
-  <K extends string>(key: K) =>
-  <V>(settings: Record<K, V>) =>
-    settings[key];
+export const select = <K extends string>(key: K) => {
+  return <V>(settings: Record<K, V>) => settings[key];
+};
