@@ -16,18 +16,21 @@ export type ViewerStateActions = {
   ) => void;
   initChannelSettings: (channelSettings: ChannelState[]) => void;
   applyColorPresets: (colors: ColorArray[]) => void;
+  setChannelVersions: (channelVersions: number[]) => void;
 };
 
 export type ViewerStore = ViewerState &
   ViewerStateActions &
   ResetStateSlice & {
     channelSettings: ChannelState[];
+    channelVersions: number[];
   };
 
 const createViewerStateStore: StateCreator<ViewerStore> = (set, ...etc) => ({
   ...createResetSlice(set, ...etc),
   ...getDefaultViewerState(),
   channelSettings: [],
+  channelVersions: [],
 
   changeViewerSetting: (key, value) => set((state) => validateStateValue(state, key, value)),
 
@@ -52,6 +55,8 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set, ...etc) => ({
       })),
     }));
   },
+
+  setChannelVersions: (channelVersions) => set({ channelVersions }),
 });
 
 export const useViewerState = create<ViewerStore>()(subscribeWithSelector(createViewerStateStore));
