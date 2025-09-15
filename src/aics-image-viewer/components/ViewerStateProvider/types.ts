@@ -54,7 +54,7 @@ export type ViewerSettingChangeHandlers = {
  * Looks kind of like redux's `dispatch` if you squint. `key` names the setting to update; `value` is the new
  * (potentially partial) value.
  */
-export type ViewerSettingUpdater = <K extends ViewerStateKey>(key: K, value: PartialIfObject<ViewerState[K]>) => void;
+export type ViewerSettingUpdater = <K extends ViewerStateKey>(key: K, value: Partial<ViewerState[K]>) => void;
 
 /** Settings for a single channel, as stored internally by the app */
 export interface ChannelState {

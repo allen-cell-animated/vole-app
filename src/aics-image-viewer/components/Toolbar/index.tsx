@@ -4,7 +4,7 @@ import { debounce } from "lodash";
 import React from "react";
 
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+import { select, useViewerState } from "../../state/store";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import { connectToViewerState } from "../ViewerStateProvider";
@@ -14,7 +14,6 @@ import ViewModeRadioButtons from "./ViewModeRadioButtons";
 import "./styles.css";
 
 type ToolbarProps = {
-  // From parent
   cellDownloadHref: string;
   fovDownloadHref: string;
   hasCellId: boolean;
@@ -34,13 +33,6 @@ type ToolbarProps = {
   };
 
   // From viewer state
-  imageType: ImageType;
-  renderMode: RenderMode;
-  viewMode: ViewMode;
-  autorotate: boolean;
-  showAxes: boolean;
-  showBoundingBox: boolean;
-  changeViewerSetting: ViewerSettingUpdater;
   resetToSavedViewerState: () => void;
 };
 
@@ -68,6 +60,14 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const [scrollMode, setScrollMode] = React.useState(false);
   const [showScrollBtnLeft, setScrollBtnLeft] = React.useState(false);
   const [showScrollBtnRight, setScrollBtnRight] = React.useState(false);
+
+  const imageType = useViewerState(select("imageType"));
+  const renderMode = useViewerState(select("renderMode"));
+  const viewMode = useViewerState(select("viewMode"));
+  const autorotate = useViewerState(select("autorotate"));
+  const showAxes = useViewerState(select("showAxes"));
+  const showBoundingBox = useViewerState(select("showBoundingBox"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   // Scroll buttons are only visible when toolbar can be scrolled in that direction.
   // This may change on either scroll or resize.
@@ -129,15 +129,14 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     scrollX(e.deltaY);
   };
 
-  const toggleAxis = (): void => props.changeViewerSetting("showAxes", !props.showAxes);
-  const toggleBoundingBox = (): void => props.changeViewerSetting("showBoundingBox", !props.showBoundingBox);
+  const toggleAxis = (): void => changeViewerSetting("showAxes", !showAxes);
+  const toggleBoundingBox = (): void => changeViewerSetting("showBoundingBox", !showBoundingBox);
   // TODO remove ant-btn-icon-only hack when upgrading antd
   const classForToggleBtn = (active: boolean): string =>
     "ant-btn-icon-only btn-borderless" + (active ? " btn-active" : "");
 
-  const { changeViewerSetting, resetToSavedViewerState, visibleControls, showAxes, showBoundingBox, autorotate } =
-    props;
-  const twoDMode = props.viewMode !== ViewMode.threeD;
+  const { resetToSavedViewerState, visibleControls } = props;
+  const twoDMode = viewMode !== ViewMode.threeD;
 
   const renderGroup1 =
     visibleControls.viewModeRadioButtons || visibleControls.resetCameraButton || visibleControls.autoRotateButton;
@@ -172,7 +171,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             <div className="viewer-toolbar-group">
               {visibleControls.viewModeRadioButtons && (
                 <ViewModeRadioButtons
-                  mode={props.viewMode}
+                  mode={viewMode}
                   onViewModeChange={(newMode) => changeViewerSetting("viewMode", newMode)}
                 />
               )}
@@ -187,7 +186,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Tooltip placement="bottom" title={turntableToggleTitle}>
                   <Button
                     className={classForToggleBtn(autorotate && !twoDMode)}
-                    disabled={twoDMode || props.renderMode === RenderMode.pathTrace}
+                    disabled={twoDMode || renderMode === RenderMode.pathTrace}
                     onClick={() => changeViewerSetting("autorotate", !autorotate)}
                   >
                     <ViewerIcon type="turnTable" />
@@ -199,10 +198,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           {visibleControls.fovCellSwitchControls && props.hasCellId && props.hasParentImage && (
             <div className="viewer-toolbar-group">
-              <Radio.Group
-                value={props.imageType}
-                onChange={({ target }) => changeViewerSetting("imageType", target.value)}
-              >
+              <Radio.Group value={imageType} onChange={({ target }) => changeViewerSetting("imageType", target.value)}>
                 <Radio.Button value={ImageType.segmentedCell}>Single cell</Radio.Button>
                 <Radio.Button value={ImageType.fullField}>Full field</Radio.Button>
               </Radio.Group>
@@ -213,7 +209,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             <Select
               className="select-render-setting"
               popupClassName="viewer-toolbar-dropdown"
-              value={props.renderMode}
+              value={renderMode}
               onChange={(value) => changeViewerSetting("renderMode", value)}
               getPopupContainer={getPopupContainer}
             >
@@ -277,13 +273,4 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   );
 };
 
-export default connectToViewerState(Toolbar, [
-  "imageType",
-  "renderMode",
-  "viewMode",
-  "autorotate",
-  "showAxes",
-  "showBoundingBox",
-  "changeViewerSetting",
-  "resetToSavedViewerState",
-]);
+export default connectToViewerState(Toolbar, ["resetToSavedViewerState"]);
