@@ -77,21 +77,27 @@ const selectAxisClipUpdateInfo = (axis: AxisName): ((store: ViewerStore) => Axis
 export const subscribeImageToState = (store: typeof useViewerState, view3d: View3d, image: Volume): (() => void) => {
   const axisClipUpdater = (axis: AxisName) => {
     return ({ region: [minval, maxval], slice, viewMode }: AxisClipUpdateInfo) => {
-      // Logic to determine axis clipping range, for each of x,y,z,3d slider:
-      // if slider was same as active axis view mode:  [viewerSettings.slice[axis], viewerSettings.slice[axis] + 1.0/volumeSize[axis]]
-      // if in 3d mode: viewerSettings.region[axis]
-      // else: [0,1]
       let isOrthoAxis = false;
       let axismin = 0.0;
       let axismax = 1.0;
       if (viewMode === ViewMode.threeD) {
+        // 3d mode: just use the region from state
         axismin = minval;
         axismax = maxval;
       } else {
-        isOrthoAxis = activeAxisMap[viewMode] === axis;
-        const oneSlice = 1 / image.imageInfo.volumeSize[axis];
-        axismin = isOrthoAxis ? slice : 0.0;
-        axismax = isOrthoAxis ? slice + oneSlice : 1.0;
+        // 2d mode: if this is the looked-down axis...
+        if (activeAxisMap[viewMode] === axis) {
+          // ...show a one-slice region around `slice`
+          const oneSlice = 1 / image.imageInfo.volumeSize[axis];
+          axismin = slice;
+          axismax = slice + oneSlice;
+        } else {
+          // ...otherwise, reset to [0, 1] - we probably just changed `viewMode` to 2d and want to see the whole slice
+          axismin = 0.0;
+          axismax = 1.0;
+        }
+
+        // also, "look down z" has a special mode with its own special setting
         if (axis === "z" && viewMode === ViewMode.xy) {
           view3d.setZSlice(image, Math.floor(slice * image.imageInfo.volumeSize.z));
         }
