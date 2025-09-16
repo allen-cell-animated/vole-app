@@ -253,6 +253,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   );
   const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting({ ramp }), [changeChannelSetting]);
 
+  // The temporary isovalue used while dragging the isovalue slider, which we only want to update on slider release
+  const [draggedIsovalue, setDraggedIsovalue] = useState(0);
+
   // these bits of state need their freshest, most up-to-date values available in mouse event handlers. make refs!
   const [controlPointsRef, setControlPoints] = useRefWithSetter(_setCPs, props.controlPoints);
   const [draggedPointIdxRef, setDraggedPointIdx] = useRefWithSetter(_setDraggedPointIdx, draggedPointIdx);
@@ -322,7 +325,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     } else {
       // dragging the isosurface slider
       // TODO this is converting to a histogram value and then converting back! fix!
-      changeChannelSetting({ isovalue: binToAbsolute(x, histogram) });
+      setDraggedIsovalue(binToAbsolute(x, histogram));
     }
   };
 
@@ -383,6 +386,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   };
 
   const handleDragEnd: React.PointerEventHandler<SVGSVGElement> = (event) => {
+    if (draggedPointIdx === TfEditorRampSliderHandle.Isosurface) {
+      changeChannelSetting({ isovalue: draggedIsovalue });
+    }
     setDraggedPointIdx(null);
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
@@ -555,6 +561,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   }
 
   const viewerModeString = props.useControlPoints ? "advanced" : "basic";
+  const isovalue = draggedPointIdx === TfEditorRampSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
 
   return (
     <div>
@@ -667,14 +674,17 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             </g>
           )}
           {/* isosurface slider */}
-          {props.isosurfaceEnabled && plotMinU8 <= props.isovalue && props.isovalue <= plotMaxU8 && (
-            <g className="sliders" transform={`translate(${xScale(props.isovalue)})`}>
+          {props.isosurfaceEnabled && plotMinU8 <= isovalue && isovalue <= plotMaxU8 && (
+            <g className="sliders" transform={`translate(${xScale(isovalue)})`}>
               <line className="slider-isosurface" y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
               <line
                 className="slider-click-target"
                 y1={innerHeight}
                 strokeWidth={6}
-                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
+                onPointerDown={() => {
+                  setDraggedIsovalue(props.isovalue);
+                  setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface);
+                }}
               />
             </g>
           )}
