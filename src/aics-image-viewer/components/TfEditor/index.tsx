@@ -66,6 +66,7 @@ type TfEditorProps = {
   controlPoints: ControlPoint[];
   ramp: [number, number];
   isovalue: number;
+  opacity: number;
   plotMin: number;
   plotMax: number;
 };
@@ -741,8 +742,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           }
           max={1}
           start={props.colorizeAlpha}
-          onUpdate={(values) => changeChannelSetting({ colorizeAlpha: values[0] })}
+          onUpdate={([colorizeAlpha]) => changeChannelSetting({ colorizeAlpha })}
           hideSlider={!props.colorizeEnabled}
+        />
+      )}
+
+      {/* ----- ISOSURFACE OPACITY SLIDER ----- */}
+      {props.isosurfaceEnabled && (
+        <SliderRow
+          label="Surface opacity"
+          max={255}
+          start={props.opacity}
+          onUpdate={([opacity]) => changeChannelSetting({ opacity })}
+          formatInteger={true}
         />
       )}
     </div>

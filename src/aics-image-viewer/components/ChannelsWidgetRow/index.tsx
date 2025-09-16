@@ -104,6 +104,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         plotMin={plotMin}
         plotMax={plotMax}
         isovalue={isovalue}
+        opacity={channelState.opacity}
         volumeEnabled={channelState.volumeEnabled}
         isosurfaceEnabled={channelState.isosurfaceEnabled}
       />
