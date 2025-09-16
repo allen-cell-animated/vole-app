@@ -14,7 +14,7 @@ import {
   getDefaultViewerState,
 } from "../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import type { PerAxis } from "../../src/aics-image-viewer/shared/types";
+import type { ManifestJson, MetadataRecord, PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
 import type {
   ViewerChannelSetting,
@@ -146,18 +146,22 @@ export class ViewerChannelSettingParams {
   /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
   [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string = undefined;
   /**
-   * Lookup table (LUT) to map from volume intensity to opacity. Should be two alphanumeric values
-   * separated by a colon, where the first value is the minimum and the second is the maximum.
-   * Defaults to [0, 255].
+   * Lookup table (LUT) to map from volume intensity to opacity. Should be two
+   * alphanumeric values separated by a colon, where the first value is the
+   * minimum and the second is the maximum. Defaults to [0, 255].
    *
-   * - Plain numbers are treated as direct intensity values.
-   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
+   * Min and max values are determined as following:
+   * - Plain numbers are indices of histogram bins, typically in the range [0,
+   *   255].
+   * - `v{n}` represents a raw intensity value, where `n` is a number.
+   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
+   *   range.
    * - `m{n}` represents the median multiplied by `n / 100`.
    * - `autoij` in either the min or max fields will use the "auto" algorithm
-   * from ImageJ to select the min and max.
+   *   from ImageJ to select the min and max.
    *
-   * Values will be used to determine the initial control points and ramp if those
-   * fields are not provided.
+   * Values will be used to determine the initial control points and ramp if
+   * those fields are not provided.
    *
    * @example
    * ```
@@ -270,6 +274,14 @@ class DataParams {
    * be separated by commas.
    */
   url?: string = undefined;
+  /**
+   * The URL of a JSON manifest. The JSON should contain two properties:
+   *  - "scenes": A string array of volume URLs.
+   *  - "meta": An array of metadata dictionary objects.
+   *
+   * See `ManifestJson` for the type definition.
+   */
+  manifest?: string = undefined;
   /**
    * The name of a dataset in the Cell Feature Explorer database. Used with `id`.
    */
@@ -540,7 +552,7 @@ function parseStringRegion(region: string | undefined): PerAxis<[number, number]
  * Formats a float or integer value to a string with a maximum precision for float values.
  * @param value The number to format.
  * @param maxPrecision The maximum number of significant digits to display for float values.
- * Default is 5.
+ * Default is 7.
  * @returns
  * - For integers, the integer value as a string.
  * - For floats, the float value as a string with a maximum of `maxPrecision` significant digits
@@ -553,7 +565,7 @@ function parseStringRegion(region: string | undefined): PerAxis<[number, number]
  * formatFloat(1.3999999999999999, 3) // "1.4"
  * ```
  */
-function formatFloat(value: number, maxPrecision: number = 5): string {
+function formatFloat(value: number, maxPrecision: number = 7): string {
   if (Number.isInteger(value)) {
     return value.toString();
   }
@@ -951,6 +963,61 @@ async function loadDataset(dataset: string, id: string): Promise<Partial<AppProp
   return args;
 }
 
+function isStringArray(arr: any[]): arr is string[] {
+  return Array.isArray(arr) && arr.every((item) => typeof item === "string");
+}
+
+function isValidScenesArray(arr: any[]): arr is (string | string[])[] {
+  return Array.isArray(arr) && arr.every((item) => typeof item === "string" || isStringArray(item));
+}
+
+export async function loadFromManifest(
+  manifestUrl: string
+): Promise<{ scenes: (string | string[])[]; metadata?: MetadataRecord[] }> {
+  let response: Response;
+  let manifestJson: ManifestJson;
+
+  // Fetch manifest
+  try {
+    response = await fetch(manifestUrl);
+  } catch (error) {
+    console.error(error);
+    throw new Error(`JSON manifest could not be fetched from URL '${manifestUrl}': ${error}`);
+  }
+  if (!response.ok) {
+    throw new Error(
+      `JSON manifest could not be fetched from URL '${manifestUrl}': Received ${response.status} ${response.statusText}`
+    );
+  }
+  // Parse JSON
+  try {
+    manifestJson = await response.json();
+  } catch (error) {
+    throw new Error(`Could not parse JSON manifest from URL '${manifestUrl}': ${error}`);
+  }
+
+  // Parse scenes
+  let scenes = manifestJson.scenes;
+  if (scenes === undefined) {
+    throw new Error(`No 'scenes' property was found in JSON manifest from URL '${manifestUrl}'`);
+  }
+  if (typeof scenes === "string") {
+    scenes = [scenes];
+  }
+  if (!Array.isArray(scenes) || scenes.length === 0 || !isValidScenesArray(scenes)) {
+    throw new Error(
+      `Invalid 'scenes' property found in JSON manifest from URL '${manifestUrl}'. 'scenes' must be a non-empty array of strings or string arrays.`
+    );
+  }
+
+  // Parse metadata
+  let metadata: MetadataRecord[] | undefined = undefined;
+  if (manifestJson.meta !== undefined && Array.isArray(manifestJson.meta)) {
+    metadata = manifestJson.meta;
+  }
+  return { scenes, metadata };
+}
+
 /**
  * Parses a set of URL search parameters into a set of args/props for the viewer.
  * @param urlSearchParams
@@ -971,24 +1038,32 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
   args.viewerChannelSettings = channelSettings ?? deprecatedChannelSettings;
 
   // Parse data sources (URL or dataset/id pair)
-  if (params.url) {
-    const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
-    const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url) : params.url;
-    // split encoded url into a list of one or more scenes...
-    const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
-    // ...and each scene into a list of multiple sources, if any.
-    const scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+  if (params.manifest !== undefined || params.url !== undefined) {
+    let scenes: (string | string[])[];
+
+    if (params.manifest) {
+      const { scenes: manifestScenes, metadata: manifestMetadata } = await loadFromManifest(params.manifest);
+      scenes = manifestScenes;
+      args.metadata = manifestMetadata ?? undefined;
+    } else {
+      // Load from URL
+      const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
+      const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url!) : params.url!;
+      // split encoded url into a list of one or more scenes...
+      const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
+      // ...and each scene into a list of multiple sources, if any.
+      scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+      if (getFromStorage) {
+        const metadataJson = localStorage.getItem("meta");
+        args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
+      }
+    }
 
     const firstScene = scenes[0];
     // Get the very first URL for the download button
     const firstUrl = Array.isArray(firstScene) ? firstScene[0] : firstScene;
     // If there's only one url, just pass that
     const imageUrls: string | MultisceneUrls = scenes.length > 1 || firstScene.length > 1 ? { scenes } : firstScene[0];
-
-    if (getFromStorage) {
-      const metadataJson = localStorage.getItem("meta");
-      args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
-    }
 
     args.cellId = "1";
     args.imageUrl = imageUrls;

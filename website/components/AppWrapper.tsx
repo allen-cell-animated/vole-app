@@ -9,6 +9,7 @@ import type { AppDataProps } from "../types";
 import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
+import { useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
 import Header, { HEADER_HEIGHT_PX } from "./Header";
 import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";
@@ -35,6 +36,7 @@ export default function AppWrapper(): ReactElement {
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
   const [imageTitle, setImageTitle] = useState<string | undefined>(undefined);
   const [searchParams] = useSearchParams();
+  const [errorAlert, showErrorAlert] = useErrorAlert();
 
   useEffect(() => {
     // On load, fetch parameters from the URL and location state, then merge.
@@ -45,12 +47,12 @@ export default function AppWrapper(): ReactElement {
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
       },
       (reason) => {
-        console.warn("Failed to parse URL parameters: ", reason);
+        showErrorAlert("Failed to parse URL parameters: " + reason);
         setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams]);
+  }, [location.state, searchParams, showErrorAlert]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
@@ -85,6 +87,7 @@ export default function AppWrapper(): ReactElement {
 
   return (
     <div>
+      {errorAlert}
       <ViewerStateProvider viewerSettings={viewerSettings}>
         <Header title={imageTitle} noNavigate>
           <FlexRowAlignCenter $gap={12}>
@@ -101,6 +104,7 @@ export default function AppWrapper(): ReactElement {
             appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
             canvasMargin="0 0 0 0"
             view3dRef={view3dRef}
+            showError={showErrorAlert}
             onImageTitleChange={onImageTitleChange}
           />
         )}
