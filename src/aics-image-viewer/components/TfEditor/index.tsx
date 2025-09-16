@@ -565,44 +565,48 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   return (
     <div>
-      {/* ----- PRESET BUTTONS ----- */}
-      <div className="button-row">
-        {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
-        {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
-        {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
-        {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
-        <Checkbox
-          checked={props.useControlPoints}
-          onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
-          style={{ marginLeft: "auto" }}
-        >
-          Advanced
-        </Checkbox>
-      </div>
+      {props.volumeEnabled && (
+        <>
+          {/* ----- PRESET BUTTONS ----- */}
+          <div className="button-row">
+            {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
+            {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
+            {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
+            {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
+            <Checkbox
+              checked={props.useControlPoints}
+              onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
+              style={{ marginLeft: "auto" }}
+            >
+              Advanced
+            </Checkbox>
+          </div>
 
-      {/* ----- MIN/MAX SPINBOXES ----- */}
-      {!props.useControlPoints && (
-        <div className="tf-editor-control-row ramp-row">
-          Levels min/max
-          <InputNumber
-            value={binToAbsolute(props.ramp[0], histogram)}
-            onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
-            formatter={numberFormatter}
-            min={typeRange.min}
-            max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
-            size="small"
-            controls={false}
-          />
-          <InputNumber
-            value={binToAbsolute(props.ramp[1], histogram)}
-            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
-            formatter={numberFormatter}
-            min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
-            max={typeRange.max}
-            size="small"
-            controls={false}
-          />
-        </div>
+          {/* ----- MIN/MAX SPINBOXES ----- */}
+          {!props.useControlPoints && (
+            <div className="tf-editor-control-row ramp-row">
+              Levels min/max
+              <InputNumber
+                value={binToAbsolute(props.ramp[0], histogram)}
+                onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
+                formatter={numberFormatter}
+                min={typeRange.min}
+                max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
+                size="small"
+                controls={false}
+              />
+              <InputNumber
+                value={binToAbsolute(props.ramp[1], histogram)}
+                onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
+                formatter={numberFormatter}
+                min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
+                max={typeRange.max}
+                size="small"
+                controls={false}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
@@ -634,7 +638,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* histogram bars */}
           <g ref={histogramRef} />
           {/* line between control points, and the gradient under it */}
-          <path className="line" fill={`url(#tfGradient-${props.id})`} d={areaPath} />
+          {props.volumeEnabled && <path className="line" fill={`url(#tfGradient-${props.id})`} d={areaPath} />}
           {/* plot axes */}
           <g ref={xAxisRef} className="axis" transform={`translate(0,${innerHeight})`} />
           <g ref={yAxisRef} className="axis" />
@@ -725,20 +729,22 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       </div>
 
       {/* ----- COLORIZE SLIDER ----- */}
-      <SliderRow
-        label={
-          <Checkbox
-            checked={props.colorizeEnabled}
-            onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
-          >
-            Colorize
-          </Checkbox>
-        }
-        max={1}
-        start={props.colorizeAlpha}
-        onUpdate={(values) => changeChannelSetting({ colorizeAlpha: values[0] })}
-        hideSlider={!props.colorizeEnabled}
-      />
+      {props.volumeEnabled && (
+        <SliderRow
+          label={
+            <Checkbox
+              checked={props.colorizeEnabled}
+              onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
+            >
+              Colorize
+            </Checkbox>
+          }
+          max={1}
+          start={props.colorizeAlpha}
+          onUpdate={(values) => changeChannelSetting({ colorizeAlpha: values[0] })}
+          hideSlider={!props.colorizeEnabled}
+        />
+      )}
     </div>
   );
 };
