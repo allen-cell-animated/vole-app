@@ -78,7 +78,7 @@
     stroke-width: 1px;
   }
 
-  .ramp-sliders {
+  .sliders {
     path {
       fill: var(--color-controlpanel-ramp-slider);
       cursor: ew-resize;
@@ -90,6 +90,10 @@
 
       &.slider-click-target {
         stroke: transparent;
+      }
+
+      &.slider-isosurface {
+        stroke: lime;
       }
     }
   }

@@ -57,11 +57,14 @@ type TfEditorProps = {
   height: number;
   channelData: Channel;
   changeChannelSetting: SingleChannelSettingUpdater;
+  volumeEnabled: boolean;
+  isosurfaceEnabled: boolean;
   colorizeEnabled: boolean;
   colorizeAlpha: number;
   useControlPoints: boolean;
   controlPoints: ControlPoint[];
   ramp: [number, number];
+  isovalue: number;
   plotMin: number;
   plotMax: number;
 };
@@ -521,23 +524,24 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     </Tooltip>
   );
 
-  // create one svg circle element for each control point
-  const controlPointCircles = props.useControlPoints
-    ? props.controlPoints
-        .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
-        .map((cp, i) => (
-          <circle
-            key={i}
-            className={i === selectedPointIdx ? "selected" : ""}
-            cx={xScale(controlPointToAbsolute(cp, histogram))}
-            cy={yScale(cp.opacity)}
-            style={{ fill: colorArrayToString(cp.color) }}
-            r={5}
-            onPointerDown={() => setDraggedPointIdx(i)}
-            onContextMenu={handleControlPointContextMenu}
-          />
-        ))
-    : null;
+  let controlPointCircles = null;
+  if (props.volumeEnabled && props.useControlPoints) {
+    // create one svg circle element for each control point
+    controlPointCircles = props.controlPoints
+      .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
+      .map((cp, i) => (
+        <circle
+          key={i}
+          className={i === selectedPointIdx ? "selected" : ""}
+          cx={xScale(controlPointToAbsolute(cp, histogram))}
+          cy={yScale(cp.opacity)}
+          style={{ fill: colorArrayToString(cp.color) }}
+          r={5}
+          onPointerDown={() => setDraggedPointIdx(i)}
+          onContextMenu={handleControlPointContextMenu}
+        />
+      ));
+  }
   // move selected control point to the end so it's drawn last and not occluded by other nearby points
   if (controlPointCircles !== null && selectedPointIdx !== null) {
     controlPointCircles.push(controlPointCircles.splice(selectedPointIdx, 1)[0]);
@@ -623,8 +627,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* "advanced mode" control points */}
           {controlPointCircles}
           {/* "basic mode" sliders */}
-          {!props.useControlPoints && (
-            <g className="ramp-sliders">
+          {props.volumeEnabled && !props.useControlPoints && (
+            <g className="sliders">
               {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(binToAbsolute(props.ramp[0], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
@@ -653,6 +657,18 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
                 </g>
               )}
+            </g>
+          )}
+          {/* isosurface slider */}
+          {props.isosurfaceEnabled && plotMinU8 <= props.isovalue && props.isovalue <= plotMaxU8 && (
+            <g className="sliders" transform={`translate(${xScale(props.isovalue)})`}>
+              <line className="slider-isosurface" y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+              <line
+                className="slider-click-target"
+                y1={innerHeight}
+                strokeWidth={6}
+                onPointerDown={() => console.log("isosurface yay!")}
+              />
             </g>
           )}
         </g>

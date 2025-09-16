@@ -86,7 +86,9 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   );
 
   const createTFEditor = (): React.ReactNode => {
-    const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp, plotMin, plotMax } = channelState;
+    // TODO this is most of `channelState`... should `TfEditor` just get `channelState`?
+    const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp, plotMin, plotMax, isovalue } =
+      channelState;
     return (
       <TfEditor
         id={"TFEditor" + index}
@@ -101,6 +103,9 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         ramp={ramp}
         plotMin={plotMin}
         plotMax={plotMax}
+        isovalue={isovalue}
+        volumeEnabled={channelState.volumeEnabled}
+        isosurfaceEnabled={channelState.isosurfaceEnabled}
       />
     );
   };
