@@ -139,12 +139,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     }
     return (
       <>
-        {channelState.volumeEnabled && (
-          <>
-            <h4>Volume settings:</h4>
-            {createTFEditor()}
-          </>
-        )}
+        {(channelState.volumeEnabled || channelState.isosurfaceEnabled) && createTFEditor()}
         {channelState.isosurfaceEnabled && (
           <>
             <h4>Surface settings:</h4>
