@@ -31,6 +31,10 @@ function parseLutValue(value: string, histogram: Histogram): number {
     // percentile
     const parsedValue = parseFloat(value.substring(1)) / 100.0;
     return histogram.findBinOfPercentile(parsedValue);
+  } else if (firstChar === "v") {
+    // value
+    const parsedValue = parseFloat(value.substring(1));
+    return histogram.findFractionalBinOfValue(parsedValue);
   } else {
     // plain number
     return parseFloat(value);
@@ -38,27 +42,37 @@ function parseLutValue(value: string, histogram: Histogram): number {
 }
 
 /**
- * Parses a lookup table (LUT) from a `ViewerChannelSetting` object, where the `lut` field is an
- * array of two alphanumeric strings.
+ * Parses a lookup table (LUT) from a `ViewerChannelSetting` object, where the
+ * `lut` field is an array of two alphanumeric strings.
  *
- * @returns a Lut object if the `lut` field is valid; otherwise, returns undefined.
+ * @returns a Lut object if the `lut` field is valid; otherwise, returns
+ * undefined.
  *
  * Min and max values are determined as following:
- * - Plain numbers are direct intensity values.
- * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
+ * - Plain numbers are indices of histogram bins, typically in the range [0,
+ *   255].
+ * - `v{n}` represents a raw intensity value, where `n` is a number.
+ * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
+ *   range.
  * - `m{n}` represents the median multiplied by `n / 100`.
- * - `autoij` in either the min or max fields will use the "auto" algorithm
- * from ImageJ to select the min AND max.
+ * - `autoij` in either the min or max fields will use the "auto" algorithm from
+ *   ImageJ to select the min and max.
  *
  * @example
  * ```
- * "0:255"    // min: intensity 0, max: intensity 255.
+ * "0:255"    // min: bin 0, max: bin 255.
+ * "v100:v150" // min: intensity 100, max: intensity 150.
  * "p50:p90"  // min: 50th percentile, max: 90th percentile.
  * "m1:p75"   // min: median, max: 75th percentile.
  * "autoij:0" // use Auto-IJ to calculate min and max.
  * ```
  */
 export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerChannelSetting): Lut | undefined {
+  // TODO: Consider minimizing the types/classes this function is interacting
+  // with, since it is only using `initSettings.lut` and the returned Lut is a
+  // wrapper around the control point array, e.g.
+  // `parseControlPointsFromLutParam(histogram: Histogram, lutParam: [string,
+  // string] | undefined): ControlPoint[] | undefined`
   if (initSettings.lut === undefined || initSettings.lut.length !== 2) {
     return undefined;
   }
@@ -69,7 +83,25 @@ export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerC
   } else {
     lutValues = [parseLutValue(initSettings.lut[0], histogram), parseLutValue(initSettings.lut[1], histogram)];
   }
-  return new Lut().createFromMinMax(Math.min(lutValues[0], lutValues[1]), Math.max(lutValues[0], lutValues[1]));
+  if (!Number.isFinite(lutValues[0]) || !Number.isFinite(lutValues[1])) {
+    return undefined;
+  }
+  const sortedLutValues = [Math.min(lutValues[0], lutValues[1]), Math.max(lutValues[0], lutValues[1])];
+  const controlPoints = [
+    {
+      x: sortedLutValues[0],
+      opacity: 0,
+      color: TFEDITOR_DEFAULT_COLOR,
+    },
+    {
+      x: sortedLutValues[1],
+      opacity: 1,
+      color: TFEDITOR_DEFAULT_COLOR,
+    },
+  ];
+  // Create directly from control points instead of using
+  // `Lut.createFromMinMax()` because it applies clamping to the [0, 255] range.
+  return new Lut().createFromControlPoints(controlPoints);
 }
 
 /**

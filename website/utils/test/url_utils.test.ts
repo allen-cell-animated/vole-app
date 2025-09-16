@@ -501,14 +501,14 @@ describe("Viewer state", () => {
     });
 
     it("shortens long numbers in the slice and region parameters", () => {
-      // Floats should be rounded to 5 significant digits or less
+      // Floats should be rounded to 7 significant digits or less
       let state: Partial<ViewerState> = {
         region: { x: [0.4566666666, 0.8667332], y: [0.49999999, 0.8999999], z: [0.3000000001, 0.16467883] },
         slice: { x: 0.41111186, y: 0.49999999, z: 0.677402 },
       };
       let serializedState = serializeViewerState(state, true);
-      expect(serializedState.reg).toEqual("0.45667:0.86673,0.5:0.9,0.3:0.16468");
-      expect(serializedState.slice).toEqual("0.41111,0.5,0.6774");
+      expect(serializedState.reg).toEqual("0.4566667:0.8667332,0.5:0.8999999,0.3:0.1646788");
+      expect(serializedState.slice).toEqual("0.4111119,0.5,0.677402");
     });
   });
 
