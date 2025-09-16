@@ -49,6 +49,7 @@ const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
 const enum TfEditorRampSliderHandle {
   Min = "min",
   Max = "max",
+  Isosurface = "surf",
 }
 
 type TfEditorProps = {
@@ -247,10 +248,10 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [draggedPointIdx, _setDraggedPointIdx] = useState<number | TfEditorRampSliderHandle | null>(null);
 
   const _setCPs = useCallback(
-    (p: ControlPoint[]) => changeChannelSetting({ controlPoints: p }),
+    (controlPoints: ControlPoint[]) => changeChannelSetting({ controlPoints }),
     [changeChannelSetting]
   );
-  const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting({ ramp: ramp }), [changeChannelSetting]);
+  const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting({ ramp }), [changeChannelSetting]);
 
   // these bits of state need their freshest, most up-to-date values available in mouse event handlers. make refs!
   const [controlPointsRef, setControlPoints] = useRefWithSetter(_setCPs, props.controlPoints);
@@ -311,11 +312,17 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const dragRampSlider = (handle: TfEditorRampSliderHandle, x: number): void => {
     if (handle === TfEditorRampSliderHandle.Min) {
+      // dragging the min slider
       const max = props.ramp[1];
       setRamp([Math.min(x, max), max]);
-    } else {
+    } else if (handle === TfEditorRampSliderHandle.Max) {
+      // dragging the max slider
       const min = props.ramp[0];
       setRamp([min, Math.max(x, min)]);
+    } else {
+      // dragging the isosurface slider
+      // TODO this is converting to a histogram value and then converting back! fix!
+      changeChannelSetting({ isovalue: binToAbsolute(x, histogram) });
     }
   };
 
@@ -667,7 +674,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 className="slider-click-target"
                 y1={innerHeight}
                 strokeWidth={6}
-                onPointerDown={() => console.log("isosurface yay!")}
+                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
               />
             </g>
           )}
