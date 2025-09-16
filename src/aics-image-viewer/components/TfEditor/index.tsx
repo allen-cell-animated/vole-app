@@ -629,7 +629,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <g transform={`translate(${xScale(binToAbsolute(props.ramp[0], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
-                    className="ramp-slider-click-target"
+                    className="slider-click-target"
                     y1={innerHeight}
                     strokeWidth={6}
                     onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
@@ -645,7 +645,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <g transform={`translate(${xScale(binToAbsolute(props.ramp[1], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
-                    className="ramp-slider-click-target"
+                    className="slider-click-target"
                     y1={innerHeight}
                     strokeWidth={6}
                     onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
