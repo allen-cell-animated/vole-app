@@ -811,10 +811,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         <>
           <SliderRow
             label="Surface opacity"
-            max={255}
+            max={1.0}
             start={props.opacity}
             onUpdate={([opacity]) => changeChannelSetting({ opacity })}
-            formatInteger={true}
           />
           <div className="tf-editor-control-row plot-range-row">
             <span>Export surface as:</span>
