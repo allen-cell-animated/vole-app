@@ -6,6 +6,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
 import { DTYPE_RANGE, LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
+import { IsosurfaceFormat } from "../../shared/types";
 import {
   ColorArray,
   colorArrayToObject,
@@ -69,6 +70,7 @@ type TfEditorProps = {
   opacity: number;
   plotMin: number;
   plotMax: number;
+  saveIsosurface: (format: IsosurfaceFormat) => void;
 };
 
 const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
@@ -804,15 +806,26 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         />
       )}
 
-      {/* ----- ISOSURFACE OPACITY SLIDER ----- */}
+      {/* ----- ISOSURFACE CONTROLS ----- */}
       {props.isosurfaceEnabled && (
-        <SliderRow
-          label="Surface opacity"
-          max={255}
-          start={props.opacity}
-          onUpdate={([opacity]) => changeChannelSetting({ opacity })}
-          formatInteger={true}
-        />
+        <>
+          <SliderRow
+            label="Surface opacity"
+            max={255}
+            start={props.opacity}
+            onUpdate={([opacity]) => changeChannelSetting({ opacity })}
+            formatInteger={true}
+          />
+          <div className="tf-editor-control-row plot-range-row">
+            <span>Export surface as:</span>
+            <Button size="small" onClick={() => props.saveIsosurface("GLTF")}>
+              GLTF
+            </Button>
+            <Button size="small" onClick={() => props.saveIsosurface("STL")}>
+              STL
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );

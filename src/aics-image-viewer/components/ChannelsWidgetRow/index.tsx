@@ -40,6 +40,11 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     [changeChannelSetting, index]
   );
 
+  const saveThisIsosurface = useCallback(
+    (format: IsosurfaceFormat) => saveIsosurface(index, format),
+    [saveIsosurface, index]
+  );
+
   const volumeCheckHandler = ({ target }: CheckboxChangeEvent): void => {
     changeChannelSetting(index, { volumeEnabled: target.checked });
   };
@@ -107,6 +112,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         opacity={channelState.opacity}
         volumeEnabled={channelState.volumeEnabled}
         isosurfaceEnabled={channelState.isosurfaceEnabled}
+        saveIsosurface={saveThisIsosurface}
       />
     );
   };
