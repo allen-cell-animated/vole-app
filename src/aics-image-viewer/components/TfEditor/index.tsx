@@ -115,6 +115,27 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
+// / \  / \
+// \  \/  /
+//  \    /
+//   *--*
+// TODO make this respond properly to `size`
+const isovalueHandleSymbol: d3.SymbolType = {
+  draw: (context, size) => {
+    const TICK_LENGTH = 5;
+    const HEIGHT = TICK_LENGTH / Math.SQRT2;
+
+    context.moveTo(1, 0);
+    context.lineTo(HEIGHT + 1, -HEIGHT);
+    context.lineTo(HEIGHT + 1 - Math.SQRT2, -HEIGHT - Math.SQRT2);
+    context.lineTo(0, -1.8284);
+    context.lineTo(-HEIGHT - 1 + Math.SQRT2, -HEIGHT - Math.SQRT2);
+    context.lineTo(-HEIGHT - 1, -HEIGHT);
+    context.lineTo(-1, 0);
+    context.closePath();
+  },
+};
+
 function binToAbsolute(value: number, histogram: Histogram): number {
   return histogram.getValueFromBinIndex(value);
 }
@@ -445,6 +466,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
 
+  const isovalueHandlePath = useMemo(() => d3.symbol().type(isovalueHandleSymbol).size(1)() ?? undefined, []);
+
   // The below `useCallback`s are used as "ref callbacks" - passed as the `ref` prop of SVG elements in order to render
   // these elements' content using D3. They are called when the ref'd component mounts and unmounts, and whenever their
   // identity changes (i.e. whenever their dependencies change).
@@ -681,7 +704,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* isosurface slider */}
           {props.isosurfaceEnabled && plotMinU8 <= isovalue && isovalue <= plotMaxU8 && (
             <g className="sliders" transform={`translate(${xScale(isovalue)})`}>
-              <line className="slider-isosurface" y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
+              <line className="slider-isosurface" y1={innerHeight} strokeDasharray="4,4" strokeWidth={2} />
               <line
                 className="slider-click-target"
                 y1={innerHeight}
@@ -690,6 +713,18 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   setDraggedIsovalue(props.isovalue);
                   setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface);
                 }}
+              />
+              {/* TODO clean up css! */}
+              <path
+                style={{ fill: "lime" }}
+                d={isovalueHandlePath}
+                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
+              />
+              <path
+                style={{ fill: "lime" }}
+                d={isovalueHandlePath}
+                transform={`translate(0,${innerHeight}) rotate(180)`}
+                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
               />
             </g>
           )}
