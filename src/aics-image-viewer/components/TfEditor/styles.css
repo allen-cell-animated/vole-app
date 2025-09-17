@@ -32,8 +32,13 @@
     min-height: 24px;
     gap: 5px;
 
-    &.ramp-row {
+    &.slider-range-row {
       margin-top: 15px;
+      justify-content: space-between;
+
+      & > span > :not(:last-child) {
+        margin-right: 5px;
+      }
     }
 
     &.plot-range-row {
