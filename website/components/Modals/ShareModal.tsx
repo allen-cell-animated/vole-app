@@ -20,11 +20,8 @@ type ShareModalProps = {
 const ModalContainer = styled.div``;
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
-  const selectViewerSettingsShallow = useShallow(selectViewerSettings);
-  const selectChannelSettingsShallow = useShallow((store: ViewerStore) => store.channelSettings);
-
-  const viewerSettings = useViewerState(selectViewerSettingsShallow);
-  const channelSettings = useViewerState(selectChannelSettingsShallow);
+  const viewerSettings = useViewerState(useShallow(selectViewerSettings));
+  const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
   const [showModal, setShowModal] = useState(false);
   const modalContainerRef = useRef<HTMLDivElement>(null);
