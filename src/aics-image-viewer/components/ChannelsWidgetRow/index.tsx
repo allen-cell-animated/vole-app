@@ -116,6 +116,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
           <InputNumber
             value={channelState.isovalue}
             onChange={(isovalue) => isovalue !== null && changeSettingForThisChannel({ isovalue })}
+            formatter={(v) => (v === undefined ? "" : Number(v).toFixed(0))}
             min={range.min}
             max={range.max}
             size="small"
