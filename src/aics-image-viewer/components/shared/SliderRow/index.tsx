@@ -1,5 +1,6 @@
-import React from "react";
 import { NouisliderProps } from "nouislider-react";
+import React from "react";
+
 import SmarterSlider from "../SmarterSlider";
 
 import "./styles.css";
@@ -9,6 +10,7 @@ type SliderRowProps = {
   start?: number | number[];
   step?: number;
   formatInteger?: boolean;
+  min?: number;
   max?: number;
   onUpdate?: NouisliderProps["onUpdate"];
   onChange?: NouisliderProps["onChange"];
@@ -28,7 +30,7 @@ const SliderRow: React.FC<SliderRowProps> = (props) => (
         ? props.children
         : !props.hideSlider && (
             <SmarterSlider
-              range={{ min: 0, max: props.max }}
+              range={{ min: props.min ?? 0, max: props.max }}
               start={props.start}
               connect={true}
               tooltips={true}
