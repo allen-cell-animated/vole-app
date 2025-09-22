@@ -3,7 +3,7 @@ import { Button, Checkbox, List } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
-import { ISOSURFACE_OPACITY_SLIDER_MAX } from "../../shared/constants";
+import { DTYPE_RANGE, ISOSURFACE_OPACITY_SLIDER_MAX } from "../../shared/constants";
 import { IsosurfaceFormat } from "../../shared/types";
 import { colorArrayToObject, ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
 import {
@@ -105,28 +105,32 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     );
   };
 
-  const renderSurfaceControls = (): React.ReactNode => (
-    <div>
-      <SliderRow
-        label="Isovalue"
-        max={255}
-        start={channelState.isovalue}
-        onChange={onIsovalueChange}
-        formatInteger={true}
-      />
-      <SliderRow
-        label="Opacity"
-        max={ISOSURFACE_OPACITY_SLIDER_MAX}
-        start={channelState.opacity * ISOSURFACE_OPACITY_SLIDER_MAX}
-        onChange={onOpacityChange}
-        formatInteger={true}
-      />
-      <div className="button-row">
-        <Button onClick={() => saveIsosurface(index, "GLTF")}>Export GLTF</Button>
-        <Button onClick={() => saveIsosurface(index, "STL")}>Export STL</Button>
+  const renderSurfaceControls = (): React.ReactNode => {
+    const range = DTYPE_RANGE[props.channelDataForChannel.dtype];
+    return (
+      <div>
+        <SliderRow
+          label="Isovalue"
+          min={range.min}
+          max={range.max}
+          start={channelState.isovalue}
+          onChange={onIsovalueChange}
+          formatInteger={true}
+        />
+        <SliderRow
+          label="Opacity"
+          max={ISOSURFACE_OPACITY_SLIDER_MAX}
+          start={channelState.opacity * ISOSURFACE_OPACITY_SLIDER_MAX}
+          onChange={onOpacityChange}
+          formatInteger={true}
+        />
+        <div className="button-row">
+          <Button onClick={() => saveIsosurface(index, "GLTF")}>Export GLTF</Button>
+          <Button onClick={() => saveIsosurface(index, "STL")}>Export STL</Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderControls = (): React.ReactNode => {
     if (!channelState.volumeEnabled && !channelState.isosurfaceEnabled) {
