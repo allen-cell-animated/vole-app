@@ -1,5 +1,5 @@
 import { Channel } from "@aics/vole-core";
-import { Button, Checkbox, List } from "antd";
+import { Button, Checkbox, InputNumber, List } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
@@ -47,10 +47,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const isosurfaceCheckHandler = ({ target }: CheckboxChangeEvent): void => {
     changeChannelSetting(index, { isosurfaceEnabled: target.checked });
   };
-
-  const onIsovalueChange = ([newValue]: number[]): void => changeSettingForThisChannel({ isovalue: newValue });
-  const onOpacityChange = ([newValue]: number[]): void =>
-    changeSettingForThisChannel({ opacity: newValue / ISOSURFACE_OPACITY_SLIDER_MAX });
 
   const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
     const color = colorObjectToArray(newRGB);
@@ -114,14 +110,24 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
           min={range.min}
           max={range.max}
           start={channelState.isovalue}
-          onChange={onIsovalueChange}
+          onChange={([isovalue]) => changeSettingForThisChannel({ isovalue })}
           formatInteger={true}
-        />
+        >
+          <InputNumber
+            value={channelState.isovalue}
+            onChange={(isovalue) => isovalue !== null && changeSettingForThisChannel({ isovalue })}
+            min={range.min}
+            max={range.max}
+            size="small"
+            controls={false}
+            style={{ width: "64px", marginLeft: "8px" }}
+          />
+        </SliderRow>
         <SliderRow
           label="Opacity"
           max={ISOSURFACE_OPACITY_SLIDER_MAX}
           start={channelState.opacity * ISOSURFACE_OPACITY_SLIDER_MAX}
-          onChange={onOpacityChange}
+          onChange={([opacity]) => changeSettingForThisChannel({ opacity: opacity / ISOSURFACE_OPACITY_SLIDER_MAX })}
           formatInteger={true}
         />
         <div className="button-row">
