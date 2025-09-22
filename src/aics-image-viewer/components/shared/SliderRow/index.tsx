@@ -27,18 +27,20 @@ const SliderRow: React.FC<SliderRowProps> = (props) => (
     <div className="control-name">{props.label}</div>
     <div className="control">
       {props.start !== undefined && !props.hideSlider && (
-        <SmarterSlider
-          range={{ min: props.min ?? 0, max: props.max }}
-          start={props.start}
-          connect={true}
-          tooltips={true}
-          behaviour="drag"
-          format={props.formatInteger ? INTEGER_FORMATTER : undefined}
-          onUpdate={props.onUpdate}
-          onChange={props.onChange}
-        />
+        <div className="control-slider">
+          <SmarterSlider
+            range={{ min: props.min ?? 0, max: props.max }}
+            start={props.start}
+            connect={true}
+            tooltips={true}
+            behaviour="drag"
+            format={props.formatInteger ? INTEGER_FORMATTER : undefined}
+            onUpdate={props.onUpdate}
+            onChange={props.onChange}
+          />
+        </div>
       )}
-      {props.children}
+      {props.children && <div className="control-extra">{props.children}</div>}
     </div>
   </div>
 );
