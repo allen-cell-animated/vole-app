@@ -1,10 +1,12 @@
 import { View3d } from "@aics/vole-core";
+import { isEqual } from "lodash";
 import React, { ReactElement, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
 import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -31,7 +33,8 @@ export default function AppWrapper(): ReactElement {
   const navigation = useNavigate();
 
   const view3dRef = React.useRef<View3d | null>(null);
-  const [viewerSettings, setViewerSettings] = useState<Partial<ViewerState>>({});
+  const prevViewerSettingsRef = React.useRef<Partial<ViewerState> | undefined>(undefined);
+  const mergeViewerSettings = useViewerState(select("mergeViewerSettings"));
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
   const [searchParams] = useSearchParams();
 
@@ -40,16 +43,20 @@ export default function AppWrapper(): ReactElement {
     const locationArgs = location.state as AppDataProps;
     parseViewerUrlParams(searchParams).then(
       ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
-        setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
+
+        const viewerSettings = { ...urlViewerSettings, ...locationArgs?.viewerSettings };
+        if (viewerSettings && !isEqual(viewerSettings, prevViewerSettingsRef.current)) {
+          mergeViewerSettings(viewerSettings);
+          prevViewerSettingsRef.current = viewerSettings;
+        }
       },
       (reason) => {
         console.warn("Failed to parse URL parameters: ", reason);
-        setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams]);
+  }, [location.state, searchParams, mergeViewerSettings]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
@@ -76,7 +83,7 @@ export default function AppWrapper(): ReactElement {
 
   return (
     <div>
-      <ViewerStateProvider viewerSettings={viewerSettings}>
+      <ViewerStateProvider>
         <Header noNavigate>
           <FlexRowAlignCenter $gap={12}>
             <FlexRowAlignCenter $gap={2}>
