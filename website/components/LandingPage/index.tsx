@@ -256,10 +256,11 @@ export default function LandingPage(): ReactElement {
     });
   }, [navigation, searchParams]);
 
-  const onClickLoad = (appProps: AppDataProps): void => {
+  const onClickLoad = (appProps: AppDataProps, hideTitle?: boolean): void => {
     // TODO: Make URL search params from the appProps and append it to the viewer URL so the URL can be shared directly.
     // Alternatively, AppWrapper should manage syncing URL and viewer props.
-    navigation(`/viewer?url=${encodeImageUrlProp(appProps.imageUrl)}`, {
+    const hideTitleParam = hideTitle ? "&hideTitle=true" : "";
+    navigation(`/viewer?url=${encodeImageUrlProp(appProps.imageUrl)}${hideTitleParam}`, {
       state: appProps,
     });
   };
@@ -272,7 +273,7 @@ export default function LandingPage(): ReactElement {
       <DatasetCard key={index}>
         <h3>{dataset.name}</h3>
         {dataset.description && <p>{dataset.description}</p>}
-        <Button type="primary" onClick={() => onClickLoad(dataset.loadParams)}>
+        <Button type="primary" onClick={() => onClickLoad(dataset.loadParams, dataset.hideTitle)}>
           Load<VisuallyHidden> dataset {dataset.name}</VisuallyHidden>
         </Button>
       </DatasetCard>
@@ -312,10 +313,10 @@ export default function LandingPage(): ReactElement {
       </p>
     ) : null;
 
-    const loadParams = project.loadParams;
+    const { loadParams, hideTitle } = project;
     const loadButton = loadParams ? (
       <div>
-        <Button type="primary" onClick={() => onClickLoad(loadParams)}>
+        <Button type="primary" onClick={() => onClickLoad(loadParams, hideTitle)}>
           Load<VisuallyHidden> dataset {project.name}</VisuallyHidden>
         </Button>
       </div>

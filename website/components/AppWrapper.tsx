@@ -69,10 +69,12 @@ export default function AppWrapper(): ReactElement {
 
   const onImageTitleChange = useCallback(
     (title: string | undefined) => {
-      setImageTitle(title);
-      document.title = title ? `Vol-E — ${title}` : "Vol-E";
+      if (!searchParams.get("hideTitle")) {
+        setImageTitle(title);
+        document.title = title ? `Vol-E — ${title}` : "Vol-E";
+      }
     },
-    [setImageTitle]
+    [setImageTitle, searchParams]
   );
 
   const onLoad = (appProps: AppDataProps): void => {
