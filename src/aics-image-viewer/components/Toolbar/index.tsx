@@ -7,7 +7,6 @@ import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { select, useViewerState } from "../../state/store";
 
 import ViewerIcon from "../shared/ViewerIcon";
-import { connectToViewerState } from "../ViewerStateProvider";
 import DownloadButton from "./DownloadButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
@@ -22,6 +21,7 @@ type ToolbarProps = {
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
+  resetToSavedViewerState: () => void;
 
   visibleControls: {
     autoRotateButton: boolean;
@@ -31,9 +31,6 @@ type ToolbarProps = {
     showAxesButton: boolean;
     showBoundingBoxButton: boolean;
   };
-
-  // From viewer state
-  resetToSavedViewerState: () => void;
 };
 
 const RESIZE_DEBOUNCE_DELAY = 50;
@@ -135,7 +132,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const classForToggleBtn = (active: boolean): string =>
     "ant-btn-icon-only btn-borderless" + (active ? " btn-active" : "");
 
-  const { resetToSavedViewerState, visibleControls } = props;
+  const { visibleControls } = props;
   const twoDMode = viewMode !== ViewMode.threeD;
 
   const renderGroup1 =
@@ -160,7 +157,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       <div className="viewer-toolbar" ref={barRef} onWheel={wheelHandler} onScroll={checkScrollBtnVisible}>
         <div className="viewer-toolbar-left" ref={leftRef}>
           <Tooltip placement="bottom" title="Reset to initial settings" trigger={["focus", "hover"]}>
-            <Button className="ant-btn-icon-only btn-borderless" onClick={resetToSavedViewerState}>
+            <Button className="ant-btn-icon-only btn-borderless" onClick={props.resetToSavedViewerState}>
               <ReloadOutlined />
               <span style={visuallyHiddenStyle}>Reset to initial settings</span>
             </Button>
@@ -273,4 +270,4 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   );
 };
 
-export default connectToViewerState(Toolbar, ["resetToSavedViewerState"]);
+export default Toolbar;
