@@ -8,6 +8,7 @@ export type DatasetEntry = {
   name: string;
   description?: string;
   loadParams: AppDataProps;
+  hideTitle?: boolean;
 };
 
 export type PublicationInfo = {
@@ -23,4 +24,5 @@ export type ProjectEntry = {
   loadParams?: AppDataProps;
   datasets?: DatasetEntry[];
   inReview?: boolean;
+  hideTitle?: boolean;
 };
