@@ -1,4 +1,5 @@
 import { CameraState, ControlPoint } from "@aics/vole-core";
+import { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 
 import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
@@ -930,7 +931,8 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
 }
 
 //// FULL URL PARSING //////////////////////
-async function loadDataset(db: FirebaseRequest, dataset: string, id: string): Promise<Partial<AppProps>> {
+async function loadDataset(firestore: FirebaseFirestore, dataset: string, id: string): Promise<Partial<AppProps>> {
+  const db = new FirebaseRequest(firestore);
   const args: Partial<AppProps> = {};
 
   const datasets = await db.getAvailableDatasets();
@@ -1023,7 +1025,7 @@ export async function loadFromManifest(
  */
 export async function parseViewerUrlParams(
   urlSearchParams: URLSearchParams,
-  db?: FirebaseRequest
+  firestore?: FirebaseFirestore
 ): Promise<{
   args: Partial<AppProps>;
   viewerSettings: Partial<ViewerState>;
@@ -1090,9 +1092,9 @@ export async function parseViewerUrlParams(
         ],
       };
     }
-  } else if (params.dataset && params.id && db) {
+  } else if (params.dataset && params.id && firestore) {
     // ?dataset=aics_hipsc_v2020.1&id=232265
-    const datasetArgs = await loadDataset(db, params.dataset, params.id);
+    const datasetArgs = await loadDataset(firestore, params.dataset, params.id);
     args = { ...args, ...datasetArgs };
   }
 

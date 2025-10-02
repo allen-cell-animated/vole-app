@@ -1,10 +1,9 @@
-import firestore from "./firebase/configure-firebase";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
-import FirebaseRequest from "../src/aics-image-viewer/shared/utils/firebase";
 import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
+import firestore from "./firebase/configureFirebase";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
@@ -19,8 +18,6 @@ console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
 console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
 const basename = VOLEAPP_BASENAME;
-
-const firebaseRequest = new FirebaseRequest(firestore);
 
 // Decode URL path if it was encoded for GitHub pages or uses hash routing.
 const locationUrl = new URL(window.location.toString());
@@ -40,7 +37,7 @@ const routes: RouteObject[] = [
     lazy: async () => {
       const LandingPage = (await import("../website/components/LandingPage")).default;
       return {
-        Component: () => <LandingPage firebaseDb={firebaseRequest} />,
+        Component: () => <LandingPage firestore={firestore} />,
       };
     },
     errorElement: <ErrorPage />,
@@ -50,7 +47,7 @@ const routes: RouteObject[] = [
     lazy: async () => {
       const AppWrapper = (await import("../website/components/AppWrapper")).default;
       return {
-        Component: () => <AppWrapper firebaseDb={firebaseRequest} />,
+        Component: () => <AppWrapper firestore={firestore} />,
       };
     },
     errorElement: <ErrorPage />,

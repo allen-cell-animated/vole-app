@@ -60,6 +60,9 @@ function isDevOrStagingSite(host: string): boolean {
 
 class FirebaseRequest {
   private firestore: FirebaseFirestore;
+  private fileInfoPath: string;
+
+  // TODO: These properties are private and unused. Remove?
   private collectionRef: DocumentReference;
   private featuresDataPath: string;
   private cellLineDataPath: string;
@@ -68,7 +71,6 @@ class FirebaseRequest {
   private volumeViewerDataRoot: string;
   private featuresDisplayOrder: string[];
   private datasetId: string;
-  private fileInfoPath: string;
   private featuresDataOrder: string[];
   private albumPath: string;
   private featureDefsPath: string;

@@ -1,11 +1,11 @@
 import { View3d } from "@aics/vole-core";
+import { FirebaseFirestore } from "@firebase/firestore-types";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
 import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
-import FirebaseRequest from "../../src/aics-image-viewer/shared/utils/firebase";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -25,7 +25,7 @@ const DEFAULT_APP_PROPS: AppDataProps = {
 };
 
 type AppWrapperProps = {
-  firebaseDb: FirebaseRequest;
+  firestore: FirebaseFirestore;
 };
 
 /**
@@ -46,7 +46,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   useEffect(() => {
     // On load, fetch parameters from the URL and location state, then merge.
     const locationArgs = location.state as AppDataProps;
-    parseViewerUrlParams(searchParams, props.firebaseDb).then(
+    parseViewerUrlParams(searchParams, props.firestore).then(
       ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
         setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
@@ -57,7 +57,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams, showErrorAlert, props.firebaseDb]);
+  }, [location.state, searchParams, showErrorAlert, props.firestore]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
