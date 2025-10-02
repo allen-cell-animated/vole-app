@@ -6,8 +6,9 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
 import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import { parseViewerUrlParams } from "../../src/aics-image-viewer/shared/utils/urlParsing";
 import type { AppDataProps } from "../types";
-import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
+import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
 import { useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";

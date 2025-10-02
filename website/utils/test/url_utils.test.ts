@@ -8,7 +8,6 @@ import {
   getDefaultViewerState,
 } from "../../../src/aics-image-viewer/shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../../src/aics-image-viewer/shared/enums";
-import { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
 import {
   CONTROL_POINTS_REGEX,
   deserializeViewerChannelSetting,
@@ -26,7 +25,8 @@ import {
   serializeViewerUrlParams,
   ViewerChannelSettingParams,
   ViewerStateParams,
-} from "../url_utils";
+} from "../../../src/aics-image-viewer/shared/utils/urlParsing";
+import { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
 
 const defaultSettings: ViewerChannelSetting = {
   match: 0,
