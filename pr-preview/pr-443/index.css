@@ -1,0 +1,41 @@
+html,
+body{
+  height:100%;
+  width:100%;
+  font-family:"Open Sans", "Overpass", Arial, sans-serif;
+}
+
+.cell-viewer-app{
+  width:100vw;
+}
+
+#onetrust-consent-sdk #onetrust-banner-sdk{
+    border-radius:5px;
+  }
+
+#onetrust-consent-sdk #onetrust-banner-sdk #onetrust-pc-btn-handler{
+      font-weight:400;
+      padding:12px 10px;
+    }
+
+#onetrust-consent-sdk h1,
+  #onetrust-consent-sdk h2,
+  #onetrust-consent-sdk h3,
+  #onetrust-consent-sdk h4,
+  #onetrust-consent-sdk p,
+  #onetrust-consent-sdk #onetrust-policy-text{
+    color:#323233 !important;
+  }
+
+#onetrust-consent-sdk #onetrust-pc-sdk #ot-pc-title{
+      margin-top:20px;
+    }
+
+#onetrust-consent-sdk #accept-recommended-btn-handler,
+  #onetrust-consent-sdk #onetrust-accept-btn-handler,
+  #onetrust-consent-sdk .save-preference-btn-handler{
+    border-radius:6px;
+  }
+
+
+/*# sourceMappingURL=index.css.map*/
