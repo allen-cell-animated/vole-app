@@ -1,6 +1,7 @@
-import { DocumentReference, QuerySnapshot, DocumentData } from "@firebase/firestore-types";
+import { DocumentData, DocumentReference, FirebaseFirestore, QuerySnapshot } from "@firebase/firestore-types";
 
-import { firestore } from "./configure-firebase";
+// TODO: These types are shared with Cell Feature Explorer. Can they be moved to
+// a shared package?
 
 export interface DatasetMetaData {
   name: string;
@@ -20,8 +21,7 @@ export interface DatasetMetaData {
     totalFOVs: number;
   };
 }
-
-interface FileInfo {
+export interface FileInfo {
   CellId: string;
   CellLineName: string;
   FOVId: string;
@@ -38,6 +38,7 @@ function isDevOrStagingSite(host: string): boolean {
 }
 
 class FirebaseRequest {
+  private firestore: FirebaseFirestore;
   private collectionRef: DocumentReference;
   private featuresDataPath: string;
   private cellLineDataPath: string;
@@ -50,7 +51,9 @@ class FirebaseRequest {
   private featuresDataOrder: string[];
   private albumPath: string;
   private featureDefsPath: string;
-  constructor() {
+
+  constructor(firestore: FirebaseFirestore) {
+    this.firestore = firestore;
     this.featuresDataPath = "";
     this.cellLineDataPath = "";
     this.thumbnailRoot = "";
@@ -66,15 +69,15 @@ class FirebaseRequest {
   }
 
   private getDoc = (docPath: string) => {
-    return firestore.doc(docPath).get();
+    return this.firestore.doc(docPath).get();
   };
 
   private getCollection = (collection: string) => {
-    return firestore.collection(collection).get();
+    return this.firestore.collection(collection).get();
   };
 
   public getAvailableDatasets = () => {
-    return firestore
+    return this.firestore
       .collection("dataset-descriptions")
       .get()
       .then((snapShot: QuerySnapshot) => {
@@ -99,11 +102,11 @@ class FirebaseRequest {
   };
 
   public setCollectionRef = (id: string) => {
-    this.collectionRef = firestore.collection("cfe-datasets").doc(id);
+    this.collectionRef = this.firestore.collection("cfe-datasets").doc(id);
   };
 
   private getManifest = (ref: string) => {
-    return firestore
+    return this.firestore
       .doc(ref)
       .get()
       .then((manifestDoc: DocumentData) => {

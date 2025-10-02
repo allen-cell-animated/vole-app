@@ -6,6 +6,7 @@ import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
+import FirebaseRequest from "../../../src/aics-image-viewer/shared/utils/firebase";
 import { BannerVideo } from "../../assets/videos";
 import type { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
 import { encodeImageUrlProp, parseViewerUrlParams } from "../../utils/url_utils";
@@ -236,7 +237,11 @@ const CookieSettingsButton = styled(Button)`
   }
 `;
 
-export default function LandingPage(): ReactElement {
+type LandingPageProps = {
+  firebaseDb: FirebaseRequest;
+};
+
+export default function LandingPage(props: LandingPageProps): ReactElement {
   // Rendering
   const navigation = useNavigate();
   const [searchParams] = useSearchParams();
@@ -245,7 +250,7 @@ export default function LandingPage(): ReactElement {
     // Check if the URL used to open the landing page has arguments;
     // if so, assume that this is an old URL intended to go to the viewer.
     // Navigate to the viewer while preserving URL arguments.
-    parseViewerUrlParams(searchParams).then(({ args }) => {
+    parseViewerUrlParams(searchParams, props.firebaseDb).then(({ args }) => {
       if (Object.keys(args).length > 0) {
         console.log("Detected URL parameters. Redirecting from landing page to viewer.");
         navigation("viewer" + "?" + searchParams.toString(), {
@@ -254,7 +259,7 @@ export default function LandingPage(): ReactElement {
         });
       }
     });
-  }, [navigation, searchParams]);
+  }, [navigation, searchParams, props.firebaseDb]);
 
   const onClickLoad = (appProps: AppDataProps, hideTitle?: boolean): void => {
     // TODO: Make URL search params from the appProps and append it to the viewer URL so the URL can be shared directly.

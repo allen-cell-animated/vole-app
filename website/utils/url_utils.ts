@@ -1,7 +1,6 @@
 import { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
-import FirebaseRequest, { type DatasetMetaData } from "../../public/firebase";
 import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 import type {
   ChannelState,
@@ -16,6 +15,7 @@ import {
 import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
 import type { ManifestJson, MetadataRecord, PerAxis } from "../../src/aics-image-viewer/shared/types";
 import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
+import FirebaseRequest, { DatasetMetaData } from "../../src/aics-image-viewer/shared/utils/firebase";
 import type {
   ViewerChannelSetting,
   ViewerChannelSettings,
@@ -930,8 +930,7 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
 }
 
 //// FULL URL PARSING //////////////////////
-async function loadDataset(dataset: string, id: string): Promise<Partial<AppProps>> {
-  const db = new FirebaseRequest();
+async function loadDataset(db: FirebaseRequest, dataset: string, id: string): Promise<Partial<AppProps>> {
   const args: Partial<AppProps> = {};
 
   const datasets = await db.getAvailableDatasets();
@@ -1022,7 +1021,10 @@ export async function loadFromManifest(
  * Parses a set of URL search parameters into a set of args/props for the viewer.
  * @param urlSearchParams
  */
-export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Promise<{
+export async function parseViewerUrlParams(
+  urlSearchParams: URLSearchParams,
+  db?: FirebaseRequest
+): Promise<{
   args: Partial<AppProps>;
   viewerSettings: Partial<ViewerState>;
 }> {
@@ -1088,9 +1090,9 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
         ],
       };
     }
-  } else if (params.dataset && params.id) {
+  } else if (params.dataset && params.id && db) {
     // ?dataset=aics_hipsc_v2020.1&id=232265
-    const datasetArgs = await loadDataset(params.dataset, params.id);
+    const datasetArgs = await loadDataset(db, params.dataset, params.id);
     args = { ...args, ...datasetArgs };
   }
 

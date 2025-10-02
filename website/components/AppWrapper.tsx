@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ImageViewerApp, ViewerStateProvider } from "../../src";
 import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import FirebaseRequest from "../../src/aics-image-viewer/shared/utils/firebase";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp, parseViewerUrlParams } from "../utils/url_utils";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -23,11 +24,15 @@ const DEFAULT_APP_PROPS: AppDataProps = {
   viewerChannelSettings: getDefaultViewerChannelSettings(),
 };
 
+type AppWrapperProps = {
+  firebaseDb: FirebaseRequest;
+};
+
 /**
  * Wrapper around the main ImageViewer component. Handles the collection of parameters from the
  * URL and location state (from routing) to pass to the viewer.
  */
-export default function AppWrapper(): ReactElement {
+export default function AppWrapper(props: AppWrapperProps): ReactElement {
   const location = useLocation();
   const navigation = useNavigate();
 
@@ -41,7 +46,7 @@ export default function AppWrapper(): ReactElement {
   useEffect(() => {
     // On load, fetch parameters from the URL and location state, then merge.
     const locationArgs = location.state as AppDataProps;
-    parseViewerUrlParams(searchParams).then(
+    parseViewerUrlParams(searchParams, props.firebaseDb).then(
       ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
         setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
