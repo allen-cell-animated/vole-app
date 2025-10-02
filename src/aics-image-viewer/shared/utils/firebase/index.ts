@@ -1,4 +1,10 @@
-import { DocumentData, DocumentReference, FirebaseFirestore, QuerySnapshot } from "@firebase/firestore-types";
+import {
+  DocumentData,
+  DocumentReference,
+  DocumentSnapshot,
+  FirebaseFirestore,
+  QuerySnapshot,
+} from "@firebase/firestore-types";
 
 // TODO: These types are shared with Cell Feature Explorer. Can they be moved to
 // a shared package?
@@ -30,6 +36,21 @@ export interface FileInfo {
   fovVolumeviewerPath: string;
   thumbnailPath: string;
   volumeviewerPath: string;
+}
+
+interface ManifestDocumentData extends DocumentData {
+  featuresDataPath: string;
+  cellLineDataPath: string;
+  thumbnailRoot: string;
+  downloadRoot: string;
+  volumeViewerDataRoot: string;
+  featuresDisplayOrder: string[];
+  defaultXAxis: string;
+  defaultYAxis: string;
+  fileInfoPath: string;
+  featuresDataOrder: string[];
+  albumPath: string;
+  featureDefsPath: string;
 }
 
 function isDevOrStagingSite(host: string): boolean {
@@ -68,15 +89,15 @@ class FirebaseRequest {
     this.collectionRef = firestore.collection("cfe-datasets").doc("v1");
   }
 
-  private getDoc = (docPath: string) => {
+  private getDoc = (docPath: string): Promise<DocumentSnapshot<DocumentData>> => {
     return this.firestore.doc(docPath).get();
   };
 
-  private getCollection = (collection: string) => {
+  private getCollection = (collection: string): Promise<QuerySnapshot<DocumentData>> => {
     return this.firestore.collection(collection).get();
   };
 
-  public getAvailableDatasets = () => {
+  public getAvailableDatasets = (): Promise<DatasetMetaData[]> => {
     return this.firestore
       .collection("dataset-descriptions")
       .get()
@@ -101,11 +122,11 @@ class FirebaseRequest {
       });
   };
 
-  public setCollectionRef = (id: string) => {
+  public setCollectionRef = (id: string): void => {
     this.collectionRef = this.firestore.collection("cfe-datasets").doc(id);
   };
 
-  private getManifest = (ref: string) => {
+  private getManifest = (ref: string): Promise<ManifestDocumentData> => {
     return this.firestore
       .doc(ref)
       .get()
@@ -114,7 +135,7 @@ class FirebaseRequest {
       });
   };
 
-  public selectDataset = (ref: string) => {
+  public selectDataset = (ref: string): Promise<ManifestDocumentData> => {
     return this.getManifest(ref).then((data) => {
       this.featuresDataPath = data.featuresDataPath;
       this.thumbnailRoot = data.thumbnailRoot;
@@ -126,17 +147,11 @@ class FirebaseRequest {
       this.featuresDataOrder = data.featuresDataOrder;
       this.featureDefsPath = data.featureDefsPath;
       this.albumPath = data.albumPath;
-      return {
-        defaultXAxis: data.defaultXAxis,
-        defaultYAxis: data.defaultYAxis,
-        thumbnailRoot: data.thumbnailRoot,
-        downloadRoot: data.downloadRoot,
-        volumeViewerDataRoot: data.volumeViewerDataRoot,
-      };
+      return data;
     });
   };
 
-  public getFileInfoByCellId = (cellId: string) => {
+  public getFileInfoByCellId = (cellId: string): Promise<FileInfo | undefined> => {
     return this.getDoc(`${this.fileInfoPath}/${cellId}`).then((doc) => {
       const data = doc.data() as FileInfo;
       if (!data) {
@@ -150,7 +165,7 @@ class FirebaseRequest {
     });
   };
 
-  public getFileInfoByArrayOfCellIds = (cellIds: string[]) => {
+  public getFileInfoByArrayOfCellIds = (cellIds: string[]): Promise<(FileInfo | undefined)[]> => {
     return Promise.all(
       cellIds.map((id: string) => {
         return this.getDoc(`${this.fileInfoPath}/${id}`).then((doc) => {

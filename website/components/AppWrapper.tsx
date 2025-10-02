@@ -57,7 +57,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams, showErrorAlert]);
+  }, [location.state, searchParams, showErrorAlert, props.firebaseDb]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
