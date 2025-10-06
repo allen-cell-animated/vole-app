@@ -6,6 +6,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ColorResult, SketchPicker } from "react-color";
 
 import { DTYPE_RANGE, LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
+import { IsosurfaceFormat } from "../../shared/types";
 import {
   ColorArray,
   colorArrayToObject,
@@ -49,6 +50,7 @@ const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
 const enum TfEditorRampSliderHandle {
   Min = "min",
   Max = "max",
+  Isosurface = "surf",
 }
 
 type TfEditorProps = {
@@ -57,13 +59,18 @@ type TfEditorProps = {
   height: number;
   channelData: Channel;
   changeChannelSetting: SingleChannelSettingUpdater;
+  volumeEnabled: boolean;
+  isosurfaceEnabled: boolean;
   colorizeEnabled: boolean;
   colorizeAlpha: number;
   useControlPoints: boolean;
   controlPoints: ControlPoint[];
   ramp: [number, number];
+  isovalue: number;
+  opacity: number;
   plotMin: number;
   plotMax: number;
+  saveIsosurface: (format: IsosurfaceFormat) => void;
 };
 
 const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
@@ -106,6 +113,27 @@ const sliderHandleSymbol: d3.SymbolType = {
     context.lineTo(halfWidth, -triangleHeight);
     context.lineTo(0, 0);
     context.lineTo(-halfWidth, -triangleHeight);
+    context.closePath();
+  },
+};
+
+// / \  / \
+// \  \/  /
+//  \    /
+//   *--*
+// TODO make this respond properly to `size`
+const isovalueHandleSymbol: d3.SymbolType = {
+  draw: (context, size) => {
+    const TICK_LENGTH = 5;
+    const HEIGHT = TICK_LENGTH / Math.SQRT2;
+
+    context.moveTo(1, 0);
+    context.lineTo(HEIGHT + 1, -HEIGHT);
+    context.lineTo(HEIGHT + 1 - Math.SQRT2, -HEIGHT - Math.SQRT2);
+    context.lineTo(0, -1.8284);
+    context.lineTo(-HEIGHT - 1 + Math.SQRT2, -HEIGHT - Math.SQRT2);
+    context.lineTo(-HEIGHT - 1, -HEIGHT);
+    context.lineTo(-1, 0);
     context.closePath();
   },
 };
@@ -244,10 +272,13 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [draggedPointIdx, _setDraggedPointIdx] = useState<number | TfEditorRampSliderHandle | null>(null);
 
   const _setCPs = useCallback(
-    (p: ControlPoint[]) => changeChannelSetting({ controlPoints: p }),
+    (controlPoints: ControlPoint[]) => changeChannelSetting({ controlPoints }),
     [changeChannelSetting]
   );
-  const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting({ ramp: ramp }), [changeChannelSetting]);
+  const setRamp = useCallback((ramp: [number, number]) => changeChannelSetting({ ramp }), [changeChannelSetting]);
+
+  // The temporary isovalue used while dragging the isovalue slider, which we only want to update on slider release
+  const [draggedIsovalue, setDraggedIsovalue] = useState(0);
 
   // these bits of state need their freshest, most up-to-date values available in mouse event handlers. make refs!
   const [controlPointsRef, setControlPoints] = useRefWithSetter(_setCPs, props.controlPoints);
@@ -308,11 +339,17 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const dragRampSlider = (handle: TfEditorRampSliderHandle, x: number): void => {
     if (handle === TfEditorRampSliderHandle.Min) {
+      // dragging the min slider
       const max = props.ramp[1];
       setRamp([Math.min(x, max), max]);
-    } else {
+    } else if (handle === TfEditorRampSliderHandle.Max) {
+      // dragging the max slider
       const min = props.ramp[0];
       setRamp([min, Math.max(x, min)]);
+    } else {
+      // dragging the isosurface slider
+      // TODO this is converting to a histogram value and then converting back! fix!
+      setDraggedIsovalue(binToAbsolute(x, histogram));
     }
   };
 
@@ -373,6 +410,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   };
 
   const handleDragEnd: React.PointerEventHandler<SVGSVGElement> = (event) => {
+    if (draggedPointIdx === TfEditorRampSliderHandle.Isosurface) {
+      changeChannelSetting({ isovalue: draggedIsovalue });
+    }
     setDraggedPointIdx(null);
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
@@ -427,6 +467,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
+
+  const isovalueHandlePath = useMemo(() => d3.symbol().type(isovalueHandleSymbol).size(1)() ?? undefined, []);
 
   // The below `useCallback`s are used as "ref callbacks" - passed as the `ref` prop of SVG elements in order to render
   // these elements' content using D3. They are called when the ref'd component mounts and unmounts, and whenever their
@@ -521,69 +563,97 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     </Tooltip>
   );
 
-  // create one svg circle element for each control point
-  const controlPointCircles = props.useControlPoints
-    ? props.controlPoints
-        .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
-        .map((cp, i) => (
-          <circle
-            key={i}
-            className={i === selectedPointIdx ? "selected" : ""}
-            cx={xScale(controlPointToAbsolute(cp, histogram))}
-            cy={yScale(cp.opacity)}
-            style={{ fill: colorArrayToString(cp.color) }}
-            r={5}
-            onPointerDown={() => setDraggedPointIdx(i)}
-            onContextMenu={handleControlPointContextMenu}
-          />
-        ))
-    : null;
+  let controlPointCircles = null;
+  if (props.volumeEnabled && props.useControlPoints) {
+    // create one svg circle element for each control point
+    controlPointCircles = props.controlPoints
+      .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
+      .map((cp, i) => (
+        <circle
+          key={i}
+          className={i === selectedPointIdx ? "selected" : ""}
+          cx={xScale(controlPointToAbsolute(cp, histogram))}
+          cy={yScale(cp.opacity)}
+          style={{ fill: colorArrayToString(cp.color) }}
+          r={5}
+          onPointerDown={() => setDraggedPointIdx(i)}
+          onContextMenu={handleControlPointContextMenu}
+        />
+      ));
+  }
   // move selected control point to the end so it's drawn last and not occluded by other nearby points
   if (controlPointCircles !== null && selectedPointIdx !== null) {
     controlPointCircles.push(controlPointCircles.splice(selectedPointIdx, 1)[0]);
   }
 
   const viewerModeString = props.useControlPoints ? "advanced" : "basic";
+  const isovalue = draggedPointIdx === TfEditorRampSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
+  const useRamp = props.volumeEnabled && !props.useControlPoints;
+  const showSliderValueRow = useRamp || props.isosurfaceEnabled;
 
   return (
     <div>
       {/* ----- PRESET BUTTONS ----- */}
-      <div className="button-row">
-        {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
-        {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
-        {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
-        {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
-        <Checkbox
-          checked={props.useControlPoints}
-          onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
-          style={{ marginLeft: "auto" }}
-        >
-          Advanced
-        </Checkbox>
-      </div>
+      {props.volumeEnabled && (
+        <div className="button-row">
+          {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
+          {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
+          {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
+          {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
+          <Checkbox
+            checked={props.useControlPoints}
+            onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
+            style={{ marginLeft: "auto" }}
+          >
+            Advanced
+          </Checkbox>
+        </div>
+      )}
 
       {/* ----- MIN/MAX SPINBOXES ----- */}
-      {!props.useControlPoints && (
-        <div className="tf-editor-control-row ramp-row">
-          Levels min/max
-          <InputNumber
-            value={binToAbsolute(props.ramp[0], histogram)}
-            onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
-            formatter={numberFormatter}
-            min={typeRange.min}
-            max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
-            size="small"
-            controls={false}
-          />
-          <InputNumber
-            value={binToAbsolute(props.ramp[1], histogram)}
-            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
-            formatter={numberFormatter}
-            min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
-            max={typeRange.max}
-            size="small"
-            controls={false}
-          />
+      {showSliderValueRow && (
+        <div className="tf-editor-control-row slider-range-row">
+          <span>
+            {useRamp && (
+              <>
+                <span>Levels min/max</span>
+                <InputNumber
+                  value={binToAbsolute(props.ramp[0], histogram)}
+                  onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
+                  formatter={numberFormatter}
+                  min={typeRange.min}
+                  max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
+                  size="small"
+                  controls={false}
+                />
+                <InputNumber
+                  value={binToAbsolute(props.ramp[1], histogram)}
+                  onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
+                  formatter={numberFormatter}
+                  min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
+                  max={typeRange.max}
+                  size="small"
+                  controls={false}
+                />
+              </>
+            )}
+          </span>
+          <span>
+            {props.isosurfaceEnabled && (
+              <>
+                <span>Isovalue</span>
+                <InputNumber
+                  value={props.isovalue}
+                  onChange={(v) => changeChannelSetting({ isovalue: v ?? undefined })}
+                  formatter={numberFormatter}
+                  min={typeRange.min}
+                  max={typeRange.max}
+                  size="small"
+                  controls={false}
+                />
+              </>
+            )}
+          </span>
         </div>
       )}
 
@@ -616,20 +686,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* histogram bars */}
           <g ref={histogramRef} />
           {/* line between control points, and the gradient under it */}
-          <path className="line" fill={`url(#tfGradient-${props.id})`} d={areaPath} />
+          {props.volumeEnabled && <path className="line" fill={`url(#tfGradient-${props.id})`} d={areaPath} />}
           {/* plot axes */}
           <g ref={xAxisRef} className="axis" transform={`translate(0,${innerHeight})`} />
           <g ref={yAxisRef} className="axis" />
           {/* "advanced mode" control points */}
           {controlPointCircles}
           {/* "basic mode" sliders */}
-          {!props.useControlPoints && (
-            <g className="ramp-sliders">
+          {props.volumeEnabled && !props.useControlPoints && (
+            <g className="sliders">
               {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(binToAbsolute(props.ramp[0], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
-                    className="ramp-slider-click-target"
+                    className="slider-click-target"
                     y1={innerHeight}
                     strokeWidth={6}
                     onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
@@ -645,7 +715,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <g transform={`translate(${xScale(binToAbsolute(props.ramp[1], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
-                    className="ramp-slider-click-target"
+                    className="slider-click-target"
                     y1={innerHeight}
                     strokeWidth={6}
                     onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
@@ -653,6 +723,33 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
                 </g>
               )}
+            </g>
+          )}
+          {/* isosurface slider */}
+          {props.isosurfaceEnabled && plotMinU8 <= isovalue && isovalue <= plotMaxU8 && (
+            <g className="sliders" transform={`translate(${xScale(isovalue)})`}>
+              <line className="slider-isosurface" y1={innerHeight} strokeDasharray="4,4" strokeWidth={2} />
+              <line
+                className="slider-click-target"
+                y1={innerHeight}
+                strokeWidth={6}
+                onPointerDown={() => {
+                  setDraggedIsovalue(props.isovalue);
+                  setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface);
+                }}
+              />
+              {/* TODO clean up css! */}
+              <path
+                style={{ fill: "lime" }}
+                d={isovalueHandlePath}
+                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
+              />
+              <path
+                style={{ fill: "lime" }}
+                d={isovalueHandlePath}
+                transform={`translate(0,${innerHeight}) rotate(180)`}
+                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
+              />
             </g>
           )}
         </g>
@@ -692,20 +789,43 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       </div>
 
       {/* ----- COLORIZE SLIDER ----- */}
-      <SliderRow
-        label={
-          <Checkbox
-            checked={props.colorizeEnabled}
-            onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
-          >
-            Colorize
-          </Checkbox>
-        }
-        max={1}
-        start={props.colorizeAlpha}
-        onUpdate={(values) => changeChannelSetting({ colorizeAlpha: values[0] })}
-        hideSlider={!props.colorizeEnabled}
-      />
+      {props.volumeEnabled && (
+        <SliderRow
+          label={
+            <Checkbox
+              checked={props.colorizeEnabled}
+              onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
+            >
+              Colorize
+            </Checkbox>
+          }
+          max={1}
+          start={props.colorizeAlpha}
+          onUpdate={([colorizeAlpha]) => changeChannelSetting({ colorizeAlpha })}
+          hideSlider={!props.colorizeEnabled}
+        />
+      )}
+
+      {/* ----- ISOSURFACE CONTROLS ----- */}
+      {props.isosurfaceEnabled && (
+        <>
+          <SliderRow
+            label="Surface opacity"
+            max={1.0}
+            start={props.opacity}
+            onUpdate={([opacity]) => changeChannelSetting({ opacity })}
+          />
+          <div className="tf-editor-control-row plot-range-row">
+            <span>Export surface as:</span>
+            <Button size="small" onClick={() => props.saveIsosurface("GLTF")}>
+              GLTF
+            </Button>
+            <Button size="small" onClick={() => props.saveIsosurface("STL")}>
+              STL
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
