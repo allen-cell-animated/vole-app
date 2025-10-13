@@ -128,9 +128,12 @@ export default class ResetStateProvider implements ResetState {
         getDefaultChannelColor(index),
         this.savedViewerChannelSettings
       );
-      return initialChannelSetting;
+      return {
+        ...initialChannelSetting,
+        plotMin: channelSettings[index].plotMin,
+        plotMax: channelSettings[index].plotMax,
+      };
     });
-
     this.resetToState(newViewerState, newChannelSettings);
     this.useDefaultViewerChannelSettings = false;
   }
