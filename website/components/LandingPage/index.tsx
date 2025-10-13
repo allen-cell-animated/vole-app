@@ -239,7 +239,7 @@ const CookieSettingsButton = styled(Button)`
 `;
 
 type LandingPageProps = {
-  firestore: FirebaseFirestore;
+  firestore?: FirebaseFirestore;
 };
 
 export default function LandingPage(props: LandingPageProps): ReactElement {

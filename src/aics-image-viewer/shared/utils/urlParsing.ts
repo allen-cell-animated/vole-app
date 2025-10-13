@@ -911,7 +911,6 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
 }
 
 //// FULL URL PARSING //////////////////////
-
 async function loadDataset(firestore: FirebaseFirestore, dataset: string, id: string): Promise<Partial<AppProps>> {
   const db = new FirebaseRequest(firestore);
   const args: Partial<AppProps> = {};
