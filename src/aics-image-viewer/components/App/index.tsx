@@ -237,6 +237,7 @@ const App: React.FC<AppProps> = (props) => {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
         const { dtype } = thisChannel;
+        const color = image.imageInfo.channelColors?.[channelIndex];
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
@@ -244,6 +245,7 @@ const App: React.FC<AppProps> = (props) => {
           // set the default range of the transfer function editor to cover the full range of the data type
           plotMin: DTYPE_RANGE[dtype].min,
           plotMax: DTYPE_RANGE[dtype].max,
+          color,
         });
       } else {
         // This channel has already been initialized, but its LUT was just remapped and we need to update some things
