@@ -95,10 +95,6 @@ class FirebaseRequest {
     return this.firestore.doc(docPath).get();
   };
 
-  private getCollection = (collection: string): Promise<QuerySnapshot<DocumentData>> => {
-    return this.firestore.collection(collection).get();
-  };
-
   public getAvailableDatasets = (): Promise<DatasetMetaData[]> => {
     return this.firestore
       .collection("dataset-descriptions")
@@ -149,7 +145,7 @@ class FirebaseRequest {
       this.featuresDataOrder = data.featuresDataOrder;
       this.featureDefsPath = data.featureDefsPath;
       this.albumPath = data.albumPath;
-      return data;
+      return { ...data };
     });
   };
 

@@ -25,7 +25,7 @@ const DEFAULT_APP_PROPS: AppDataProps = {
 };
 
 type AppWrapperProps = {
-  firestore: FirebaseFirestore;
+  firestore?: FirebaseFirestore;
 };
 
 /**
