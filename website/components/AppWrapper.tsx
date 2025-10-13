@@ -1,4 +1,5 @@
 import { View3d } from "@aics/vole-core";
+import { FirebaseFirestore } from "@firebase/firestore-types";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -23,11 +24,15 @@ const DEFAULT_APP_PROPS: AppDataProps = {
   viewerChannelSettings: getDefaultViewerChannelSettings(),
 };
 
+type AppWrapperProps = {
+  firestore?: FirebaseFirestore;
+};
+
 /**
  * Wrapper around the main ImageViewer component. Handles the collection of parameters from the
  * URL and location state (from routing) to pass to the viewer.
  */
-export default function AppWrapper(): ReactElement {
+export default function AppWrapper(props: AppWrapperProps): ReactElement {
   const location = useLocation();
   const navigation = useNavigate();
 
@@ -41,7 +46,7 @@ export default function AppWrapper(): ReactElement {
   useEffect(() => {
     // On load, fetch parameters from the URL and location state, then merge.
     const locationArgs = location.state as AppDataProps;
-    parseViewerUrlParams(searchParams).then(
+    parseViewerUrlParams(searchParams, props.firestore).then(
       ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
         setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
@@ -52,7 +57,7 @@ export default function AppWrapper(): ReactElement {
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams, showErrorAlert]);
+  }, [location.state, searchParams, showErrorAlert, props.firestore]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful

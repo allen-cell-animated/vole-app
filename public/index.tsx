@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
 import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
+import firestore from "./firebase/configure_firebase";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
@@ -33,12 +34,22 @@ if (locationUrl.hash !== "" || isEncodedPathUrl(locationUrl)) {
 const routes: RouteObject[] = [
   {
     path: "/",
-    lazy: async () => ({ Component: (await import("../website/components/LandingPage")).default }),
+    lazy: async () => {
+      const LandingPage = (await import("../website/components/LandingPage")).default;
+      return {
+        Component: () => <LandingPage firestore={firestore} />,
+      };
+    },
     errorElement: <ErrorPage />,
   },
   {
     path: "viewer",
-    lazy: async () => ({ Component: (await import("../website/components/AppWrapper")).default }),
+    lazy: async () => {
+      const AppWrapper = (await import("../website/components/AppWrapper")).default;
+      return {
+        Component: () => <AppWrapper firestore={firestore} />,
+      };
+    },
     errorElement: <ErrorPage />,
   },
   {
