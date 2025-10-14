@@ -10,7 +10,7 @@ import {
   ENCODED_COLON_REGEX,
   ENCODED_COMMA_REGEX,
   serializeViewerUrlParams,
-} from "../../../src/aics-image-viewer/shared/utils/url_parsing";
+} from "../../../src/aics-image-viewer/shared/utils/urlParsing";
 import { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
 
