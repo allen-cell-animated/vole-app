@@ -7,9 +7,10 @@ import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
+import { parseViewerUrlParams } from "../../../src";
 import { BannerVideo } from "../../assets/videos";
 import type { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
-import { encodeImageUrlProp, parseViewerUrlParams } from "../../utils/url_utils";
+import { encodeImageUrlProp } from "../../utils/urls";
 import { landingPageContent } from "./content";
 import { FlexColumn, FlexColumnAlignCenter, FlexRowAlignCenter, VisuallyHidden } from "./utils";
 
