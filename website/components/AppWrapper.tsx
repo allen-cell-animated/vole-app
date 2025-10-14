@@ -3,10 +3,8 @@ import { FirebaseFirestore } from "@firebase/firestore-types";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { ImageViewerApp, ViewerStateProvider } from "../../src";
-import type { ViewerState } from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
+import { ImageViewerApp, parseViewerUrlParams, ViewerState, ViewerStateProvider } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
-import { parseViewerUrlParams } from "../../src/aics-image-viewer/shared/utils/urlParsing";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";

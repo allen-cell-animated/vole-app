@@ -1,4 +1,4 @@
-import { parseViewerUrlParams } from "./aics-image-viewer/shared/utils/urlParsing";
+import { parseViewerUrlParams } from "./aics-image-viewer/shared/utils/url_parsing";
 
 import ImageViewerApp from "./aics-image-viewer/components/App";
 import ViewerStateProvider from "./aics-image-viewer/components/ViewerStateProvider";

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
-import { parseViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
+import { parseViewerUrlParams } from "../../../src";
 import { BannerVideo } from "../../assets/videos";
 import type { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
