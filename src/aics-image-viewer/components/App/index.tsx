@@ -136,8 +136,6 @@ const App: React.FC<AppProps> = (props) => {
     [resetToSavedState, props.viewerSettings, props.viewerChannelSettings]
   );
 
-  const { onControlPanelToggle, metadata, metadataFormatter } = props;
-
   const view3d = useConstructor(() => new View3d());
   if (props.view3dRef !== undefined) {
     props.view3dRef.current = view3d;
@@ -325,6 +323,7 @@ const App: React.FC<AppProps> = (props) => {
     });
   }, [view3d]);
 
+  const { metadata, metadataFormatter } = props;
   const getMetadata = useCallback((): MetadataRecord => {
     let imageMetadata = image?.imageMetadata as MetadataRecord;
     if (imageMetadata && metadataFormatter) {
@@ -394,6 +393,7 @@ const App: React.FC<AppProps> = (props) => {
     return () => window.removeEventListener("resize", onResizeDebounced);
   }, [hasAutoClosedControlPanel]);
 
+  const { onControlPanelToggle } = props;
   useEffect(
     () => onControlPanelToggle && onControlPanelToggle(controlPanelClosed),
     [controlPanelClosed, onControlPanelToggle]
