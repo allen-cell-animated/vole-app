@@ -1,4 +1,3 @@
-import { isEqual } from "lodash";
 import type { StateCreator } from "zustand";
 
 import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
@@ -56,7 +55,7 @@ const resetState = (
   const isInDifferentViewMode =
     viewMode !== newState.viewMode && (viewMode === ViewMode.xy || newState.viewMode === ViewMode.xy);
   const isAtDifferentTime = time !== newState.time;
-  const isAtDifferentZSlice = newState.viewMode === ViewMode.xy && !isEqual(newState.slice.z, slice.z);
+  const isAtDifferentZSlice = newState.viewMode === ViewMode.xy && !(newState.slice.z === slice.z);
   const willNeedResetOnLoad = isInDifferentViewMode || isAtDifferentTime || isAtDifferentZSlice;
 
   const viewerState = validateState(currentState, newState);
