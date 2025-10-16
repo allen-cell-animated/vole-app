@@ -116,7 +116,7 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
 
       return {
         ...resetState(currentState, newViewerState, newChannelSettings),
-        useDefaultViewerChannelSettings: true,
+        useDefaultViewerChannelSettings: false,
       };
     });
   },
