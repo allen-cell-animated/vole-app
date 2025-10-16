@@ -47,7 +47,7 @@ const resetState = (
   newState: ViewerState,
   newChannelStates: ChannelState[]
 ): ViewerState & Partial<ResetState> & { channelSettings: ChannelState[] } => {
-  const { channelSettings, viewMode, time, slice } = currentState;
+  const { channelSettings, viewMode, time, slice, scene } = currentState;
 
   // Needs reset on reload if one of the view modes is 2D while the other is 3D,
   // if the timestamp is different, or if we're on a different z slice.
@@ -56,7 +56,8 @@ const resetState = (
     viewMode !== newState.viewMode && (viewMode === ViewMode.xy || newState.viewMode === ViewMode.xy);
   const isAtDifferentTime = time !== newState.time;
   const isAtDifferentZSlice = newState.viewMode === ViewMode.xy && !(newState.slice.z === slice.z);
-  const willNeedResetOnLoad = isInDifferentViewMode || isAtDifferentTime || isAtDifferentZSlice;
+  const isAtDifferentScene = newState.scene !== scene;
+  const willNeedResetOnLoad = isInDifferentViewMode || isAtDifferentTime || isAtDifferentZSlice || isAtDifferentScene;
 
   const viewerState = validateState(currentState, newState);
   // Match the names in the new state with the existing state so we do not override the names.
