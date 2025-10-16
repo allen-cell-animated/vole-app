@@ -118,7 +118,6 @@ const setIndicatorPositions = (
 };
 
 const App: React.FC<AppProps> = (props) => {
-  console.log("render app");
   props = { ...defaultProps, ...props };
 
   // State management /////////////////////////////////////////////////////////
