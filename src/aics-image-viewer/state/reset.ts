@@ -73,7 +73,7 @@ const resetState = (
   let channelsToResetOnLoad: number[] = [];
   if (willNeedResetOnLoad) {
     channelsToResetOnLoad = getEnabledChannelIndices(newChannelStates);
-    channelsToReset = channelsToResetOnLoad.filter((ch) => !channelsToResetOnLoad.includes(ch));
+    channelsToReset = channelsToReset.filter((ch) => !channelsToResetOnLoad.includes(ch));
   }
 
   return {
