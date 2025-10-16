@@ -67,6 +67,8 @@ const resetState = (
     name: channelSettings[index].name,
     controlPoints: channelSettings[index].controlPoints,
     ramp: channelSettings[index].ramp,
+    plotMin: channelSettings[index].plotMin,
+    plotMax: channelSettings[index].plotMax,
   }));
 
   let channelsToReset = [...Array(newChannelStates.length).keys()];
