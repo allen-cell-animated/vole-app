@@ -199,10 +199,18 @@ const App: React.FC<AppProps> = (props) => {
       channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
 
       const { channelSettings } = viewerState.current;
+      const channelColorMeta = newImage.imageInfo.channelColors;
+      if (Array.isArray(channelColorMeta)) {
+        channelColorMeta.forEach((color, index) => {
+          if (Array.isArray(color)) {
+            changeChannelSetting(index, { color });
+          }
+        });
+      }
 
       view3d.addVolume(newImage, {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-        channels: newImage.channelNames.map((name) => {
+        channels: newImage.channelNames.map((name, index) => {
           // TODO do we really need to be searching by name here?
           const ch = channelSettings.find((channel) => channel.name === name);
           if (!ch) {
@@ -213,7 +221,7 @@ const App: React.FC<AppProps> = (props) => {
             isosurfaceEnabled: ch.isosurfaceEnabled,
             isovalue: ch.isovalue,
             isosurfaceOpacity: ch.opacity,
-            color: ch.color,
+            color: channelColorMeta?.[index] ?? ch.color,
           };
         }),
       });
@@ -221,7 +229,7 @@ const App: React.FC<AppProps> = (props) => {
       onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState, onImageTitleChange]
+    [view3d, viewerState, onImageTitleChange, changeChannelSetting]
   );
 
   const onChannelLoaded = useCallback(
