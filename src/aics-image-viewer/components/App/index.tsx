@@ -199,6 +199,8 @@ const App: React.FC<AppProps> = (props) => {
       channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
 
       const { channelSettings } = viewerState.current;
+
+      // If the image has channel color metadata, apply those colors now
       const channelColorMeta = newImage.imageInfo.channelColors;
       if (Array.isArray(channelColorMeta)) {
         channelColorMeta.forEach((color, index) => {
