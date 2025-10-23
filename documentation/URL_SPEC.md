@@ -14,11 +14,11 @@ for a `localhost` address.
 
 ## Common Examples
 
-| Query Parameters                            | Description                                                                                                                                                            |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `?url={url}&c0=ven:1&c2=ven:1,clz:1&view=Z` | Enable the first (`c0=ven:1`) and third (`c2=ven:1`) channel volumes and apply colorizing to the third (`clz:1`). View in XY / Z-slice mode (`view=Z`).                |
-| `?url={url}&c0=ven:1,lut:v15:v180`          | Enables the volume of the first channel (`c0=ven:1`) and ramps opacity for volume intensity values from 0% at intensity 15 and 100% at intensity 180. (`lut:v15:v180`) |
-| `?url={url}&reg=0:1,0:1,0.25:0.75,t=40`     | Clips along the Z-axis to the middle 50% of the volume (`reg=0:1,0:1,0.25:0.75`), and sets the time to frame 40 (`t=40`).                                              |
+| Query Parameters                            | Description                                                                                                                                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `?url={url}&c0=ven:1&c2=ven:1,clz:1&view=Z` | Enable the first channel volume (`c0=ven:1`), and enable the third channel with colorizing mode enabled (`c2=ven:1&clz:1`). View in XY / Z-slice mode (`view=Z`).     |
+| `?url={url}&c0=ven:1,lut:v15:v180`          | Enables the volume of the first channel and ramp its opacity for volume intensity values from 0% at intensity 15 and 100% at intensity 180. (`c0=ven:1,lut:v15:v180`) |
+| `?url={url}&reg=0:1,0:1,0.25:0.75,t=40`     | Clips along the Z-axis to the middle 50% of the volume (`reg=0:1,0:1,0.25:0.75`), and sets the time to frame 40 (`t=40`).                                             |
 
 ## Data source (`url`)
 
