@@ -26,6 +26,7 @@ export type ResetStateActions = {
    * by viewer props.
    */
   resetToSavedViewerState: (savedState?: Partial<ViewerState>, viewerChannelSettings?: ViewerChannelSettings) => void;
+
   /**
    * Resets the viewer and all channels to the default state, as though
    * loaded from scratch with no initial parameters set.
@@ -107,6 +108,7 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
         cameraState: getDefaultCameraState(savedState?.viewMode ?? ViewMode.threeD),
         ...savedState,
       };
+
       const newChannelSettings = channelSettings.map((_, index) => {
         return initializeOneChannelSetting(
           channelSettings[index].name,
