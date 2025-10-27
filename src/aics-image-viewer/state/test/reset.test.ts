@@ -78,7 +78,7 @@ const checkChannelState = (index: number, state: ChannelState, exclude: readonly
 
 describe("reset state", () => {
   describe("resetToDefaultViewerState", () => {
-    it("resets to the default viewer state", () => {
+    it("resets viewer state properties to their defaults", () => {
       useViewerState.setState(arbitraryViewerState());
       useViewerState.getState().resetToDefaultViewerState();
       checkViewerState(useViewerState.getState());
@@ -131,6 +131,26 @@ describe("reset state", () => {
   });
 
   describe("resetToSavedViewerState", () => {
-    // it(() => {});
+    it('sets viewer state properties passed in as "saved," and resets all others', () => {
+      const savedState: Partial<ViewerState> = {
+        renderMode: RenderMode.pathTrace,
+        brightness: 33,
+        backgroundColor: [128, 128, 128],
+        showAxes: true,
+        time: 4,
+      };
+      const savedStateKeys = Object.keys(savedState) as (keyof typeof savedState)[];
+
+      useViewerState.setState(arbitraryViewerState());
+      useViewerState.getState().resetToSavedViewerState(savedState);
+      checkViewerState(useViewerState.getState(), savedStateKeys);
+
+      const state = useViewerState.getState();
+      expect(state.renderMode).toEqual(savedState.renderMode);
+      expect(state.brightness).toEqual(savedState.brightness);
+      expect(state.backgroundColor).toEqual(savedState.backgroundColor);
+      expect(state.showAxes).toEqual(savedState.showAxes);
+      expect(state.time).toEqual(savedState.time);
+    });
   });
 });
