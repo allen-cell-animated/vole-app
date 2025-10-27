@@ -139,7 +139,7 @@ describe("reset state", () => {
         showAxes: true,
         time: 4,
       };
-      const savedStateKeys = Object.keys(savedState) as (keyof typeof savedState)[];
+      const savedStateKeys = Object.keys(savedState) as (keyof ViewerState)[];
 
       useViewerState.setState(arbitraryViewerState());
       useViewerState.getState().resetToSavedViewerState(savedState);
