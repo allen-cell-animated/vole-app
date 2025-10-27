@@ -1,25 +1,21 @@
 // Adapted from https://github.com/pmndrs/zustand/blob/main/docs/guides/testing.md
-import type * as ZustandExportedTypes from "zustand";
-import type { StateCreator, StoreApi } from "zustand";
+import type { create as Create, createStore as CreateStore, StateCreator, StoreApi } from "zustand";
 
 export * from "zustand";
 
-type Create = typeof ZustandExportedTypes.create;
-type CreateStore = typeof ZustandExportedTypes.createStore;
+// Zustand exports `create` for creating a React-enabled store, and `createStore` for creating a "vanilla" one.
+type ZustandActual = {
+  create: typeof Create;
+  createStore: typeof CreateStore;
+};
 
-// Zustand exports `create` for creating a React-enabled store, and `createStore` for creating "vanilla" ones.
-const { create: actualCreate, createStore: actualCreateStore } = jest.requireActual<{
-  create: Create;
-  createStore: CreateStore;
-}>("zustand");
+const { create: actualCreate, createStore: actualCreateStore } = jest.requireActual<ZustandActual>("zustand");
 
 export const storeResetFns = new Set<() => void>();
 
-function resettableCreateFn(actual: Create): Create;
-function resettableCreateFn(actual: CreateStore): CreateStore;
 function resettableCreateFn<T extends <U>(creator: StateCreator<U>) => StoreApi<U>>(actual: T): T {
-  const uncurried = <U>(stateCreator: StateCreator<U>) => {
-    // When creating a store, we get its initial state, create a reset function, and add it to the set.
+  const uncurried = <U>(stateCreator: StateCreator<U>): StoreApi<U> => {
+    // When a test creates a store, we get its initial state and save a function to reset to that state.
     const store = actual(stateCreator);
     const initialState = store.getInitialState();
     storeResetFns.add(() => store.setState(initialState, true));
@@ -34,7 +30,7 @@ function resettableCreateFn<T extends <U>(creator: StateCreator<U>) => StoreApi<
 export const create = resettableCreateFn(actualCreate);
 export const createStore = resettableCreateFn(actualCreateStore);
 
-// reset all stores after each test run
+// After each test run, reset all stores.
 afterEach(() => {
   // TODO we don't currently have React testing libraries installed. If we did, we'd need `act` in here.
   storeResetFns.forEach((resetFn) => resetFn());
