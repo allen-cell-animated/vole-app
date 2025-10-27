@@ -66,6 +66,7 @@ const resetState = (
   const channelState = newChannelStates.map((state, index) => ({
     ...state,
     name: channelSettings[index].name,
+    displayName: channelSettings[index].displayName,
     controlPoints: channelSettings[index].controlPoints,
     ramp: channelSettings[index].ramp,
     plotMin: channelSettings[index].plotMin,

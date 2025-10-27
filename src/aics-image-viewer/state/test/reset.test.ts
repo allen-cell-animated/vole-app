@@ -88,12 +88,21 @@ describe("reset state", () => {
       useViewerState.getState().initChannelSettings(multipleArbitraryChannels());
       useViewerState.getState().resetToDefaultViewerState();
 
+      const notResetKeys: (keyof ChannelState)[] = [
+        "name",
+        "displayName",
+        "volumeEnabled",
+        "controlPoints",
+        "ramp",
+        "plotMin",
+        "plotMax",
+      ];
       useViewerState.getState().channelSettings.forEach((channel, index) => {
-        checkChannelState(index, channel, ["name", "displayName", "volumeEnabled", "controlPoints", "ramp"]);
+        checkChannelState(index, channel, notResetKeys);
       });
     });
 
-    it("preserves each channel's original names and transfer functions", () => {
+    it("preserves each channel's original names and transfer function configs", () => {
       const arbitraryChannels = multipleArbitraryChannels();
       useViewerState.getState().initChannelSettings(arbitraryChannels);
       useViewerState.getState().resetToDefaultViewerState();
@@ -104,6 +113,8 @@ describe("reset state", () => {
         expect(channel.displayName).toEqual(originalChannel.displayName);
         expect(channel.controlPoints).toEqual(originalChannel.controlPoints);
         expect(channel.ramp).toEqual(originalChannel.ramp);
+        expect(channel.plotMin).toEqual(originalChannel.plotMin);
+        expect(channel.plotMax).toEqual(originalChannel.plotMax);
       });
     });
 
