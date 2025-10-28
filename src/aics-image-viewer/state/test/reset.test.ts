@@ -3,6 +3,7 @@ import { describe, expect, it } from "@jest/globals";
 import type { ChannelState, ViewerState } from "../../components/ViewerStateProvider/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
+import type { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
 import { useViewerState } from "../store";
 
 const arbitraryViewerState = (): ViewerState => ({
@@ -53,6 +54,9 @@ const multipleArbitraryChannels = (): ChannelState[] => [
   { ...arbitraryChannelState(), name: "fish", displayName: "fish", volumeEnabled: true },
 ];
 
+/** We expect these keys of `ChannelState` to never be reset by the functions tested in this file */
+const NOT_RESET_KEYS = ["name", "displayName", "volumeEnabled", "controlPoints", "ramp", "plotMin", "plotMax"] as const;
+
 const checkViewerState = (state: ViewerState, exclude: readonly (keyof ViewerState)[] = []): void => {
   const defaultState = {
     ...getDefaultViewerState(),
@@ -88,17 +92,8 @@ describe("reset state", () => {
       useViewerState.getState().initChannelSettings(multipleArbitraryChannels());
       useViewerState.getState().resetToDefaultViewerState();
 
-      const notResetKeys: (keyof ChannelState)[] = [
-        "name",
-        "displayName",
-        "volumeEnabled",
-        "controlPoints",
-        "ramp",
-        "plotMin",
-        "plotMax",
-      ];
       useViewerState.getState().channelSettings.forEach((channel, index) => {
-        checkChannelState(index, channel, notResetKeys);
+        checkChannelState(index, channel, NOT_RESET_KEYS);
       });
     });
 
@@ -128,6 +123,12 @@ describe("reset state", () => {
       expect(channelSettings[2].volumeEnabled).toBe(true);
       expect(channelSettings[3].volumeEnabled).toBe(false);
     });
+
+    it("sets `useDefaultViewerChannelSettings` to `true`", () => {
+      useViewerState.getState().resetToSavedViewerState();
+      useViewerState.getState().resetToDefaultViewerState();
+      expect(useViewerState.getState().useDefaultViewerChannelSettings).toBe(true);
+    });
   });
 
   describe("resetToSavedViewerState", () => {
@@ -151,6 +152,67 @@ describe("reset state", () => {
       expect(state.backgroundColor).toEqual(savedState.backgroundColor);
       expect(state.showAxes).toEqual(savedState.showAxes);
       expect(state.time).toEqual(savedState.time);
+    });
+
+    it("applies saved viewer channel settings", () => {
+      const viewerChannelSettings: ViewerChannelSettings = {
+        groups: [
+          {
+            name: "group",
+            channels: [
+              {
+                match: ["one", "three"],
+                surfaceEnabled: true,
+                isovalue: 38,
+                color: "ff00ff",
+              },
+              {
+                match: "two",
+                controlPointsEnabled: true,
+                colorizeEnabled: true,
+                colorizeAlpha: 27,
+              },
+            ],
+          },
+        ],
+      };
+
+      const arbitraryChannels = multipleArbitraryChannels();
+      useViewerState.getState().initChannelSettings(arbitraryChannels);
+      useViewerState.getState().resetToSavedViewerState({}, viewerChannelSettings);
+      const { channelSettings } = useViewerState.getState();
+
+      // Channel named "one" should have matched group 1 above
+      checkChannelState(0, channelSettings[0], [...NOT_RESET_KEYS, "isosurfaceEnabled", "color", "isovalue"]);
+      expect(channelSettings[0].isosurfaceEnabled).toBe(true);
+      expect(channelSettings[0].color).toEqual([255, 0, 255]);
+      expect(channelSettings[0].isovalue).toBe(38);
+
+      // Channel named "two" should have matched group 2 above
+      checkChannelState(1, channelSettings[1], [
+        ...NOT_RESET_KEYS,
+        "useControlPoints",
+        "colorizeEnabled",
+        "colorizeAlpha",
+      ]);
+      expect(channelSettings[1].useControlPoints).toBe(true);
+      expect(channelSettings[1].colorizeEnabled).toBe(true);
+      expect(channelSettings[1].colorizeAlpha).toBe(27);
+
+      // Channel named "three" should have matched group 1 above
+      checkChannelState(2, channelSettings[2], [...NOT_RESET_KEYS, "isosurfaceEnabled", "color", "isovalue"]);
+      expect(channelSettings[2].isosurfaceEnabled).toBe(true);
+      expect(channelSettings[2].color).toEqual([255, 0, 255]);
+      expect(channelSettings[2].isovalue).toBe(38);
+
+      // Channel named "fish" should not have matched any group and have default settings
+      checkChannelState(3, channelSettings[3], NOT_RESET_KEYS);
+    });
+
+    it("sets `useDefaultViewerChannelSettings` to `false`", () => {
+      useViewerState.getState().resetToDefaultViewerState();
+      useViewerState.getState().resetToSavedViewerState();
+      expect(useViewerState.getState().useDefaultViewerChannelSettings).toBe(false);
     });
   });
 });
