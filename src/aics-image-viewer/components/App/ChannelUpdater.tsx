@@ -1,13 +1,13 @@
 import { Lut, View3d, Volume } from "@aics/vole-core";
 import React, { useEffect } from "react";
+import { useShallow } from "zustand/shallow";
 
 import { controlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
-import { ChannelState } from "../ViewerStateProvider/types";
+import { useViewerState, type ViewerStore } from "../../state/store";
 import { UseImageEffectType } from "./types";
 
 interface ChannelUpdaterProps {
   index: number;
-  channelState: ChannelState;
   view3d: View3d;
   image: Volume | null;
   version: number;
@@ -17,7 +17,9 @@ interface ChannelUpdaterProps {
  * A component that doesn't render anything, but reacts to the provided `ChannelState`
  * and keeps it in sync with the viewer.
  */
-const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, view3d, image, version }) => {
+const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, version }) => {
+  const channelStateSelector = useShallow((state: ViewerStore) => state.channelSettings[index]);
+  const channelState = useViewerState(channelStateSelector);
   const { volumeEnabled, isosurfaceEnabled, isovalue, colorizeEnabled, colorizeAlpha, opacity, color } = channelState;
 
   // Effects to update channel settings should check if image is present and channel is loaded first
