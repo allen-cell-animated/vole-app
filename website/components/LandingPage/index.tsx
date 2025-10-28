@@ -12,6 +12,7 @@ import { BannerVideo } from "../../assets/videos";
 import type { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
 import { landingPageContent } from "./content";
+import { testDataContent } from "./testData";
 import { FlexColumn, FlexColumnAlignCenter, FlexRowAlignCenter, VisuallyHidden } from "./utils";
 
 import Header from "../Header";
@@ -411,7 +412,9 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
       </LoadPromptContainer>
 
       <ContentContainer style={{ paddingBottom: "400px" }}>
-        <ProjectList>{landingPageContent.map(renderProject)}</ProjectList>
+        <ProjectList>{
+         (VOLEAPP_BUILD_ENVIRONMENT === "dev") ? [...landingPageContent, ...testDataContent].map(renderProject) : landingPageContent.map(renderProject)
+        }</ProjectList>
       </ContentContainer>
 
       <ContentContainer style={{ padding: "0 30px 40px 30px" }}>
