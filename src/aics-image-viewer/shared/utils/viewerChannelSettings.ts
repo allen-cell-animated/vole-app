@@ -22,7 +22,8 @@ export interface ViewerChannelSetting {
    * Min and max values for the intensity lookup table, which maps from raw intensity values
    * in the volume to opacity and color. Defaults to [0, 255].
    *
-   * - Plain numbers are treated as direct intensity values.
+   * - Plain numbers are indices of histogram bins, in the range [0, 255].
+   * - `v{n}` represents a raw intensity value, where `n` is an integer.
    * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
    * - `m{n}` represents the median multiplied by `n / 100`.
    * - `autoij` in either the min or max fields will use the "auto" algorithm

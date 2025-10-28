@@ -61,6 +61,7 @@ export const landingPageContent: ProjectEntry[] = [
           parentImageDownloadHref: "",
           ...nucmorphBaseViewerSettings,
         },
+        hideTitle: true,
       },
       {
         name: "Medium colony",
@@ -78,6 +79,7 @@ export const landingPageContent: ProjectEntry[] = [
           parentImageDownloadHref: "",
           ...nucmorphBaseViewerSettings,
         },
+        hideTitle: true,
       },
       {
         name: "Large colony",
@@ -95,6 +97,7 @@ export const landingPageContent: ProjectEntry[] = [
           parentImageDownloadHref: "",
           ...nucmorphBaseViewerSettings,
         },
+        hideTitle: true,
       },
     ],
   },

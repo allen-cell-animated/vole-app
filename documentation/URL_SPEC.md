@@ -14,11 +14,11 @@ for a `localhost` address.
 
 ## Common Examples
 
-| Query Parameters                            | Description                                                                                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `?url={url}&c0=ven:1&c2=ven:1,clz:1&view=Z` | Enable the first and third channel volumes and apply colorizing to the third. View in XY / Z-slice mode.                                  |
-| `?url={url}&c0=ven:1,rmp:15:180`            | Enables the volume of the first channel and ramps opacity for volume intensity values from 0% at histogram bin `15` to 100% at bin `180`. |
-| `?url={url}&reg=0:1,0:1,0.25:0.75,t=40`     | Clips along the Z-axis to the middle 50% of the volume, and sets the time to frame 40.                                                    |
+| Query Parameters                            | Description                                                                                                                                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `?url={url}&c0=ven:1&c2=ven:1,clz:1&view=Z` | Enable the first volume channel (`c0=ven:1`), and enable the third channel with colorizing mode enabled (`c2=ven:1&clz:1`). View in XY / Z-slice mode (`view=Z`).     |
+| `?url={url}&c0=ven:1,lut:v15:v180`          | Enables the volume of the first channel and ramp its opacity for volume intensity values from 0% at intensity 15 and 100% at intensity 180. (`c0=ven:1,lut:v15:v180`) |
+| `?url={url}&reg=0:1,0:1,0.25:0.75,t=40`     | Clips along the Z-axis to the middle 50% of the volume (`reg=0:1,0:1,0.25:0.75`), and sets the time to frame 40 (`t=40`).                                             |
 
 ## Data source (`url`)
 
@@ -43,25 +43,25 @@ using
 
 General global settings for the viewer.
 
-| Query parameter | Description                                                                                                           | Expected values                                                     | Default       | Example                         |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------- | ------------------------------- |
-| `view`          | Initial view axis.                                                                                                    | `X`, `Y`, `Z`, or `3D`                                              | `3D`          | `?view=Z`                       |
-| `mode`          | Rendering mode to use.                                                                                                | `volumetric`, `maxproject`, or `pathtrace`                          | `volumetric`  | `?mode=maxproject`              |
-| `mask`          | The opacity of masked areas of the volume. Used to fade areas outside a segmentation, must be used with mask channel. | Number in range `[0, 100]`                                          | `50`          | `?mask=75`                      |
-| `axes`          | Whether to show the axes helper.                                                                                      | `1` (enabled) or `0` (disabled)                                     | `0`           | `?axes=1`                       |
-| `bb`            | Whether to show a wireframe bounding box around the volume.                                                           | `1` (enabled) or `0` (disabled)                                     | `0`           | `?bb=1`                         |
-| `bbcol`         | The color of the bounding box.                                                                                        | 6-digit hex color                                                   | `ffffff`      | `?bbcol=ff0000`                 |
-| `bgcol`         | The background color.                                                                                                 | 6-digit hex color                                                   | `000000`      | `?bgcol=ababab`                 |
-| `rot`           | Whether to autorotate the view, which will spin it slowly on the vertical axis. Only available in 3D view.            | `1` (enabled) or `0` (disabled)                                     | `0`           | `?rot=1`                        |
-| `bright`        | The brightness of the image.                                                                                          | Number in the range `[0, 100]`                                      | `70`          | `?bright=80`                    |
-| `dens`          | Density modifier for the volume. Higher densities make the volume appear more opaque.                                 | Number in the range `[0, 100]`                                      | `50`          | `?dens=60`                      |
-| `lvl`           | Low, medium, and high levels for image intensity adjustment                                                           | Three numbers in the range `[0, 255]` separated by commas           | `35,140,255`  | `?lvl=0,128,255`                |
-| `interp`        | Whether to enable interpolation.                                                                                      | `1` (enabled) or `0` (disabled)                                     | `1`           | `?interp=0`                     |
-| `reg`           | Subregions per axis.                                                                                                  | Three `min:max` number pairs separated by commas in a `[0,1]` range | `0:1,0:1,0:1` | `?reg=0:0.5,0:0.5,0:0.5`        |
-| `slice`         | Slice position along each axis to show if the view mode is set to `X`, `Y`, or `Z`.                                   | Three floats, separated by commas                                   | `0.5,0.5,0.5` | `?slice=0.5,0.5,0.5`            |
-| `t`             | Frame number, for time-series volumes.                                                                                | Integer                                                             | `0`           | `?t=10`                         |
-| `cam`           | Camera transform settings, with one or more properties separated by commas.                                           | [_See 'Camera transform settings'_](#camera-transform-settings-cam) |               | `?cam=pos:1:2:3,tar:4:5:6`      |
-| `c{n}`          | Channel settings for channel index `n`, with one or more properties separated by commas.                              | [_See 'Channel settings'_](#channel-settings-cn)                    |               | `?c0=iso:1&c2=ven:1,col:ff23cc` |
+| Query parameter | Description                                                                                                           | Expected values                                                                    | Default       | Example                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------- | ------------------------------- |
+| `view`          | Initial view axis.                                                                                                    | `X`, `Y`, `Z`, or `3D`                                                             | `3D`          | `?view=Z`                       |
+| `mode`          | Rendering mode to use.                                                                                                | `volumetric`, `maxproject`, or `pathtrace`                                         | `volumetric`  | `?mode=maxproject`              |
+| `mask`          | The opacity of masked areas of the volume. Used to fade areas outside a segmentation, must be used with mask channel. | Number in range `[0, 100]`                                                         | `50`          | `?mask=75`                      |
+| `axes`          | Whether to show the axes helper.                                                                                      | `1` (enabled) or `0` (disabled)                                                    | `0`           | `?axes=1`                       |
+| `bb`            | Whether to show a wireframe bounding box around the volume.                                                           | `1` (enabled) or `0` (disabled)                                                    | `0`           | `?bb=1`                         |
+| `bbcol`         | The color of the bounding box.                                                                                        | 6-digit hex color                                                                  | `ffffff`      | `?bbcol=ff0000`                 |
+| `bgcol`         | The background color.                                                                                                 | 6-digit hex color                                                                  | `000000`      | `?bgcol=ababab`                 |
+| `rot`           | Whether to autorotate the view, which will spin it slowly on the vertical axis. Only available in 3D view.            | `1` (enabled) or `0` (disabled)                                                    | `0`           | `?rot=1`                        |
+| `bright`        | The brightness of the image.                                                                                          | Number in the range `[0, 100]`                                                     | `70`          | `?bright=80`                    |
+| `dens`          | Density modifier for the volume. Higher densities make the volume appear more opaque.                                 | Number in the range `[0, 100]`                                                     | `50`          | `?dens=60`                      |
+| `lvl`           | Low, medium, and high levels for image intensity adjustment                                                           | Three numbers in the range `[0, 255]` separated by commas                          | `35,140,255`  | `?lvl=0,128,255`                |
+| `interp`        | Whether to enable interpolation.                                                                                      | `1` (enabled) or `0` (disabled)                                                    | `1`           | `?interp=0`                     |
+| `reg`           | Subregions per axis (XYZ order).                                                                                      | Three `min:max` number pairs separated by commas in a `[0,1]` range, in XYZ order. | `0:1,0:1,0:1` | `?reg=0:0.5,0:0.5,0:0.5`        |
+| `slice`         | Slice position along each axis to show if the view mode is set to `X`, `Y`, or `Z`.                                   | Three floats, separated by commas, in XYZ order.                                   | `0.5,0.5,0.5` | `?slice=0.5,0.5,0.5`            |
+| `t`             | Frame number, for time-series volumes.                                                                                | Integer                                                                            | `0`           | `?t=10`                         |
+| `cam`           | Camera transform settings, with one or more properties separated by commas.                                           | [_See 'Camera transform settings'_](#camera-transform-settings-cam)                |               | `?cam=pos:1:2:3,tar:4:5:6`      |
+| `c{n}`          | Channel settings for channel index `n`, with one or more properties separated by commas.                              | [_See 'Channel settings'_](#channel-settings-cn)                                   |               | `?c0=iso:1&c2=ven:1,col:ff23cc` |
 
 ## Camera transform settings (`cam`)
 
@@ -75,11 +75,11 @@ For example, to set the camera position to `(1,2,3)` and the target position to
 Note that the `pos`, `tar`, and `up` properties may have different defaults
 depending on the initial `view` setting.
 
-| Property | Description                                                                       | Expected values                  | Default (3D) | Default (Z / XY) | Default (Y / XZ) | Default (X / YZ) | Example          |
-| -------- | --------------------------------------------------------------------------------- | -------------------------------- | ------------ | ---------------- | ---------------- | ---------------- | ---------------- |
-| `pos`    | Camera position.                                                                  | Three floats separated by colons | `0:0:5`      | `0:0:2`          | `0:2:0`          | `2:0:0`          | `?cam=pos:1:2:3` |
-| `up`     | Camera up vector. Used to solve for camera rotation.                              | Three floats separated by colons | `0:1:0`      | `0:1:0`          | `0:0:1`          | `0:0:1`          | `?cam=up:0:0:1`  |
-| `tar`    | Camera target. From the starting `pos`, the camera will point towards the target. | Three floats separated by colons | `0:0:0`      | `0:0:0`          | `0:0:0`          | `0:0:0`          | `?cam=tar:4:5:6` |
+| Property | Description                                                                       | Expected values                                | Default (3D) | Default (Z / XY) | Default (Y / XZ) | Default (X / YZ) | Example          |
+| -------- | --------------------------------------------------------------------------------- | ---------------------------------------------- | ------------ | ---------------- | ---------------- | ---------------- | ---------------- |
+| `pos`    | Camera position.                                                                  | Three floats separated by colons, in XYZ order | `0:0:5`      | `0:0:2`          | `0:2:0`          | `2:0:0`          | `?cam=pos:1:2:3` |
+| `up`     | Camera up vector. Used to solve for camera rotation.                              | Three floats separated by colons, in XYZ order | `0:1:0`      | `0:1:0`          | `0:0:1`          | `0:0:1`          | `?cam=up:0:0:1`  |
+| `tar`    | Camera target. From the starting `pos`, the camera will point towards the target. | Three floats separated by colons, in XYZ order | `0:0:0`      | `0:0:0`          | `0:0:0`          | `0:0:0`          | `?cam=tar:4:5:6` |
 
 | Property | Description                                                                    | Expected values | Default | Example         |
 | -------- | ------------------------------------------------------------------------------ | --------------- | ------- | --------------- |
@@ -101,7 +101,7 @@ property pair being separated by **commas**.
 | Property | Description                                                                               | Expected values                                                                                | Default                                | Example                             |
 | -------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------- |
 | `ven`    | Whether the volume is enabled.                                                            | `1` (enabled) or `0` (disabled)                                                                | `0` (`1` for the first three channels) | `?c0=ven:1`                         |
-| `iso`    | Whether the isosurface is enabled.                                                        | `1` (enabled) or `0` (disabled)                                                                | `0`                                    | `?c0=iso:1`                         |
+| `sen`    | Whether the isosurface is enabled.                                                        | `1` (enabled) or `0` (disabled)                                                                | `0`                                    | `?c0=iso:1`                         |
 | `isv`    | Isosurface value, the intensity value at which to generate the isosurface.                | Number in the range `[0, 255]`                                                                 | `128`                                  | `?c0=isv:195`                       |
 | `col`    | Base channel color, applied to volumes and isosurfaces.                                   | 6-digit hex color                                                                              | (varies by index)                      | `?c0=col:af38c0`                    |
 | `clz`    | Colorize, used for segmentations where each ID should be a different color.               | `1` (enabled) or `0` (disabled)                                                                | `0`                                    | `?c0=clz:1`                         |
@@ -146,6 +146,7 @@ linearly from an opacity of `0` to `1`. The `min` and `max` can match any of the
 following:
 
 - Plain numbers are treated as bin indices, in a `[0, 255]` range.
+- `v{n}` represents an image intensity value, where `n` is an integer.
 - `p{n}` represents a percentile, where `n` is a percentile in the `[0, 100]` range.
 - `m{n}` represents the volume's median intensity multiplied by `n / 100`.
 - `autoij` in either the min or max fields will approximate the ["auto"
@@ -155,10 +156,11 @@ following:
 
 Examples:
 
-| `lut` value | Description                                                 |
-| ----------- | ----------------------------------------------------------- |
-| `0:255`     | Linear mapping from intensity bin 0 to intensity bin 255.   |
-| `0:p90`     | Linear mapping from intensity bin 0 to the 90th percentile. |
-| `p10:p95`   | Linear mapping from the 10th percentile to the 95th.        |
-| `m100:m150` | Linear mapping from the median to 1.5 times the median.     |
-| `autoij:0`  | Uses the "auto" algorithm from ImageJ.                      |
+| `lut` value | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| `0:255`     | Linear mapping from bin 0 to bin 255.                      |
+| `v10:v200`  | Linear mapping from raw intensity 10 to raw intensity 200. |
+| `0:p90`     | Linear mapping from bin 0 to the 90th percentile.          |
+| `p10:p95`   | Linear mapping from the 10th percentile to the 95th.       |
+| `m100:m150` | Linear mapping from the median to 1.5 times the median.    |
+| `autoij:0`  | Uses the "auto" algorithm from ImageJ.                     |
