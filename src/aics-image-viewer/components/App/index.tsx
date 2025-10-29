@@ -624,6 +624,7 @@ const App: React.FC<AppProps> = (props) => {
             collapsed={controlPanelClosed}
             // image state
             imageName={image?.name}
+            volumeDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
             hasImage={!!image}
             pixelSize={pixelSize}
             channelDataChannels={image?.channels}

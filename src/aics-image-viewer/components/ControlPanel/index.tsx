@@ -34,7 +34,7 @@ interface ControlPanelProps
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
   resetToDefaultViewerState: () => void;
-  volumeDims: VolumeDims[];
+  volumeDims?: VolumeDims[];
 }
 
 const enum ControlTab {
@@ -123,7 +123,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       });
     }
 
-    if (props.visibleControls.scaleLevelControl && props.volumeDims.length > 1) {
+    if (visibleControls.scaleLevelControl && Array.isArray(props.volumeDims) && props.volumeDims.length > 1) {
       items.push({
         key: 2,
         label: "Scale Level",
