@@ -63,6 +63,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   showAxesButton: true,
   showBoundingBoxButton: true,
   metadataViewer: true,
+  scaleLevelControl: true,
 };
 
 const defaultProps: AppProps = {
