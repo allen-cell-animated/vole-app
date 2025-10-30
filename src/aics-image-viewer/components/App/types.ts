@@ -25,7 +25,8 @@ type ControlNames =
   | "resetCameraButton"
   | "showAxesButton"
   | "showBoundingBoxButton"
-  | "metadataViewer";
+  | "metadataViewer"
+  | "scaleLevelControl";
 /** Show/hide different elements of the UI */
 export type ControlVisibilityFlags = { [K in ControlNames]: boolean };
 

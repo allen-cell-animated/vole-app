@@ -30,6 +30,9 @@ export interface ViewerState {
   time: number;
   scene: number;
   cameraState: Partial<CameraState> | undefined;
+  scaleLevelRange: [number, number];
+  exactScaleLevel: number;
+  useExactScaleLevel: boolean;
 }
 
 export type ViewerStateKey = keyof ViewerState;
