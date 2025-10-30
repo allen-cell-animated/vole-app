@@ -419,6 +419,9 @@ describe("Viewer state", () => {
     time: 0,
     scene: 0,
     cameraState: undefined,
+    scaleLevelRange: [0, 3],
+    exactScaleLevel: 0,
+    useExactScaleLevel: false,
   };
   const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
     mode: "volumetric",
@@ -458,6 +461,9 @@ describe("Viewer state", () => {
     slice: { x: 0.25, y: 0.75, z: 0.5 },
     time: 100,
     scene: 3,
+    scaleLevelRange: [0, 3],
+    exactScaleLevel: 0,
+    useExactScaleLevel: false,
     cameraState: {
       position: [-1.05, -4, 45],
       target: [0, 0, 0],
