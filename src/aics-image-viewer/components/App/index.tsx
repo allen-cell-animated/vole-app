@@ -542,6 +542,12 @@ const App: React.FC<AppProps> = (props) => {
     [props.transform?.rotation, view3d]
   );
 
+  useImageEffect(
+    // TODO
+    (currentImage) => {},
+    [viewerSettings.scaleLevelRange, viewerSettings.exactScaleLevel, viewerSettings.useExactScaleLevel]
+  );
+
   const usePerAxisClippingUpdater = (
     axis: AxisName,
     [minval, maxval]: [number, number],
