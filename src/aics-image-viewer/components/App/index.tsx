@@ -134,6 +134,7 @@ const App: React.FC<AppProps> = (props) => {
     viewMode,
     channelSettings,
     changeChannelSetting,
+    changeViewerSetting,
     applyColorPresets,
     setSavedViewerChannelSettings,
     getCurrentViewerChannelSettings,
@@ -158,6 +159,10 @@ const App: React.FC<AppProps> = (props) => {
   // messaging when App is used standalone.
   const [errorAlert, _showError] = useErrorAlert();
   const showError = props.showError ?? _showError;
+
+  // TODO temporary hack to get scale level controls with the scale level specification tools that vole-core currently
+  //   offers. Replace with something better thought-out, ideally via some changes to vole-core.
+  const [defaultScaleLevel, setDefaultScaleLevel] = useState(0);
 
   useEffect(() => {
     // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
@@ -219,10 +224,13 @@ const App: React.FC<AppProps> = (props) => {
         }),
       });
 
+      changeViewerSetting("scaleLevelRange", [0, newImage.imageInfo.imageInfo.multiscaleLevelDims.length - 1]);
+      changeViewerSetting("exactScaleLevel", newImage.imageInfo.multiscaleLevel);
+      setDefaultScaleLevel(newImage.imageInfo.multiscaleLevel);
       onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState, onImageTitleChange]
+    [view3d, viewerState, changeViewerSetting, onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
@@ -542,10 +550,22 @@ const App: React.FC<AppProps> = (props) => {
     [props.transform?.rotation, view3d]
   );
 
+  const { scaleLevelRange, exactScaleLevel, useExactScaleLevel } = viewerSettings;
   useImageEffect(
-    // TODO
-    (currentImage) => {},
-    [viewerSettings.scaleLevelRange, viewerSettings.exactScaleLevel, viewerSettings.useExactScaleLevel]
+    (currentImage) => {
+      const [levelMin, levelMax] = scaleLevelRange;
+
+      if (useExactScaleLevel) {
+        currentImage.updateRequiredData({ useExplicitLevel: true, multiscaleLevel: exactScaleLevel });
+      } else if (levelMin > defaultScaleLevel) {
+        currentImage.updateRequiredData({ useExplicitLevel: true, multiscaleLevel: levelMin });
+      } else if (defaultScaleLevel > levelMax) {
+        currentImage.updateRequiredData({ useExplicitLevel: true, multiscaleLevel: levelMax });
+      } else {
+        currentImage.updateRequiredData({ useExplicitLevel: false });
+      }
+    },
+    [scaleLevelRange, exactScaleLevel, useExactScaleLevel, defaultScaleLevel]
   );
 
   const usePerAxisClippingUpdater = (
