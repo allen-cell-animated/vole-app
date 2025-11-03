@@ -2,7 +2,7 @@ import { Button } from "antd";
 import React, { type ReactElement } from "react";
 import styled from "styled-components";
 
-import { DatasetEntry, LoadDatasetCallback, ProjectEntry } from "../../../types";
+import { DatasetEntry, LoadDatasetCallback } from "../../../types";
 import { VisuallyHidden } from "../utils";
 
 const DatasetListContainer = styled.ol`
