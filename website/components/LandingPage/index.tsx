@@ -10,7 +10,7 @@ import { BannerVideo } from "../../assets/videos";
 import type { AppDataProps } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
 import { LANDING_PAGE_CONTENT } from "./content";
-import { testDataContent } from "./testData";
+import { TEST_DATA_CONTENT } from "./testData";
 import { FlexColumn, FlexColumnAlignCenter, FlexRowAlignCenter, VisuallyHidden } from "./utils";
 
 import Header from "../Header";
@@ -242,7 +242,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
       <ContentContainer style={{ paddingBottom: "400px" }}>
         <ProjectList
           projects={
-            VOLEAPP_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...testDataContent] : LANDING_PAGE_CONTENT
+            VOLEAPP_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...TEST_DATA_CONTENT] : LANDING_PAGE_CONTENT
           }
           onClickLoad={onClickLoad}
         />
