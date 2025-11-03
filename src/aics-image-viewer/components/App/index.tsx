@@ -204,7 +204,7 @@ const App: React.FC<AppProps> = (props) => {
       const channelColorMeta = newImage.imageInfo.channelColors;
       if (Array.isArray(channelColorMeta)) {
         channelColorMeta.forEach((color, index) => {
-          if (Array.isArray(color)) {
+          if (Array.isArray(color) && index < newImage.channelNames.length) {
             changeChannelSetting(index, { color });
           }
         });
