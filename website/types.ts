@@ -26,3 +26,5 @@ export type ProjectEntry = {
   inReview?: boolean;
   hideTitle?: boolean;
 };
+
+export type LoadDatasetCallback = (appProps: AppDataProps, hideTitle?: boolean) => void;
