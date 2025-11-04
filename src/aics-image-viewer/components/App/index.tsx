@@ -285,6 +285,13 @@ const App: React.FC<AppProps> = (props) => {
           plotMax: DTYPE_RANGE[dtype].max,
           isovalue: range.min + (range.max - range.min) / 2,
         });
+      } else if (initializeToExistingRange) {
+        // This is an initial load, but we only want to remap the existing
+        // control points + ramp.
+        changeChannelSetting(channelIndex, {
+          controlPoints: remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel),
+          ramp: remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel),
+        });
       } else {
         // This channel has already been initialized, but its LUT was just
         // remapped (e.g. due to a time or scale level update) and we need to
