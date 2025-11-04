@@ -7,7 +7,7 @@ export type {
   ViewerChannelGroup,
   ViewerChannelSetting,
 } from "./aics-image-viewer/shared/utils/viewerChannelSettings";
-export type { ViewerState } from "./aics-image-viewer/components/ViewerStateProvider/types";
+export type { ViewerState } from "./aics-image-viewer/state/types";
 
 export { ViewMode, RenderMode, ImageType } from "./aics-image-viewer/shared/enums";
 

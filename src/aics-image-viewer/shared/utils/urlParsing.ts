@@ -3,6 +3,7 @@ import { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
+import type { ViewerStore } from "../../state/store";
 import type { ChannelState, ViewerState } from "../../state/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../constants";
 import { ImageType, RenderMode, ViewMode } from "../enums";
