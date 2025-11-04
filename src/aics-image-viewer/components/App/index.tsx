@@ -29,6 +29,7 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../../shared/utils/sliderValuesToImageValues";
+import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -196,15 +197,28 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
-      channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
+      const { channelNames } = newImage;
+      channelRangesRef.current = new Array(channelNames.length).fill(undefined);
 
       const { channelSettings } = viewerState.current;
 
       // If the image has channel color metadata, apply those colors now
-      const channelColorMeta = newImage.imageInfo.channelColors;
+      const viewerChannelSettings = getCurrentViewerChannelSettings();
+      const channelColorMeta = newImage.imageInfo.channelColors?.map((color, index) => {
+        // Filter out channels that have colors in `viewerChannelSettings`
+        if (viewerChannelSettings === undefined) {
+          return color;
+        }
+        const settings = findFirstChannelMatch(channelNames[index], index, viewerChannelSettings);
+        if (settings?.color !== undefined) {
+          return undefined;
+        } else {
+          return color;
+        }
+      });
       if (Array.isArray(channelColorMeta)) {
         channelColorMeta.forEach((color, index) => {
-          if (Array.isArray(color) && index < newImage.channelNames.length) {
+          if (Array.isArray(color) && index < channelNames.length) {
             changeChannelSetting(index, { color });
           }
         });
@@ -231,7 +245,7 @@ const App: React.FC<AppProps> = (props) => {
       onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState, onImageTitleChange, changeChannelSetting]
+    [view3d, viewerState, onImageTitleChange, changeChannelSetting, getCurrentViewerChannelSettings]
   );
 
   const onChannelLoaded = useCallback(
