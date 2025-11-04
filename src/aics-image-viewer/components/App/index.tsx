@@ -226,7 +226,7 @@ const App: React.FC<AppProps> = (props) => {
       const thisChannelSettings = channelSettings[channelIndex];
       const viewerState = useViewerState.getState();
       const { channelsToResetOnLoad, useDefaultViewerChannelSettings } = viewerState;
-      const currentViewerChannelSettings = useDefaultViewerChannelSettings
+      const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
@@ -234,7 +234,7 @@ const App: React.FC<AppProps> = (props) => {
 
       if (isInitialLoad || noLut || channelsToResetOnLoad.includes(channelIndex)) {
         // This channel needs its LUT initialized
-        const { ramp, controlPoints } = initializeLut(image, channelIndex, currentViewerChannelSettings);
+        const { ramp, controlPoints } = initializeLut(image, channelIndex, viewerChannelSettings);
         const { dtype } = thisChannel;
 
         changeChannelSetting(channelIndex, {
@@ -424,12 +424,12 @@ const App: React.FC<AppProps> = (props) => {
       // Check whether any channels are marked to be reset and apply it.
       const viewerState = useViewerState.getState();
       const { channelsToReset, onResetChannel, useDefaultViewerChannelSettings } = viewerState;
-      const currentViewerChannelSettings = useDefaultViewerChannelSettings
+      const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
       for (let i = 0; i < channelSettings.length; i++) {
         if (channelsToReset.includes(i)) {
-          const { ramp, controlPoints } = initializeLut(image, i, currentViewerChannelSettings);
+          const { ramp, controlPoints } = initializeLut(image, i, viewerChannelSettings);
           changeChannelSetting(i, { controlPoints: controlPoints, ramp: controlPointsToRamp(ramp) });
           onResetChannel(i);
         }
