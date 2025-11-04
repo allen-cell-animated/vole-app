@@ -110,19 +110,19 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
-function u8ToAbsolute(value: number, channel: { rawMin: number; rawMax: number }): number {
-  return channel.rawMin + (value / 255) * (channel.rawMax - channel.rawMin);
+function binToAbsolute(value: number, histogram: Histogram): number {
+  return histogram.getValueFromBinIndex(value);
 }
 
-function absoluteToU8(value: number, channel: { rawMin: number; rawMax: number }): number {
-  return ((value - channel.rawMin) / (channel.rawMax - channel.rawMin)) * 255;
+function absoluteToBin(value: number, histogram: Histogram): number {
+  return histogram.findFractionalBinOfValue(value);
 }
 
-function controlPointToAbsolute(cp: ControlPoint, channel: { rawMin: number; rawMax: number }): number {
+function controlPointToAbsolute(cp: ControlPoint, histogram: Histogram): number {
   // the x value of the control point is in the range [0, 255]
   // because of the way the histogram is generated
   // (see LUT_ENTRIES and the fact that we use Uint8Array)
-  return u8ToAbsolute(cp.x, channel);
+  return binToAbsolute(cp.x, histogram);
 }
 
 /** For when all control points are outside the plot's range: just fill the plot with the settings from 1 point */
@@ -260,8 +260,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
-  const { rawMin, rawMax, dtype, histogram } = props.channelData;
-  const typeRange = DTYPE_RANGE[dtype];
+  const { histogram } = props.channelData;
+  const typeRange = DTYPE_RANGE[props.channelData.dtype];
 
   // d3 scales define the mapping between data and screen space (and do the heavy lifting of generating plot axes)
   /** `xScale` is in raw intensity range, not U8 range. We use `u8ToAbsolute` and `absoluteToU8` to translate to U8. */
@@ -269,17 +269,14 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
     [innerWidth, plotMin, plotMax]
   );
-  const plotMinU8 = useMemo(() => absoluteToU8(plotMin, { rawMin, rawMax }), [plotMin, rawMin, rawMax]);
-  const plotMaxU8 = useMemo(() => absoluteToU8(plotMax, { rawMin, rawMax }), [plotMax, rawMin, rawMax]);
+  const plotMinU8 = useMemo(() => absoluteToBin(plotMin, histogram), [plotMin, histogram]);
+  const plotMaxU8 = useMemo(() => absoluteToBin(plotMax, histogram), [plotMax, histogram]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
     const svgRect = svgRef.current?.getBoundingClientRect() ?? { x: 0, y: 0 };
     return [
-      absoluteToU8(
-        xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)),
-        props.channelData
-      ),
+      absoluteToBin(xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)), histogram),
       yScale.invert(clamp(event.clientY - svgRect.y - TFEDITOR_MARGINS.top, 0, innerHeight)),
     ];
   };
@@ -421,12 +418,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const areaPath = useMemo(() => {
     const areaGenerator = d3
       .area<ControlPoint>()
-      .x((d) => xScale(controlPointToAbsolute(d, { rawMin, rawMax })))
+      .x((d) => xScale(controlPointToAbsolute(d, histogram)))
       .y0((d) => yScale(d.opacity))
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight, rawMin, rawMax]);
+  }, [controlPointsToRender, xScale, yScale, innerHeight, histogram]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -495,11 +492,11 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(u8ToAbsolute(idx + start, { rawMin, rawMax }))) // set position and height from data
+        .attr("x", (_len, idx) => xScale(binToAbsolute(idx + start, histogram))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
-    [xScale, rawMin, rawMax, histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
+    [xScale, histogram, innerWidth, innerHeight, plotMinU8, plotMaxU8]
   );
 
   const applyTFGenerator = useCallback(
@@ -532,7 +529,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           <circle
             key={i}
             className={i === selectedPointIdx ? "selected" : ""}
-            cx={xScale(controlPointToAbsolute(cp, props.channelData))}
+            cx={xScale(controlPointToAbsolute(cp, histogram))}
             cy={yScale(cp.opacity)}
             style={{ fill: colorArrayToString(cp.color) }}
             r={5}
@@ -570,19 +567,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         <div className="tf-editor-control-row ramp-row">
           Levels min/max
           <InputNumber
-            value={u8ToAbsolute(props.ramp[0], props.channelData)}
-            onChange={(v) => v !== null && setRamp([absoluteToU8(v, props.channelData), props.ramp[1]])}
+            value={binToAbsolute(props.ramp[0], histogram)}
+            onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
             formatter={numberFormatter}
             min={typeRange.min}
-            max={Math.min(u8ToAbsolute(props.ramp[1], props.channelData), typeRange.max)}
+            max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
             size="small"
             controls={false}
           />
           <InputNumber
-            value={u8ToAbsolute(props.ramp[1], props.channelData)}
-            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToU8(v, props.channelData)])}
+            value={binToAbsolute(props.ramp[1], histogram)}
+            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
             formatter={numberFormatter}
-            min={Math.max(typeRange.min, u8ToAbsolute(props.ramp[0], props.channelData))}
+            min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
             max={typeRange.max}
             size="small"
             controls={false}
@@ -629,7 +626,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {!props.useControlPoints && (
             <g className="ramp-sliders">
               {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
-                <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[0], props.channelData))})`}>
+                <g transform={`translate(${xScale(binToAbsolute(props.ramp[0], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
                     className="ramp-slider-click-target"
@@ -645,7 +642,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 </g>
               )}
               {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
-                <g transform={`translate(${xScale(u8ToAbsolute(props.ramp[1], props.channelData))})`}>
+                <g transform={`translate(${xScale(binToAbsolute(props.ramp[1], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
                     className="ramp-slider-click-target"
@@ -685,7 +682,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         <Button
           size="small"
           style={{ marginLeft: "12px" }}
-          onClick={() => changeChannelSetting({ plotMin: rawMin, plotMax: rawMax })}
+          onClick={() => changeChannelSetting({ plotMin: props.channelData.rawMin, plotMax: props.channelData.rawMax })}
         >
           Fit to data
         </Button>
