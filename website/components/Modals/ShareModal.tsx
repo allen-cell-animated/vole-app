@@ -6,9 +6,13 @@ import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import {
+  ENCODED_COLON_REGEX,
+  ENCODED_COMMA_REGEX,
+  serializeViewerUrlParams,
+} from "../../../src/aics-image-viewer/shared/utils/urlParsing";
 import { selectViewerSettings, useViewerState, ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import { AppDataProps } from "../../types";
-import { ENCODED_COLON_REGEX, ENCODED_COMMA_REGEX, serializeViewerUrlParams } from "../../utils/url_utils";
 import { FlexRow } from "../LandingPage/utils";
 
 type ShareModalProps = {

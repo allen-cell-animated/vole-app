@@ -17,3 +17,8 @@ export type Styles = { [key: string]: CSSProperties };
 
 export type MetadataEntry = string | number | boolean | MetadataRecord | MetadataEntry[] | null | undefined;
 export type MetadataRecord = { [key: string]: MetadataEntry };
+
+export type ManifestJson = {
+  scenes?: string | (string | string[])[];
+  meta?: MetadataRecord[];
+};

@@ -78,6 +78,7 @@ const defaultProps: AppProps = {
   pixelSize: undefined,
   canvasMargin: "0 0 0 0",
   view3dRef: undefined,
+  showError: undefined,
 };
 
 const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
@@ -138,7 +139,7 @@ const App: React.FC<AppProps> = (props) => {
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const applyColorPresets = useViewerState(select("applyColorPresets"));
 
-  const { onControlPanelToggle, metadata, metadataFormatter } = props;
+  const { onControlPanelToggle, onImageTitleChange, metadata, metadataFormatter } = props;
 
   useMemo(() => {
     if (props.viewerChannelSettings) {
@@ -151,7 +152,10 @@ const App: React.FC<AppProps> = (props) => {
     props.view3dRef.current = view3d;
   }
 
-  const [errorAlert, showError] = useErrorAlert();
+  // Allows AppWrapper to pass in its own `useErrorAlert` callbacks, but still keeps error
+  // messaging when App is used standalone.
+  const [errorAlert, _showError] = useErrorAlert();
+  const showError = props.showError ?? _showError;
 
   useEffect(() => {
     // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
@@ -217,6 +221,7 @@ const App: React.FC<AppProps> = (props) => {
         }),
       });
 
+      onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
       const unsubscribeView = subscribeViewToState(useViewerState, view3d);
       const unsubscribeImage = subscribeImageToState(useViewerState, view3d, newImage);
@@ -227,7 +232,7 @@ const App: React.FC<AppProps> = (props) => {
         removePreviousImage.current = undefined;
       };
     },
-    [view3d, viewerState]
+    [view3d, viewerState, onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
@@ -288,10 +293,18 @@ const App: React.FC<AppProps> = (props) => {
     [view3d, channelSettings, changeChannelSetting, maskChannelName, viewerState]
   );
 
+  const onError = useCallback(
+    (error: unknown) => {
+      showError(error);
+      onImageTitleChange?.(undefined);
+    },
+    [showError, onImageTitleChange]
+  );
+
   const volume = useVolume(scenes, {
     onCreateImage,
     onChannelLoaded,
-    onError: showError,
+    onError,
     maskChannelName,
   });
   const { image, setTime, setScene } = volume;
