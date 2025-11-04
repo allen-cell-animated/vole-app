@@ -249,7 +249,6 @@ const App: React.FC<AppProps> = (props) => {
       if ((isInitialLoad && !shouldIgnoreInitialLoad) || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
-        const { dtype } = thisChannel;
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
