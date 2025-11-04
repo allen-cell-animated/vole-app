@@ -1,11 +1,12 @@
 import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } from "@aics/vole-core";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
 import {
   AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
   getDefaultChannelColor,
+  getDefaultViewerChannelSettings,
   QUEUE_MAX_LOW_PRIORITY_SIZE,
   QUEUE_MAX_SIZE,
 } from "../shared/constants";
@@ -14,14 +15,18 @@ import { AxisName } from "../shared/types";
 import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
-import { ChannelGrouping, getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
+import {
+  ChannelGrouping,
+  getDisplayName,
+  makeChannelIndexGrouping,
+  ViewerChannelSettings,
+} from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { select, useViewerState } from "../state/store";
 import { ChannelState } from "./ViewerStateProvider/types";
 
-import { ViewerStateContext } from "./ViewerStateProvider";
-
 export type UseVolumeOptions = {
+  viewerChannelSettings?: ViewerChannelSettings;
   /** Callback for when the volume is created. */
   onCreateImage?: (image: Volume) => void;
   /** Callback for when a single channel of the volume has loaded. */
@@ -96,7 +101,6 @@ const useVolume = (
   scenePaths: (string | string[] | RawArrayLoaderOptions)[],
   options?: UseVolumeOptions
 ): ReactiveVolume => {
-  const viewerStateRef = useContext(ViewerStateContext).ref;
   const channelSettings = useViewerState(select("channelSettings"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const initChannelSettings = useViewerState(select("initChannelSettings"));
@@ -202,14 +206,16 @@ const useVolume = (
 
   // effect to start the initial load of the image
   useEffect(() => {
-    const { getCurrentViewerChannelSettings } = viewerStateRef.current;
     const channelSettings = useViewerState.getState().channelSettings;
     setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
     setLoadThrewError(false);
     inInitialLoadRef.current = true;
 
     const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
-      const viewerChannelSettings = getCurrentViewerChannelSettings();
+      const { useDefaultViewerChannelSettings } = useViewerState.getState();
+      const viewerChannelSettings = useDefaultViewerChannelSettings
+        ? getDefaultViewerChannelSettings()
+        : options?.viewerChannelSettings;
       const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
@@ -277,7 +283,11 @@ const useVolume = (
         : [];
 
       // add mask channel to required channels, if specified
-      const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
+      const { useDefaultViewerChannelSettings } = useViewerState.getState();
+      const viewerChannelSettings = useDefaultViewerChannelSettings
+        ? getDefaultViewerChannelSettings()
+        : options?.viewerChannelSettings;
+      const maskChannelName = viewerChannelSettings?.maskChannelName;
       if (maskChannelName) {
         const maskChannelIndex = channelNames.indexOf(maskChannelName);
         if (maskChannelIndex >= 0 && !requiredChannelsToLoad.includes(maskChannelIndex)) {
@@ -310,7 +320,6 @@ const useVolume = (
     onError,
     onCreateImageRef,
     onChannelLoadedRef,
-    viewerStateRef,
     channelVersionsRef,
     setChannelVersions,
     playControls,
@@ -318,6 +327,7 @@ const useVolume = (
     onChannelDataLoaded,
     changeViewerSetting,
     initChannelSettings,
+    options?.viewerChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 

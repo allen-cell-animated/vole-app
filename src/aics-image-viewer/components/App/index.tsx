@@ -2,7 +2,7 @@
 import { RawArrayLoaderOptions, View3d, Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   AXIS_MARGIN_DEFAULT,
@@ -10,6 +10,7 @@ import {
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
   DTYPE_RANGE,
+  getDefaultViewerChannelSettings,
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
@@ -32,7 +33,6 @@ import ControlPanel from "../ControlPanel";
 import { useErrorAlert } from "../ErrorAlert";
 import StyleProvider from "../StyleProvider";
 import Toolbar from "../Toolbar";
-import { ViewerStateContext } from "../ViewerStateProvider";
 import ChannelUpdater from "./ChannelUpdater";
 
 import "../../assets/styles/globals.css";
@@ -122,14 +122,6 @@ const App: React.FC<AppProps> = (props) => {
   props = { ...defaultProps, ...props };
 
   // State management /////////////////////////////////////////////////////////
-  const viewerState = useContext(ViewerStateContext).ref;
-  const {
-    setSavedViewerChannelSettings,
-    getCurrentViewerChannelSettings,
-    // TODO: Show a loading spinner while any channels are awaiting reset.
-    getChannelsAwaitingReset,
-    onResetChannel,
-  } = viewerState.current;
   const imageType = useViewerState(select("imageType"));
   const viewMode = useViewerState(select("viewMode"));
   const scene = useViewerState(select("scene"));
@@ -138,14 +130,12 @@ const App: React.FC<AppProps> = (props) => {
   const channelSettings = useViewerState(select("channelSettings"));
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const applyColorPresets = useViewerState(select("applyColorPresets"));
+  const resetToSavedState = useViewerState(select("resetToSavedViewerState"));
 
-  const { onControlPanelToggle, onImageTitleChange, metadata, metadataFormatter } = props;
-
-  useMemo(() => {
-    if (props.viewerChannelSettings) {
-      setSavedViewerChannelSettings(props.viewerChannelSettings);
-    }
-  }, [props.viewerChannelSettings, setSavedViewerChannelSettings]);
+  const resetToSavedViewerState = useCallback(
+    () => resetToSavedState(props.viewerSettings, props.viewerChannelSettings),
+    [resetToSavedState, props.viewerSettings, props.viewerChannelSettings]
+  );
 
   const view3d = useConstructor(() => new View3d());
   if (props.view3dRef !== undefined) {
@@ -184,13 +174,14 @@ const App: React.FC<AppProps> = (props) => {
     }
   }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
 
-  const maskChannelName = getCurrentViewerChannelSettings()?.maskChannelName;
+  const maskChannelName = props.viewerChannelSettings?.maskChannelName;
 
   // we need to keep track of channel ranges for remapping control points
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
 
   const removePreviousImage = useRef<(() => void) | undefined>(undefined);
 
+  const { onImageTitleChange } = props;
   const onCreateImage = useCallback(
     (newImage: Volume): void => {
       removePreviousImage.current?.();
@@ -201,7 +192,7 @@ const App: React.FC<AppProps> = (props) => {
 
       channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
 
-      const { channelSettings } = viewerState.current;
+      const { channelSettings } = useViewerState.getState();
 
       view3d.addVolume(newImage, {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
@@ -232,20 +223,24 @@ const App: React.FC<AppProps> = (props) => {
         removePreviousImage.current = undefined;
       };
     },
-    [view3d, viewerState, onImageTitleChange]
+    [view3d, onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
     (image: Volume, channelIndex: number, isInitialLoad: boolean): void => {
       // TODO this was once a search by name - is that still necessary or will the index always be correct?
       const thisChannelSettings = channelSettings[channelIndex];
-      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings } = viewerState.current;
+      const viewerState = useViewerState.getState();
+      const { channelsToResetOnLoad, useDefaultViewerChannelSettings } = viewerState;
+      const viewerChannelSettings = useDefaultViewerChannelSettings
+        ? getDefaultViewerChannelSettings()
+        : props.viewerChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
 
-      if (isInitialLoad || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+      if (isInitialLoad || noLut || channelsToResetOnLoad.includes(channelIndex)) {
         // This channel needs its LUT initialized
-        const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
+        const { ramp, controlPoints } = initializeLut(image, channelIndex, viewerChannelSettings);
         const { dtype } = thisChannel;
 
         changeChannelSetting(channelIndex, {
@@ -290,7 +285,7 @@ const App: React.FC<AppProps> = (props) => {
         view3d.updateActiveChannels(image);
       }
     },
-    [view3d, channelSettings, changeChannelSetting, maskChannelName, viewerState]
+    [view3d, channelSettings, changeChannelSetting, maskChannelName, props.viewerChannelSettings]
   );
 
   const onError = useCallback(
@@ -302,6 +297,7 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   const volume = useVolume(scenes, {
+    viewerChannelSettings: props.viewerChannelSettings,
     onCreateImage,
     onChannelLoaded,
     onError,
@@ -341,6 +337,7 @@ const App: React.FC<AppProps> = (props) => {
     });
   }, [view3d]);
 
+  const { metadata, metadataFormatter } = props;
   const getMetadata = useCallback((): MetadataRecord => {
     let imageMetadata = image?.imageMetadata as MetadataRecord;
     if (imageMetadata && metadataFormatter) {
@@ -410,6 +407,7 @@ const App: React.FC<AppProps> = (props) => {
     return () => window.removeEventListener("resize", onResizeDebounced);
   }, [hasAutoClosedControlPanel]);
 
+  const { onControlPanelToggle } = props;
   useEffect(
     () => onControlPanelToggle && onControlPanelToggle(controlPanelClosed),
     [controlPanelClosed, onControlPanelToggle]
@@ -438,16 +436,20 @@ const App: React.FC<AppProps> = (props) => {
   useImageEffect(
     (image) => {
       // Check whether any channels are marked to be reset and apply it.
-      const channelsAwaitingReset = getChannelsAwaitingReset();
+      const viewerState = useViewerState.getState();
+      const { channelsToReset, onResetChannel, useDefaultViewerChannelSettings } = viewerState;
+      const viewerChannelSettings = useDefaultViewerChannelSettings
+        ? getDefaultViewerChannelSettings()
+        : props.viewerChannelSettings;
       for (let i = 0; i < channelSettings.length; i++) {
-        if (channelsAwaitingReset.has(i)) {
-          const { ramp, controlPoints } = initializeLut(image, i, getCurrentViewerChannelSettings());
+        if (channelsToReset.includes(i)) {
+          const { ramp, controlPoints } = initializeLut(image, i, viewerChannelSettings);
           changeChannelSetting(i, { controlPoints: controlPoints, ramp: controlPointsToRamp(ramp) });
           onResetChannel(i);
         }
       }
     },
-    [changeChannelSetting, channelSettings, getChannelsAwaitingReset, getCurrentViewerChannelSettings, onResetChannel]
+    [changeChannelSetting, channelSettings, props.viewerChannelSettings]
   );
 
   // `time` and `scene` have their own special handlers via `volume`, since they both trigger loads
@@ -480,10 +482,10 @@ const App: React.FC<AppProps> = (props) => {
     <StyleProvider>
       {errorAlert}
       <Layout className="cell-viewer-app" style={{ height: props.appHeight }}>
-        {channelSettings.map((channelState, index) => (
+        {channelSettings.map(({ name }, index) => (
           <ChannelUpdater
-            key={`${index}_${channelState.name}`}
-            {...{ channelState, index }}
+            key={`${index}_${name}`}
+            index={index}
             view3d={view3d}
             image={image}
             version={volume.channelVersions[index]}
@@ -525,6 +527,7 @@ const App: React.FC<AppProps> = (props) => {
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
               resetCamera={resetCamera}
               downloadScreenshot={saveScreenshot}
+              resetToSavedViewerState={resetToSavedViewerState}
               visibleControls={visibleControls}
             />
             <CellViewerCanvasWrapper
