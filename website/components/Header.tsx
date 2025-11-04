@@ -123,6 +123,7 @@ type HeaderProps = {
   alertElement?: ReactElement;
   /** When `true`, open links in a new tab rather than navigating away and causing the user to potentially lose work. */
   noNavigate?: boolean;
+  title?: string;
 };
 
 export default function Header(props: PropsWithChildren<HeaderProps>): ReactElement {
@@ -130,6 +131,7 @@ export default function Header(props: PropsWithChildren<HeaderProps>): ReactElem
     <StickyContainer>
       <HeaderContainer>
         <HeaderLogo noNavigate={props.noNavigate} />
+        {props.title && <h3 style={{ margin: 0 }}>{props.title}</h3>}
         {props.children}
       </HeaderContainer>
       {props.alertElement}

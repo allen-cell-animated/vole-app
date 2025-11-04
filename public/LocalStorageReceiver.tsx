@@ -2,7 +2,7 @@ import React from "react";
 
 import { MultisceneUrls } from "../src/aics-image-viewer/components/App/types.ts";
 import { MetadataRecord } from "../src/aics-image-viewer/shared/types.ts";
-import { encodeImageUrlProp } from "../website/utils/url_utils.ts";
+import { encodeImageUrlProp } from "../website/utils/urls.ts";
 
 type Message = MultisceneUrls & {
   meta?: MetadataRecord | MetadataRecord[];
