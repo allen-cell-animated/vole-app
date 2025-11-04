@@ -203,6 +203,7 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
+      const { channelSettings } = viewerState.current;
       const { channelNames } = newImage;
       channelRangesRef.current = channelNames.map((_, i) => {
         const shouldKeepCurrentRange = channelSettings[i]?.keepIntensityOnNewVolume;
@@ -263,33 +264,42 @@ const App: React.FC<AppProps> = (props) => {
         viewerState.current;
       const thisChannel = image.getChannel(channelIndex);
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
+      const oldRange = channelRangesRef.current[channelIndex];
 
-      // If the user has requested to keep their current intensity settings on
-      // new volume load and this is not actually the initial load, skip
-      // re-initializing the LUT.
-      const shouldIgnoreInitialLoad =
-        thisChannelSettings.keepIntensityOnNewVolume && channelRangesRef.current[channelIndex] !== undefined;
-      if ((isInitialLoad && !shouldIgnoreInitialLoad) || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+      const initializeToExistingRange =
+        isInitialLoad && thisChannelSettings.keepIntensityOnNewVolume && oldRange !== undefined;
+      const initializeToDefaults = isInitialLoad && !initializeToExistingRange;
+
+      if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
-
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
         });
+      } else if (initializeToExistingRange) {
+        // This is an initial load, but we only want to remap the existing
+        // control points + ramp.
+        changeChannelSetting(channelIndex, {
+          controlPoints: remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel),
+          ramp: remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel),
+        });
       } else {
-        // This channel has already been initialized, but its LUT was just remapped and we need to update some things
-        const oldRange = channelRangesRef.current[channelIndex];
+        // This channel has already been initialized, but its LUT was just
+        // remapped (e.g. due to a time or scale level update) and we need to
+        // update the ramp and control points.
         let controlPoints: ControlPoint[];
         let ramp: [number, number];
 
-        if (thisChannelSettings.keepIntensityOnNewVolume) {
-          controlPoints = remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel);
+        // The LUT represents the currently visible control points or ramp, so
+        // we can use it directly for the visible setting and remap the other to
+        // thge new range.
+        if (thisChannelSettings.useControlPoints) {
+          controlPoints = thisChannel.lut.controlPoints;
           ramp = remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel);
         } else {
-          // Ideally, in this mode the range should always represent the raw
-          controlPoints = thisChannel.lut.controlPoints;
           ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
+          controlPoints = remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel);
         }
 
         changeChannelSetting(channelIndex, {
