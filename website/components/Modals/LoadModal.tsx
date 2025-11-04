@@ -6,7 +6,7 @@ import styled from "styled-components";
 
 import { AppDataProps } from "../../types";
 import { RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
-import { isValidUrl } from "../../utils/url_utils";
+import { isValidUrl } from "../../utils/urls";
 import { FlexRow } from "../LandingPage/utils";
 
 import MiddleTruncatedText from "../MiddleTruncatedText";

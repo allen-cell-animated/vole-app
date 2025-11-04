@@ -1,14 +1,9 @@
 import { CameraState } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 
-import { ChannelState, ViewerState } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
-import {
-  getDefaultCameraState,
-  getDefaultChannelState,
-  getDefaultViewerState,
-} from "../../../src/aics-image-viewer/shared/constants";
-import { ImageType, RenderMode, ViewMode } from "../../../src/aics-image-viewer/shared/enums";
-import { ViewerChannelSetting } from "../../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
+import { ChannelState, ViewerState } from "../../../components/ViewerStateProvider/types";
+import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../constants";
+import { ImageType, RenderMode, ViewMode } from "../../enums";
 import {
   CONTROL_POINTS_REGEX,
   deserializeViewerChannelSetting,
@@ -26,7 +21,8 @@ import {
   serializeViewerUrlParams,
   ViewerChannelSettingParams,
   ViewerStateParams,
-} from "../url_utils";
+} from "../urlParsing";
+import { ViewerChannelSetting } from "../viewerChannelSettings";
 
 const defaultSettings: ViewerChannelSetting = {
   match: 0,

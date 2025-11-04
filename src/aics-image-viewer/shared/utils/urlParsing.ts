@@ -1,27 +1,17 @@
 import { CameraState, ControlPoint } from "@aics/vole-core";
+import { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 
-import FirebaseRequest, { type DatasetMetaData } from "../../public/firebase";
-import type { AppProps, MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
-import type {
-  ChannelState,
-  ViewerState,
-  ViewerStateContextType,
-} from "../../src/aics-image-viewer/components/ViewerStateProvider/types";
-import {
-  getDefaultCameraState,
-  getDefaultChannelState,
-  getDefaultViewerState,
-} from "../../src/aics-image-viewer/shared/constants";
-import { ImageType, RenderMode, ViewMode } from "../../src/aics-image-viewer/shared/enums";
-import type { ManifestJson, MetadataRecord, PerAxis } from "../../src/aics-image-viewer/shared/types";
-import { ColorArray } from "../../src/aics-image-viewer/shared/utils/colorRepresentations";
-import type {
-  ViewerChannelSetting,
-  ViewerChannelSettings,
-} from "../../src/aics-image-viewer/shared/utils/viewerChannelSettings";
-import { removeMatchingProperties, removeUndefinedProperties } from "./datatype_utils";
-import { clamp } from "./math_utils";
+import type { AppProps, MultisceneUrls } from "../../components/App/types";
+import type { ChannelState, ViewerState, ViewerStateContextType } from "../../components/ViewerStateProvider/types";
+import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../constants";
+import { ImageType, RenderMode, ViewMode } from "../enums";
+import type { ManifestJson, MetadataRecord, PerAxis } from "../types";
+import { ColorArray } from "./colorRepresentations";
+import { removeMatchingProperties, removeUndefinedProperties } from "./datatypes";
+import FirebaseRequest, { type DatasetMetaData } from "./firebase";
+import { clamp } from "./math";
+import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
 export const ENCODED_COMMA_REGEX = /%2C/g;
 export const ENCODED_COLON_REGEX = /%3A/g;
@@ -690,15 +680,6 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
 
 //// DATA SERIALIZATION //////////////////////
 
-export function encodeImageUrlProp(imageUrl: string | MultisceneUrls): string {
-  // work with an array of scenes, even if there's only one scene
-  const scenes = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
-  // join urls in multi-source images with commas, and encode each url
-  const sceneUrls = scenes.map((scene) => encodeURIComponent(Array.isArray(scene) ? scene.join(",") : scene));
-  // join scenes with `+`
-  return sceneUrls.join("+");
-}
-
 /**
  * Parses a ViewerChannelSetting from a JSON object.
  * @param channelIndex Index of the channel, to be turned into a `match` value.
@@ -930,8 +911,8 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
 }
 
 //// FULL URL PARSING //////////////////////
-async function loadDataset(dataset: string, id: string): Promise<Partial<AppProps>> {
-  const db = new FirebaseRequest();
+async function loadDataset(firestore: FirebaseFirestore, dataset: string, id: string): Promise<Partial<AppProps>> {
+  const db = new FirebaseRequest(firestore);
   const args: Partial<AppProps> = {};
 
   const datasets = await db.getAvailableDatasets();
@@ -1019,10 +1000,22 @@ export async function loadFromManifest(
 }
 
 /**
- * Parses a set of URL search parameters into a set of args/props for the viewer.
- * @param urlSearchParams
+ * Parses a set of URL search parameters into props for the viewer.
+ * @param urlSearchParams The URLSearchParams object to parse.
+ * @param firestore Optional Firestore instance. If provided, the function can
+ * load data from a Firestore dataset if the `dataset` and `id` parameters are
+ * provided.
+ * @returns An object containing:
+ * - `args`: Partial AppProps object.
+ * - `viewerSettings`: Partial ViewerState object.
+ *
+ * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings`
+ * can be passed to `ViewerStateProvider`.
  */
-export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Promise<{
+export async function parseViewerUrlParams(
+  urlSearchParams: URLSearchParams,
+  firestore?: FirebaseFirestore
+): Promise<{
   args: Partial<AppProps>;
   viewerSettings: Partial<ViewerState>;
 }> {
@@ -1088,9 +1081,9 @@ export async function parseViewerUrlParams(urlSearchParams: URLSearchParams): Pr
         ],
       };
     }
-  } else if (params.dataset && params.id) {
+  } else if (params.dataset && params.id && firestore) {
     // ?dataset=aics_hipsc_v2020.1&id=232265
-    const datasetArgs = await loadDataset(params.dataset, params.id);
+    const datasetArgs = await loadDataset(firestore, params.dataset, params.id);
     args = { ...args, ...datasetArgs };
   }
 
@@ -1121,8 +1114,4 @@ export function serializeViewerUrlParams(
   );
 
   return { ...params, ...channelParams };
-}
-
-export function isValidUrl(url: string): boolean {
-  return url.startsWith("http");
 }

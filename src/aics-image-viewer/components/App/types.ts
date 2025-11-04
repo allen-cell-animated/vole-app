@@ -70,4 +70,5 @@ export interface AppProps {
   metadataFormatter?: (metadata: MetadataRecord) => MetadataRecord;
   onControlPanelToggle?: (collapsed: boolean) => void;
   showError?: (error: any) => void;
+  onImageTitleChange?: (title: string | undefined) => void;
 }
