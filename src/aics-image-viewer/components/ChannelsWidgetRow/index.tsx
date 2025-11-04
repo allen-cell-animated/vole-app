@@ -101,6 +101,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         ramp={ramp}
         plotMin={plotMin}
         plotMax={plotMax}
+        keepIntensityOnNewVolume={channelState.keepIntensityOnNewVolume}
       />
     );
   };

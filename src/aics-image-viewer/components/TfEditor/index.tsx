@@ -1,4 +1,5 @@
 import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
+import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
@@ -64,6 +65,7 @@ type TfEditorProps = {
   ramp: [number, number];
   plotMin: number;
   plotMax: number;
+  keepIntensityOnNewVolume: boolean;
 };
 
 const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
@@ -563,29 +565,45 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       </div>
 
       {/* ----- MIN/MAX SPINBOXES ----- */}
-      {!props.useControlPoints && (
-        <div className="tf-editor-control-row ramp-row">
-          Levels min/max
-          <InputNumber
-            value={binToAbsolute(props.ramp[0], histogram)}
-            onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
-            formatter={numberFormatter}
-            min={typeRange.min}
-            max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
-            size="small"
-            controls={false}
-          />
-          <InputNumber
-            value={binToAbsolute(props.ramp[1], histogram)}
-            onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
-            formatter={numberFormatter}
-            min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
-            max={typeRange.max}
-            size="small"
-            controls={false}
-          />
-        </div>
-      )}
+      <div className="tf-editor-control-row ramp-row">
+        <Tooltip
+          title={
+            (props.keepIntensityOnNewVolume ? "Keep " : "Do not keep ") +
+            "intensity values when switching to another volume."
+          }
+        >
+          <Button
+            onClick={() => props.changeChannelSetting({ keepIntensityOnNewVolume: !props.keepIntensityOnNewVolume })}
+            style={{ height: 24, padding: "0 4px" }}
+            type={props.keepIntensityOnNewVolume ? "default" : "text"}
+          >
+            <span style={{ margin: 0 }}>{props.keepIntensityOnNewVolume ? <LockOutlined /> : <UnlockOutlined />}</span>
+          </Button>
+        </Tooltip>
+        {!props.useControlPoints && (
+          <div className="tf-editor-control-row">
+            Levels min/max
+            <InputNumber
+              value={binToAbsolute(props.ramp[0], histogram)}
+              onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
+              formatter={numberFormatter}
+              min={typeRange.min}
+              max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
+              size="small"
+              controls={false}
+            />
+            <InputNumber
+              value={binToAbsolute(props.ramp[1], histogram)}
+              onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
+              formatter={numberFormatter}
+              min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
+              max={typeRange.max}
+              size="small"
+              controls={false}
+            />
+          </div>
+        )}
+      </div>
 
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
       {colorPickerPosition !== null && (

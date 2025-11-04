@@ -84,5 +84,7 @@ export function initializeOneChannelSetting(
     ramp: initSettings.ramp ?? defaultChannelState.ramp,
     plotMin: defaultChannelState.plotMin,
     plotMax: defaultChannelState.plotMax,
+    // TODO: Update when this becomes a controllable setting from parameters
+    keepIntensityOnNewVolume: defaultChannelState.keepIntensityOnNewVolume,
   };
 }

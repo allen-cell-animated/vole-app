@@ -1,5 +1,12 @@
 // 3rd Party Imports
-import { RawArrayLoaderOptions, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
+import {
+  ControlPoint,
+  RawArrayLoaderOptions,
+  RENDERMODE_PATHTRACE,
+  RENDERMODE_RAYMARCH,
+  View3d,
+  Volume,
+} from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -9,7 +16,6 @@ import {
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
-  DTYPE_RANGE,
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
@@ -19,8 +25,8 @@ import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
 import {
   controlPointsToRamp,
   initializeLut,
-  rampToControlPoints,
   remapControlPointsForChannel,
+  remapRampForChannel,
 } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import {
@@ -196,9 +202,11 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
-      channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
-
       const { channelSettings } = viewerState.current;
+      channelRangesRef.current = newImage.channelNames.map((_, i) => {
+        const shouldKeepCurrentRange = channelSettings[i]?.keepIntensityOnNewVolume;
+        return shouldKeepCurrentRange ? channelRangesRef.current[i] : undefined;
+      });
 
       view3d.addVolume(newImage, {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
@@ -233,7 +241,12 @@ const App: React.FC<AppProps> = (props) => {
       const thisChannel = image.getChannel(channelIndex);
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
 
-      if (isInitialLoad || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
+      // If the user has requested to keep their current intensity settings on
+      // new volume load and this is not actually the initial load, skip
+      // re-initializing the LUT.
+      const shouldIgnoreInitialLoad =
+        thisChannelSettings.keepIntensityOnNewVolume && channelRangesRef.current[channelIndex] !== undefined;
+      if ((isInitialLoad && !shouldIgnoreInitialLoad) || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
         const { dtype } = thisChannel;
@@ -241,31 +254,35 @@ const App: React.FC<AppProps> = (props) => {
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
-          // set the default range of the transfer function editor to cover the full range of the data type
-          plotMin: DTYPE_RANGE[dtype].min,
-          plotMax: DTYPE_RANGE[dtype].max,
         });
       } else {
         // This channel has already been initialized, but its LUT was just remapped and we need to update some things
         const oldRange = channelRangesRef.current[channelIndex];
-        if (thisChannelSettings.useControlPoints) {
-          // control points were just automatically remapped - update in state
-          const rampControlPoints = rampToControlPoints(thisChannelSettings.ramp);
-          // now manually remap ramp using the channel's old range
-          const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, thisChannel);
-          changeChannelSetting(channelIndex, {
-            ramp: controlPointsToRamp(remappedRampControlPoints),
-            controlPoints: thisChannel.lut.controlPoints,
-          });
+        let controlPoints: ControlPoint[];
+        let ramp: [number, number];
+
+        if (thisChannelSettings.keepIntensityOnNewVolume) {
+          controlPoints = remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel);
+          ramp = remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel);
         } else {
-          // ramp was just automatically remapped - update in state
-          const ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
-          // now manually remap control points using the channel's old range
-          const { controlPoints } = thisChannelSettings;
-          const remappedControlPoints = remapControlPointsForChannel(controlPoints, oldRange, thisChannel);
-          changeChannelSetting(channelIndex, { controlPoints: remappedControlPoints, ramp: ramp });
+          // Ideally, in this mode the range should always represent the raw
+          controlPoints = thisChannel.lut.controlPoints;
+          ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
         }
+
+        changeChannelSetting(channelIndex, {
+          controlPoints,
+          ramp,
+        });
       }
+
+      // When new data loads in, expand the plot range to include the new data's
+      // full range as needed. (This keeps the range consistent when switching
+      // between multiple volumes.)
+      changeChannelSetting(channelIndex, {
+        plotMin: Math.min(thisChannel.rawMin, thisChannelSettings.plotMin),
+        plotMax: Math.max(thisChannel.rawMax, thisChannelSettings.plotMax),
+      });
 
       // save the channel's new range for remapping next time
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];

@@ -189,7 +189,10 @@ export function rampToControlPoints([min, max]: [number, number]): ControlPoint[
   ];
 }
 
-/** Remaps an array of control points from an old range (as a 2-tuple) to a new one (extracted from a `Channel`) */
+/**
+ * Remaps an array of control points from an old range (as a 2-tuple) to a new
+ * one (extracted from a `Channel`)
+ */
 export function remapControlPointsForChannel(
   controlPoints: ControlPoint[],
   oldRange: [number, number] | undefined,
@@ -200,4 +203,18 @@ export function remapControlPointsForChannel(
   }
 
   return remapControlPoints(controlPoints, oldRange[0], oldRange[1], rawMin, rawMax);
+}
+
+/**
+ * Remaps a ramp from an old range (as a 2-tuple) to a new one (extracted from a
+ * `Channel`)
+ */
+export function remapRampForChannel(
+  ramp: [number, number],
+  oldRange: [number, number] | undefined,
+  channel: Channel
+): [number, number] {
+  const rampControlPoints = rampToControlPoints(ramp);
+  const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, channel);
+  return controlPointsToRamp(remappedRampControlPoints);
 }
