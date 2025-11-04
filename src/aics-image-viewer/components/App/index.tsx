@@ -16,6 +16,7 @@ import {
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
+  DTYPE_RANGE,
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
@@ -263,6 +264,7 @@ const App: React.FC<AppProps> = (props) => {
       const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
         viewerState.current;
       const thisChannel = image.getChannel(channelIndex);
+      const dtype = thisChannel.dtype;
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
       const oldRange = channelRangesRef.current[channelIndex];
 
@@ -273,16 +275,15 @@ const App: React.FC<AppProps> = (props) => {
       if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
+        const range = DTYPE_RANGE[thisChannel.dtype];
+
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
-        });
-      } else if (initializeToExistingRange) {
-        // This is an initial load, but we only want to remap the existing
-        // control points + ramp.
-        changeChannelSetting(channelIndex, {
-          controlPoints: remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel),
-          ramp: remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel),
+          // set the default range of the transfer function editor to cover the full range of the data type
+          plotMin: DTYPE_RANGE[dtype].min,
+          plotMax: DTYPE_RANGE[dtype].max,
+          isovalue: range.min + (range.max - range.min) / 2,
         });
       } else {
         // This channel has already been initialized, but its LUT was just
