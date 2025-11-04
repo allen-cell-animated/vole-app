@@ -35,6 +35,7 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../../shared/utils/sliderValuesToImageValues";
+import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -202,15 +203,37 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
-      const { channelSettings } = viewerState.current;
-      channelRangesRef.current = newImage.channelNames.map((_, i) => {
+      const { channelNames } = newImage;
+      channelRangesRef.current = channelNames.map((_, i) => {
         const shouldKeepCurrentRange = channelSettings[i]?.keepIntensityOnNewVolume;
         return shouldKeepCurrentRange ? channelRangesRef.current[i] : undefined;
       });
 
+      // If the image has channel color metadata, apply those colors now
+      const viewerChannelSettings = getCurrentViewerChannelSettings();
+      const channelColorMeta = newImage.imageInfo.channelColors?.map((color, index) => {
+        // Filter out channels that have colors in `viewerChannelSettings`
+        if (viewerChannelSettings === undefined) {
+          return color;
+        }
+        const settings = findFirstChannelMatch(channelNames[index], index, viewerChannelSettings);
+        if (settings?.color !== undefined) {
+          return undefined;
+        } else {
+          return color;
+        }
+      });
+      if (Array.isArray(channelColorMeta)) {
+        channelColorMeta.forEach((color, index) => {
+          if (Array.isArray(color) && index < channelNames.length) {
+            changeChannelSetting(index, { color });
+          }
+        });
+      }
+
       view3d.addVolume(newImage, {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-        channels: newImage.channelNames.map((name) => {
+        channels: newImage.channelNames.map((name, index) => {
           // TODO do we really need to be searching by name here?
           const ch = channelSettings.find((channel) => channel.name === name);
           if (!ch) {
@@ -221,7 +244,7 @@ const App: React.FC<AppProps> = (props) => {
             isosurfaceEnabled: ch.isosurfaceEnabled,
             isovalue: ch.isovalue,
             isosurfaceOpacity: ch.opacity,
-            color: ch.color,
+            color: channelColorMeta?.[index] ?? ch.color,
           };
         }),
       });
@@ -229,7 +252,7 @@ const App: React.FC<AppProps> = (props) => {
       onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState, onImageTitleChange]
+    [view3d, viewerState, onImageTitleChange, changeChannelSetting, getCurrentViewerChannelSettings]
   );
 
   const onChannelLoaded = useCallback(
