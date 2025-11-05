@@ -1016,7 +1016,11 @@
       font-size:1.4em;
     }
 
-.control-panel-col-container .control-panel-col .color-presets-dropdown{
+.control-panel-col-container .control-panel-col .control-panel-actions{
+      display:flex;
+      flex-direction:row;
+      justify-content:space-between;
+      align-items:flex-end;
       margin:0 16px 16px;
     }
 
