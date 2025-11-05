@@ -1,5 +1,4 @@
 import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
-import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
