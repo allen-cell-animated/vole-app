@@ -438,7 +438,13 @@
 
   .viewer-control-row .control{
     flex:5;
+    display:flex;
+    align-items:center;
   }
+
+  .viewer-control-row .control .control-slider{
+      flex-grow:1;
+    }
 
 /*! nouislider - 14.7.0 - 4/6/2021 */
 .noUi-target,
