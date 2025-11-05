@@ -1,5 +1,5 @@
 import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
-import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
+import { PushpinFilled, PushpinOutlined } from "@ant-design/icons";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
@@ -592,7 +592,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             style={{ height: 24, padding: "0 4px" }}
             type={props.keepIntensityOnNewVolume ? "default" : "text"}
           >
-            <span style={{ margin: 0 }}>{props.keepIntensityOnNewVolume ? <LockOutlined /> : <UnlockOutlined />}</span>
+            <span style={{ margin: 0 }}>
+              {props.keepIntensityOnNewVolume ? <PushpinFilled /> : <PushpinOutlined />}
+            </span>
           </Button>
         </Tooltip>
         {!props.useControlPoints && (
