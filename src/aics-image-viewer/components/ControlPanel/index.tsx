@@ -161,10 +161,12 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             {renderColorPresetsDropdown()}
             <Tooltip
               title="When enabled, resets volume intensity settings to defaults when switching between volumes."
+              // TODO: Non-magic number here
               zIndex={10000}
+              trigger={["focus", "hover"]}
             >
               <Checkbox
-                value={resetIntensityPerVolume}
+                checked={resetIntensityPerVolume}
                 onChange={(e) => changeViewerSetting("resetIntensityPerVolume", e.target.checked)}
                 style={{ color: "var(--color-controlpanel-text)" }}
               >
