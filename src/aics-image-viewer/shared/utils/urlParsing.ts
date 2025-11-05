@@ -91,6 +91,7 @@ export enum ViewerStateKeys {
   Time = "t",
   Scene = "scene",
   CameraState = "cam",
+  ResetIntensityPerVolume = "reset",
 }
 
 export enum CameraTransformKeys {
@@ -255,6 +256,8 @@ export class ViewerStateParams {
    * encoded using `encodeURIComponent`.
    */
   [ViewerStateKeys.CameraState]?: string = undefined;
+  /** Whether to reset intensity settings when a new volume is loaded. "1" is enabled. Disabled by default. */
+  [ViewerStateKeys.ResetIntensityPerVolume]?: string = undefined;
 }
 
 /** URL parameters that define data sources when loading volumes. */
@@ -772,6 +775,7 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
     scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
     renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
     cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
+    resetIntensityPerVolume: parseStringBoolean(params[ViewerStateKeys.ResetIntensityPerVolume]),
   };
 
   // Handle viewmode, since they use different mappings
@@ -825,6 +829,7 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Scene]: state.scene?.toString(),
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
+    [ViewerStateKeys.ResetIntensityPerVolume]: serializeBoolean(state.resetIntensityPerVolume),
   };
 
   const viewModeToViewParam = {

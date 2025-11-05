@@ -244,7 +244,6 @@ describe("Channel state serialization", () => {
     ramp: [0, 255],
     plotMin: 0,
     plotMax: 255,
-    keepIntensityOnNewVolume: false,
   };
   const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelSettingParams = {
     col: "ff0000",
@@ -382,7 +381,6 @@ describe("Channel state serialization", () => {
         // TODO: the settings below are not serialized. should they be? (see #384)
         plotMin: 0,
         plotMax: 255,
-        keepIntensityOnNewVolume: false,
       };
       const serializedCustomChannelState: Required<Omit<ViewerChannelSettingParams, "lut">> = {
         col: "03ff9d",
@@ -441,6 +439,7 @@ describe("Viewer state", () => {
     slice: "0.5,0.5,0.5",
     t: "0",
     scene: "0",
+    reset: "1",
   };
 
   const CUSTOM_VIEWER_STATE: ViewerState = {
@@ -489,6 +488,7 @@ describe("Viewer state", () => {
     t: "100",
     scene: "3",
     cam: "pos:-1.05:-4:45,tar:0:0:0,up:0:1:0,ort:3.534,fov:43.5",
+    reset: "0",
   };
 
   describe("serializeViewerState", () => {
@@ -834,7 +834,6 @@ describe("serializeViewerUrlParams", () => {
         ramp: [-10, 260.1],
         plotMin: 0,
         plotMax: 255,
-        keepIntensityOnNewVolume: true,
       },
       {
         name: "channel1",
@@ -857,7 +856,6 @@ describe("serializeViewerUrlParams", () => {
         ramp: [50, 140],
         plotMin: 0,
         plotMax: 255,
-        keepIntensityOnNewVolume: false,
       },
     ];
     const serialized = serializeViewerUrlParams({ channelSettings: channelStates }, false);
