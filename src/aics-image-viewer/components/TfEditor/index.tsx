@@ -47,7 +47,7 @@ const TFEDITOR_MARGINS = {
 
 const MOUSE_EVENT_BUTTONS_PRIMARY = 1;
 
-const enum TfEditorRampSliderHandle {
+const enum TfEditorSliderHandle {
   Min = "min",
   Max = "max",
   Isosurface = "surf",
@@ -269,7 +269,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const innerHeight = props.height - TFEDITOR_MARGINS.top - TFEDITOR_MARGINS.bottom;
 
   const [selectedPointIdx, setSelectedPointIdx] = useState<number | null>(null);
-  const [draggedPointIdx, _setDraggedPointIdx] = useState<number | TfEditorRampSliderHandle | null>(null);
+  const [draggedPointIdx, _setDraggedPointIdx] = useState<number | TfEditorSliderHandle | null>(null);
 
   const _setCPs = useCallback(
     (controlPoints: ControlPoint[]) => changeChannelSetting({ controlPoints }),
@@ -304,10 +304,10 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const plotMaxU8 = useMemo(() => absoluteToBin(plotMax, histogram), [plotMax, histogram]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
-  const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
+  const mouseEventToPlotValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
     const svgRect = svgRef.current?.getBoundingClientRect() ?? { x: 0, y: 0 };
     return [
-      absoluteToBin(xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)), histogram),
+      xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)),
       yScale.invert(clamp(event.clientY - svgRect.y - TFEDITOR_MARGINS.top, 0, innerHeight)),
     ];
   };
@@ -315,7 +315,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const dragControlPoint = (draggedIdx: number, x: number, opacity: number): void => {
     const newControlPoints = [...controlPointsRef.current];
     const draggedPoint = newControlPoints[draggedIdx];
-    draggedPoint.x = x;
+    draggedPoint.x = absoluteToBin(x, histogram);
     draggedPoint.opacity = opacity;
 
     // Remove control points to keep the list sorted by x value
@@ -337,19 +337,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     setControlPoints(newControlPoints);
   };
 
-  const dragRampSlider = (handle: TfEditorRampSliderHandle, x: number): void => {
-    if (handle === TfEditorRampSliderHandle.Min) {
+  const dragSlider = (handle: TfEditorSliderHandle, x: number): void => {
+    if (handle === TfEditorSliderHandle.Min) {
       // dragging the min slider
       const max = props.ramp[1];
-      setRamp([Math.min(x, max), max]);
-    } else if (handle === TfEditorRampSliderHandle.Max) {
+      const xBin = absoluteToBin(x, histogram);
+      setRamp([Math.min(xBin, max), max]);
+    } else if (handle === TfEditorSliderHandle.Max) {
       // dragging the max slider
       const min = props.ramp[0];
-      setRamp([min, Math.max(x, min)]);
+      const xBin = absoluteToBin(x, histogram);
+      setRamp([min, Math.max(xBin, min)]);
     } else {
       // dragging the isosurface slider
-      // TODO this is converting to a histogram value and then converting back! fix!
-      setDraggedIsovalue(binToAbsolute(x, histogram));
+      setDraggedIsovalue(x);
     }
   };
 
@@ -358,7 +359,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       // Advanced mode - we're either creating a new control point or selecting/dragging an existing one
       if (draggedPointIdxRef.current === null && event.button === 0) {
         // this click is not on an existing point - create a new one
-        const [x, opacity] = mouseEventToControlPointValues(event);
+        const [xRaw, opacity] = mouseEventToPlotValues(event);
+        const x = absoluteToBin(xRaw, histogram);
         const point = { x, opacity, color: lastColorRef.current };
 
         // add new control point to controlPoints
@@ -398,19 +400,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
     event.stopPropagation();
     event.preventDefault();
-    const [x, opacity] = mouseEventToControlPointValues(event);
+    const [x, opacity] = mouseEventToPlotValues(event);
 
     // `draggedPointIdxRef` may either be a number (control point index) or a string (ramp slider handle).
     // The result of this check should always be the same as `props.useControlPoints`, but this narrows the type for TS
     if (typeof draggedPointIdxRef.current === "number") {
       dragControlPoint(draggedPointIdxRef.current, x, opacity);
     } else {
-      dragRampSlider(draggedPointIdxRef.current, x);
+      dragSlider(draggedPointIdxRef.current, x);
     }
   };
 
   const handleDragEnd: React.PointerEventHandler<SVGSVGElement> = (event) => {
-    if (draggedPointIdx === TfEditorRampSliderHandle.Isosurface) {
+    if (draggedPointIdx === TfEditorSliderHandle.Isosurface) {
       changeChannelSetting({ isovalue: draggedIsovalue });
     }
     setDraggedPointIdx(null);
@@ -587,7 +589,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   }
 
   const viewerModeString = props.useControlPoints ? "advanced" : "basic";
-  const isovalue = draggedPointIdx === TfEditorRampSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
+  const isovalue = draggedPointIdx === TfEditorSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
   const useRamp = props.volumeEnabled && !props.useControlPoints;
   const showSliderValueRow = useRamp || props.isosurfaceEnabled;
 
@@ -702,12 +704,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                     className="slider-click-target"
                     y1={innerHeight}
                     strokeWidth={6}
-                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Min)}
                   />
                   <path
                     d={sliderHandlePath}
                     transform={`translate(0,${innerHeight}) rotate(180)`}
-                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Min)}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Min)}
                   />
                 </g>
               )}
@@ -718,9 +720,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                     className="slider-click-target"
                     y1={innerHeight}
                     strokeWidth={6}
-                    onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)}
+                    onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Max)}
                   />
-                  <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Max)} />
+                  <path d={sliderHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Max)} />
                 </g>
               )}
             </g>
@@ -735,20 +737,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 strokeWidth={6}
                 onPointerDown={() => {
                   setDraggedIsovalue(props.isovalue);
-                  setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface);
+                  setDraggedPointIdx(TfEditorSliderHandle.Isosurface);
                 }}
               />
               {/* TODO clean up css! */}
               <path
                 style={{ fill: "lime" }}
                 d={isovalueHandlePath}
-                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
+                onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Isosurface)}
               />
               <path
                 style={{ fill: "lime" }}
                 d={isovalueHandlePath}
                 transform={`translate(0,${innerHeight}) rotate(180)`}
-                onPointerDown={() => setDraggedPointIdx(TfEditorRampSliderHandle.Isosurface)}
+                onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Isosurface)}
               />
             </g>
           )}
