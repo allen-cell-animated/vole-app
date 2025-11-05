@@ -10,6 +10,7 @@ type SliderRowProps = {
   start?: number | number[];
   step?: number;
   formatInteger?: boolean;
+  min?: number;
   max?: number;
   onUpdate?: NouisliderProps["onUpdate"];
   onChange?: NouisliderProps["onChange"];
@@ -25,21 +26,22 @@ const SliderRow: React.FC<SliderRowProps> = (props) => (
   <div className="viewer-control-row">
     <div className="control-name">{props.label}</div>
     <div className="control">
-      {props.start === undefined
-        ? props.children
-        : !props.hideSlider && (
-            <SmarterSlider
-              range={{ min: 0, max: props.max }}
-              start={props.start}
-              step={props.step}
-              connect={true}
-              tooltips={true}
-              behaviour="drag"
-              format={props.formatInteger ? INTEGER_FORMATTER : undefined}
-              onUpdate={props.onUpdate}
-              onChange={props.onChange}
-            />
-          )}
+      {props.start !== undefined && !props.hideSlider && (
+        <div className="control-slider">
+          <SmarterSlider
+            range={{ min: props.min ?? 0, max: props.max }}
+            start={props.start}
+            step={props.step}
+            connect={true}
+            tooltips={true}
+            behaviour="drag"
+            format={props.formatInteger ? INTEGER_FORMATTER : undefined}
+            onUpdate={props.onUpdate}
+            onChange={props.onChange}
+          />
+        </div>
+      )}
+      {props.children && <div className="control-extra">{props.children}</div>}
     </div>
   </div>
 );

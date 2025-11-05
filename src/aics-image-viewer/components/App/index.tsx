@@ -29,6 +29,7 @@ import {
   densitySliderToImageValue,
   gammaSliderToImageValues,
 } from "../../shared/utils/sliderValuesToImageValues";
+import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -202,13 +203,36 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
-      channelRangesRef.current = new Array(newImage.channelNames.length).fill(undefined);
+      const { channelNames } = newImage;
+      channelRangesRef.current = new Array(channelNames.length).fill(undefined);
 
       const { channelSettings } = viewerState.current;
 
+      // If the image has channel color metadata, apply those colors now
+      const viewerChannelSettings = getCurrentViewerChannelSettings();
+      const channelColorMeta = newImage.imageInfo.channelColors?.map((color, index) => {
+        // Filter out channels that have colors in `viewerChannelSettings`
+        if (viewerChannelSettings === undefined) {
+          return color;
+        }
+        const settings = findFirstChannelMatch(channelNames[index], index, viewerChannelSettings);
+        if (settings?.color !== undefined) {
+          return undefined;
+        } else {
+          return color;
+        }
+      });
+      if (Array.isArray(channelColorMeta)) {
+        channelColorMeta.forEach((color, index) => {
+          if (Array.isArray(color) && index < channelNames.length) {
+            changeChannelSetting(index, { color });
+          }
+        });
+      }
+
       view3d.addVolume(newImage, {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
-        channels: newImage.channelNames.map((name) => {
+        channels: newImage.channelNames.map((name, index) => {
           // TODO do we really need to be searching by name here?
           const ch = channelSettings.find((channel) => channel.name === name);
           if (!ch) {
@@ -219,7 +243,7 @@ const App: React.FC<AppProps> = (props) => {
             isosurfaceEnabled: ch.isosurfaceEnabled,
             isovalue: ch.isovalue,
             isosurfaceOpacity: ch.opacity,
-            color: ch.color,
+            color: channelColorMeta?.[index] ?? ch.color,
           };
         }),
       });
@@ -230,7 +254,14 @@ const App: React.FC<AppProps> = (props) => {
       onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState, changeViewerSetting, onImageTitleChange]
+    [
+      view3d,
+      viewerState,
+      changeViewerSetting,
+      onImageTitleChange,
+      changeChannelSetting,
+      getCurrentViewerChannelSettings,
+    ]
   );
 
   const onChannelLoaded = useCallback(
@@ -245,14 +276,15 @@ const App: React.FC<AppProps> = (props) => {
       if (isInitialLoad || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
-        const { dtype } = thisChannel;
+        const range = DTYPE_RANGE[thisChannel.dtype];
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
           // set the default range of the transfer function editor to cover the full range of the data type
-          plotMin: DTYPE_RANGE[dtype].min,
-          plotMax: DTYPE_RANGE[dtype].max,
+          plotMin: range.min,
+          plotMax: range.max,
+          isovalue: range.min + (range.max - range.min) / 2,
         });
       } else {
         // This channel has already been initialized, but its LUT was just remapped and we need to update some things

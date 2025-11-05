@@ -1,9 +1,10 @@
-import React from "react";
 import { Checkbox } from "antd";
+import React from "react";
+
+import { ViewerSettingUpdater } from "./ViewerStateProvider/types";
 
 import SliderRow from "./shared/SliderRow";
 import { connectToViewerState } from "./ViewerStateProvider";
-import { ViewerSettingUpdater } from "./ViewerStateProvider/types";
 
 type GlobalVolumeControlKey = "maskAlpha" | "brightness" | "density" | "levels";
 
@@ -53,7 +54,7 @@ const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
       {showControls.densitySlider && createSliderRow("density", density, 100, "density")}
       {showControls.levelsSliders && createSliderRow("levels", levels, 255, "levels")}
       {showControls.interpolationControl && (
-        <SliderRow label="interpolate">
+        <SliderRow label="interpolate" hideSlider={true}>
           <Checkbox
             checked={props.interpolationEnabled}
             onChange={({ target }) => props.changeViewerSetting("interpolationEnabled", target.checked)}
