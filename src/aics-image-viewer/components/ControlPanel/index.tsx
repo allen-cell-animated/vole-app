@@ -1,6 +1,6 @@
-import { Button, Collapse, CollapseProps, Dropdown, Flex, MenuProps, Tooltip } from "antd";
+import { Button, Checkbox, Collapse, CollapseProps, Dropdown, Flex, MenuProps, Tooltip } from "antd";
 import { MenuInfo } from "rc-menu/lib/interface";
-import React from "react";
+import React, { useContext } from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
 import { MetadataRecord } from "../../shared/types";
@@ -10,7 +10,7 @@ import CustomizeWidget, { CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
-import { connectToViewerState } from "../ViewerStateProvider";
+import { connectToViewerState, ViewerStateContext } from "../ViewerStateProvider";
 
 import "./styles.css";
 
@@ -50,6 +50,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     _setTab(newTab);
     props.setCollapsed(false);
   };
+
+  const viewerState = useContext(ViewerStateContext).ref;
+  const { changeViewerSetting, resetIntensityPerVolume } = viewerState.current;
 
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
@@ -153,7 +156,23 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       </div>
       <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
         <h2 className="control-panel-title">{ControlTabNames[tab]}</h2>
-        {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderColorPresetsDropdown()}
+        {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && (
+          <div className="control-panel-actions">
+            {renderColorPresetsDropdown()}
+            <Tooltip
+              title="When enabled, resets volume intensity settings to defaults when switching between volumes."
+              zIndex={10000}
+            >
+              <Checkbox
+                value={resetIntensityPerVolume}
+                onChange={(e) => changeViewerSetting("resetIntensityPerVolume", e.target.checked)}
+                style={{ color: "var(--color-controlpanel-text)" }}
+              >
+                Auto-reset intensity
+              </Checkbox>
+            </Tooltip>
+          </div>
+        )}
         {hasImage && (
           <div className="channel-rows-list">
             {tab === ControlTab.Channels && (

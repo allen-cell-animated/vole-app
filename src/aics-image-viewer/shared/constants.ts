@@ -190,6 +190,7 @@ export const getDefaultViewerState = (): ViewerState => ({
   // This prevents a bug where the camera's position and view mode are set to
   // incompatible states and the viewport becomes blank.
   cameraState: USE_VIEW_MODE_DEFAULT_CAMERA,
+  resetIntensityPerVolume: true,
 });
 
 const INIT_COLORS = PRESET_COLORS_0;

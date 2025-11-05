@@ -67,7 +67,12 @@
       max-height: 24px; /* align bottom border with divider to the left */
       font-size: 1.4em;
     }
-    .color-presets-dropdown {
+
+    .control-panel-actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
       margin: 0 16px 16px;
     }
 

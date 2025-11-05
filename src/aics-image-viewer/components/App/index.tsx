@@ -261,15 +261,19 @@ const App: React.FC<AppProps> = (props) => {
     (image: Volume, channelIndex: number, isInitialLoad: boolean): void => {
       // TODO this was once a search by name - is that still necessary or will the index always be correct?
       const thisChannelSettings = channelSettings[channelIndex];
-      const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
-        viewerState.current;
+      const {
+        getChannelsAwaitingResetOnLoad,
+        getCurrentViewerChannelSettings,
+        changeChannelSetting,
+        resetIntensityPerVolume,
+      } = viewerState.current;
+      console.log("Channel loaded:", channelIndex, resetIntensityPerVolume);
       const thisChannel = image.getChannel(channelIndex);
       const dtype = thisChannel.dtype;
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
       const oldRange = channelRangesRef.current[channelIndex];
 
-      const initializeToExistingRange =
-        isInitialLoad && thisChannelSettings.keepIntensityOnNewVolume && oldRange !== undefined;
+      const initializeToExistingRange = isInitialLoad && !resetIntensityPerVolume && oldRange !== undefined;
       const initializeToDefaults = isInitialLoad && !initializeToExistingRange;
 
       if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {

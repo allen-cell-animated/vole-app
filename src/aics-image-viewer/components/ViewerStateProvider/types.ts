@@ -30,6 +30,7 @@ export interface ViewerState {
   time: number;
   scene: number;
   cameraState: Partial<CameraState> | undefined;
+  resetIntensityPerVolume: boolean;
 }
 
 export type ViewerStateKey = keyof ViewerState;

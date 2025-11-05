@@ -421,6 +421,7 @@ describe("Viewer state", () => {
     time: 0,
     scene: 0,
     cameraState: undefined,
+    resetIntensityPerVolume: true,
   };
   const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
     mode: "volumetric",
@@ -467,6 +468,7 @@ describe("Viewer state", () => {
       orthoScale: 3.534,
       fov: 43.5,
     },
+    resetIntensityPerVolume: false,
   };
   const SERIALIZED_CUSTOM_VIEWER_STATE: ViewerStateParams = {
     mode: "pathtrace",
