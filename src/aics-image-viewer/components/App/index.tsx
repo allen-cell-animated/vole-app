@@ -204,10 +204,10 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
-      const { channelSettings } = viewerState.current;
+      const { channelSettings, resetIntensityPerVolume } = viewerState.current;
       const { channelNames } = newImage;
       channelRangesRef.current = channelNames.map((_, i) => {
-        const shouldKeepCurrentRange = channelSettings[i]?.keepIntensityOnNewVolume;
+        const shouldKeepCurrentRange = !resetIntensityPerVolume;
         return shouldKeepCurrentRange ? channelRangesRef.current[i] : undefined;
       });
 
@@ -267,7 +267,6 @@ const App: React.FC<AppProps> = (props) => {
         changeChannelSetting,
         resetIntensityPerVolume,
       } = viewerState.current;
-      console.log("Channel loaded:", channelIndex, resetIntensityPerVolume);
       const thisChannel = image.getChannel(channelIndex);
       const dtype = thisChannel.dtype;
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
