@@ -232,7 +232,8 @@ const colorPickerPositionToStyle = ([x, y]: [number, number]): React.CSSProperti
   [y < 0 ? "bottom" : "top"]: y,
 });
 
-const numberFormatter = (v: number | string | undefined): string => (v === undefined ? "" : Number(v).toFixed(0));
+const numberFormatter = (v: number | string | undefined): string =>
+  v === undefined ? "" : Math.round(Number(v)).toString();
 
 const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
 
@@ -547,6 +548,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const viewerModeString = props.useControlPoints ? "advanced" : "basic";
 
+  // When data is loading, levelMin and levelMax may be NaN. Disable min/max
+  // limits on numeric inputs when this happens to prevent error styling from
+  // appearing, and keep the last valid levels displayed to avoid value
+  // jumping/empty inputs.
+  const lastValidLevel = useRef([0, 1]);
+  let levelMin = binToAbsolute(props.ramp[0], histogram);
+  let levelMax = binToAbsolute(props.ramp[1], histogram);
+  const isLoadingData = Number.isNaN(levelMin) || Number.isNaN(levelMax);
+  if (!isLoadingData) {
+    lastValidLevel.current = [levelMin, levelMax];
+  }
+  levelMin = lastValidLevel.current[0];
+  levelMax = lastValidLevel.current[1];
+
   return (
     <div>
       {/* ----- PRESET BUTTONS ----- */}
@@ -584,20 +599,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           <div className="tf-editor-control-row">
             Levels min/max
             <InputNumber
-              value={binToAbsolute(props.ramp[0], histogram)}
+              value={levelMin}
               onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
               formatter={numberFormatter}
-              min={typeRange.min}
-              max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
+              min={isLoadingData ? undefined : typeRange.min}
+              max={isLoadingData ? undefined : Math.min(levelMax, typeRange.max)}
               size="small"
               controls={false}
             />
             <InputNumber
-              value={binToAbsolute(props.ramp[1], histogram)}
+              value={levelMax}
               onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
               formatter={numberFormatter}
-              min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
-              max={typeRange.max}
+              min={isLoadingData ? undefined : Math.max(typeRange.min, levelMin)}
+              max={isLoadingData ? undefined : typeRange.max}
               size="small"
               controls={false}
             />
@@ -683,8 +698,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           value={plotMin}
           onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
           formatter={numberFormatter}
-          min={typeRange.min}
-          max={typeRange.max - 1}
+          min={isLoadingData ? undefined : typeRange.min}
+          max={isLoadingData ? undefined : typeRange.max - 1}
           size="small"
           controls={false}
         />
@@ -692,8 +707,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           value={plotMax}
           onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
           formatter={numberFormatter}
-          min={typeRange.min + 1}
-          max={typeRange.max}
+          min={isLoadingData ? undefined : typeRange.min + 1}
+          max={isLoadingData ? undefined : typeRange.max}
           size="small"
           controls={false}
         />
