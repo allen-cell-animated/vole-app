@@ -65,6 +65,7 @@ export function initializeOneChannelSetting(
 ): ChannelState {
   let initSettings = {} as Partial<ViewerChannelSetting>;
   if (viewerChannelSettings) {
+    // TODO: Allow channel match to specify raw vs. bin index values?
     // search for channel in settings using groups, names and match values
     initSettings = findFirstChannelMatch(channelName, index, viewerChannelSettings) ?? {};
   }
@@ -80,6 +81,9 @@ export function initializeOneChannelSetting(
     opacity: initSettings.surfaceOpacity ?? defaultChannelState.opacity,
     color: colorHexToArray(initSettings.color ?? "") ?? defaultColor,
     useControlPoints: initSettings.controlPointsEnabled ?? defaultChannelState.useControlPoints,
+    // TODO: Is this incorrect now because it's using the ViewerChannelSetting
+    // which is specified in histogram bin indices rather than raw intensity
+    // values?
     controlPoints: initSettings.controlPoints ?? defaultChannelState.controlPoints,
     ramp: initSettings.ramp ?? defaultChannelState.ramp,
     plotMin: defaultChannelState.plotMin,

@@ -143,8 +143,25 @@ export function initializeLut(
   }
   // Initialize the control points + ramp using the LUT.
   // Optionally, override the LUT's control points with the provided control points and/or ramp.
-  controlPoints = initSettings?.controlPoints ?? [...lut.controlPoints];
-  ramp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
+  if (initSettings?.rawControlPoints) {
+    controlPoints = initSettings.rawControlPoints;
+  } else {
+    // Use histogram to convert from bin index to raw intensity values
+    let binIndexedControlPoints = initSettings?.controlPoints ?? [...lut.controlPoints];
+    controlPoints = binIndexedControlPoints.map((cp) => ({
+      ...cp,
+      x: histogram.getValueFromBinIndex(cp.x),
+    }));
+  }
+  if (initSettings?.rawRamp) {
+    ramp = rampToControlPoints(initSettings.rawRamp);
+  } else {
+    const binIndexedRamp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
+    ramp = binIndexedRamp.map((cp) => ({
+      ...cp,
+      x: histogram.getValueFromBinIndex(cp.x),
+    }));
+  }
 
   // Apply whatever lut is currently visible
   let visibleLut: Lut;

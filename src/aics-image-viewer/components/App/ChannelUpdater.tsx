@@ -69,8 +69,14 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       if (useControlPoints && controlPoints.length < 2) {
         return;
       }
+      const histogram = currentImage.getHistogram(index);
       const controlPointsToUse = useControlPoints ? controlPoints : rampToControlPoints(ramp);
-      const gradient = controlPointsToLut(controlPointsToUse);
+      // Convert control points from raw intensity values to histogram bin indices
+      const binIndexedControlPoints = controlPointsToUse.map((cp) => ({
+        ...cp,
+        x: histogram.findFractionalBinOfValue(cp.x),
+      }));
+      const gradient = controlPointsToLut(binIndexedControlPoints);
       currentImage.setLut(index, gradient);
       view3d.updateLuts(currentImage);
     },
