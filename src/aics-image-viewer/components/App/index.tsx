@@ -16,12 +16,7 @@ import {
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { activeAxisMap, AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
 import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
-import {
-  controlPointsToRamp,
-  initializeLut,
-  rampToControlPoints,
-  remapControlPointsForChannel,
-} from "../../shared/utils/controlPointsToLut";
+import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import {
   alphaSliderToImageValue,

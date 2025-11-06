@@ -115,14 +115,7 @@ function binToAbsolute(value: number, histogram: Histogram): number {
 }
 
 function absoluteToBin(value: number, histogram: Histogram): number {
-  return value;
-}
-
-function controlPointToAbsolute(cp: ControlPoint, histogram: Histogram): number {
-  // the x value of the control point is in the range [0, 255]
-  // because of the way the histogram is generated
-  // (see LUT_ENTRIES and the fact that we use Uint8Array)
-  return cp.x;
+  return histogram.findFractionalBinOfValue(value);
 }
 
 /** For when all control points are outside the plot's range: just fill the plot with the settings from 1 point */
@@ -269,8 +262,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
     [innerWidth, plotMin, plotMax]
   );
-  const plotMinU8 = plotMin;
-  const plotMaxU8 = plotMax;
+  const plotMinU8 = absoluteToBin(plotMin, histogram);
+  const plotMaxU8 = absoluteToBin(plotMax, histogram);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -286,7 +279,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     const draggedPoint = newControlPoints[draggedIdx];
     draggedPoint.x = x;
     draggedPoint.opacity = opacity;
-    console.log("Dragging control point", draggedIdx, "to", x, opacity);
 
     // Remove control points to keep the list sorted by x value
     const bisector = d3.bisector<ControlPoint, ControlPoint>((a, b) => a.x - b.x);
@@ -412,19 +404,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const controlPointsToRender = useMemo(() => {
     const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
-    return fitControlPointsToRange(points, plotMinU8, plotMaxU8);
-  }, [props.controlPoints, props.ramp, props.useControlPoints, plotMinU8, plotMaxU8]);
+    return fitControlPointsToRange(points, plotMin, plotMax);
+  }, [props.controlPoints, props.ramp, props.useControlPoints, plotMin, plotMax]);
 
   /** d3-generated svg data string representing both the line between points and the region filled with gradient */
   const areaPath = useMemo(() => {
     const areaGenerator = d3
       .area<ControlPoint>()
-      .x((d) => xScale(controlPointToAbsolute(d, histogram)))
+      .x((d) => xScale(d.x))
       .y0((d) => yScale(d.opacity))
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight, histogram]);
+  }, [controlPointsToRender, xScale, yScale, innerHeight]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -529,12 +521,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   // create one svg circle element for each control point
   const controlPointCircles = props.useControlPoints
     ? props.controlPoints
-        .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
+        .filter((cp) => plotMin <= cp.x && cp.x <= plotMax) // filter out-of-range points
         .map((cp, i) => (
           <circle
             key={i}
             className={i === selectedPointIdx ? "selected" : ""}
-            cx={xScale(controlPointToAbsolute(cp, histogram))}
+            cx={xScale(cp.x)}
             cy={yScale(cp.opacity)}
             style={{ fill: colorArrayToString(cp.color) }}
             r={5}
@@ -630,7 +622,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* "basic mode" sliders */}
           {!props.useControlPoints && (
             <g className="ramp-sliders">
-              {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
+              {plotMin <= props.ramp[0] && props.ramp[0] <= plotMax && (
                 <g transform={`translate(${xScale(props.ramp[0])})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
@@ -646,7 +638,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   />
                 </g>
               )}
-              {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
+              {plotMin <= props.ramp[1] && props.ramp[1] <= plotMax && (
                 <g transform={`translate(${xScale(props.ramp[1])})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
