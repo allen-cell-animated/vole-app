@@ -110,14 +110,6 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
-function binToAbsolute(value: number, histogram: Histogram): number {
-  return histogram.getValueFromBinIndex(value);
-}
-
-function absoluteToBin(value: number, histogram: Histogram): number {
-  return histogram.findFractionalBinOfValue(value);
-}
-
 /** For when all control points are outside the plot's range: just fill the plot with the settings from 1 point */
 const coverRangeWithPoint = (point: ControlPoint, plotMin: number, plotMax: number): ControlPoint[] => {
   return [
@@ -262,8 +254,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
     [innerWidth, plotMin, plotMax]
   );
-  const plotMinU8 = absoluteToBin(plotMin, histogram);
-  const plotMaxU8 = absoluteToBin(plotMax, histogram);
+  const plotMinU8 = histogram.findFractionalBinOfValue(plotMin);
+  const plotMaxU8 = histogram.findFractionalBinOfValue(plotMax);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
@@ -485,7 +477,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(binToAbsolute(idx + start, histogram))) // set position and height from data
+        .attr("x", (_len, idx) => xScale(histogram.getValueFromBinIndex(idx + start))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },

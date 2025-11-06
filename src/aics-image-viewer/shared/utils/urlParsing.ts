@@ -365,7 +365,7 @@ const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] |
   for (const u of urls) {
     try {
       new URL(u);
-    } catch (_e) {
+    } catch {
       return undefined;
     }
   }
