@@ -38,6 +38,11 @@ export const enum ImageLoadStatus {
   ERROR,
 }
 
+const enum LoadType {
+  TIME,
+  SCENE,
+}
+
 // Used by `channelVersions` (see below)
 const CHANNEL_INITIAL_LOAD = -1;
 const CHANNEL_RELOAD = 0;
@@ -160,10 +165,18 @@ const useVolume = (
     return noneLoaded ? ImageLoadStatus.REQUESTED : allLoaded ? ImageLoadStatus.LOADED : ImageLoadStatus.LOADING;
   }, [channelVersions, channelSettings, maskChannelName, loadThrewError]);
 
-  const setIsLoading = useCallback(() => {
-    setLoadThrewError(false);
-    setChannelVersions(channelVersionsRef.current.map((version) => Math.min(version, CHANNEL_RELOAD)));
-  }, [channelVersionsRef, setChannelVersions]);
+  const setIsLoading = useCallback(
+    (loadType: LoadType) => {
+      setLoadThrewError(false);
+      setChannelVersions(
+        channelVersionsRef.current.map((version) =>
+          // For scenes, reinitialize all channels.
+          Math.min(version, loadType === LoadType.SCENE ? CHANNEL_INITIAL_LOAD : CHANNEL_RELOAD)
+        )
+      );
+    },
+    [channelVersionsRef, setChannelVersions]
+  );
 
   const onError = useCallback(
     (e: unknown): never => {
@@ -314,7 +327,7 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time, onChannelDataLoaded).catch(onError);
-        setIsLoading();
+        setIsLoading(LoadType.TIME);
       }
     },
     [image, onError, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
@@ -324,7 +337,7 @@ const useVolume = (
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
         sceneLoader.loadScene(scene, image, undefined, onChannelDataLoaded).catch(onError);
-        setIsLoading();
+        setIsLoading(LoadType.SCENE);
       }
     },
     [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
