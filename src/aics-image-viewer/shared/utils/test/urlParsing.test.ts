@@ -255,8 +255,8 @@ describe("Channel state serialization", () => {
     clz: "1",
     cza: "0.5",
     cpe: "0",
-    cps: "0:0.5:1:255:1:1",
-    rmp: "0:255",
+    cps: "v0:0.5:1:v255:1:1",
+    rmp: "v0:v255",
   };
 
   // Note that the serialization + deserialization are NOT direct inverses.
@@ -394,7 +394,7 @@ describe("Channel state serialization", () => {
         cza: "1",
         cpe: "0",
         cps: "",
-        rmp: "0:255",
+        rmp: "v0:v255",
       };
       expect(serializeViewerChannelSetting(customChannelState, false)).toEqual(serializedCustomChannelState);
     });
@@ -870,8 +870,8 @@ describe("serializeViewerUrlParams", () => {
       isa: "0.75",
       sen: "1",
       isv: "128",
-      rmp: "-10:260.1",
-      cps: "0:0:808080:1:1:ff0000",
+      rmp: "v-10:v260.1",
+      cps: "v0:0:808080:v1:1:ff0000",
       cpe: "0",
     };
     const expectedChannel1: Required<Omit<ViewerChannelSettingParams, "lut">> = {
@@ -882,8 +882,8 @@ describe("serializeViewerUrlParams", () => {
       isa: "0",
       sen: "0",
       isv: "57",
-      rmp: "50:140",
-      cps: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
+      rmp: "v50:v140",
+      cps: "v-10:0:000000:v50:0:000000:v100:0.3:0010ff:v140:0.8:00ffff:v260:1:00ffb4",
       cpe: "1",
     };
 

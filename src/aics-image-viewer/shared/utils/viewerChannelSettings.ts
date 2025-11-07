@@ -35,8 +35,13 @@ export interface ViewerChannelSetting {
    * Defaults to false.
    */
   controlPointsEnabled?: boolean;
+  /**
+   * Control points for the transfer function, as histogram bin values.
+   */
   controlPoints?: ControlPoint[];
   ramp?: [number, number];
+  rawRamp?: [number, number];
+  rawControlPoints?: ControlPoint[];
   // valid when surfaceEnabled = true. default 128 or 0.5 of max intensity range
   isovalue?: number;
   // valid when surfaceEnabled = true. default 1.0 fully opaque

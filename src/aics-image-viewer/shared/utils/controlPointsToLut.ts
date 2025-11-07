@@ -137,14 +137,38 @@ export function initializeLut(
   const name = aimg.channelNames[channelIndex];
   const initSettings = channelSettings && findFirstChannelMatch(name, channelIndex, channelSettings);
 
-  // Attempt to load a LUT from the settings, which will be used to initialize the control points and ramp
+  // Attempt to load a LUT from the settings, which will be used as a fallback
+  // to initialize the control points and ramp.
   if (initSettings && initSettings.lut) {
     lut = parseLutFromSettings(histogram, initSettings) ?? defaultLut;
   }
-  // Initialize the control points + ramp using the LUT.
-  // Optionally, override the LUT's control points with the provided control points and/or ramp.
-  controlPoints = initSettings?.controlPoints ?? [...lut.controlPoints];
-  ramp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
+
+  // Use raw intensity values for control points or ramp if provided in the
+  // settings. Otherwise, get default values from the LUT by remapping
+  // from histogram bin indices.
+  if (initSettings?.rawControlPoints) {
+    // Raw intensity values can be used directly.
+    controlPoints = initSettings.rawControlPoints;
+  } else {
+    // No provided value; use histogram to convert from bin index to raw
+    // intensity values.
+    const binIndexedControlPoints = initSettings?.controlPoints ?? [...lut.controlPoints];
+    controlPoints = binIndexedControlPoints.map((cp) => ({
+      ...cp,
+      x: histogram.getValueFromBinIndex(cp.x),
+    }));
+  }
+
+  // Initialize the ramp
+  if (initSettings?.rawRamp) {
+    ramp = rampToControlPoints(initSettings.rawRamp);
+  } else {
+    const binIndexedRamp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
+    ramp = binIndexedRamp.map((cp) => ({
+      ...cp,
+      x: histogram.getValueFromBinIndex(cp.x),
+    }));
+  }
 
   // Apply whatever lut is currently visible
   let visibleLut: Lut;

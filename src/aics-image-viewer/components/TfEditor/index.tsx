@@ -112,21 +112,6 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
-function binToAbsolute(value: number, histogram: Histogram): number {
-  return histogram.getValueFromBinIndex(value);
-}
-
-function absoluteToBin(value: number, histogram: Histogram): number {
-  return histogram.findFractionalBinOfValue(value);
-}
-
-function controlPointToAbsolute(cp: ControlPoint, histogram: Histogram): number {
-  // the x value of the control point is in the range [0, 255]
-  // because of the way the histogram is generated
-  // (see LUT_ENTRIES and the fact that we use Uint8Array)
-  return binToAbsolute(cp.x, histogram);
-}
-
 /** For when all control points are outside the plot's range: just fill the plot with the settings from 1 point */
 const coverRangeWithPoint = (point: ControlPoint, plotMin: number, plotMax: number): ControlPoint[] => {
   return [
@@ -272,14 +257,14 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
     [innerWidth, plotMin, plotMax]
   );
-  const plotMinU8 = useMemo(() => absoluteToBin(plotMin, histogram), [plotMin, histogram]);
-  const plotMaxU8 = useMemo(() => absoluteToBin(plotMax, histogram), [plotMax, histogram]);
+  const plotMinU8 = useMemo(() => histogram.findFractionalBinOfValue(plotMin), [plotMin, histogram]);
+  const plotMaxU8 = useMemo(() => histogram.findFractionalBinOfValue(plotMax), [plotMax, histogram]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
     const svgRect = svgRef.current?.getBoundingClientRect() ?? { x: 0, y: 0 };
     return [
-      absoluteToBin(xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)), histogram),
+      xScale.invert(clamp(event.clientX - svgRect.x - TFEDITOR_MARGINS.left, 0, innerWidth)),
       yScale.invert(clamp(event.clientY - svgRect.y - TFEDITOR_MARGINS.top, 0, innerHeight)),
     ];
   };
@@ -414,19 +399,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
   const controlPointsToRender = useMemo(() => {
     const points = props.useControlPoints ? props.controlPoints.slice() : rampToControlPoints(props.ramp);
-    return fitControlPointsToRange(points, plotMinU8, plotMaxU8);
-  }, [props.controlPoints, props.ramp, props.useControlPoints, plotMinU8, plotMaxU8]);
+    return fitControlPointsToRange(points, plotMin, plotMax);
+  }, [props.controlPoints, props.ramp, props.useControlPoints, plotMin, plotMax]);
 
   /** d3-generated svg data string representing both the line between points and the region filled with gradient */
   const areaPath = useMemo(() => {
     const areaGenerator = d3
       .area<ControlPoint>()
-      .x((d) => xScale(controlPointToAbsolute(d, histogram)))
+      .x((d) => xScale(d.x))
       .y0((d) => yScale(d.opacity))
       .y1(innerHeight)
       .curve(d3.curveLinear);
     return areaGenerator(controlPointsToRender) ?? undefined;
-  }, [controlPointsToRender, xScale, yScale, innerHeight, histogram]);
+  }, [controlPointsToRender, xScale, yScale, innerHeight]);
 
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
@@ -495,7 +480,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         .join("rect") // ensure we have exactly as many bound `rect` elements in the DOM as we have histogram bins
         .attr("class", "bar")
         .attr("width", barWidth)
-        .attr("x", (_len, idx) => xScale(binToAbsolute(idx + start, histogram))) // set position and height from data
+        .attr("x", (_len, idx) => xScale(histogram.getValueFromBinIndex(idx + start))) // set position and height from data
         .attr("y", (len) => binScale(len))
         .attr("height", (len) => innerHeight - binScale(len));
     },
@@ -507,10 +492,14 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       setSelectedPointIdx(null);
       lastColorRef.current = TFEDITOR_DEFAULT_COLOR;
       const lut = TF_GENERATORS[generator](histogram);
+      const valueIndexedControlPoints = lut.controlPoints.map((cp) => ({
+        ...cp,
+        x: histogram.getValueFromBinIndex(cp.x),
+      }));
       if (props.useControlPoints) {
-        setControlPoints(lut.controlPoints.map((cp) => ({ ...cp, color: TFEDITOR_DEFAULT_COLOR })));
+        setControlPoints(valueIndexedControlPoints.map((cp) => ({ ...cp, color: TFEDITOR_DEFAULT_COLOR })));
       } else {
-        setRamp(controlPointsToRamp(lut.controlPoints));
+        setRamp(controlPointsToRamp(valueIndexedControlPoints));
       }
     },
     [histogram, props.useControlPoints, setControlPoints, setRamp]
@@ -527,12 +516,12 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   // create one svg circle element for each control point
   const controlPointCircles = props.useControlPoints
     ? props.controlPoints
-        .filter((cp) => plotMinU8 <= cp.x && cp.x <= plotMaxU8) // filter out-of-range points
+        .filter((cp) => plotMin <= cp.x && cp.x <= plotMax) // filter out-of-range points
         .map((cp, i) => (
           <circle
             key={i}
             className={i === selectedPointIdx ? "selected" : ""}
-            cx={xScale(controlPointToAbsolute(cp, histogram))}
+            cx={xScale(cp.x)}
             cy={yScale(cp.opacity)}
             style={{ fill: colorArrayToString(cp.color) }}
             r={5}
@@ -547,20 +536,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   }
 
   const viewerModeString = props.useControlPoints ? "advanced" : "basic";
-
-  // When data is loading, levelMin and levelMax may be NaN. Disable min/max
-  // limits on numeric inputs when this happens to prevent error styling from
-  // appearing, and keep the last valid levels displayed to avoid value
-  // jumping/empty inputs.
-  const lastValidLevel = useRef([0, 1]);
-  let levelMin = binToAbsolute(props.ramp[0], histogram);
-  let levelMax = binToAbsolute(props.ramp[1], histogram);
-  const isLoadingData = Number.isNaN(levelMin) || Number.isNaN(levelMax);
-  if (!isLoadingData) {
-    lastValidLevel.current = [levelMin, levelMax];
-  }
-  levelMin = lastValidLevel.current[0];
-  levelMax = lastValidLevel.current[1];
 
   return (
     <div>
@@ -601,20 +576,20 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           <div className="tf-editor-control-row">
             Levels min/max
             <InputNumber
-              value={levelMin}
-              onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
+              value={props.ramp[0]}
+              onChange={(v) => v !== null && setRamp([v, props.ramp[1]])}
               formatter={numberFormatter}
-              min={isLoadingData ? undefined : typeRange.min}
-              max={isLoadingData ? undefined : Math.min(levelMax, typeRange.max)}
+              min={typeRange.min}
+              max={Math.min(props.ramp[1], typeRange.max)}
               size="small"
               controls={false}
             />
             <InputNumber
-              value={levelMax}
-              onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
+              value={props.ramp[1]}
+              onChange={(v) => v !== null && setRamp([props.ramp[0], v])}
               formatter={numberFormatter}
-              min={isLoadingData ? undefined : Math.max(typeRange.min, levelMin)}
-              max={isLoadingData ? undefined : typeRange.max}
+              min={Math.max(typeRange.min, props.ramp[0])}
+              max={typeRange.max}
               size="small"
               controls={false}
             />
@@ -660,8 +635,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* "basic mode" sliders */}
           {!props.useControlPoints && (
             <g className="ramp-sliders">
-              {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
-                <g transform={`translate(${xScale(binToAbsolute(props.ramp[0], histogram))})`}>
+              {plotMin <= props.ramp[0] && props.ramp[0] <= plotMax && (
+                <g transform={`translate(${xScale(props.ramp[0])})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
                     className="ramp-slider-click-target"
@@ -676,8 +651,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   />
                 </g>
               )}
-              {plotMinU8 <= props.ramp[1] && props.ramp[1] <= plotMaxU8 && (
-                <g transform={`translate(${xScale(binToAbsolute(props.ramp[1], histogram))})`}>
+              {plotMin <= props.ramp[1] && props.ramp[1] <= plotMax && (
+                <g transform={`translate(${xScale(props.ramp[1])})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
                   <line
                     className="ramp-slider-click-target"
@@ -700,8 +675,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           value={plotMin}
           onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
           formatter={numberFormatter}
-          min={isLoadingData ? undefined : typeRange.min}
-          max={isLoadingData ? undefined : typeRange.max - 1}
+          min={typeRange.min}
+          max={typeRange.max - 1}
           size="small"
           controls={false}
         />
@@ -709,8 +684,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           value={plotMax}
           onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
           formatter={numberFormatter}
-          min={isLoadingData ? undefined : typeRange.min + 1}
-          max={isLoadingData ? undefined : typeRange.max}
+          min={typeRange.min + 1}
+          max={typeRange.max}
           size="small"
           controls={false}
         />

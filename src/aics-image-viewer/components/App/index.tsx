@@ -16,19 +16,13 @@ import {
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
-  DTYPE_RANGE,
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { activeAxisMap, AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
 import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
-import {
-  controlPointsToRamp,
-  initializeLut,
-  remapControlPointsForChannel,
-  remapRampForChannel,
-} from "../../shared/utils/controlPointsToLut";
+import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import {
   alphaSliderToImageValue,
@@ -275,50 +269,20 @@ const App: React.FC<AppProps> = (props) => {
       if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
-        const range = DTYPE_RANGE[thisChannel.dtype];
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
           // set the default range of the transfer function editor to cover the full range of the data type
-          plotMin: DTYPE_RANGE[dtype].min,
-          plotMax: DTYPE_RANGE[dtype].max,
-          isovalue: range.min + (range.max - range.min) / 2,
-        });
-      } else if (initializeToExistingRange) {
-        // This is an initial load, but we only want to remap the existing
-        // control points + ramp.
-        changeChannelSetting(channelIndex, {
-          controlPoints: remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel),
-          ramp: remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel),
-        });
-      } else {
-        // This channel has already been initialized, but its LUT was just
-        // remapped (e.g. due to a time or scale level update) and we need to
-        // update the ramp and control points.
-        let controlPoints: ControlPoint[];
-        let ramp: [number, number];
-
-        // The LUT represents the currently visible control points or ramp, so
-        // we can use it directly for the visible setting and remap the other to
-        // thge new range.
-        if (thisChannelSettings.useControlPoints) {
-          controlPoints = thisChannel.lut.controlPoints;
-          ramp = remapRampForChannel(thisChannelSettings.ramp, oldRange, thisChannel);
-        } else {
-          ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
-          controlPoints = remapControlPointsForChannel(thisChannelSettings.controlPoints, oldRange, thisChannel);
-        }
-
-        changeChannelSetting(channelIndex, {
-          controlPoints,
-          ramp,
+          plotMin: thisChannel.rawMin,
+          plotMax: thisChannel.rawMax,
+          isovalue: thisChannel.rawMin + (thisChannel.rawMax - thisChannel.rawMin) / 2,
         });
       }
 
-      // When new data loads in, expand the plot range to include the new data's
-      // full range as needed. (This keeps the range consistent when switching
-      // between multiple volumes.)
+      // Expand the plot min and max to include the current data range as
+      // needed. This keeps the domain visually consistent when replaying
+      // through time or Z slices.
       changeChannelSetting(channelIndex, {
         plotMin: Math.min(thisChannel.rawMin, thisChannelSettings.plotMin),
         plotMax: Math.max(thisChannel.rawMax, thisChannelSettings.plotMax),
