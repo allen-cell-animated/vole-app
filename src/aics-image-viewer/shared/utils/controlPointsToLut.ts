@@ -212,33 +212,3 @@ export function rampToControlPoints([min, max]: [number, number]): ControlPoint[
     { x: Math.max(max + 1, TFEDITOR_MAX_BIN), opacity: 1, color: TFEDITOR_DEFAULT_COLOR },
   ];
 }
-
-/**
- * Remaps an array of control points from an old range (as a 2-tuple) to a new
- * one (extracted from a `Channel`)
- */
-export function remapControlPointsForChannel(
-  controlPoints: ControlPoint[],
-  oldRange: [number, number] | undefined,
-  { rawMin, rawMax }: Channel
-): ControlPoint[] {
-  if (oldRange === undefined) {
-    return controlPoints;
-  }
-
-  return remapControlPoints(controlPoints, oldRange[0], oldRange[1], rawMin, rawMax);
-}
-
-/**
- * Remaps a ramp from an old range (as a 2-tuple) to a new one (extracted from a
- * `Channel`)
- */
-export function remapRampForChannel(
-  ramp: [number, number],
-  oldRange: [number, number] | undefined,
-  channel: Channel
-): [number, number] {
-  const rampControlPoints = rampToControlPoints(ramp);
-  const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, channel);
-  return controlPointsToRamp(remappedRampControlPoints);
-}
