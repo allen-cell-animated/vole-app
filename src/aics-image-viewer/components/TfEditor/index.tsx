@@ -558,8 +558,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       <div className="tf-editor-control-row ramp-row">
         <Tooltip
           title={
-            (props.keepIntensityOnNewVolume ? "Keep " : "Do not keep ") +
-            "intensity values when switching to another volume."
+            (props.keepIntensityOnNewVolume ? "Do not keep " : "Keep ") + "intensity values when switching volumes."
           }
         >
           <Button
