@@ -254,8 +254,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     () => d3.scaleLinear().domain([plotMin, plotMax]).range([0, innerWidth]),
     [innerWidth, plotMin, plotMax]
   );
-  const plotMinU8 = histogram.findFractionalBinOfValue(plotMin);
-  const plotMaxU8 = histogram.findFractionalBinOfValue(plotMax);
+  const plotMinU8 = useMemo(() => histogram.findFractionalBinOfValue(plotMin), [plotMin, histogram]);
+  const plotMaxU8 = useMemo(() => histogram.findFractionalBinOfValue(plotMax), [plotMax, histogram]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]), [innerHeight]);
 
   const mouseEventToControlPointValues = (event: MouseEvent | React.MouseEvent): [number, number] => {
