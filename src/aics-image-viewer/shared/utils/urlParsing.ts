@@ -21,49 +21,42 @@ const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 /** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
 const URL_FETCH_FROM_STORAGE = "storage";
 
-// TODO: refactor regexes to be composed of one another rather than duplicating code
-// const COLOR_CODES: Record<string, ColorArray> = {
-//   "0": [0, 0, 0],
-//   "1": [255, 255, 255],
-//   "-1": [255, 255, 255],
-//   w: [255, 255, 255],
-//   k: [0, 0, 0],
-// };
-// const COLOR_CODE_REGEX = new RegExp(`(${Object.keys(COLOR_CODES).join("|")})`);
-// const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${COLOR_CODE_REGEX.source})`);
+const FLOAT_REGEX = /-?[0-9]*\.?[0-9]+/;
 
 const CHANNEL_STATE_KEY_REGEX = /^c[0-9]+$/;
+
 /** Match colon-separated pairs of alphanumeric strings */
 const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
-// TODO: Technically this regex matches bad float values (0.1.3 or ......). Fix?
+
 /**
  * Match colon-separated pairs of numeric strings, representing histogram bin
  * indices.
  */
-const RAMP_BIN_REGEX = /^-?[0-9.]*:-?[0-9.]*$/;
+const RAMP_BIN_REGEX = new RegExp(`${FLOAT_REGEX.source}:${FLOAT_REGEX.source}$`);
+
 /** Matches colon-separated pairs of raw intensity values. */
-const RAMP_VALUE_REGEX = /^v-?[0-9.]*:v-?[0-9.]*$/;
+const RAMP_VALUE_REGEX = new RegExp(`^v${FLOAT_REGEX.source}:v${FLOAT_REGEX.source}$`);
+
 /**
  * Match comma-separated triplet of numeric strings.
  */
-const SLICE_REGEX = /^[0-9.]*,[0-9.]*,[0-9.]*$/;
+const SLICE_REGEX = new RegExp(`^${FLOAT_REGEX.source},${FLOAT_REGEX.source},${FLOAT_REGEX.source}$`);
+
 /**
  * Matches a sequence of three comma-separated min:max number pairs, representing
  * the x, y, and z axes.
  */
-const REGION_REGEX = /^([0-9.]*:[0-9.]*)(,[0-9.]*:[0-9.]*){2}$/;
+const REGION_REGEX = new RegExp(
+  `^(${FLOAT_REGEX.source}:${FLOAT_REGEX.source})(,${FLOAT_REGEX.source}:${FLOAT_REGEX.source}){2}$`
+);
 
 const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${DEFAULT_CONTROL_POINT_COLOR_CODE})`);
-const NUMERIC_REGEX = /-?[0-9.]*/;
-const NUMERIC_VALUE_REGEX = /v-?[0-9.]*/;
 
 /** Represents control points specified by bin indices. */
-const CONTROL_POINT_BIN_REGEX = new RegExp(
-  `(${NUMERIC_REGEX.source}:${NUMERIC_REGEX.source}:${HEX_COLOR_REGEX.source})`
-);
+const CONTROL_POINT_BIN_REGEX = new RegExp(`(${FLOAT_REGEX.source}:${FLOAT_REGEX.source}:${HEX_COLOR_REGEX.source})`);
 /** Represents control points specified by raw intensity values. */
 const CONTROL_POINT_VALUE_REGEX = new RegExp(
-  `(${NUMERIC_VALUE_REGEX.source}:${NUMERIC_REGEX.source}:${HEX_COLOR_REGEX.source})`
+  `(v${FLOAT_REGEX.source}:${FLOAT_REGEX.source}:${HEX_COLOR_REGEX.source})`
 );
 
 const HEX_COLOR_STR_REGEX = new RegExp(`^${HEX_COLOR_REGEX.source}$`);
@@ -76,6 +69,7 @@ const HEX_COLOR_STR_REGEX = new RegExp(`^${HEX_COLOR_REGEX.source}$`);
 export const LEGACY_CONTROL_POINTS_REGEX = new RegExp(
   `^${CONTROL_POINT_BIN_REGEX.source}(,${CONTROL_POINT_BIN_REGEX.source})*$`
 );
+
 /**
  * Matches a COLON-separated list of control points, where each control point is
  * represented by a triplet of `{x}:{opacity}:{hex color}`, where `x` is a
@@ -197,7 +191,7 @@ export class ViewerChannelSettingParams {
    * - `x` is a numeric value. If prefixed with `v`, it represents a raw intensity value;
    *    otherwise, it represents a histogram bin index in the [0, 255] range.
    * - `opacity` is a float in the [0, 1] range.
-   * - `colo` is a 6-digit hex color, e.g. `ff0000`.
+   * - `color` is a 6-digit hex color, e.g. `ff0000`.
    */
   [ViewerChannelSettingKeys.ControlPoints]?: string = undefined;
   /**
