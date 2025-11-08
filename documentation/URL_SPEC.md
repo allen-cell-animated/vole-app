@@ -98,45 +98,19 @@ property pair being separated by **commas**.
 > the volume and the colorize mode, sets the color to `#8da3c0`, and sets the
 > control points for the transfer function.
 
-| Property | Description                                                                               | Expected values                                                                                | Default                                | Example                             |
-| -------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------- |
-| `ven`    | Whether the volume is enabled.                                                            | `1` (enabled) or `0` (disabled)                                                                | `0` (`1` for the first three channels) | `?c0=ven:1`                         |
-| `sen`    | Whether the isosurface is enabled.                                                        | `1` (enabled) or `0` (disabled)                                                                | `0`                                    | `?c0=iso:1`                         |
-| `isv`    | Isosurface value, the intensity value at which to generate the isosurface.                | Number in the range `[0, 255]`                                                                 | `128`                                  | `?c0=isv:195`                       |
-| `col`    | Base channel color, applied to volumes and isosurfaces.                                   | 6-digit hex color                                                                              | (varies by index)                      | `?c0=col:af38c0`                    |
-| `clz`    | Colorize, used for segmentations where each ID should be a different color.               | `1` (enabled) or `0` (disabled)                                                                | `0`                                    | `?c0=clz:1`                         |
-| `cza`    | Colorize alpha, the opacity of the colorize effect.                                       | Number in the range `[0, 1]`                                                                   | `1.0`                                  | `?c0=cza:1.0`                       |
-| `isa`    | Isosurface alpha, the opacity of the isosurface.                                          | Number in the range `[0, 1]`                                                                   | `1.0`                                  | `?c0=isa:1.0`                       |
-| `cpe`    | Use and show the control points instead of the ramp on load.                              | `1` (enabled) or `0` (disabled)                                                                | `0`                                    | `?c0=cpe:1`                         |
-| `cps`    | Control points for the transfer function. If provided, overrides the `lut` field.         | List of `bin_index:opacity:color` triplets, separated by a colon ([_see 'Binning'_](#binning)) | `0:0:ffffff:255:1:ffffff`              | `?c0=cps:0:0:ff0000:150:0.5:ffff00` |
-| `rmp`    | Raw ramp values. If provided, overrides the `lut` field when calculating the ramp values. | Two float bin indices, formatted as `min:max` ([_see 'Binning'_](#binning))                    | `0:255`                                | `?c0=rmp:0:255`                     |
-| `lut`    | Lookup table (LUT) to map from volume intensity values to opacity.                        | [_See 'Lookup Table'_](#lookup-table-lut)                                                      | `0:255`                                | `?c0=lut:0:255`                     |
-
-### Binning
-
-When loaded, each channel's raw intensity values are sorted into one of 256
-bins, where the bin index `0` holds the minimum raw intensity value of the
-channel and the bin index `255` holds the maximum raw intensity value. Like any
-binned histogram, each bin can represent multiple values-- if there are more
-than 256 intensities in the channel, values will be evenly distributed across
-bins.
-
-Certain properties like `cps` (control points), `rmp` (ramp), and `lut` (lookup
-table) directly reference these bin indices.
-
-![Screenshot of Volume Viewer with a volume in advanced mode. A histogram with
-255 bins is visible, with a ramp increasing from 0 to 1 on the Y axis in the
-span of 53 to 136 on the X axis.](./assets/example_histogram.png)
-
-For example, the above control points are at bin indices `0`, `53`, `136`, and
-`255`. Depending on the range of the channel's values, these may
-represent different raw intensity pixel values.
-
-| Min raw intensity | Max raw intensity | Bin `0` intensity | Bin `53` intensity | Bin `136` intensity | Bin `255` intensity |
-| ----------------- | ----------------- | ----------------- | ------------------ | ------------------- | ------------------- |
-| 0                 | 255               | 0                 | 53                 | 136                 | 255                 |
-| 50                | 200               | 50                | 103                | 166                 | 200                 |
-| 45                | 1000              | 45-48             | 244-247            | 555-558             | 997-1000            |
+| Property | Description                                                                       | Expected values                                                        | Default                                | Example                             |
+| -------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------- | ----------------------------------- |
+| `ven`    | Whether the volume is enabled.                                                    | `1` (enabled) or `0` (disabled)                                        | `0` (`1` for the first three channels) | `?c0=ven:1`                         |
+| `sen`    | Whether the isosurface is enabled.                                                | `1` (enabled) or `0` (disabled)                                        | `0`                                    | `?c0=iso:1`                         |
+| `isv`    | Isosurface value, the intensity value at which to generate the isosurface.        | Number in the range `[0, 255]`                                         | `128`                                  | `?c0=isv:195`                       |
+| `col`    | Base channel color, applied to volumes and isosurfaces.                           | 6-digit hex color                                                      | (varies by index)                      | `?c0=col:af38c0`                    |
+| `clz`    | Colorize, used for segmentations where each ID should be a different color.       | `1` (enabled) or `0` (disabled)                                        | `0`                                    | `?c0=clz:1`                         |
+| `cza`    | Colorize alpha, the opacity of the colorize effect.                               | Number in the range `[0, 1]`                                           | `1.0`                                  | `?c0=cza:1.0`                       |
+| `isa`    | Isosurface alpha, the opacity of the isosurface.                                  | Number in the range `[0, 1]`                                           | `1.0`                                  | `?c0=isa:1.0`                       |
+| `cpe`    | Use and show the control points instead of the ramp on load.                      | `1` (enabled) or `0` (disabled)                                        | `0`                                    | `?c0=cpe:1`                         |
+| `cpt`    | Control points for the transfer function. If provided, overrides the `lut` field. | List of `intensity_value:opacity:color` triplets, separated by a colon | `0:0:ffffff:255:1:ffffff`              | `?c0=cps:0:0:ff0000:150:0.5:ffff00` |
+| `ram`    | Ramp values for the transfer function. If provided, overrides the `lut` field.    | Two float intensity values, formatted as `min:max`                     | `0:255`                                | `?c0=rmp:0:255`                     |
+| `lut`    | Lookup table (LUT) to map from volume intensity values to opacity.                | [_See 'Lookup Table'_](#lookup-table-lut)                              | `0:255`                                | `?c0=lut:0:255`                     |
 
 ### Lookup Table (`lut`)
 
@@ -145,7 +119,7 @@ represented by a `min:max` pair. Values between the `min` and `max` ramp
 linearly from an opacity of `0` to `1`. The `min` and `max` can match any of the
 following:
 
-- Plain numbers are treated as bin indices, in a `[0, 255]` range.
+- Plain numbers are treated as bin indices, in a `[0, 255]` range. [See 'Binning'](#binning).
 - `v{n}` represents an image intensity value, where `n` is an integer.
 - `p{n}` represents a percentile, where `n` is a percentile in the `[0, 100]` range.
 - `m{n}` represents the volume's median intensity multiplied by `n / 100`.
@@ -164,3 +138,29 @@ Examples:
 | `p10:p95`   | Linear mapping from the 10th percentile to the 95th.       |
 | `m100:m150` | Linear mapping from the median to 1.5 times the median.    |
 | `autoij:0`  | Uses the "auto" algorithm from ImageJ.                     |
+
+### Binning
+
+By default, the `lut` (lookup table) is specified in terms of histogram bin
+indices for legacy reasons.
+
+When loaded, each channel's raw intensity values are sorted into one of 256
+bins, where the bin index `0` holds the minimum raw intensity value of the
+channel and the bin index `255` holds the maximum raw intensity value. Like any
+binned histogram, each bin can represent multiple values-- if there are more
+than 256 intensities in the channel, values will be evenly distributed across
+bins.
+
+![Screenshot of Volume Viewer with a volume in advanced mode. A histogram with
+255 bins is visible, with a ramp increasing from 0 to 1 on the Y axis in the
+span of 53 to 136 on the X axis.](./assets/example_histogram.png)
+
+For example, the above LUT has control points at bin indices `0`, `53`, `136`,
+and `255`. Depending on the range of the channel's values, these may represent
+different raw intensity pixel values.
+
+| Min raw intensity | Max raw intensity | Bin `0` intensity | Bin `53` intensity | Bin `136` intensity | Bin `255` intensity |
+| ----------------- | ----------------- | ----------------- | ------------------ | ------------------- | ------------------- |
+| 0                 | 255               | 0                 | 53                 | 136                 | 255                 |
+| 50                | 200               | 50                | 103                | 166                 | 200                 |
+| 45                | 1000              | 45-48             | 244-247            | 555-558             | 997-1000            |
