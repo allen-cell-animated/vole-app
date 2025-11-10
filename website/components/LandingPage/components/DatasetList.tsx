@@ -35,8 +35,8 @@ const DatasetCardContainer = styled.li`
   & > p {
     display: grid;
   }
-  & > a {
-    margin: 4px auto 0 0px;
+  & > a, & > button {
+    margin: 4px auto 0 0;
     display: grid;
   }
 `;
