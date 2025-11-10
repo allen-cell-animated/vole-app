@@ -592,7 +592,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     draggedPointIdx === null ? "" : typeof draggedPointIdx === "number" ? " dragging-point" : " dragging-slider";
   const isovalue = draggedPointIdx === TfEditorSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
   const useRamp = props.volumeEnabled && !props.useControlPoints;
-  const showSliderValueRow = useRamp || props.isosurfaceEnabled;
   const { rawMin, rawMax } = props.channelData;
 
   return (
@@ -722,79 +721,81 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         </g>
       </svg>
 
-      {/* ----- PRESET BUTTONS ----- */}
+      {/* ----- VOLUME CONTROLS ----- */}
       {props.volumeEnabled && (
-        <div className="tf-editor-control-row">
-          <div>
-            {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
-            {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
-            {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
-            {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
-          </div>
-          <div>
-            <Checkbox
-              checked={props.useControlPoints}
-              onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
-              style={{ marginLeft: "auto" }}
-            >
-              Advanced
-            </Checkbox>
-          </div>
-        </div>
-      )}
+        <>
+          <h4>Volume settings</h4>
 
-      {/* ----- MIN/MAX SPINBOXES ----- */}
-      {showSliderValueRow && (
-        <div className="tf-editor-control-row slider-range-row">
-          <span>
-            {useRamp && (
+          {/* preset buttons */}
+          <div className="tf-editor-control-row">
+            <div>
+              {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
+              {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
+              {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
+              {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
+            </div>
+          </div>
+
+          {/* ramp min/max spinboxes */}
+          <div className="tf-editor-control-row">
+            <span>
+              {useRamp && (
+                <>
+                  <span>Levels min/max</span>
+                  <InputNumber
+                    value={binToAbsolute(props.ramp[0], histogram)}
+                    onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
+                    formatter={numberFormatter}
+                    min={typeRange.min}
+                    max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
+                    size="small"
+                    controls={false}
+                  />
+                  <InputNumber
+                    value={binToAbsolute(props.ramp[1], histogram)}
+                    onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
+                    formatter={numberFormatter}
+                    min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
+                    max={typeRange.max}
+                    size="small"
+                    controls={false}
+                  />
+                </>
+              )}
+            </span>
+          </div>
+
+          {/* colorize slider */}
+          <SliderRow
+            label={
               <>
-                <span>Levels min/max</span>
-                <InputNumber
-                  value={binToAbsolute(props.ramp[0], histogram)}
-                  onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
-                  formatter={numberFormatter}
-                  min={typeRange.min}
-                  max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
-                  size="small"
-                  controls={false}
-                />
-                <InputNumber
-                  value={binToAbsolute(props.ramp[1], histogram)}
-                  onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
-                  formatter={numberFormatter}
-                  min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
-                  max={typeRange.max}
-                  size="small"
-                  controls={false}
-                />
+                <Checkbox
+                  checked={props.useControlPoints}
+                  onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
+                  style={{ marginLeft: "auto" }}
+                >
+                  Advanced
+                </Checkbox>
+                <Checkbox
+                  checked={props.colorizeEnabled}
+                  onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
+                >
+                  Colorize
+                </Checkbox>
               </>
-            )}
-          </span>
-        </div>
-      )}
-
-      {/* ----- COLORIZE SLIDER ----- */}
-      {props.volumeEnabled && (
-        <SliderRow
-          label={
-            <Checkbox
-              checked={props.colorizeEnabled}
-              onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
-            >
-              Colorize
-            </Checkbox>
-          }
-          max={1}
-          start={props.colorizeAlpha}
-          onUpdate={([colorizeAlpha]) => changeChannelSetting({ colorizeAlpha })}
-          hideSlider={!props.colorizeEnabled}
-        />
+            }
+            max={1}
+            start={props.colorizeAlpha}
+            onUpdate={([colorizeAlpha]) => changeChannelSetting({ colorizeAlpha })}
+            hideSlider={!props.colorizeEnabled}
+          />
+        </>
       )}
 
       {/* ----- ISOSURFACE CONTROLS ----- */}
       {props.isosurfaceEnabled && (
         <>
+          <h4>Isosurface settings</h4>
           <div className="tf-editor-control-row">
             <div>
               Isovalue
@@ -819,7 +820,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             </div>
           </div>
           <SliderRow
-            label="Surface opacity"
+            label="Opacity"
             max={1.0}
             start={props.opacity}
             onUpdate={([opacity]) => changeChannelSetting({ opacity })}

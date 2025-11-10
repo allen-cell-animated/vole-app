@@ -31,6 +31,7 @@
     justify-content: space-between;
     align-items: center;
     min-height: 24px;
+    margin-top: 12px;
 
     > div {
       display: flex;
@@ -45,6 +46,10 @@
         text-align: right;
       }
     }
+  }
+
+  h4 {
+    font-size: 16px;
   }
 
   .tick text {
