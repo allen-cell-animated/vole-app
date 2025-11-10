@@ -1,6 +1,8 @@
 @import "../../assets/styles/variables";
 
-.channel-row {
+.channel-row .tf-editor {
+  margin-top: 25px;
+
   .tf-editor-svg.dragging {
     &.basic {
       cursor: ew-resize;

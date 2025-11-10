@@ -594,70 +594,38 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const showSliderValueRow = useRamp || props.isosurfaceEnabled;
 
   return (
-    <div>
-      {/* ----- PRESET BUTTONS ----- */}
-      {props.volumeEnabled && (
-        <div className="button-row">
-          {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
-          {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
-          {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
-          {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
-          <Checkbox
-            checked={props.useControlPoints}
-            onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
-            style={{ marginLeft: "auto" }}
-          >
-            Advanced
-          </Checkbox>
-        </div>
-      )}
-
-      {/* ----- MIN/MAX SPINBOXES ----- */}
-      {showSliderValueRow && (
-        <div className="tf-editor-control-row slider-range-row">
-          <span>
-            {useRamp && (
-              <>
-                <span>Levels min/max</span>
-                <InputNumber
-                  value={binToAbsolute(props.ramp[0], histogram)}
-                  onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
-                  formatter={numberFormatter}
-                  min={typeRange.min}
-                  max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
-                  size="small"
-                  controls={false}
-                />
-                <InputNumber
-                  value={binToAbsolute(props.ramp[1], histogram)}
-                  onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
-                  formatter={numberFormatter}
-                  min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
-                  max={typeRange.max}
-                  size="small"
-                  controls={false}
-                />
-              </>
-            )}
-          </span>
-          <span>
-            {props.isosurfaceEnabled && (
-              <>
-                <span>Isovalue</span>
-                <InputNumber
-                  value={props.isovalue}
-                  onChange={(v) => changeChannelSetting({ isovalue: v ?? undefined })}
-                  formatter={numberFormatter}
-                  min={typeRange.min}
-                  max={typeRange.max}
-                  size="small"
-                  controls={false}
-                />
-              </>
-            )}
-          </span>
-        </div>
-      )}
+    <div className="tf-editor">
+      {/* ----- PLOT RANGE ----- */}
+      <div className="tf-editor-control-row">
+        <Button
+          size="small"
+          onClick={() => changeChannelSetting({ plotMin: props.channelData.rawMin, plotMax: props.channelData.rawMax })}
+        >
+          Fit to data
+        </Button>
+        <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
+          Full range
+        </Button>
+        Plot min/max
+        <InputNumber
+          value={plotMin}
+          onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
+          formatter={numberFormatter}
+          min={typeRange.min}
+          max={typeRange.max - 1}
+          size="small"
+          controls={false}
+        />
+        <InputNumber
+          value={plotMax}
+          onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
+          formatter={numberFormatter}
+          min={typeRange.min + 1}
+          max={typeRange.max}
+          size="small"
+          controls={false}
+        />
+      </div>
 
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
       {colorPickerPosition !== null && (
@@ -751,38 +719,69 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
         </g>
       </svg>
 
-      {/* ----- PLOT RANGE ----- */}
-      <div className="tf-editor-control-row plot-range-row">
-        Plot min/max
-        <InputNumber
-          value={plotMin}
-          onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
-          formatter={numberFormatter}
-          min={typeRange.min}
-          max={typeRange.max - 1}
-          size="small"
-          controls={false}
-        />
-        <InputNumber
-          value={plotMax}
-          onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
-          formatter={numberFormatter}
-          min={typeRange.min + 1}
-          max={typeRange.max}
-          size="small"
-          controls={false}
-        />
-        <Button
-          size="small"
-          style={{ marginLeft: "12px" }}
-          onClick={() => changeChannelSetting({ plotMin: props.channelData.rawMin, plotMax: props.channelData.rawMax })}
-        >
-          Fit to data
-        </Button>
-        <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
-          Full range
-        </Button>
-      </div>
+      {/* ----- PRESET BUTTONS ----- */}
+      {props.volumeEnabled && (
+        <div className="button-row">
+          {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
+          {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
+          {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
+          {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
+          <Checkbox
+            checked={props.useControlPoints}
+            onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
+            style={{ marginLeft: "auto" }}
+          >
+            Advanced
+          </Checkbox>
+        </div>
+      )}
+
+      {/* ----- MIN/MAX SPINBOXES ----- */}
+      {showSliderValueRow && (
+        <div className="tf-editor-control-row slider-range-row">
+          <span>
+            {useRamp && (
+              <>
+                <span>Levels min/max</span>
+                <InputNumber
+                  value={binToAbsolute(props.ramp[0], histogram)}
+                  onChange={(v) => v !== null && setRamp([absoluteToBin(v, histogram), props.ramp[1]])}
+                  formatter={numberFormatter}
+                  min={typeRange.min}
+                  max={Math.min(binToAbsolute(props.ramp[1], histogram), typeRange.max)}
+                  size="small"
+                  controls={false}
+                />
+                <InputNumber
+                  value={binToAbsolute(props.ramp[1], histogram)}
+                  onChange={(v) => v !== null && setRamp([props.ramp[0], absoluteToBin(v, histogram)])}
+                  formatter={numberFormatter}
+                  min={Math.max(typeRange.min, binToAbsolute(props.ramp[0], histogram))}
+                  max={typeRange.max}
+                  size="small"
+                  controls={false}
+                />
+              </>
+            )}
+          </span>
+          <span>
+            {props.isosurfaceEnabled && (
+              <>
+                <span>Isovalue</span>
+                <InputNumber
+                  value={props.isovalue}
+                  onChange={(v) => changeChannelSetting({ isovalue: v ?? undefined })}
+                  formatter={numberFormatter}
+                  min={typeRange.min}
+                  max={typeRange.max}
+                  size="small"
+                  controls={false}
+                />
+              </>
+            )}
+          </span>
+        </div>
+      )}
 
       {/* ----- COLORIZE SLIDER ----- */}
       {props.volumeEnabled && (
