@@ -728,7 +728,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
             </g>
           )}
           {/* isosurface slider */}
-          {props.isosurfaceEnabled && plotMinU8 <= isovalue && isovalue <= plotMaxU8 && (
+          {props.isosurfaceEnabled && plotMin <= isovalue && isovalue <= plotMax && (
             <g className="sliders" transform={`translate(${xScale(isovalue)})`}>
               <line className="slider-isosurface" y1={innerHeight} strokeDasharray="4,4" strokeWidth={2} />
               <line
