@@ -593,39 +593,41 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const isovalue = draggedPointIdx === TfEditorSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
   const useRamp = props.volumeEnabled && !props.useControlPoints;
   const showSliderValueRow = useRamp || props.isosurfaceEnabled;
+  const { rawMin, rawMax } = props.channelData;
 
   return (
     <div className="tf-editor">
       {/* ----- PLOT RANGE ----- */}
       <div className="tf-editor-control-row">
-        <Button
-          size="small"
-          onClick={() => changeChannelSetting({ plotMin: props.channelData.rawMin, plotMax: props.channelData.rawMax })}
-        >
-          Fit to data
-        </Button>
-        <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
-          Full range
-        </Button>
-        Plot min/max
-        <InputNumber
-          value={plotMin}
-          onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
-          formatter={numberFormatter}
-          min={typeRange.min}
-          max={typeRange.max - 1}
-          size="small"
-          controls={false}
-        />
-        <InputNumber
-          value={plotMax}
-          onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
-          formatter={numberFormatter}
-          min={typeRange.min + 1}
-          max={typeRange.max}
-          size="small"
-          controls={false}
-        />
+        <div>
+          <Button size="small" onClick={() => changeChannelSetting({ plotMin: rawMin, plotMax: rawMax })}>
+            Fit to data
+          </Button>
+          <Button size="small" onClick={() => changeChannelSetting({ plotMin: typeRange.min, plotMax: typeRange.max })}>
+            Full range
+          </Button>
+        </div>
+        <div>
+          Plot min/max
+          <InputNumber
+            value={plotMin}
+            onChange={(v) => v !== null && changeChannelSetting({ plotMin: v, plotMax: Math.max(v + 1, plotMax) })}
+            formatter={numberFormatter}
+            min={typeRange.min}
+            max={typeRange.max - 1}
+            size="small"
+            controls={false}
+          />
+          <InputNumber
+            value={plotMax}
+            onChange={(v) => v !== null && changeChannelSetting({ plotMax: v, plotMin: Math.min(v - 1, plotMin) })}
+            formatter={numberFormatter}
+            min={typeRange.min + 1}
+            max={typeRange.max}
+            size="small"
+            controls={false}
+          />
+        </div>
       </div>
 
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
@@ -722,18 +724,22 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
       {/* ----- PRESET BUTTONS ----- */}
       {props.volumeEnabled && (
-        <div className="button-row">
-          {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
-          {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
-          {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
-          {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
-          <Checkbox
-            checked={props.useControlPoints}
-            onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
-            style={{ marginLeft: "auto" }}
-          >
-            Advanced
-          </Checkbox>
+        <div className="tf-editor-control-row">
+          <div>
+            {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
+            {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
+            {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
+            {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
+          </div>
+          <div>
+            <Checkbox
+              checked={props.useControlPoints}
+              onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
+              style={{ marginLeft: "auto" }}
+            >
+              Advanced
+            </Checkbox>
+          </div>
         </div>
       )}
 
@@ -765,22 +771,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               </>
             )}
           </span>
-          <span>
-            {props.isosurfaceEnabled && (
-              <>
-                <span>Isovalue</span>
-                <InputNumber
-                  value={props.isovalue}
-                  onChange={(v) => changeChannelSetting({ isovalue: v ?? undefined })}
-                  formatter={numberFormatter}
-                  min={typeRange.min}
-                  max={typeRange.max}
-                  size="small"
-                  controls={false}
-                />
-              </>
-            )}
-          </span>
         </div>
       )}
 
@@ -805,21 +795,35 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       {/* ----- ISOSURFACE CONTROLS ----- */}
       {props.isosurfaceEnabled && (
         <>
+          <div className="tf-editor-control-row">
+            <div>
+              Isovalue
+              <InputNumber
+                value={props.isovalue}
+                onChange={(v) => changeChannelSetting({ isovalue: v ?? undefined })}
+                formatter={numberFormatter}
+                min={typeRange.min}
+                max={typeRange.max}
+                size="small"
+                controls={false}
+              />
+            </div>
+            <div>
+              Export surface
+              <Button size="small" onClick={() => props.saveIsosurface("GLTF")}>
+                GLTF
+              </Button>
+              <Button size="small" onClick={() => props.saveIsosurface("STL")}>
+                STL
+              </Button>
+            </div>
+          </div>
           <SliderRow
             label="Surface opacity"
             max={1.0}
             start={props.opacity}
             onUpdate={([opacity]) => changeChannelSetting({ opacity })}
           />
-          <div className="tf-editor-control-row plot-range-row">
-            <span>Export surface as:</span>
-            <Button size="small" onClick={() => props.saveIsosurface("GLTF")}>
-              GLTF
-            </Button>
-            <Button size="small" onClick={() => props.saveIsosurface("STL")}>
-              STL
-            </Button>
-          </div>
         </>
       )}
     </div>

@@ -28,21 +28,13 @@
   .tf-editor-control-row {
     display: flex;
     color: var(--color-controlpanel-text);
+    justify-content: space-between;
     align-items: center;
     min-height: 24px;
-    gap: 5px;
 
-    &.slider-range-row {
-      margin-top: 15px;
-      justify-content: space-between;
-
-      & > span > :not(:last-child) {
-        margin-right: 5px;
-      }
-    }
-
-    &.plot-range-row {
-      margin-bottom: 20px;
+    > div {
+      display: flex;
+      gap: 5px;
     }
 
     .ant-input-number {
