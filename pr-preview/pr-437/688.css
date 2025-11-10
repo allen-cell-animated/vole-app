@@ -712,7 +712,13 @@
 
   .viewer-control-row .control{
     flex:5;
+    display:flex;
+    align-items:center;
   }
+
+  .viewer-control-row .control .control-slider{
+      flex-grow:1;
+    }
 
 .channel-row .tf-editor-svg.dragging.basic{
       cursor:ew-resize;
@@ -794,22 +800,28 @@
     stroke-width:1px;
   }
 
-.channel-row .sliders path{
-      fill:var(--color-controlpanel-ramp-slider);
-      cursor:ew-resize;
-    }
-
-.channel-row .sliders line{
-      stroke:var(--color-controlpanel-ramp-slider);
+.channel-row .sliders path, .channel-row .sliders line{
       cursor:ew-resize;
     }
 
 .channel-row .sliders line.slider-click-target{
-        stroke:transparent;
+      stroke:transparent;
+    }
+
+.channel-row .sliders.sliders-ramp path{
+        fill:var(--color-controlpanel-ramp-slider);
       }
 
-.channel-row .sliders line.slider-isosurface{
-        stroke:lime;
+.channel-row .sliders.sliders-ramp line:not(.slider-click-target){
+        stroke:var(--color-controlpanel-ramp-slider);
+      }
+
+.channel-row .sliders.sliders-isovalue path{
+        fill:var(--color-controlpanel-isovalue-slider);
+      }
+
+.channel-row .sliders.sliders-isovalue line:not(.slider-click-target){
+        stroke:var(--color-controlpanel-isovalue-slider);
       }
 
 .channel-row circle{
