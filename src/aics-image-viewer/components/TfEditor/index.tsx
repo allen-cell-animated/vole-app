@@ -1,5 +1,5 @@
 import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
-import { Button, Checkbox, InputNumber, Tooltip } from "antd";
+import { Button, Checkbox, Dropdown, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -18,6 +18,7 @@ import { useRefWithSetter } from "../../shared/utils/hooks";
 import type { SingleChannelSettingUpdater } from "../ViewerStateProvider/types";
 
 import SliderRow from "../shared/SliderRow";
+import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
 
@@ -557,14 +558,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     [histogram, props.useControlPoints, setControlPoints, setRamp]
   );
 
-  const createTFGeneratorButton = (generator: string, name: string, description: string): React.ReactNode => (
-    <Tooltip title={description} placement="top">
-      <Button size="small" onClick={() => applyTFGenerator(generator)}>
-        {name}
-      </Button>
-    </Tooltip>
-  );
-
   let controlPointCircles = null;
   if (props.volumeEnabled && props.useControlPoints) {
     // create one svg circle element for each control point
@@ -729,16 +722,27 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {/* preset buttons */}
           <div className="tf-editor-control-row">
             <div>
-              {createTFGeneratorButton("auto98XF", "Default", "Ramp from 50th percentile to 98th")}
-              {createTFGeneratorButton("auto2XF", "IJ Auto", `Emulates ImageJ's "auto" button`)}
-              {createTFGeneratorButton("resetXF", "Auto 1", "Ramp over the full data range (0% to 100%)")}
-              {createTFGeneratorButton("bestFitXF", "Auto 2", "Ramp over the middle 80% of data")}
+              <Dropdown
+                trigger={["click"]}
+                menu={{
+                  items: [
+                    { key: "auto98XF", label: "Default (50% - 98%)" },
+                    { key: "auto2XF", label: "ImageJ Auto" },
+                    { key: "resetXF", label: "Auto 1 (0% - 100%)" },
+                    { key: "bestFitXF", label: "Auto 2 (10% - 90%)" },
+                  ],
+                  onClick: ({ key }) => applyTFGenerator(key),
+                }}
+              >
+                <Button size="small">
+                  <span style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>
+                    Apply ramp
+                    <ViewerIcon type="dropdownArrow" style={{ fontSize: "14px" }} />
+                  </span>
+                </Button>
+              </Dropdown>
             </div>
-          </div>
-
-          {/* ramp min/max spinboxes */}
-          <div className="tf-editor-control-row">
-            <span>
+            <div>
               {useRamp && (
                 <>
                   <span>Levels min/max</span>
@@ -762,7 +766,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   />
                 </>
               )}
-            </span>
+            </div>
           </div>
 
           {/* colorize slider */}
@@ -779,6 +783,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <Checkbox
                   checked={props.colorizeEnabled}
                   onChange={(e) => changeChannelSetting({ colorizeEnabled: e.target.checked })}
+                  style={{ marginLeft: "5px" }}
                 >
                   Colorize
                 </Checkbox>
