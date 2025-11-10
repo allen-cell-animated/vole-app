@@ -1,5 +1,5 @@
 import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
-import { Button, Checkbox, Dropdown, InputNumber, Tooltip } from "antd";
+import { Button, Checkbox, Dropdown, InputNumber } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
 import React, { useCallback, useMemo, useRef, useState } from "react";
