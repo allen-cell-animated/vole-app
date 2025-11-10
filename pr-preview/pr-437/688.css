@@ -698,6 +698,7 @@
   display:flex;
   align-items:center;
   margin-right:10px;
+  gap:5px;
 }
 
   .viewer-control-row:not(:last-child){
@@ -752,6 +753,7 @@
     justify-content:space-between;
     align-items:center;
     min-height:24px;
+    margin-top:12px;
   }
 
 .channel-row .tf-editor .tf-editor-control-row > div{
@@ -767,6 +769,10 @@
 .channel-row .tf-editor .tf-editor-control-row .ant-input-number input{
         text-align:right;
       }
+
+.channel-row .tf-editor h4{
+    font-size:16px;
+  }
 
 .channel-row .tf-editor .tick text{
     fill:var(--color-controlpanel-text);
@@ -842,12 +848,6 @@
 .channel-rows-list .ant-list-item.channel-row .ant-list-item-meta-title,
   .channel-rows-list .ant-list-item.channel-row .ant-checkbox-wrapper{
     color:var(--color-controlpanel-text);
-  }
-
-.channel-rows-list .ant-list-item.channel-row h4{
-    color:var(--color-text-section);
-    margin-top:28px;
-    margin-bottom:10px;
   }
 
 .channel-rows-list .ant-list-item.channel-row .ant-btn-text{
