@@ -696,7 +696,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           {controlPointCircles}
           {/* "basic mode" sliders */}
           {props.volumeEnabled && !props.useControlPoints && (
-            <g className="sliders">
+            <g className="sliders sliders-ramp">
               {plotMinU8 <= props.ramp[0] && props.ramp[0] <= plotMaxU8 && (
                 <g transform={`translate(${xScale(binToAbsolute(props.ramp[0], histogram))})`}>
                   <line y1={innerHeight} strokeDasharray="5,5" strokeWidth={2} />
@@ -727,9 +727,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               )}
             </g>
           )}
-          {/* isosurface slider */}
+          {/* isovalue slider */}
           {props.isosurfaceEnabled && plotMin <= isovalue && isovalue <= plotMax && (
-            <g className="sliders" transform={`translate(${xScale(isovalue)})`}>
+            <g className="sliders sliders-isovalue" transform={`translate(${xScale(isovalue)})`}>
               <line className="slider-isosurface" y1={innerHeight} strokeDasharray="4,4" strokeWidth={2} />
               <line
                 className="slider-click-target"
@@ -741,13 +741,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 }}
               />
               {/* TODO clean up css! */}
+              <path d={isovalueHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Isosurface)} />
               <path
-                style={{ fill: "lime" }}
-                d={isovalueHandlePath}
-                onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Isosurface)}
-              />
-              <path
-                style={{ fill: "lime" }}
                 d={isovalueHandlePath}
                 transform={`translate(0,${innerHeight}) rotate(180)`}
                 onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Isosurface)}

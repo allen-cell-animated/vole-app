@@ -84,21 +84,31 @@
   }
 
   .sliders {
-    path {
-      fill: var(--color-controlpanel-ramp-slider);
+    path, line {
       cursor: ew-resize;
     }
 
-    line {
-      stroke: var(--color-controlpanel-ramp-slider);
-      cursor: ew-resize;
+    line.slider-click-target {
+      stroke: transparent;
+    }
 
-      &.slider-click-target {
-        stroke: transparent;
+    &.sliders-ramp {
+      path {
+        fill: var(--color-controlpanel-ramp-slider);
       }
 
-      &.slider-isosurface {
-        stroke: lime;
+      line:not(.slider-click-target) {
+        stroke: var(--color-controlpanel-ramp-slider);
+      }
+    }
+
+    &.sliders-isovalue {
+      path {
+        fill: var(--color-controlpanel-isovalue-slider);
+      }
+
+      line:not(.slider-click-target) {
+        stroke: var(--color-controlpanel-isovalue-slider);
       }
     }
   }
