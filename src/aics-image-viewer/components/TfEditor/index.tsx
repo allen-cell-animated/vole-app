@@ -740,7 +740,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   setDraggedPointIdx(TfEditorSliderHandle.Isosurface);
                 }}
               />
-              {/* TODO clean up css! */}
               <path d={isovalueHandlePath} onPointerDown={() => setDraggedPointIdx(TfEditorSliderHandle.Isosurface)} />
               <path
                 d={isovalueHandlePath}
