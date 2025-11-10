@@ -109,7 +109,7 @@ property pair being separated by **commas**.
 | `isa`    | Isosurface alpha, the opacity of the isosurface.                                  | Number in the range `[0, 1]`                                           | `1.0`                                  | `?c0=isa:1.0`                       |
 | `cpe`    | Use and show the control points instead of the ramp on load.                      | `1` (enabled) or `0` (disabled)                                        | `0`                                    | `?c0=cpe:1`                         |
 | `cpt`    | Control points for the transfer function. If provided, overrides the `lut` field. | List of `intensity_value:opacity:color` triplets, separated by a colon | `0:0:ffffff:255:1:ffffff`              | `?c0=cpt:0:0:ff0000:150:0.5:ffff00` |
-| `ram`    | Ramp values for the transfer function. If provided, overrides the `lut` field.    | Two float intensity values, formatted as `min:max`                     | `0:255`                                | `?c0=rmp:0:255`                     |
+| `ram`    | Ramp values for the transfer function. If provided, overrides the `lut` field.    | Two float intensity values, formatted as `min:max`                     | `0:255`                                | `?c0=ram:0:255`                     |
 | `lut`    | Lookup table (LUT) to map from volume intensity values to opacity.                | [_See 'Lookup Table'_](#lookup-table-lut)                              | `0:255`                                | `?c0=lut:0:255`                     |
 
 ### Lookup Table (`lut`)
