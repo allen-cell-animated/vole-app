@@ -73,15 +73,19 @@ export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerC
   // wrapper around the control point array, e.g.
   // `parseControlPointsFromLutParam(histogram: Histogram, lutParam: [string,
   // string] | undefined): ControlPoint[] | undefined`
-  if (initSettings.lut === undefined || initSettings.lut.length !== 2) {
+
+  // There are two possible locations for the LUT settings, due to legacy
+  // reasons.
+  const settingsLut = initSettings.intensity?.lut ?? initSettings.lut;
+  if (settingsLut === undefined || settingsLut.length !== 2) {
     return undefined;
   }
 
   let lutValues: [number, number];
-  if (initSettings.lut[0] === "autoij" || initSettings.lut[1] === "autoij") {
+  if (settingsLut[0] === "autoij" || settingsLut[1] === "autoij") {
     lutValues = histogram.findAutoIJBins();
   } else {
-    lutValues = [parseLutValue(initSettings.lut[0], histogram), parseLutValue(initSettings.lut[1], histogram)];
+    lutValues = [parseLutValue(settingsLut[0], histogram), parseLutValue(settingsLut[1], histogram)];
   }
   if (!Number.isFinite(lutValues[0]) || !Number.isFinite(lutValues[1])) {
     return undefined;
@@ -139,16 +143,16 @@ export function initializeLut(
 
   // Attempt to load a LUT from the settings, which will be used as a fallback
   // to initialize the control points and ramp.
-  if (initSettings && initSettings.lut) {
+  if (initSettings) {
     lut = parseLutFromSettings(histogram, initSettings) ?? defaultLut;
   }
 
   // Use raw intensity values for control points or ramp if provided in the
   // settings. Otherwise, get default values from the LUT by remapping
   // from histogram bin indices.
-  if (initSettings?.rawControlPoints) {
+  if (initSettings?.intensity?.controlPoints) {
     // Raw intensity values can be used directly.
-    controlPoints = initSettings.rawControlPoints;
+    controlPoints = initSettings.intensity.controlPoints;
   } else {
     // No provided value; use histogram to convert from bin index to raw
     // intensity values.
@@ -160,8 +164,8 @@ export function initializeLut(
   }
 
   // Initialize the ramp
-  if (initSettings?.rawRamp) {
-    ramp = rampToControlPoints(initSettings.rawRamp);
+  if (initSettings?.intensity?.ramp) {
+    ramp = rampToControlPoints(initSettings.intensity.ramp);
   } else {
     const binIndexedRamp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
     ramp = binIndexedRamp.map((cp) => ({
