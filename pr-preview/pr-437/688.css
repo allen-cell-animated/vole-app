@@ -721,16 +721,16 @@
     }
 
 .channel-row .tf-editor{
-  margin-top:25px;
+  margin-top:27px;
 }
 
-.channel-row .tf-editor .tf-editor-svg.dragging.basic{
-      cursor:ew-resize;
-    }
+.channel-row .tf-editor .tf-editor-svg.dragging-slider{
+    cursor:ew-resize;
+  }
 
-.channel-row .tf-editor .tf-editor-svg.dragging.advanced{
-      cursor:move;
-    }
+.channel-row .tf-editor .tf-editor-svg.dragging-point{
+    cursor:move;
+  }
 
 .channel-row .tf-editor .tf-editor-popover{
     position:absolute;
@@ -749,22 +749,14 @@
 .channel-row .tf-editor .tf-editor-control-row{
     display:flex;
     color:var(--color-controlpanel-text);
+    justify-content:space-between;
     align-items:center;
     min-height:24px;
-    gap:5px;
   }
 
-.channel-row .tf-editor .tf-editor-control-row.slider-range-row{
-      margin-top:15px;
-      justify-content:space-between;
-    }
-
-.channel-row .tf-editor .tf-editor-control-row.slider-range-row > span > :not(:last-child){
-        margin-right:5px;
-      }
-
-.channel-row .tf-editor .tf-editor-control-row.plot-range-row{
-      margin-bottom:20px;
+.channel-row .tf-editor .tf-editor-control-row > div{
+      display:flex;
+      gap:5px;
     }
 
 .channel-row .tf-editor .tf-editor-control-row .ant-input-number{
@@ -804,7 +796,8 @@
     stroke-width:1px;
   }
 
-.channel-row .tf-editor .sliders path, .channel-row .tf-editor .sliders line{
+.channel-row .tf-editor .sliders path,
+    .channel-row .tf-editor .sliders line{
       cursor:ew-resize;
     }
 
