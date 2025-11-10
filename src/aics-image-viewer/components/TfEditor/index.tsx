@@ -588,7 +588,8 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
     controlPointCircles.push(controlPointCircles.splice(selectedPointIdx, 1)[0]);
   }
 
-  const viewerModeString = props.useControlPoints ? "advanced" : "basic";
+  const dragClass =
+    draggedPointIdx === null ? "" : typeof draggedPointIdx === "number" ? " dragging-point" : " dragging-slider";
   const isovalue = draggedPointIdx === TfEditorSliderHandle.Isosurface ? draggedIsovalue : props.isovalue;
   const useRamp = props.volumeEnabled && !props.useControlPoints;
   const showSliderValueRow = useRamp || props.isosurfaceEnabled;
@@ -643,7 +644,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
       {/* ----- PLOT SVG ----- */}
       <svg
-        className={`tf-editor-svg ${viewerModeString}${draggedPointIdx !== null ? " dragging" : ""}`}
+        className={`tf-editor-svg${dragClass}`}
         ref={svgRef}
         width={props.width}
         height={props.height}
