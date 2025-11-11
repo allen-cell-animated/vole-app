@@ -1,4 +1,3 @@
-import { isEqual } from "lodash";
 import type { StateCreator } from "zustand";
 
 import {
@@ -26,6 +25,7 @@ export type ResetStateActions = {
    * by viewer props.
    */
   resetToSavedViewerState: (savedState?: Partial<ViewerState>, viewerChannelSettings?: ViewerChannelSettings) => void;
+
   /**
    * Resets the viewer and all channels to the default state, as though
    * loaded from scratch with no initial parameters set.
@@ -47,7 +47,7 @@ const resetState = (
   newState: ViewerState,
   newChannelStates: ChannelState[]
 ): ViewerState & Partial<ResetState> & { channelSettings: ChannelState[] } => {
-  const { channelSettings, viewMode, time, slice } = currentState;
+  const { channelSettings, viewMode, time, slice, scene } = currentState;
 
   // Needs reset on reload if one of the view modes is 2D while the other is 3D,
   // if the timestamp is different, or if we're on a different z slice.
@@ -55,8 +55,9 @@ const resetState = (
   const isInDifferentViewMode =
     viewMode !== newState.viewMode && (viewMode === ViewMode.xy || newState.viewMode === ViewMode.xy);
   const isAtDifferentTime = time !== newState.time;
-  const isAtDifferentZSlice = newState.viewMode === ViewMode.xy && !isEqual(newState.slice.z, slice.z);
-  const willNeedResetOnLoad = isInDifferentViewMode || isAtDifferentTime || isAtDifferentZSlice;
+  const isAtDifferentZSlice = newState.viewMode === ViewMode.xy && !(newState.slice.z === slice.z);
+  const isAtDifferentScene = newState.scene !== scene;
+  const willNeedResetOnLoad = isInDifferentViewMode || isAtDifferentTime || isAtDifferentZSlice || isAtDifferentScene;
 
   const viewerState = validateState(currentState, newState);
   // Match the names in the new state with the existing state so we do not override the names.
@@ -64,15 +65,18 @@ const resetState = (
   const channelState = newChannelStates.map((state, index) => ({
     ...state,
     name: channelSettings[index].name,
+    displayName: channelSettings[index].displayName,
     controlPoints: channelSettings[index].controlPoints,
     ramp: channelSettings[index].ramp,
+    plotMin: channelSettings[index].plotMin,
+    plotMax: channelSettings[index].plotMax,
   }));
 
   let channelsToReset = [...Array(newChannelStates.length).keys()];
   let channelsToResetOnLoad: number[] = [];
   if (willNeedResetOnLoad) {
     channelsToResetOnLoad = getEnabledChannelIndices(newChannelStates);
-    channelsToReset = channelsToResetOnLoad.filter((ch) => !channelsToResetOnLoad.includes(ch));
+    channelsToReset = channelsToReset.filter((ch) => !channelsToResetOnLoad.includes(ch));
   }
 
   return {
@@ -104,6 +108,7 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
         cameraState: getDefaultCameraState(savedState?.viewMode ?? ViewMode.threeD),
         ...savedState,
       };
+
       const newChannelSettings = channelSettings.map((_, index) => {
         return initializeOneChannelSetting(
           channelSettings[index].name,
@@ -115,7 +120,7 @@ export const createResetSlice: StateCreator<ViewerStore, [], [], ResetStateSlice
 
       return {
         ...resetState(currentState, newViewerState, newChannelSettings),
-        useDefaultViewerChannelSettings: true,
+        useDefaultViewerChannelSettings: false,
       };
     });
   },

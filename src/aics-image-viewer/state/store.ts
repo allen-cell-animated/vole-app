@@ -82,7 +82,10 @@ export const selectViewerSettings = (store: ViewerStore): ViewerState => ({
   cameraState: store.cameraState,
 });
 
-export const select =
-  <K extends string>(key: K) =>
-  <V>(settings: Record<K, V>) =>
-    settings[key];
+/**
+ * A small boilerplate-reducer for subscribing to a single state value with `useViewerStore`.
+ * Should only be used with string literals for best type-checking results.
+ */
+export const select = <K extends string>(key: K) => {
+  return <V>(settings: Record<K, V>) => settings[key];
+};

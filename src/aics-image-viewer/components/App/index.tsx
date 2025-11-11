@@ -78,6 +78,7 @@ const defaultProps: AppProps = {
   pixelSize: undefined,
   canvasMargin: "0 0 0 0",
   view3dRef: undefined,
+  showError: undefined,
 };
 
 const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
@@ -118,7 +119,6 @@ const setIndicatorPositions = (
 };
 
 const App: React.FC<AppProps> = (props) => {
-  console.log("render app");
   props = { ...defaultProps, ...props };
 
   // State management /////////////////////////////////////////////////////////
@@ -137,14 +137,15 @@ const App: React.FC<AppProps> = (props) => {
     [resetToSavedState, props.viewerSettings, props.viewerChannelSettings]
   );
 
-  const { onControlPanelToggle, metadata, metadataFormatter } = props;
-
   const view3d = useConstructor(() => new View3d());
   if (props.view3dRef !== undefined) {
     props.view3dRef.current = view3d;
   }
 
-  const [errorAlert, showError] = useErrorAlert();
+  // Allows AppWrapper to pass in its own `useErrorAlert` callbacks, but still keeps error
+  // messaging when App is used standalone.
+  const [errorAlert, _showError] = useErrorAlert();
+  const showError = props.showError ?? _showError;
 
   useEffect(() => {
     // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
@@ -180,6 +181,7 @@ const App: React.FC<AppProps> = (props) => {
 
   const removePreviousImage = useRef<(() => void) | undefined>(undefined);
 
+  const { onImageTitleChange } = props;
   const onCreateImage = useCallback(
     (newImage: Volume): void => {
       removePreviousImage.current?.();
@@ -210,6 +212,7 @@ const App: React.FC<AppProps> = (props) => {
         }),
       });
 
+      onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
       const unsubscribeView = subscribeViewToState(useViewerState, view3d);
       const unsubscribeImage = subscribeImageToState(useViewerState, view3d, newImage);
@@ -227,7 +230,7 @@ const App: React.FC<AppProps> = (props) => {
         removePreviousImage.current = undefined;
       };
     },
-    [view3d]
+    [view3d, onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
@@ -236,7 +239,7 @@ const App: React.FC<AppProps> = (props) => {
       const thisChannelSettings = channelSettings[channelIndex];
       const viewerState = useViewerState.getState();
       const { channelsToResetOnLoad, useDefaultViewerChannelSettings } = viewerState;
-      const currentViewerChannelSettings = useDefaultViewerChannelSettings
+      const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
@@ -244,7 +247,7 @@ const App: React.FC<AppProps> = (props) => {
 
       if (isInitialLoad || noLut || channelsToResetOnLoad.includes(channelIndex)) {
         // This channel needs its LUT initialized
-        const { ramp, controlPoints } = initializeLut(image, channelIndex, currentViewerChannelSettings);
+        const { ramp, controlPoints } = initializeLut(image, channelIndex, viewerChannelSettings);
         const { dtype } = thisChannel;
 
         changeChannelSetting(channelIndex, {
@@ -292,11 +295,19 @@ const App: React.FC<AppProps> = (props) => {
     [view3d, channelSettings, changeChannelSetting, maskChannelName, props.viewerChannelSettings]
   );
 
+  const onError = useCallback(
+    (error: unknown) => {
+      showError(error);
+      onImageTitleChange?.(undefined);
+    },
+    [showError, onImageTitleChange]
+  );
+
   const volume = useVolume(scenes, {
     viewerChannelSettings: props.viewerChannelSettings,
     onCreateImage,
     onChannelLoaded,
-    onError: showError,
+    onError,
     maskChannelName,
   });
   const { image, setTime, setScene } = volume;
@@ -333,6 +344,7 @@ const App: React.FC<AppProps> = (props) => {
     });
   }, [view3d]);
 
+  const { metadata, metadataFormatter } = props;
   const getMetadata = useCallback((): MetadataRecord => {
     let imageMetadata = image?.imageMetadata as MetadataRecord;
     if (imageMetadata && metadataFormatter) {
@@ -402,6 +414,7 @@ const App: React.FC<AppProps> = (props) => {
     return () => window.removeEventListener("resize", onResizeDebounced);
   }, [hasAutoClosedControlPanel]);
 
+  const { onControlPanelToggle } = props;
   useEffect(
     () => onControlPanelToggle && onControlPanelToggle(controlPanelClosed),
     [controlPanelClosed, onControlPanelToggle]
@@ -432,12 +445,12 @@ const App: React.FC<AppProps> = (props) => {
       // Check whether any channels are marked to be reset and apply it.
       const viewerState = useViewerState.getState();
       const { channelsToReset, onResetChannel, useDefaultViewerChannelSettings } = viewerState;
-      const currentViewerChannelSettings = useDefaultViewerChannelSettings
+      const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
       for (let i = 0; i < channelSettings.length; i++) {
         if (channelsToReset.includes(i)) {
-          const { ramp, controlPoints } = initializeLut(image, i, currentViewerChannelSettings);
+          const { ramp, controlPoints } = initializeLut(image, i, viewerChannelSettings);
           changeChannelSetting(i, { controlPoints: controlPoints, ramp: controlPointsToRamp(ramp) });
           onResetChannel(i);
         }
