@@ -1,5 +1,5 @@
 import type { RawArrayData, RawArrayInfo, View3d, Volume } from "@aics/vole-core";
-import { MutableRefObject } from "react";
+import type { MutableRefObject } from "react";
 
 import type { MetadataRecord } from "../../shared/types";
 import type { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
