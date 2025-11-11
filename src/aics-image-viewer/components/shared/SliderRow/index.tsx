@@ -31,6 +31,7 @@ const SliderRow: React.FC<SliderRowProps> = (props) => (
           <SmarterSlider
             range={{ min: props.min ?? 0, max: props.max }}
             start={props.start}
+            step={props.step}
             connect={true}
             tooltips={true}
             behaviour="drag"

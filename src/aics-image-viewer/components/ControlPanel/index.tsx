@@ -1,3 +1,5 @@
+// TODO properly export this type from @aics/vole-core
+import { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
 import { Button, Collapse, CollapseProps, Dropdown, Flex, MenuProps, Tooltip } from "antd";
 import { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
@@ -9,6 +11,7 @@ import ChannelsWidget from "../ChannelsWidget";
 import CustomizeWidget, { CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
+import ScaleLevelControls from "../ScaleLevelControls";
 import ViewerIcon from "../shared/ViewerIcon";
 import { connectToViewerState } from "../ViewerStateProvider";
 
@@ -25,11 +28,14 @@ interface ControlPanelProps
     CustomizeWidgetProps["visibleControls"] & {
       colorPresetsDropdown: boolean;
       metadataViewer: boolean;
+      scaleLevelControl: boolean;
     };
   getMetadata: () => MetadataRecord;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
   resetToDefaultViewerState: () => void;
+  multiscaleDims?: VolumeDims[];
+  multiscaleLevel?: number;
 }
 
 const enum ControlTab {
@@ -108,13 +114,21 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         ),
       },
     ];
-    const showCustomize = visibleControls.backgroundColorPicker || visibleControls.boundingBoxColorPicker;
 
+    const showCustomize = visibleControls.backgroundColorPicker || visibleControls.boundingBoxColorPicker;
     if (showCustomize) {
       items.push({
         key: 1,
         label: "Customize",
         children: <CustomizeWidget visibleControls={props.visibleControls} />,
+      });
+    }
+
+    if (visibleControls.scaleLevelControl && Array.isArray(props.multiscaleDims) && props.multiscaleDims.length > 1) {
+      items.push({
+        key: 2,
+        label: "Scale Level",
+        children: <ScaleLevelControls multiscaleDims={props.multiscaleDims} multiscaleLevel={props.multiscaleLevel} />,
       });
     }
 
