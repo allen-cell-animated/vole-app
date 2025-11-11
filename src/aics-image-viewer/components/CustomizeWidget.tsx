@@ -1,9 +1,10 @@
 import React from "react";
 
+import type { Styles } from "../shared/types";
+import { type ColorArray, colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
+import type { ViewerSettingUpdater } from "./ViewerStateProvider/types";
+
 import ColorPicker from "./ColorPicker";
-import { ColorArray, colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
-import { Styles } from "../shared/types";
-import { ViewerSettingUpdater } from "./ViewerStateProvider/types";
 import { connectToViewerState } from "./ViewerStateProvider";
 
 const ColorPickerRow: React.FC<{

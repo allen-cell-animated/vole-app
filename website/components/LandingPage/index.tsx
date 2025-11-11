@@ -1,4 +1,4 @@
-import { FirebaseFirestore } from "@firebase/firestore-types";
+import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Divider, Tooltip } from "antd";
@@ -412,9 +412,11 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
       </LoadPromptContainer>
 
       <ContentContainer style={{ paddingBottom: "400px" }}>
-        <ProjectList>{
-         (VOLEAPP_BUILD_ENVIRONMENT === "dev") ? [...landingPageContent, ...testDataContent].map(renderProject) : landingPageContent.map(renderProject)
-        }</ProjectList>
+        <ProjectList>
+          {VOLEAPP_BUILD_ENVIRONMENT === "dev"
+            ? [...landingPageContent, ...testDataContent].map(renderProject)
+            : landingPageContent.map(renderProject)}
+        </ProjectList>
       </ContentContainer>
 
       <ContentContainer style={{ padding: "0 30px 40px 30px" }}>

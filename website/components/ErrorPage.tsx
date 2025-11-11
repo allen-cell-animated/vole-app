@@ -1,8 +1,8 @@
 import { faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "antd";
-import React, { ReactElement } from "react";
-import { ErrorResponse, Link, useRouteError } from "react-router-dom";
+import React, { type ReactElement } from "react";
+import { type ErrorResponse, Link, useRouteError } from "react-router-dom";
 import styled from "styled-components";
 
 import { FlexColumnAlignCenter } from "./LandingPage/utils";

@@ -1,5 +1,5 @@
-import { CameraState, ControlPoint } from "@aics/vole-core";
-import { FirebaseFirestore } from "@firebase/firestore-types";
+import type { CameraState, ControlPoint } from "@aics/vole-core";
+import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
@@ -7,7 +7,7 @@ import type { ChannelState, ViewerState, ViewerStateContextType } from "../../co
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../constants";
 import { ImageType, RenderMode, ViewMode } from "../enums";
 import type { ManifestJson, MetadataRecord, PerAxis } from "../types";
-import { ColorArray } from "./colorRepresentations";
+import type { ColorArray } from "./colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
 import { clamp } from "./math";

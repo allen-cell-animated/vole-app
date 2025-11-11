@@ -1,5 +1,5 @@
-import { Channel } from "@aics/vole-core";
-import { Collapse, CollapseProps, List } from "antd";
+import type { Channel } from "@aics/vole-core";
+import { Collapse, type CollapseProps, List } from "antd";
 import React from "react";
 
 import type { IsosurfaceFormat } from "../shared/types";

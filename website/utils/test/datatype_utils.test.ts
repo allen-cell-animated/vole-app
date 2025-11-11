@@ -1,4 +1,4 @@
-import { ControlPoint } from "@aics/vole-core";
+import type { ControlPoint } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 import { isEqual } from "lodash";
 

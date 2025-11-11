@@ -1,17 +1,17 @@
-import { View3d } from "@aics/vole-core";
+import type { View3d } from "@aics/vole-core";
 import { ShareAltOutlined } from "@ant-design/icons";
 import { Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 
-import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
-import { ViewerStateContextType } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
+import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import type { ViewerStateContextType } from "../../../src/aics-image-viewer/components/ViewerStateProvider/types";
 import {
   ENCODED_COLON_REGEX,
   ENCODED_COMMA_REGEX,
   serializeViewerUrlParams,
 } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
-import { AppDataProps } from "../../types";
+import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
 
 import {

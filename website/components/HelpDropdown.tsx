@@ -1,5 +1,5 @@
-import { Button, Dropdown, MenuProps, Modal } from "antd";
-import React, { ReactElement, useEffect, useState } from "react";
+import { Button, Dropdown, type MenuProps, Modal } from "antd";
+import React, { type ReactElement, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { DropdownSVG } from "../assets/icons";

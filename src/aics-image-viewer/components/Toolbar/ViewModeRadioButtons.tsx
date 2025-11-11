@@ -1,5 +1,5 @@
 import { Radio } from "antd";
-import { RadioChangeEvent } from "antd/lib/radio";
+import type { RadioChangeEvent } from "antd/lib/radio";
 import React from "react";
 
 import { ViewMode } from "../../shared/enums";

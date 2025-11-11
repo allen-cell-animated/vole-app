@@ -1,14 +1,14 @@
-import {
+import type {
   CreateLoaderOptions,
   LoadSpec,
   PerChannelCallback,
   PrefetchDirection,
   RawArrayLoaderOptions,
   Volume,
-  VolumeFileFormat,
   VolumeLoaderContext,
 } from "@aics/vole-core";
-import { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
+import { VolumeFileFormat } from "@aics/vole-core";
+import type { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
 
 export default class SceneStore {
   context: VolumeLoaderContext;

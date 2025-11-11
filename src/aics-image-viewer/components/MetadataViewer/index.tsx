@@ -1,7 +1,7 @@
 import { RightOutlined } from "@ant-design/icons";
 import React from "react";
 
-import { MetadataEntry, MetadataRecord } from "../../shared/types";
+import type { MetadataEntry, MetadataRecord } from "../../shared/types";
 
 import "./styles.css";
 

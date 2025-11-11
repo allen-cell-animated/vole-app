@@ -1,12 +1,12 @@
-import { View3d, Volume } from "@aics/vole-core";
+import type { View3d, Volume } from "@aics/vole-core";
 import { LoadingOutlined } from "@ant-design/icons";
 import React from "react";
 
 import { CLIPPING_PANEL_HEIGHT_DEFAULT, CLIPPING_PANEL_HEIGHT_TALL } from "../../shared/constants";
 import { ViewMode } from "../../shared/enums";
-import { AxisName, PerAxis, Styles } from "../../shared/types";
-import PlayControls from "../../shared/utils/playControls";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+import type { AxisName, PerAxis, Styles } from "../../shared/types";
+import type PlayControls from "../../shared/utils/playControls";
+import type { ViewerSettingUpdater } from "../ViewerStateProvider/types";
 
 import AxisClipSliders from "../AxisClipSliders";
 import BottomPanel from "../BottomPanel";
