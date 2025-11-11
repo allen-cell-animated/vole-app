@@ -1,4 +1,4 @@
-import { Channel, ControlPoint, Histogram, Lut, remapControlPoints, Volume } from "@aics/vole-core";
+import { ControlPoint, Histogram, Lut, Volume } from "@aics/vole-core";
 
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
 import { findFirstChannelMatch, ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";

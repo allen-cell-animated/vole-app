@@ -1,12 +1,5 @@
 // 3rd Party Imports
-import {
-  ControlPoint,
-  RawArrayLoaderOptions,
-  RENDERMODE_PATHTRACE,
-  RENDERMODE_RAYMARCH,
-  View3d,
-  Volume,
-} from "@aics/vole-core";
+import { RawArrayLoaderOptions, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -258,7 +251,6 @@ const App: React.FC<AppProps> = (props) => {
       const { getChannelsAwaitingResetOnLoad, getCurrentViewerChannelSettings, changeChannelSetting } =
         viewerState.current;
       const thisChannel = image.getChannel(channelIndex);
-      const dtype = thisChannel.dtype;
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
       const oldRange = channelRangesRef.current[channelIndex];
 
@@ -268,7 +260,15 @@ const App: React.FC<AppProps> = (props) => {
 
       if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
         // This channel needs its LUT initialized
-        const { ramp, controlPoints } = initializeLut(image, channelIndex, getCurrentViewerChannelSettings());
+        const currentViewerChannelSettings = getCurrentViewerChannelSettings();
+        const { ramp, controlPoints } = initializeLut(image, channelIndex, currentViewerChannelSettings);
+
+        // Initialize isovalue to channel settings or default to midpoint of data range
+        const name = image.channelNames[channelIndex];
+        const initSettings =
+          currentViewerChannelSettings && findFirstChannelMatch(name, channelIndex, currentViewerChannelSettings);
+        const defaultIsovalue = thisChannel.rawMin + (thisChannel.rawMax - thisChannel.rawMin) / 2;
+        const isovalue = initSettings?.isovalue ?? defaultIsovalue;
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
@@ -276,7 +276,7 @@ const App: React.FC<AppProps> = (props) => {
           // set the default range of the transfer function editor to cover the full range of the data type
           plotMin: thisChannel.rawMin,
           plotMax: thisChannel.rawMax,
-          isovalue: thisChannel.rawMin + (thisChannel.rawMax - thisChannel.rawMin) / 2,
+          isovalue: isovalue,
         });
       }
 

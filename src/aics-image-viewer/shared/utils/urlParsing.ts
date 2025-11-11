@@ -718,7 +718,7 @@ export function deserializeViewerChannelSetting(
     match: channelIndex,
     enabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
     surfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
-    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], 0, 255),
+    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
     surfaceOpacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
     colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
     colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),

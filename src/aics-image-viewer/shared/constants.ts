@@ -224,6 +224,6 @@ export const getDefaultChannelState = (index: number = 0): ChannelState => {
     ],
     plotMin: 0,
     plotMax: TFEDITOR_MAX_BIN,
-    keepIntensityOnNewVolume: true,
+    keepIntensityOnNewVolume: false,
   };
 };
