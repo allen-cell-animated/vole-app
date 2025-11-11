@@ -1,8 +1,12 @@
-import type { ChannelState, ViewerSettingUpdater, ViewerState } from "../../components/ViewerStateProvider/types";
+import { ChannelState, ViewerSettingUpdater, ViewerState } from "../../components/ViewerStateProvider/types";
 import { getDefaultChannelState } from "../constants";
-import type { ColorArray } from "./colorRepresentations";
-import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
-import { findFirstChannelMatch, getDisplayName } from "./viewerChannelSettings";
+import { ColorArray } from "./colorRepresentations";
+import {
+  findFirstChannelMatch,
+  getDisplayName,
+  ViewerChannelSetting,
+  ViewerChannelSettings,
+} from "./viewerChannelSettings";
 
 /** Sets all fields of the viewer state to the values of the `newState`. */
 export function overrideViewerState(changeViewerSetting: ViewerSettingUpdater, newState: ViewerState): void {

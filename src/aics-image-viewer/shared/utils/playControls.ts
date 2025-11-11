@@ -1,4 +1,4 @@
-import type { AxisName } from "../types";
+import { AxisName } from "../types";
 
 type PlayAxisName = AxisName | "t";
 

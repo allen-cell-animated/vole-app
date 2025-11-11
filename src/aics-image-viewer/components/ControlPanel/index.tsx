@@ -1,13 +1,13 @@
-import { Button, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
-import type { MenuInfo } from "rc-menu/lib/interface";
+import { Button, Collapse, CollapseProps, Dropdown, Flex, MenuProps, Tooltip } from "antd";
+import { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
-import type { MetadataRecord } from "../../shared/types";
+import { MetadataRecord } from "../../shared/types";
 
 import ChannelsWidget from "../ChannelsWidget";
-import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
-import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
+import CustomizeWidget, { CustomizeWidgetProps } from "../CustomizeWidget";
+import GlobalVolumeControls, { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
 import { connectToViewerState } from "../ViewerStateProvider";

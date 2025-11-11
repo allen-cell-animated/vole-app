@@ -1,7 +1,12 @@
 import { describe, expect, it } from "@jest/globals";
+import { ChannelGrouping } from "../viewerChannelSettings";
 
-import type { ChannelGrouping, ViewerChannelSetting, ViewerChannelSettings } from "../viewerChannelSettings";
-import { makeChannelIndexGrouping, matchChannel } from "../viewerChannelSettings";
+import {
+  matchChannel,
+  ViewerChannelSettings,
+  ViewerChannelSetting,
+  makeChannelIndexGrouping,
+} from "../viewerChannelSettings";
 
 describe("viewer settings", () => {
   describe("matching names", () => {

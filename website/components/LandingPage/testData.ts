@@ -1,7 +1,7 @@
-import { type NumberType, type RawArrayInfo, type RawArrayLoaderOptions, VolumeMaker } from "@aics/vole-core";
+import { type NumberType, RawArrayInfo, RawArrayLoaderOptions, VolumeMaker } from "@aics/vole-core";
 
 import { ViewMode } from "../../../src";
-import type { AppDataProps, ProjectEntry } from "../../types";
+import { AppDataProps, ProjectEntry } from "../../types";
 
 function createTestVolume(dtype: NumberType): RawArrayLoaderOptions {
   const sizeX = 64;

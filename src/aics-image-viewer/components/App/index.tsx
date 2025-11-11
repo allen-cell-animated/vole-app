@@ -1,6 +1,5 @@
 // 3rd Party Imports
-import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d } from "@aics/vole-core";
-import type { RawArrayLoaderOptions, Volume } from "@aics/vole-core";
+import { RawArrayLoaderOptions, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -15,8 +14,7 @@ import {
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
-import type { AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
-import { activeAxisMap } from "../../shared/types";
+import { activeAxisMap, AxisName, IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
 import { colorArrayToFloats } from "../../shared/utils/colorRepresentations";
 import {
   controlPointsToRamp,

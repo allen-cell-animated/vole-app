@@ -1,9 +1,9 @@
-import type { CameraState, ControlPoint } from "@aics/vole-core";
+import { CameraState, ControlPoint } from "@aics/vole-core";
 
 import type { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import type { PerAxis } from "../../shared/types";
 import type { ColorArray } from "../../shared/utils/colorRepresentations";
-import type { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
+import { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
 
 /** Global (not per-channel) viewer state which may be changed in the UI */
 export interface ViewerState {

@@ -1,4 +1,4 @@
-import { type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
+import { VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
 import { RightOutlined } from "@ant-design/icons";
 import { Alert, Button } from "antd";
 import React from "react";

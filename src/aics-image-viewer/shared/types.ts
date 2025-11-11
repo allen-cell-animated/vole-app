@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { CSSProperties } from "react";
 
 import { ViewMode } from "./enums";
 

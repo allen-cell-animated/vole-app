@@ -1,21 +1,21 @@
 import { isEqual } from "lodash";
 
+import { ChannelState, ViewerState, ViewerStateContextType, ResetState } from "./types";
 import {
+  getDefaultViewerState,
   getDefaultCameraState,
-  getDefaultChannelColor,
   getDefaultChannelState,
   getDefaultViewerChannelSettings,
-  getDefaultViewerState,
+  getDefaultChannelColor,
 } from "../../shared/constants";
 import { ViewMode } from "../../shared/enums";
-import type { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
 import {
+  overrideViewerState,
+  overrideChannelStates,
   getEnabledChannelIndices,
   initializeOneChannelSetting,
-  overrideChannelStates,
-  overrideViewerState,
 } from "../../shared/utils/viewerState";
-import type { ChannelState, ResetState, ViewerState, ViewerStateContextType } from "./types";
+import { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
 
 /**
  * Provides reset functionality for the viewer and channel states.

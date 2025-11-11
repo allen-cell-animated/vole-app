@@ -1,4 +1,4 @@
-import type { NouisliderProps } from "nouislider-react";
+import { NouisliderProps } from "nouislider-react";
 import React from "react";
 
 import SmarterSlider from "../SmarterSlider";

@@ -1,4 +1,4 @@
-import { type MutableRefObject, useCallback, useRef } from "react";
+import { MutableRefObject, useCallback, useRef } from "react";
 
 /**
  * Wraps a setter function and keeps a ref updated to follow the set value. Useful for making the most up-to-date value

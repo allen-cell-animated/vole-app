@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ViewMode } from "../../../src";
-import type { AppDataProps, ProjectEntry } from "../../types";
+import { AppDataProps, ProjectEntry } from "../../types";
 import { ExternalLink } from "./utils";
 
 const nucmorphBaseViewerSettings: Partial<AppDataProps> = {

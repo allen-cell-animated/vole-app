@@ -1,11 +1,11 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { AutoComplete, Button, Modal } from "antd";
 import Fuse from "fuse.js";
-import React, { type ReactElement, useMemo, useRef, useState } from "react";
+import React, { ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
-import type { AppDataProps } from "../../types";
-import { type RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
+import { AppDataProps } from "../../types";
+import { RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
 import { isValidUrl } from "../../utils/urls";
 import { FlexRow } from "../LandingPage/utils";
 

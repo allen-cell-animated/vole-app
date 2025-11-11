@@ -1,9 +1,9 @@
-import type { View3d } from "@aics/vole-core";
-import type { FirebaseFirestore } from "@firebase/firestore-types";
+import { View3d } from "@aics/vole-core";
+import { FirebaseFirestore } from "@firebase/firestore-types";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { ImageViewerApp, parseViewerUrlParams, type ViewerState, ViewerStateProvider } from "../../src";
+import { ImageViewerApp, parseViewerUrlParams, ViewerState, ViewerStateProvider } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
