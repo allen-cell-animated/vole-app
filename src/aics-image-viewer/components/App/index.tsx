@@ -254,8 +254,7 @@ const App: React.FC<AppProps> = (props) => {
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
       const oldRange = channelRangesRef.current[channelIndex];
 
-      const initializeToExistingRange =
-        isInitialLoad && thisChannelSettings.keepIntensityOnNewVolume && oldRange !== undefined;
+      const initializeToExistingRange = thisChannelSettings.keepIntensityOnNewVolume && oldRange !== undefined;
       const initializeToDefaults = isInitialLoad && !initializeToExistingRange;
 
       if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
@@ -276,7 +275,7 @@ const App: React.FC<AppProps> = (props) => {
           // set the default range of the transfer function editor to cover the full range of the data type
           plotMin: thisChannel.rawMin,
           plotMax: thisChannel.rawMax,
-          isovalue: isovalue,
+          isovalue,
         });
       }
 

@@ -217,8 +217,7 @@ const colorPickerPositionToStyle = ([x, y]: [number, number]): React.CSSProperti
   [y < 0 ? "bottom" : "top"]: y,
 });
 
-const numberFormatter = (v: number | string | undefined): string =>
-  v === undefined ? "" : Math.round(Number(v)).toString();
+const numberFormatter = (v: number | string | undefined): string => (v === undefined ? "" : Number(v).toFixed(0));
 
 const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
 

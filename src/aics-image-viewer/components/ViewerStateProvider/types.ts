@@ -74,7 +74,7 @@ export interface ChannelState {
   plotMax: number;
   /**
    * If true, when a new volume is loaded, keeps the current intensity values
-   * (range and control points) instead of reinitializing the default LUT.
+   * (ramp, control points, and isovalue) instead of reinitializing them.
    */
   keepIntensityOnNewVolume: boolean;
 }

@@ -80,13 +80,12 @@ export function initializeOneChannelSetting(
     opacity: initSettings.surfaceOpacity ?? defaultChannelState.opacity,
     color: colorHexToArray(initSettings.color ?? "") ?? defaultColor,
     useControlPoints: initSettings.controlPointsEnabled ?? defaultChannelState.useControlPoints,
+    keepIntensityOnNewVolume: initSettings.keepIntensityRange ?? defaultChannelState.keepIntensityOnNewVolume,
     // Note: The below values are placeholders and will be overridden (and the
     // initial settings applied) when the channel is first loaded.
     controlPoints: initSettings.controlPoints ?? defaultChannelState.controlPoints,
     ramp: initSettings.ramp ?? defaultChannelState.ramp,
     plotMin: defaultChannelState.plotMin,
     plotMax: defaultChannelState.plotMax,
-    // TODO: Update when this becomes a controllable setting from parameters
-    keepIntensityOnNewVolume: defaultChannelState.keepIntensityOnNewVolume,
   };
 }
