@@ -194,8 +194,7 @@ const App: React.FC<AppProps> = (props) => {
       const { channelSettings } = viewerState.current;
       const { channelNames } = newImage;
       channelRangesRef.current = channelNames.map((_, i) => {
-        const shouldKeepCurrentRange = channelSettings[i]?.keepIntensityOnNewVolume;
-        return shouldKeepCurrentRange ? channelRangesRef.current[i] : undefined;
+        return channelSettings[i]?.keepIntensityOnNewVolume ? channelRangesRef.current[i] : undefined;
       });
 
       // If the image has channel color metadata, apply those colors now
@@ -252,9 +251,9 @@ const App: React.FC<AppProps> = (props) => {
         viewerState.current;
       const thisChannel = image.getChannel(channelIndex);
       const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
-      const oldRange = channelRangesRef.current[channelIndex];
 
-      const initializeToExistingRange = thisChannelSettings.keepIntensityOnNewVolume && oldRange !== undefined;
+      const hasOldRange = channelRangesRef.current[channelIndex] !== undefined;
+      const initializeToExistingRange = thisChannelSettings.keepIntensityOnNewVolume && hasOldRange;
       const initializeToDefaults = isInitialLoad && !initializeToExistingRange;
 
       if (initializeToDefaults || noLut || getChannelsAwaitingResetOnLoad().has(channelIndex)) {
