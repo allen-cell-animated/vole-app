@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
-import { AppProps } from "../src/aics-image-viewer/components/App/types";
+import type { AppProps } from "../src/aics-image-viewer/components/App/types";
 
 export type AppDataProps = Omit<AppProps, "appHeight" | "canvasMargin">;
 

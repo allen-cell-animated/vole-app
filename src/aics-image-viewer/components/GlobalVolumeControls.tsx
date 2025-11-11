@@ -1,7 +1,7 @@
 import { Checkbox } from "antd";
 import React from "react";
 
-import { ViewerSettingUpdater } from "./ViewerStateProvider/types";
+import type { ViewerSettingUpdater } from "./ViewerStateProvider/types";
 
 import SliderRow from "./shared/SliderRow";
 import { connectToViewerState } from "./ViewerStateProvider";

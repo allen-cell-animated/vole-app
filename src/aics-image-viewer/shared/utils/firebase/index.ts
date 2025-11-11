@@ -1,4 +1,4 @@
-import {
+import type {
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
