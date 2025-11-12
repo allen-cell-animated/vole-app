@@ -232,24 +232,11 @@ const useVolume = (
       const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
-      // compare each channel's new displayName to the old displayNames currently in state:
-      // same number of channels, and each channel has same displayName
-      const allNamesAreEqual = channelNames.every((name, idx) => {
-        const displayName = getDisplayName(name, idx, viewerChannelSettings);
-        return displayName === channelSettings[idx]?.displayName;
-      });
-
-      if (allNamesAreEqual) {
-        const newChannelSettings = channelNames.map((channel, index) => {
-          return { ...channelSettings[index], name: channel };
-        });
-        initChannelSettings(newChannelSettings);
-        return newChannelSettings;
-      }
-
-      const newChannelSettings = channelNames.map((channel, index) => {
+      const newChannelSettings = channelNames.map((name, index) => {
         const color = getDefaultChannelColor(index);
-        return initializeOneChannelSetting(channel, index, color, viewerChannelSettings);
+        const channelSetting =
+          channelSettings[index] ?? initializeOneChannelSetting(name, index, color, viewerChannelSettings);
+        return { ...channelSetting, name };
       });
       initChannelSettings(newChannelSettings);
       return newChannelSettings;
