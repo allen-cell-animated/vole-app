@@ -20,6 +20,7 @@ import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
+import { ViewerState } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -131,6 +132,19 @@ const App: React.FC<AppProps> = (props) => {
     () => resetToSavedState(props.viewerSettings, props.viewerChannelSettings),
     [resetToSavedState, props.viewerSettings, props.viewerChannelSettings]
   );
+
+  // Only apply properties that have changed since the last prop
+  const lastViewerSettingsRef = useRef<Partial<ViewerState> | undefined>();
+  useEffect(() => {
+    for (const key of Object.keys(props.viewerSettings || {}) as (keyof typeof props.viewerSettings)[]) {
+      const value = props.viewerSettings ? props.viewerSettings[key] : undefined;
+      const lastValue = lastViewerSettingsRef.current ? lastViewerSettingsRef.current[key] : undefined;
+      if (value !== undefined && !isEqual(value, lastValue)) {
+        useViewerState.getState().changeViewerSetting(key, value);
+      }
+    }
+    lastViewerSettingsRef.current = props.viewerSettings;
+  }, [props.viewerSettings]);
 
   const view3d = useConstructor(() => new View3d());
   if (props.view3dRef !== undefined) {
