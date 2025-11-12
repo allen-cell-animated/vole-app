@@ -61,7 +61,7 @@ const testDataBaseViewerSettings: Partial<AppDataProps> = {
   },
 };
 
-export const testDataContent: ProjectEntry[] = [
+export const TEST_DATA_CONTENT: ProjectEntry[] = [
   {
     name: "Developer test data",
     inReview: false,
