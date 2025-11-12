@@ -3,7 +3,8 @@ import { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
-import type { ChannelState, ViewerState, ViewerStateContextType } from "../../components/ViewerStateProvider/types";
+import type { ViewerStore } from "../../state/store";
+import type { ChannelState, ViewerState } from "../../state/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../constants";
 import { ImageType, RenderMode, ViewMode } from "../enums";
 import type { ManifestJson, MetadataRecord, PerAxis } from "../types";
@@ -1140,10 +1141,7 @@ export async function parseViewerUrlParams(
  * @param removeDefaults If true, shortens parameters by removing any properties that match the default state.
  * This includes the output of GET_DEFAULT_VIEWER_STATE and GET_DEFAULT_CHANNEL_STATE.
  */
-export function serializeViewerUrlParams(
-  state: Partial<ViewerStateContextType>,
-  removeDefaults: boolean = true
-): AppParams {
+export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefaults: boolean = true): AppParams {
   const params = serializeViewerState(state, removeDefaults);
 
   const channelParams = state.channelSettings?.reduce<Record<string, string>>(

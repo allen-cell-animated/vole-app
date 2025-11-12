@@ -15,7 +15,7 @@ import {
 } from "../../shared/utils/colorRepresentations";
 import { controlPointsToRamp, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
 import { useRefWithSetter } from "../../shared/utils/hooks";
-import type { SingleChannelSettingUpdater } from "../ViewerStateProvider/types";
+import type { ChannelState } from "../../state/types";
 
 import SliderRow from "../shared/SliderRow";
 
@@ -57,7 +57,7 @@ type TfEditorProps = {
   width: number;
   height: number;
   channelData: Channel;
-  changeChannelSetting: SingleChannelSettingUpdater;
+  changeChannelSetting: (value: Partial<ChannelState>) => void;
   colorizeEnabled: boolean;
   colorizeAlpha: number;
   useControlPoints: boolean;
