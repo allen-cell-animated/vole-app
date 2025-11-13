@@ -193,8 +193,8 @@ const App: React.FC<AppProps> = (props) => {
 
       // If the image has channel color metadata, apply those colors now
       const viewerChannelSettings = useViewerState.getState().useDefaultViewerChannelSettings
-        ? props.viewerChannelSettings
-        : getDefaultViewerChannelSettings();
+        ? getDefaultViewerChannelSettings()
+        : props.viewerChannelSettings;
       const channelColorMeta = newImage.imageInfo.channelColors?.map((color, index) => {
         // Filter out channels that have colors in `viewerChannelSettings`
         if (viewerChannelSettings === undefined) {
