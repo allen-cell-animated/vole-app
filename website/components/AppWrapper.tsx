@@ -19,12 +19,6 @@ import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";
 import ShareModal from "./Modals/ShareModal";
 
-const TEST_DATA = [
-  "https://dev-aics-dtp-001.int.allencell.org/lumenoid/cellColoniesTransition/data/prep_data/2D_PLF_EMT/3500006062_2/raw_2d/raw_T0000.tif",
-  "https://dev-aics-dtp-001.int.allencell.org/lumenoid/cellColoniesTransition/data/prep_data/2D_PLF_EMT/3500006068_5/raw_2d/raw_T0101.tif",
-  "https://dev-aics-dtp-001.int.allencell.org/lumenoid/cellColoniesTransition/data/prep_data/2D_PLF_EMT/3500006071_45/raw_2d/raw_T0056.tif",
-];
-
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
   cellId: "",
@@ -112,16 +106,6 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
       <Header title={imageTitle} noNavigate>
         <FlexRowAlignCenter $gap={12}>
           <FlexRowAlignCenter $gap={2}>
-            {TEST_DATA.map((url, index) => (
-              <Button
-                key={index}
-                onClick={() => {
-                  setViewerProps({ ...viewerProps!, imageUrl: url });
-                }}
-              >
-                Data {index + 1}
-              </Button>
-            ))}
             <LoadModal onLoad={onLoad} />
             {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
           </FlexRowAlignCenter>
