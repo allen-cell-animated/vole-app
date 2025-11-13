@@ -33,7 +33,7 @@ const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
  * Match colon-separated pairs of numeric strings, representing histogram bin
  * indices or intensity values.
  */
-const RAMP_REGEX = new RegExp(`${FLOAT_REGEX.source}:${FLOAT_REGEX.source}$`);
+const RAMP_REGEX = new RegExp(`^${FLOAT_REGEX.source}:${FLOAT_REGEX.source}$`);
 
 /**
  * Match comma-separated triplet of numeric strings.
