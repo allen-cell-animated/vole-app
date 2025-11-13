@@ -1,6 +1,5 @@
 import { View3d } from "@aics/vole-core";
 import { FirebaseFirestore } from "@firebase/firestore-types";
-import { Button } from "antd";
 import { isEqual } from "lodash";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
