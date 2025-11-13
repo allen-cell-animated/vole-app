@@ -17,7 +17,6 @@ import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import {
   ChannelGrouping,
-  getDisplayName,
   makeChannelIndexGrouping,
   ViewerChannelSettings,
 } from "../shared/utils/viewerChannelSettings";
