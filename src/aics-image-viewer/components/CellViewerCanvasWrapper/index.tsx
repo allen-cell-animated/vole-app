@@ -6,16 +6,14 @@ import { CLIPPING_PANEL_HEIGHT_DEFAULT, CLIPPING_PANEL_HEIGHT_TALL } from "../..
 import { ViewMode } from "../../shared/enums";
 import { AxisName, PerAxis, Styles } from "../../shared/types";
 import PlayControls from "../../shared/utils/playControls";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+import { select, useViewerState } from "../../state/store";
 
 import AxisClipSliders from "../AxisClipSliders";
 import BottomPanel from "../BottomPanel";
-import { connectToViewerState } from "../ViewerStateProvider";
 
 import "./styles.css";
 
 type ViewerWrapperProps = {
-  // From parent
   view3d: View3d;
   loadingImage: boolean;
   appHeight: string;
@@ -31,15 +29,6 @@ type ViewerWrapperProps = {
   };
   clippingPanelOpen?: boolean;
   onClippingPanelOpenChange?: (visible: boolean) => void;
-
-  // From viewer state
-  autorotate: boolean;
-  viewMode: ViewMode;
-  region: PerAxis<[number, number]>;
-  slice: PerAxis<number>;
-  time: number;
-  scene: number;
-  changeViewerSetting: ViewerSettingUpdater;
 };
 
 const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
@@ -66,8 +55,15 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
     return noImageText || spinner;
   };
 
-  const { appHeight, changeViewerSetting, visibleControls, numTimesteps, numScenes, viewMode, region, slice, time } =
-    props;
+  const { appHeight, visibleControls, numTimesteps, numScenes } = props;
+
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
+  const viewMode = useViewerState(select("viewMode"));
+  const region = useViewerState(select("region"));
+  const slice = useViewerState(select("slice"));
+  const time = useViewerState(select("time"));
+  const scene = useViewerState(select("scene"));
+
   const clippingPanelTall = numTimesteps > 1 && numScenes > 1 && viewMode === ViewMode.threeD;
 
   return (
@@ -91,7 +87,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
             slices={slice}
             numTimesteps={numTimesteps}
             time={time}
-            scene={props.scene}
+            scene={scene}
             playControls={props.playControls}
             playingAxis={props.playingAxis}
           />
@@ -102,15 +98,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
   );
 };
 
-export default connectToViewerState(ViewerWrapper, [
-  "autorotate",
-  "viewMode",
-  "region",
-  "slice",
-  "time",
-  "scene",
-  "changeViewerSetting",
-]);
+export default ViewerWrapper;
 
 const STYLES: Styles = {
   viewer: {

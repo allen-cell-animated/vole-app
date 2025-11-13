@@ -1,7 +1,7 @@
 import { CameraState } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 
-import { ChannelState, ViewerState } from "../../../components/ViewerStateProvider/types";
+import { ChannelState, ViewerState } from "../../../state/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../constants";
 import { ImageType, RenderMode, ViewMode } from "../../enums";
 import {

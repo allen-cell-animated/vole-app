@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ViewMode } from "../../shared/enums";
 import { activeAxisMap, AxisName, PerAxis } from "../../shared/types";
 import PlayControls from "../../shared/utils/playControls";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+import type { ViewerStateActions } from "../../state/store";
 
 import NumericInput from "../shared/NumericInput";
 import SmarterSlider from "../shared/SmarterSlider";
@@ -175,7 +175,7 @@ const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
 type AxisClipSlidersProps = {
   mode: ViewMode;
   image: Volume | null;
-  changeViewerSetting: ViewerSettingUpdater;
+  changeViewerSetting: ViewerStateActions["changeViewerSetting"];
   numSlices: PerAxis<number>;
   numSlicesLoaded: PerAxis<number>;
   numScenes: number;
