@@ -185,10 +185,10 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
-      const { channelSettings } = useViewerState.getState();
+      const { channelSettings: channelState } = useViewerState.getState();
       const { channelNames } = newImage;
       channelRangesRef.current = channelNames.map((_, i) => {
-        return channelSettings[i]?.keepIntensityOnNewVolume ? channelRangesRef.current[i] : undefined;
+        return channelState[i]?.keepIntensityOnNewVolume ? channelRangesRef.current[i] : undefined;
       });
 
       // If the image has channel color metadata, apply those colors now
@@ -219,7 +219,7 @@ const App: React.FC<AppProps> = (props) => {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
         channels: newImage.channelNames.map((name, index) => {
           // TODO do we really need to be searching by name here?
-          const ch = channelSettings.find((channel) => channel.name === name);
+          const ch = channelState.find((channel) => channel.name === name);
           if (!ch) {
             return {};
           }
@@ -244,7 +244,7 @@ const App: React.FC<AppProps> = (props) => {
         removePreviousImage.current = undefined;
       };
     },
-    [view3d, onImageTitleChange]
+    [view3d, onImageTitleChange, changeChannelSetting, props.viewerChannelSettings]
   );
 
   const onChannelLoaded = useCallback(
