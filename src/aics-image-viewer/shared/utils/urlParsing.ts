@@ -22,50 +22,57 @@ const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 /** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
 const URL_FETCH_FROM_STORAGE = "storage";
 
-// TODO: refactor regexes to be composed of one another rather than duplicating code
-// const COLOR_CODES: Record<string, ColorArray> = {
-//   "0": [0, 0, 0],
-//   "1": [255, 255, 255],
-//   "-1": [255, 255, 255],
-//   w: [255, 255, 255],
-//   k: [0, 0, 0],
-// };
-// const COLOR_CODE_REGEX = new RegExp(`(${Object.keys(COLOR_CODES).join("|")})`);
-// const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${COLOR_CODE_REGEX.source})`);
+const FLOAT_REGEX = /-?[0-9]*.?[0-9]+/;
 
 const CHANNEL_STATE_KEY_REGEX = /^c[0-9]+$/;
+
 /** Match colon-separated pairs of alphanumeric strings */
 const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
-/** Match colon-separated pairs of numeric strings */
-const RAMP_REGEX = /^-?[0-9.]*:-?[0-9.]*$/;
+
+/**
+ * Match colon-separated pairs of numeric strings, representing histogram bin
+ * indices or intensity values.
+ */
+const RAMP_REGEX = new RegExp(`^${FLOAT_REGEX.source}:${FLOAT_REGEX.source}$`);
+
 /**
  * Match comma-separated triplet of numeric strings.
  */
-const SLICE_REGEX = /^[0-9.]*,[0-9.]*,[0-9.]*$/;
+const SLICE_REGEX = new RegExp(`^${FLOAT_REGEX.source},${FLOAT_REGEX.source},${FLOAT_REGEX.source}$`);
+
 /**
  * Matches a sequence of three comma-separated min:max number pairs, representing
  * the x, y, and z axes.
  */
-const REGION_REGEX = /^([0-9.]*:[0-9.]*)(,[0-9.]*:[0-9.]*){2}$/;
+const REGION_REGEX = new RegExp(
+  `^(${FLOAT_REGEX.source}:${FLOAT_REGEX.source})(,${FLOAT_REGEX.source}:${FLOAT_REGEX.source}){2}$`
+);
 
 const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${DEFAULT_CONTROL_POINT_COLOR_CODE})`);
-const NUMERIC_REGEX = /-?[0-9.]*/;
-const CONTROL_POINT_REGEX = new RegExp(`(${NUMERIC_REGEX.source}:${NUMERIC_REGEX.source}:${HEX_COLOR_REGEX.source})`);
+
+/** Represents control points specified by bin indices. */
+const CONTROL_POINT_REGEX = new RegExp(`(${FLOAT_REGEX.source}:${FLOAT_REGEX.source}:${HEX_COLOR_REGEX.source})`);
 
 const HEX_COLOR_STR_REGEX = new RegExp(`^${HEX_COLOR_REGEX.source}$`);
 
 /**
  * LEGACY: Matches a COMMA-separated list of control points, where each control point is represented
  * by a triplet of `{x}:{opacity}:{hex color}`.
- * The hex color can be replaced with `w` to represent white (`ffffff`).
+ * The hex color can be replaced with `1` to represent white (`ffffff`).
  */
 export const LEGACY_CONTROL_POINTS_REGEX = new RegExp(
   `^${CONTROL_POINT_REGEX.source}(,${CONTROL_POINT_REGEX.source})*$`
 );
+
 /**
- * Matches a COLON-separated list of control points, where each control point is represented
- * by a triplet of `{x}:{opacity}:{hex color}`.
- * The hex color can be replaced with `w` to represent white (`ffffff`).
+ * Matches a COLON-separated list of control points, where each control point is
+ * represented by a triplet of `{x}:{opacity}:{hex color}`.
+ * - `x` is a value that will either be parsed as a histogram bin index (legacy,
+ *   for `ControlPointsLegacy`) or intensity value (for `ControlPoints`),
+ *   depending on on which field is being parsed.
+ * - Opacity is a float in the [0, 1] range.
+ * - The hex color is a 6-digit hex color (e.g. `ffeecc`), and can be replaced
+ *   with `1` to represent white (`ffffff`).
  */
 export const CONTROL_POINTS_REGEX = new RegExp(`^${CONTROL_POINT_REGEX.source}(:${CONTROL_POINT_REGEX.source})*$`);
 
@@ -116,8 +123,10 @@ export enum ViewerChannelSettingKeys {
   ColorizeAlpha = "cza",
   IsosurfaceAlpha = "isa",
   Lut = "lut",
-  Ramp = "rmp",
-  ControlPoints = "cps",
+  ControlPoints = "cpt",
+  ControlPointsLegacy = "cps",
+  Ramp = "ram",
+  RampLegacy = "rmp",
   ControlPointsEnabled = "cpe",
   VolumeEnabled = "ven",
   SurfaceEnabled = "sen",
@@ -164,12 +173,24 @@ export class ViewerChannelSettingParams {
    */
   [ViewerChannelSettingKeys.Lut]?: string = undefined;
   /**
-   * Control points for the transfer function. If provided, overrides the
-   * `lut` field when calculating the control points. Should be a list
-   * of `x:opacity:color` triplets, separated by colon.
+   * Legacy specifier for control points for the transfer function as a list of
+   * `x:opacity:color` triplets, separated by colon. Uses histogram bin indices
+   * instead of intensity values.
+   * - `x` is a histogram bin index in the [0, 255] range.
+   * - `opacity` is a float in the [0, 1] range.
+   * - `color` is a 6-digit hex color, e.g. `ff0000`.
+   *
+   * Will be overridden by the ControlPoints field (`cpt`) if provided.
+   */
+  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string = undefined;
+  /**
+   * Control points for the transfer function, formatted as a list of
+   * `x:opacity:color` triplets, separated by colons.
    * - `x` is a numeric intensity value.
    * - `opacity` is a float in the [0, 1] range.
    * - `color` is a 6-digit hex color, e.g. `ff0000`.
+   *
+   * If provided, overrides the `lut` field when calculating the control points.
    */
   [ViewerChannelSettingKeys.ControlPoints]?: string = undefined;
   /**
@@ -178,8 +199,14 @@ export class ViewerChannelSettingParams {
    */
   [ViewerChannelSettingKeys.ControlPointsEnabled]?: "1" | "0" = undefined;
   /**
-   * Raw ramp values, which should be two numeric values separated by a colon.
-   * If provided, overrides the `lut` field when calculating the ramp values.
+   * Legacy specifier for the transfer function ramp which uses histogram bin
+   * indices instead of intensity values, formatted as `min:max`. Will be
+   * overridden by the Ramp field (`ram`) if provided.
+   */
+  [ViewerChannelSettingKeys.RampLegacy]?: string = undefined;
+  /**
+   * Ramp min and max intensity values (`min:max`). If provided, overrides the
+   * `lut` field when calculating the ramp.
    */
   [ViewerChannelSettingKeys.Ramp]?: string = undefined;
   /** Volume enabled. "1" is enabled. Disabled by default. */
@@ -335,7 +362,7 @@ const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] |
   for (const u of urls) {
     try {
       new URL(u);
-    } catch (_e) {
+    } catch {
       return undefined;
     }
   }
@@ -653,13 +680,13 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
   }
 
   // Parse raw control point data from the string into an array of [x, opacity, color] triplets.
-  let rawControlPointData: string[][];
+  let controlPointStrings: string[][];
   if (LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)) {
     // Legacy format uses commas to separate control points.
-    rawControlPointData = controlPoints.split(",").map((cp) => cp.split(":"));
+    controlPointStrings = controlPoints.split(",").map((cp) => cp.split(":"));
   } else {
     // New format is all colon-separated, where every three elements represent a control point.
-    rawControlPointData = controlPoints.split(":").reduce((acc, _val, i, array) => {
+    controlPointStrings = controlPoints.split(":").reduce((acc, _val, i, array) => {
       if ((i + 1) % 3 === 0) {
         acc.push([array[i - 2], array[i - 1], array[i]]);
       }
@@ -667,7 +694,7 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
     }, [] as string[][]);
   }
 
-  const newControlPoints = rawControlPointData.map((cp) => {
+  const newControlPoints = controlPointStrings.map((cp) => {
     const [x, opacity, color] = cp;
     return {
       x: parseStringFloat(x, -Infinity, Infinity) ?? 0,
@@ -707,14 +734,31 @@ export function deserializeViewerChannelSetting(
   }
   if (jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
     const [min, max] = jsonState[ViewerChannelSettingKeys.Lut].split(":");
-    result.lut = [min.trim(), max.trim()];
+    result.intensity = { ...result.intensity, lut: [min.trim(), max.trim()] };
   }
-  if (jsonState[ViewerChannelSettingKeys.Ramp] && RAMP_REGEX.test(jsonState.rmp)) {
-    const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
-    result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+
+  if (jsonState[ViewerChannelSettingKeys.Ramp]) {
+    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
+      const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
+      result.intensity = { ...result.intensity, ramp: [Number.parseFloat(min), Number.parseFloat(max)] };
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
+    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
+      const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
+      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+    }
   }
+
   if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
-    result.controlPoints = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+    if (parsedResult) {
+      result.intensity = { ...result.intensity, controlPoints: parsedResult };
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
+    if (parsedResult) {
+      result.controlPoints = parsedResult;
+    }
   }
   return result;
 }
@@ -744,11 +788,7 @@ export function serializeViewerChannelSetting(
     [ViewerChannelSettingKeys.ControlPoints]:
       channelSetting.controlPoints && serializeControlPoints(channelSetting.controlPoints),
     [ViewerChannelSettingKeys.ControlPointsEnabled]: serializeBoolean(channelSetting.useControlPoints),
-    [ViewerChannelSettingKeys.Ramp]: channelSetting.ramp
-      ?.map((value) => {
-        return formatFloat(value);
-      })
-      .join(":"),
+    [ViewerChannelSettingKeys.Ramp]: channelSetting.ramp?.join(":"),
     // Note that Lut is not saved here, as it is expected as user input and is redundant with
     // the control points and ramp.
   });
