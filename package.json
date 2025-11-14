@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "2.14.0",
+  "version": "2.15.0",
   "description": "web view of cell volume images",
   "repository": "github:allen-cell-animated/vole-app",
   "main": "es/index.js",
