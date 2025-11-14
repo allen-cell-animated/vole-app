@@ -188,12 +188,12 @@ const App: React.FC<AppProps> = (props) => {
       const { channelNames } = newImage;
       channelRangesRef.current = new Array(channelNames.length).fill(undefined);
 
-      const { channelSettings } = useViewerState.getState();
-
-      // If the image has channel color metadata, apply those colors now
-      const viewerChannelSettings = useViewerState.getState().useDefaultViewerChannelSettings
+      const { channelSettings, useDefaultViewerChannelSettings } = useViewerState.getState();
+      const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
+
+      // If the image has channel color metadata, apply those colors now
       const channelColorMeta = newImage.imageInfo.channelColors?.map((color, index) => {
         // Filter out channels that have colors in `viewerChannelSettings`
         if (viewerChannelSettings === undefined) {
@@ -243,7 +243,7 @@ const App: React.FC<AppProps> = (props) => {
         removePreviousImage.current = undefined;
       };
     },
-    [view3d, onImageTitleChange]
+    [props.viewerChannelSettings, view3d, onImageTitleChange, changeChannelSetting]
   );
 
   const onChannelLoaded = useCallback(
