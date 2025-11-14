@@ -3,9 +3,13 @@ import { Channel, ControlPoint, Histogram, Lut, remapControlPoints, Volume } fro
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
 import { findFirstChannelMatch, ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
-// @param {Object[]} controlPoints - array of {x:number, opacity:number, color:string}
-// @return {Uint8Array} array of length 256*4 representing the rgba values of the gradient
-export function controlPointsToLut(controlPoints: ControlPoint[]): Lut {
+/**
+ * @param {Object[]} controlPoints - array of `{x:number, opacity:number,
+ * color:string}`, where `x` is a histogram bin index.
+ * @returns {Uint8Array} array of length 256*4 representing the rgba values of
+ * the gradient
+ */
+export function binIndexedControlPointsToLut(controlPoints: ControlPoint[]): Lut {
   const lut = new Lut().createFromControlPoints(controlPoints);
   return lut;
 }
@@ -75,7 +79,8 @@ export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerC
   // string] | undefined): ControlPoint[] | undefined`
 
   // There are two possible locations for the LUT settings, due to legacy
-  // reasons.
+  // reasons. `initSettings.lut` is deprecated in favor of
+  // `initSettings.intensity.lut`.
   const settingsLut = initSettings.intensity?.lut ?? initSettings.lut;
   if (settingsLut === undefined || settingsLut.length !== 2) {
     return undefined;

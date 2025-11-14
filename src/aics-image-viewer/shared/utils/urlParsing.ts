@@ -66,9 +66,13 @@ export const LEGACY_CONTROL_POINTS_REGEX = new RegExp(
 
 /**
  * Matches a COLON-separated list of control points, where each control point is
- * represented by a triplet of `{x}:{opacity}:{hex color}`, where `x` is a
- * histogram bin index or intensity value. The hex color can be replaced with
- * `1` to represent white (`ffffff`).
+ * represented by a triplet of `{x}:{opacity}:{hex color}`.
+ * - `x` is a value that will either be parsed as a histogram bin index (legacy,
+ *   for `ControlPointsLegacy`) or intensity value (for `ControlPoints`),
+ *   depending on on which field is being parsed.
+ * - Opacity is a float in the [0, 1] range.
+ * - The hex color is a 6-digit hex color (e.g. `ffeecc`), and can be replaced
+ *   with `1` to represent white (`ffffff`).
  */
 export const CONTROL_POINTS_REGEX = new RegExp(`^${CONTROL_POINT_REGEX.source}(:${CONTROL_POINT_REGEX.source})*$`);
 
