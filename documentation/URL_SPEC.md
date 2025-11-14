@@ -102,7 +102,7 @@ property pair being separated by **commas**.
 | -------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------- | ----------------------------------- |
 | `ven`    | Whether the volume is enabled.                                                    | `1` (enabled) or `0` (disabled)                                        | `0` (`1` for the first three channels) | `?c0=ven:1`                         |
 | `sen`    | Whether the isosurface is enabled.                                                | `1` (enabled) or `0` (disabled)                                        | `0`                                    | `?c0=iso:1`                         |
-| `isv`    | Isosurface value, the intensity value at which to generate the isosurface.        | Number in the range `[0, 255]`                                         | `128`                                  | `?c0=isv:195`                       |
+| `isv`    | Isosurface value, the intensity value at which to generate the isosurface.        | Number representing a data intensity value                             | (varies by data)                       | `?c0=isv:195`                       |
 | `col`    | Base channel color, applied to volumes and isosurfaces.                           | 6-digit hex color                                                      | (varies by index)                      | `?c0=col:af38c0`                    |
 | `clz`    | Colorize, used for segmentations where each ID should be a different color.       | `1` (enabled) or `0` (disabled)                                        | `0`                                    | `?c0=clz:1`                         |
 | `cza`    | Colorize alpha, the opacity of the colorize effect.                               | Number in the range `[0, 1]`                                           | `1.0`                                  | `?c0=cza:1.0`                       |
@@ -119,7 +119,7 @@ represented by a `min:max` pair. Values between the `min` and `max` ramp
 linearly from an opacity of `0` to `1`. The `min` and `max` can match any of the
 following:
 
-- Plain numbers are treated as bin indices, in a `[0, 255]` range. [See 'Binning'](#binning).
+- Unprefixed values are treated as bin indices, in a `[0, 255]` range. [See 'Binning'](#binning).
 - `v{n}` represents an image intensity value, where `n` is an integer.
 - `p{n}` represents a percentile, where `n` is a percentile in the `[0, 100]` range.
 - `m{n}` represents the volume's median intensity multiplied by `n / 100`.
