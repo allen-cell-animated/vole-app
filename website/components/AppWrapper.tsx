@@ -4,9 +4,10 @@ import { isEqual } from "lodash";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { ImageViewerApp, parseViewerUrlParams, ViewerState, ViewerStateProvider } from "../../src";
+import { ImageViewerApp, parseViewerUrlParams } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
+import type { ViewerState } from "../../src/aics-image-viewer/state/types";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -101,27 +102,25 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   return (
     <div>
       {errorAlert}
-      <ViewerStateProvider>
-        <Header title={imageTitle} noNavigate>
-          <FlexRowAlignCenter $gap={12}>
-            <FlexRowAlignCenter $gap={2}>
-              <LoadModal onLoad={onLoad} />
-              {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
-            </FlexRowAlignCenter>
-            <HelpDropdown />
+      <Header title={imageTitle} noNavigate>
+        <FlexRowAlignCenter $gap={12}>
+          <FlexRowAlignCenter $gap={2}>
+            <LoadModal onLoad={onLoad} />
+            {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
           </FlexRowAlignCenter>
-        </Header>
-        {viewerProps && (
-          <ImageViewerApp
-            {...viewerProps}
-            appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
-            canvasMargin="0 0 0 0"
-            view3dRef={view3dRef}
-            showError={showErrorAlert}
-            onImageTitleChange={onImageTitleChange}
-          />
-        )}
-      </ViewerStateProvider>
+          <HelpDropdown />
+        </FlexRowAlignCenter>
+      </Header>
+      {viewerProps && (
+        <ImageViewerApp
+          {...viewerProps}
+          appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
+          canvasMargin="0 0 0 0"
+          view3dRef={view3dRef}
+          showError={showErrorAlert}
+          onImageTitleChange={onImageTitleChange}
+        />
+      )}
     </div>
   );
 }

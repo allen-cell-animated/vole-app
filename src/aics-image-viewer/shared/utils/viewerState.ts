@@ -1,4 +1,4 @@
-import { ChannelState, ViewerSettingUpdater, ViewerState } from "../../components/ViewerStateProvider/types";
+import type { ChannelState } from "../../state/types";
 import { getDefaultChannelState } from "../constants";
 import { ColorArray } from "./colorRepresentations";
 import {
@@ -7,33 +7,6 @@ import {
   ViewerChannelSetting,
   ViewerChannelSettings,
 } from "./viewerChannelSettings";
-
-/** Sets all fields of the viewer state to the values of the `newState`. */
-export function overrideViewerState(changeViewerSetting: ViewerSettingUpdater, newState: ViewerState): void {
-  for (const key of Object.keys(newState) as (keyof ViewerState)[]) {
-    changeViewerSetting(key, newState[key] as any);
-  }
-
-  // Pathtrace rendering is not allowed in 2D view mode but is in 3D mode.
-  // Since we're not guaranteed on the order of object keys, apply changes to render mode a second time
-  // in case we were previously in 2D view mode and the change was blocked, but we're now in 3D.
-  changeViewerSetting("renderMode", newState.renderMode);
-}
-
-export function overrideChannelStates(
-  setChannelSettings: (settings: ChannelState[]) => void,
-  currentStates: ChannelState[],
-  newStates: ChannelState[]
-): void {
-  // Match the names in the new state with the existing state so we do not override the names.
-  // Also don't reset the control points or ramps, since these will be reset in the app.
-  for (let i = 0; i < newStates.length; i++) {
-    newStates[i].name = currentStates[i].name;
-    newStates[i].controlPoints = currentStates[i].controlPoints;
-    newStates[i].ramp = currentStates[i].ramp;
-  }
-  setChannelSettings(newStates);
-}
 
 /** Returns the indices of channels that have either the volume or isosurface enabled. */
 export function getEnabledChannelIndices(channelSettings: ChannelState[]): number[] {
