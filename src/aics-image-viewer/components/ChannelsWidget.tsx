@@ -86,7 +86,7 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
     const channelName = channelNames[channelIndex];
     return channelName ? (
       <ChannelsWidgetRow
-        key={`${channelIndex}_${channelName}_${channelIndex}`}
+        key={channelIndex}
         index={channelIndex}
         channelDataForChannel={channelDataChannels![channelIndex]}
         name={getDisplayName(channelName, channelIndex, viewerChannelSettings)}

@@ -80,6 +80,8 @@ export interface ViewerChannelSetting {
   surfaceOpacity?: number;
   colorizeEnabled?: boolean;
   colorizeAlpha?: number;
+  /** Whether to keep the current contrast settings when switching volumes. */
+  keepIntensityRange?: boolean;
 }
 
 export interface ViewerChannelGroup {

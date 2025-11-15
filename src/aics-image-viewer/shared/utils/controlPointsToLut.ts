@@ -1,4 +1,4 @@
-import { Channel, ControlPoint, Histogram, Lut, remapControlPoints, Volume } from "@aics/vole-core";
+import { ControlPoint, Histogram, Lut, Volume } from "@aics/vole-core";
 
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
 import { findFirstChannelMatch, ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
@@ -220,17 +220,4 @@ export function rampToControlPoints([min, max]: [number, number]): ControlPoint[
     { x: max, opacity: 1, color: TFEDITOR_DEFAULT_COLOR },
     { x: Math.max(max + 1, TFEDITOR_MAX_BIN), opacity: 1, color: TFEDITOR_DEFAULT_COLOR },
   ];
-}
-
-/** Remaps an array of control points from an old range (as a 2-tuple) to a new one (extracted from a `Channel`) */
-export function remapControlPointsForChannel(
-  controlPoints: ControlPoint[],
-  oldRange: [number, number] | undefined,
-  { rawMin, rawMax }: Channel
-): ControlPoint[] {
-  if (oldRange === undefined) {
-    return controlPoints;
-  }
-
-  return remapControlPoints(controlPoints, oldRange[0], oldRange[1], rawMin, rawMax);
 }

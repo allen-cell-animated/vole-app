@@ -244,6 +244,7 @@ describe("Channel state serialization", () => {
     ramp: [0, 255],
     plotMin: 0,
     plotMax: 255,
+    keepIntensityOnNewVolume: false,
   };
   const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelSettingParams = {
     col: "ff0000",
@@ -256,6 +257,7 @@ describe("Channel state serialization", () => {
     cpe: "0",
     cpt: "0:0.5:1:255:1:1",
     ram: "0:255",
+    pin: "0",
   };
 
   // Note that the serialization + deserialization are NOT direct inverses.
@@ -381,6 +383,7 @@ describe("Channel state serialization", () => {
         // TODO: the settings below are not serialized. should they be? (see #384)
         plotMin: 0,
         plotMax: 255,
+        keepIntensityOnNewVolume: false,
       };
       const serializedCustomChannelState: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
         col: "03ff9d",
@@ -393,6 +396,7 @@ describe("Channel state serialization", () => {
         cpe: "0",
         cpt: "",
         ram: "0:255",
+        pin: "0",
       };
       expect(serializeViewerChannelSetting(customChannelState, false)).toEqual(serializedCustomChannelState);
     });
@@ -862,6 +866,7 @@ describe("serializeViewerUrlParams", () => {
         ramp: [-10, 260.1],
         plotMin: 0,
         plotMax: 255,
+        keepIntensityOnNewVolume: true,
       },
       {
         name: "channel1",
@@ -884,6 +889,7 @@ describe("serializeViewerUrlParams", () => {
         ramp: [50, 140],
         plotMin: 0,
         plotMax: 255,
+        keepIntensityOnNewVolume: false,
       },
     ];
     const serialized = serializeViewerUrlParams({ channelSettings: channelStates }, false);
@@ -901,6 +907,7 @@ describe("serializeViewerUrlParams", () => {
       ram: "-10:260.1",
       cpt: "0:0:808080:1:1:ff0000",
       cpe: "0",
+      pin: "1",
     };
     const expectedChannel1: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
       ven: "0",
@@ -913,6 +920,7 @@ describe("serializeViewerUrlParams", () => {
       ram: "50:140",
       cpt: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
       cpe: "1",
+      pin: "0",
     };
 
     expect(serialized["c0"]).toBeDefined();

@@ -1,4 +1,5 @@
 import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
+import { PushpinFilled, PushpinOutlined } from "@ant-design/icons";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
@@ -64,6 +65,7 @@ type TfEditorProps = {
   ramp: [number, number];
   plotMin: number;
   plotMax: number;
+  keepIntensityOnNewVolume: boolean;
 };
 
 const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
@@ -552,29 +554,44 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       </div>
 
       {/* ----- MIN/MAX SPINBOXES ----- */}
-      {!props.useControlPoints && (
-        <div className="tf-editor-control-row ramp-row">
-          Levels min/max
-          <InputNumber
-            value={props.ramp[0]}
-            onChange={(v) => v !== null && setRamp([v, props.ramp[1]])}
-            formatter={numberFormatter}
-            min={typeRange.min}
-            max={Math.min(props.ramp[1], typeRange.max)}
-            size="small"
-            controls={false}
-          />
-          <InputNumber
-            value={props.ramp[1]}
-            onChange={(v) => v !== null && setRamp([props.ramp[0], v])}
-            formatter={numberFormatter}
-            min={Math.max(typeRange.min, props.ramp[0])}
-            max={typeRange.max}
-            size="small"
-            controls={false}
-          />
-        </div>
-      )}
+      <div className="tf-editor-control-row ramp-row">
+        <Tooltip
+          title={`${props.keepIntensityOnNewVolume ? "Do not keep" : "Keep"} intensity threshold values when switching volumes.`}
+        >
+          <Button
+            onClick={() => props.changeChannelSetting({ keepIntensityOnNewVolume: !props.keepIntensityOnNewVolume })}
+            style={{ height: 24, padding: "0 4px" }}
+            type={props.keepIntensityOnNewVolume ? "default" : "text"}
+          >
+            <span style={{ margin: 0 }}>
+              {props.keepIntensityOnNewVolume ? <PushpinFilled /> : <PushpinOutlined />}
+            </span>
+          </Button>
+        </Tooltip>
+        {!props.useControlPoints && (
+          <div className="tf-editor-control-row">
+            Levels min/max
+            <InputNumber
+              value={props.ramp[0]}
+              onChange={(v) => v !== null && setRamp([v, props.ramp[1]])}
+              formatter={numberFormatter}
+              min={typeRange.min}
+              max={Math.min(props.ramp[1], typeRange.max)}
+              size="small"
+              controls={false}
+            />
+            <InputNumber
+              value={props.ramp[1]}
+              onChange={(v) => v !== null && setRamp([props.ramp[0], v])}
+              formatter={numberFormatter}
+              min={Math.max(typeRange.min, props.ramp[0])}
+              max={typeRange.max}
+              size="small"
+              controls={false}
+            />
+          </div>
+        )}
+      </div>
 
       {/* ----- CONTROL POINT COLOR PICKER ----- */}
       {colorPickerPosition !== null && (
