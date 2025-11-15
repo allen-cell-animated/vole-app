@@ -134,18 +134,17 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   // Apply viewer settings to state that have changed since the last prop
-  const lastViewerSettingsRef = useRef<Partial<ViewerState> | undefined>();
-  const viewerSettings = props.viewerSettings;
-  useEffect(() => {
-    for (const key of Object.keys(viewerSettings || {}) as (keyof typeof viewerSettings)[]) {
-      const value = viewerSettings ? viewerSettings[key] : undefined;
-      const lastValue = lastViewerSettingsRef.current ? lastViewerSettingsRef.current[key] : undefined;
+  const prevViewerSettingsPropsRef = useRef<Partial<ViewerState> | undefined>();
+  if (props.viewerSettings && !isEqual(props.viewerSettings, prevViewerSettingsPropsRef.current)) {
+    for (const key of Object.keys(props.viewerSettings) as (keyof ViewerState)[]) {
+      const value = props.viewerSettings[key];
+      const lastValue = prevViewerSettingsPropsRef.current?.[key] ?? undefined;
       if (value !== undefined && !isEqual(value, lastValue)) {
         useViewerState.getState().changeViewerSetting(key, value);
       }
     }
-    lastViewerSettingsRef.current = viewerSettings;
-  }, [viewerSettings]);
+    prevViewerSettingsPropsRef.current = props.viewerSettings;
+  }
 
   const view3d = useConstructor(() => new View3d());
   if (props.view3dRef !== undefined) {
