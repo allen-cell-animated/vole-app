@@ -556,9 +556,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       {/* ----- MIN/MAX SPINBOXES ----- */}
       <div className="tf-editor-control-row ramp-row">
         <Tooltip
-          title={
-            `${props.keepIntensityOnNewVolume ? "Do not keep" : "Keep"} intensity values when switching volumes.`
-          }
+          title={`${props.keepIntensityOnNewVolume ? "Do not keep" : "Keep"} intensity threshold values when switching volumes.`}
         >
           <Button
             onClick={() => props.changeChannelSetting({ keepIntensityOnNewVolume: !props.keepIntensityOnNewVolume })}
