@@ -1,13 +1,13 @@
-import { Channel, ControlPoint, Histogram, Lut } from "@aics/vole-core";
+import { type Channel, type ControlPoint, type Histogram, Lut } from "@aics/vole-core";
 import { Button, Checkbox, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { ColorResult, SketchPicker } from "react-color";
+import { type ColorResult, SketchPicker } from "react-color";
 
 import { DTYPE_RANGE, LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
 import {
-  ColorArray,
+  type ColorArray,
   colorArrayToObject,
   colorArrayToString,
   colorObjectToArray,

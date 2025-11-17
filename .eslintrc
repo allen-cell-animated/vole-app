@@ -32,6 +32,8 @@
     "no-unused-vars": 0, // Rely on typescript-eslint rule above
     "@typescript-eslint/explicit-function-return-type": ["error", { "allowExpressions": true }],
     "@typescript-eslint/typedef": ["error", { "parameter": true }],
+    "@typescript-eslint/consistent-type-imports": "warn",
+    "@typescript-eslint/no-import-type-side-effects": "warn",
     "radix": 1,
     "react/jsx-uses-vars": 1,
     "react/no-deprecated": 0,
@@ -39,9 +41,7 @@
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": [
       "warn",
-      {
-        "additionalHooks": "useImageEffect"
-      }
+      { "additionalHooks": "useImageEffect" }
     ],
     "semi": 2,
     "space-before-blocks": [1, "always"]
