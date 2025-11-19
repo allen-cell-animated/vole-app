@@ -1048,8 +1048,11 @@ export async function parseViewerUrlParams(
       // ...and each scene into a list of multiple sources, if any.
       scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
       if (getFromStorage) {
-        const metadataJson = localStorage.getItem("meta");
-        args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
+        const storedMetadata = localStorage.getItem("meta");
+        if (storedMetadata !== null) {
+          const metadataJson = JSON.parse(storedMetadata);
+          args.metadata = scenes.map((scene) => (Array.isArray(scene) ? undefined : metadataJson[scene]));
+        }
       }
     }
 
