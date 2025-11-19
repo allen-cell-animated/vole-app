@@ -47,14 +47,14 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     const locationArgs = location.state as AppDataProps;
     let ignore = false;
 
-    const getViewerStateFromSearchParams = async (): Promise<void> => {
+    const getViewerStateFromSearchParams = async (force = false): Promise<void> => {
       try {
         const urlArgs = await parseViewerUrlParams(searchParams, props.firestore);
-        if (ignore) return;
+        if (ignore && !force) return;
         setViewerSettings({ ...urlArgs.viewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs.args, ...locationArgs });
       } catch (reason) {
-        if (ignore) return;
+        if (ignore && !force) return;
         showErrorAlert("Failed to parse URL parameters: " + reason);
         setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
@@ -63,10 +63,38 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
 
     // TODO symbolic constants?
     const msgid = searchParams.get("msgid");
-    // TODO was I gonna remove this one?
     const msgorigin = searchParams.get("msgorigin");
+
     if (msgid && msgorigin) {
       (window.opener as Window | null)?.postMessage(msgid, msgorigin);
+      const receiveMessage = (event: MessageEvent): void => {
+        if (event.origin !== msgorigin) {
+          return;
+        }
+
+        if (event.data.scenes !== undefined) {
+          window.localStorage.setItem("url", encodeImageUrlProp(event.data));
+        }
+
+        if (event.data.meta !== undefined) {
+          window.localStorage.setItem("meta", JSON.stringify(event.data.meta));
+        } else {
+          window.localStorage.removeItem("meta");
+        }
+
+        searchParams.delete("msgid");
+        searchParams.delete("msgorigin");
+        searchParams.delete("msgscenes");
+        // TODO give "load from storage" its own param
+        searchParams.set("url", "storage");
+
+        window.removeEventListener("message", receiveMessage);
+        // TODO any reason to worry that `location.state`, `props.firestore` will be stale here?
+        getViewerStateFromSearchParams(true);
+      };
+
+      window.addEventListener("message", receiveMessage);
+      window.setTimeout(() => window.removeEventListener("message", receiveMessage), 60000);
     }
 
     getViewerStateFromSearchParams();
