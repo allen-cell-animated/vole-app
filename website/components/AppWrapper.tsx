@@ -45,17 +45,34 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   useEffect(() => {
     // On load, fetch parameters from the URL and location state, then merge.
     const locationArgs = location.state as AppDataProps;
-    parseViewerUrlParams(searchParams, props.firestore).then(
-      ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
-        setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
-        setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
-      },
-      (reason) => {
+    let ignore = false;
+
+    const getViewerStateFromSearchParams = async (): Promise<void> => {
+      try {
+        const urlArgs = await parseViewerUrlParams(searchParams, props.firestore);
+        if (ignore) return;
+        setViewerSettings({ ...urlArgs.viewerSettings, ...locationArgs?.viewerSettings });
+        setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs.args, ...locationArgs });
+      } catch (reason) {
+        if (ignore) return;
         showErrorAlert("Failed to parse URL parameters: " + reason);
         setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
-    );
+    };
+
+    // TODO symbolic constants?
+    const msgid = searchParams.get("msgid");
+    // TODO was I gonna remove this one?
+    const msgorigin = searchParams.get("msgorigin");
+    if (msgid && msgorigin) {
+      (window.opener as Window | null)?.postMessage(msgid, msgorigin);
+    }
+
+    getViewerStateFromSearchParams();
+    return () => {
+      ignore = true;
+    };
   }, [location.state, searchParams, showErrorAlert, props.firestore]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
