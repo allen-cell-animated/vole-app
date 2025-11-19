@@ -107,7 +107,7 @@ const useVolume = (
 ): ReactiveVolume => {
   const channelSettings = useViewerState(select("channelSettings"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
-  const initChannelSettings = useViewerState(select("initChannelSettings"));
+  const replaceAllChannelSettings = useViewerState(select("replaceAllChannelSettings"));
 
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
@@ -237,7 +237,7 @@ const useVolume = (
           channelSettings[index] ?? initializeOneChannelSetting(name, index, color, viewerChannelSettings);
         return { ...channelSetting, name };
       });
-      initChannelSettings(newChannelSettings);
+      replaceAllChannelSettings(newChannelSettings);
       return newChannelSettings;
     };
 
@@ -325,7 +325,7 @@ const useVolume = (
     setIsLoading,
     onChannelDataLoaded,
     changeViewerSetting,
-    initChannelSettings,
+    replaceAllChannelSettings,
     options?.viewerChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
