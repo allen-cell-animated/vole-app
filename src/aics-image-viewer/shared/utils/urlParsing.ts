@@ -259,10 +259,8 @@ export class ViewerStateParams {
 
 /** URL parameters that define data sources when loading volumes. */
 class DataParams {
-  /**
-   * One or more volume URLs to load. If multiple URLs are provided, they should
-   * be separated by commas.
-   */
+  /** One or more volume URLs to load. If multiple URLs are provided, they should be separated by commas. */
+  // TODO ...commas or `+` depending on what we're delimiting (multi-source vs multi-scene)
   url?: string = undefined;
   /**
    * The URL of a JSON manifest. The JSON should contain two properties:
@@ -272,14 +270,17 @@ class DataParams {
    * See `ManifestJson` for the type definition.
    */
   manifest?: string = undefined;
-  /**
-   * The name of a dataset in the Cell Feature Explorer database. Used with `id`.
-   */
+  /** The name of a dataset in the Cell Feature Explorer database. Used with `id`. */
   dataset?: string = undefined;
-  /**
-   * The ID of a cell within the loaded dataset. Used with `dataset`.
-   */
+  /** The ID of a cell within the loaded dataset. Used with `dataset`. */
   id?: string = undefined;
+  /**
+   * If this param is present, the opening window wants to send more scene URLs via `postMessage`.
+   *
+   * The value of this param should be the total number of scenes the opening window wants to send, so we can set up
+   * the app with the correct number of scenes before knowing what all the scenes are.
+   */
+  msgscenes?: string = undefined;
 }
 
 class DeprecatedParams {
