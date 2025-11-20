@@ -62,11 +62,11 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     };
 
     // TODO symbolic constants?
-    const msgid = searchParams.get("msgid");
+    const storageid = searchParams.get("storageid");
     const msgorigin = searchParams.get("msgorigin");
 
-    if (msgid && msgorigin) {
-      (window.opener as Window | null)?.postMessage(msgid, msgorigin);
+    if (storageid && msgorigin) {
+      (window.opener as Window | null)?.postMessage(storageid, msgorigin);
       const receiveMessage = (event: MessageEvent): void => {
         if (event.origin !== msgorigin) {
           return;
@@ -82,7 +82,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           window.localStorage.removeItem("meta");
         }
 
-        searchParams.delete("msgid");
+        searchParams.delete("storageid");
         searchParams.delete("msgorigin");
         searchParams.delete("msgscenes");
         // TODO give "load from storage" its own param
