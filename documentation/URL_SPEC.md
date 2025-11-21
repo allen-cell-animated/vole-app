@@ -141,7 +141,7 @@ Examples:
 
 ### Binning
 
-By default, the `lut` (lookup table) is specified in terms of histogram bin
+If the `lut` (lookup table) is specified with unprefixed numbers, they are interpreted as histogram bins. (This is for legacy reasons and backward compatibility.)
 indices for legacy reasons.
 
 When loaded, each channel's raw intensity values are sorted into one of 256
