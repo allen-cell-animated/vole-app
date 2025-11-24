@@ -2,7 +2,7 @@ import { Lut, View3d, Volume } from "@aics/vole-core";
 import React, { useEffect } from "react";
 import { useShallow } from "zustand/shallow";
 
-import { controlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
+import { binIndexedControlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
 import { useViewerState, type ViewerStore } from "../../state/store";
 import { UseImageEffectType } from "./types";
 
@@ -71,8 +71,14 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
       if (useControlPoints && controlPoints.length < 2) {
         return;
       }
+      const histogram = currentImage.getHistogram(index);
       const controlPointsToUse = useControlPoints ? controlPoints : rampToControlPoints(ramp);
-      const gradient = controlPointsToLut(controlPointsToUse);
+      // Convert control points from raw intensity values to histogram bin indices
+      const binIndexedControlPoints = controlPointsToUse.map((cp) => ({
+        ...cp,
+        x: histogram.findFractionalBinOfValue(cp.x),
+      }));
+      const gradient = binIndexedControlPointsToLut(binIndexedControlPoints);
       currentImage.setLut(index, gradient);
       view3d.updateLuts(currentImage);
     },
