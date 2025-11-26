@@ -39,7 +39,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   const [viewerSettings, setViewerSettings] = useState<Partial<ViewerState>>({});
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
   const [imageTitle, setImageTitle] = useState<string | undefined>(undefined);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [errorAlert, showErrorAlert] = useErrorAlert();
 
   useEffect(() => {
@@ -72,6 +72,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           return;
         }
 
+        // TODO break storage writing out into its own function
         if (event.data.scenes !== undefined) {
           window.localStorage.setItem("url", encodeImageUrlProp(event.data));
         }
@@ -82,11 +83,11 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           window.localStorage.removeItem("meta");
         }
 
-        searchParams.delete("storageid");
         searchParams.delete("msgorigin");
         searchParams.delete("msgscenes");
         // TODO give "load from storage" its own param
         searchParams.set("url", "storage");
+        setSearchParams(searchParams, { replace: true });
 
         window.removeEventListener("message", receiveMessage);
         // TODO any reason to worry that `location.state`, `props.firestore` will be stale here?
@@ -101,7 +102,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     return () => {
       ignore = true;
     };
-  }, [location.state, searchParams, showErrorAlert, props.firestore]);
+  }, [location.state, searchParams, setSearchParams, showErrorAlert, props.firestore]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
