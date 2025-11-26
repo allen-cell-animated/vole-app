@@ -112,7 +112,7 @@ export function writeScenes(key: string, url: string): void {
 export function readStoredMetadata(scenes: string[], skipCacheUpdate: boolean = false): (MetadataRecord | undefined)[] {
   const keySet = new Set<string>();
   const result = scenes.map((scene) => {
-    const globalKey = `${StorageEntryType.Meta}@"${scene}`;
+    const globalKey = `${StorageEntryType.Meta}@${scene}`;
     const meta = window.localStorage.getItem(globalKey);
     if (meta === null) {
       return undefined;

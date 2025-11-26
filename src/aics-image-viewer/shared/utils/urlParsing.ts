@@ -11,15 +11,13 @@ import type { ColorArray } from "./colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
 import { clamp } from "./math";
+import { readStoredMetadata, readStoredScenes } from "./storage";
 import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
 export const ENCODED_COMMA_REGEX = /%2C/g;
 export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
-
-/** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
-const URL_FETCH_FROM_STORAGE = "storage";
 
 // TODO: refactor regexes to be composed of one another rather than duplicating code
 // const COLOR_CODES: Record<string, ColorArray> = {
@@ -274,6 +272,20 @@ class DataParams {
   dataset?: string = undefined;
   /** The ID of a cell within the loaded dataset. Used with `dataset`. */
   id?: string = undefined;
+  /** The key of a collection of scenes stored in local storage. Overrides `url` unless `msgorigin` is present. */
+  storageid?: string = undefined;
+  /**
+   * The origin of an opening window that wants to send a message to this window.
+   *
+   * The presence of both this param and `storageid` implies that this window has just been opened by another app, and
+   * that the opening app has more data to send. Until that message is received, we fall back to `url`. Once that
+   * message arrives, the scenes to open are written to local storage at key `storageid` and `msgorigin` is removed,
+   * allowing the window to switch to reading local storage.
+   *
+   * All this happens independently of URL parsing, so the only meaningful thing this parsing code does with this param
+   * is check whether it is present.
+   */
+  msgorigin?: string = undefined;
   /**
    * If this param is present, the opening window wants to send more scene URLs via `postMessage`.
    *
@@ -1041,19 +1053,14 @@ export async function parseViewerUrlParams(
       args.metadata = manifestMetadata ?? undefined;
     } else {
       // Load from URL
-      const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
-      const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url!) : params.url!;
+      const getFromStorage = params.storageid !== undefined && params.msgorigin === undefined;
+      const urlParam = getFromStorage ? (readStoredScenes(params.storageid!) ?? params.url!) : params.url!;
       // split encoded url into a list of one or more scenes...
       const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
       // ...and each scene into a list of multiple sources, if any.
       scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
-      if (getFromStorage) {
-        const storedMetadata = localStorage.getItem("meta");
-        if (storedMetadata !== null) {
-          const metadataJson = JSON.parse(storedMetadata);
-          args.metadata = scenes.map((scene) => (Array.isArray(scene) ? undefined : metadataJson[scene]));
-        }
-      }
+      args.metadata = readStoredMetadata(sceneUrls);
+      console.log(args.metadata);
     }
 
     const firstScene = scenes[0];
