@@ -32,7 +32,6 @@ function setStorageItem(key: string, value: string | string[], queue: string[]):
           err.cause = e;
           throw err;
         }
-        console.log("evicting due to quota exceeded");
         window.localStorage.removeItem(evictKey);
       } else {
         throw e;
@@ -84,7 +83,6 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
   // enforce the maximum number of entries for this type (e.g. no more than 25 of type "scenes")
   if (entryType !== undefined) {
     const evictIndexes = thisTypeIndexes.slice(0, -MAX_ENTRIES[entryType]);
-    console.log(`evicting ${evictIndexes.length} entries: max entries exceeded`);
     for (const index of evictIndexes.reverse()) {
       let [evictKey] = queue.splice(index, 1);
       window.localStorage.removeItem(evictKey);
