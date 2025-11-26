@@ -2,8 +2,6 @@ import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/
 
 const S3_URL_PREFIX = "s3://";
 const GCS_URL_PREFIX = "gs://";
-const HTTP_URL_PREFIX = "http://";
-const HTTPS_URL_PREFIX = "https://";
 const HTTP_REGEX = /^https?:\/\//i;
 
 export function isValidUrl(url: string): boolean {
