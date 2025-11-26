@@ -87,9 +87,8 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         }
 
         searchParams.delete("msgorigin");
+        // TODO remove?
         searchParams.delete("msgscenes");
-        // TODO give "load from storage" its own param
-        searchParams.set("url", "storage");
         setSearchParams(searchParams, { replace: true });
 
         window.removeEventListener("message", receiveMessage);
