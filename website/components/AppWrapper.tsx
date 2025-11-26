@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, parseViewerUrlParams, type ViewerState, ViewerStateProvider } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import { writeMetadata, writeScenes } from "../../src/aics-image-viewer/shared/utils/storage";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -72,15 +73,17 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           return;
         }
 
+        if (event.data.meta !== undefined) {
+          // window.localStorage.setItem("meta", JSON.stringify(event.data.meta));
+          writeMetadata(event.data.meta);
+        } else {
+          window.localStorage.removeItem("meta");
+        }
+
         // TODO break storage writing out into its own function
         if (event.data.scenes !== undefined) {
           window.localStorage.setItem("url", encodeImageUrlProp(event.data));
-        }
-
-        if (event.data.meta !== undefined) {
-          window.localStorage.setItem("meta", JSON.stringify(event.data.meta));
-        } else {
-          window.localStorage.removeItem("meta");
+          writeScenes(storageid, encodeImageUrlProp(event.data));
         }
 
         searchParams.delete("msgorigin");
