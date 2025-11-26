@@ -4,12 +4,15 @@ import type { MetadataRecord } from "../types";
 
 const QUEUE_KEY = "GLOBAL_ENTRY_QUEUE";
 
-const MAX_ENTRIES = {
+const enum StorageEntryType {
+  Scenes = "scenes",
+  Meta = "meta",
+}
+
+const MAX_ENTRIES: { [K in StorageEntryType]: number } = {
   scenes: 25,
   meta: 1000,
 };
-
-type StorageEntryType = keyof typeof MAX_ENTRIES;
 
 /**
  * Wrapper for `window.localStorage.setItem` that accepts a `queue` of evictable storage keys, and attempts to safely
@@ -62,7 +65,7 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
       if (k.slice(typePrefix.length) in entries) {
         return false;
       } else if (entryType !== undefined) {
-        // save entries we don't have
+        // start saving the location of entries of this type, for enforcing the maximum entry count below
         thisTypeIndexes.push(index);
       }
     }
@@ -97,30 +100,55 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
   setStorageQueue(queue);
 }
 
-function readStorage(key: string, entryType?: StorageEntryType): any {
-  const globalKey = entryType ? `${entryType}@${key}` : key;
-  const result = window.localStorage.getItem(globalKey);
+export function writeMetadata(meta: Record<string, MetadataRecord>): void {
+  const stringMeta = mapValues(meta, (metaVal) => JSON.stringify(metaVal));
+  writeStorage(stringMeta, StorageEntryType.Meta);
+}
 
-  if (result === undefined) {
-    return undefined;
-  }
+export function writeScenes(key: string, url: string): void {
+  writeStorage({ [key]: url }, StorageEntryType.Scenes);
+}
 
-  const queue = getStorageQueue();
-  const entryIndex = queue.indexOf(globalKey);
-  if (entryIndex !== -1) {
-    queue.splice(entryIndex, 1);
+export function readStoredMetadata(scenes: string[], skipCacheUpdate: boolean = false): (MetadataRecord | undefined)[] {
+  const keySet = new Set<string>();
+  const result = scenes.map((scene) => {
+    const globalKey = `${StorageEntryType.Meta}@"${scene}`;
+    const meta = window.localStorage.getItem(globalKey);
+    if (meta === null) {
+      return undefined;
+    }
+
+    keySet.add(globalKey);
+    return JSON.parse(meta) as MetadataRecord;
+  });
+
+  if (keySet.size > 0 && !skipCacheUpdate) {
+    const prevQueue = getStorageQueue();
+    const queue = prevQueue.filter((key) => !keySet.has(key));
+    queue.push(...keySet);
+    setStorageQueue(queue);
   }
-  queue.push(globalKey);
-  setStorageQueue(queue);
 
   return result;
 }
 
-export function writeMetadata(meta: Record<string, MetadataRecord>): void {
-  const stringMeta = mapValues(meta, (metaVal) => JSON.stringify(metaVal));
-  writeStorage(stringMeta, "meta");
-}
+export function readStoredScenes(key: string, skipCacheUpdate: boolean = false): string | undefined {
+  const globalKey = `${StorageEntryType.Scenes}@${key}`;
+  const result = window.localStorage.getItem(globalKey);
 
-export function writeScenes(key: string, url: string): void {
-  writeStorage({ [key]: url }, "scenes");
+  if (result === null) {
+    return undefined;
+  }
+
+  if (!skipCacheUpdate) {
+    const queue = getStorageQueue();
+    const entryIndex = queue.indexOf(globalKey);
+    if (entryIndex !== -1) {
+      queue.splice(entryIndex, 1);
+    }
+    queue.push(globalKey);
+    setStorageQueue(queue);
+  }
+
+  return result;
 }
