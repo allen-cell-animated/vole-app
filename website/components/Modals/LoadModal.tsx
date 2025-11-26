@@ -49,14 +49,15 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
   const onClickLoad = (): void => {
     // TODO: Handle multiple URLs?
     // TODO: Do any transformation of URLs here? Currently just using the labels directly.
-    if (!isValidUrl(urlInput)) {
-      setErrorText("Please enter a valid URL.");
+    const trimmedUrlInput = urlInput.trim();
+    if (!isValidUrl(trimmedUrlInput)) {
+      setErrorText("Please enter a valid HTTPS URL.");
       return;
     }
 
     const appProps: AppDataProps = {
-      imageUrl: urlInput,
-      imageDownloadHref: urlInput,
+      imageUrl: trimmedUrlInput,
+      imageDownloadHref: trimmedUrlInput,
       cellId: "1",
       parentImageUrl: "",
       parentImageDownloadHref: "",
