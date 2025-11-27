@@ -17,6 +17,9 @@ import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";
 import ShareModal from "./Modals/ShareModal";
 
+const MSG_ORIGIN_PARAM = "msgorigin";
+const STORAGE_ID_PARAM = "storageid";
+
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
   cellId: "",
@@ -63,12 +66,11 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
       }
     };
 
-    // TODO symbolic constants?
-    const storageid = searchParams.get("storageid");
-    const msgorigin = searchParams.get("msgorigin");
+    // Handle the opening window wanting to send more data via a message
+    const storageid = searchParams.get(STORAGE_ID_PARAM);
+    const msgorigin = searchParams.get(MSG_ORIGIN_PARAM);
 
     if (storageid && msgorigin) {
-      (window.opener as Window | null)?.postMessage(storageid, msgorigin);
       const receiveMessage = (event: MessageEvent): void => {
         if (event.origin !== msgorigin) {
           return;
@@ -82,6 +84,11 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           writeScenes(storageid, encodeImageUrlProp(event.data));
         }
 
+        if (event.data.sceneIndex !== undefined) {
+          setViewerSettings((currentSettings) => ({ ...currentSettings, scene: event.data.sceneIndex }));
+          searchParams.set("scene", event.data.sceneIndex);
+        }
+
         setViewerProps((currentProps) => {
           if (currentProps === null) {
             return null;
@@ -89,7 +96,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           return addViewerParamsFromMessage(currentProps, event.data);
         });
 
-        searchParams.delete("msgorigin");
+        searchParams.delete(MSG_ORIGIN_PARAM);
         setSearchParams(searchParams, { replace: true });
 
         window.removeEventListener("message", receiveMessage);
@@ -97,6 +104,8 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
 
       window.addEventListener("message", receiveMessage);
       window.setTimeout(() => window.removeEventListener("message", receiveMessage), 60000);
+      // Sending back `storageid` lets the opening window know we're ready to receive more data
+      (window.opener as Window | null)?.postMessage(storageid, msgorigin);
     }
 
     getViewerStateFromSearchParams();
