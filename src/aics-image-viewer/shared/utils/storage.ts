@@ -109,9 +109,17 @@ export function writeScenes(key: string, url: string): void {
   writeStorage({ [key]: url }, StorageEntryType.Scenes);
 }
 
-export function readStoredMetadata(scenes: string[], skipCacheUpdate: boolean = false): (MetadataRecord | undefined)[] {
+export function readStoredMetadata(
+  scenes: (string | string[])[],
+  skipCacheUpdate: boolean = false
+): (MetadataRecord | undefined)[] {
   const keySet = new Set<string>();
   const result = scenes.map((scene) => {
+    if (Array.isArray(scene)) {
+      // can't handle multi-source scenes (yet)
+      return undefined;
+    }
+
     const globalKey = `${StorageEntryType.Meta}@${scene}`;
     const meta = window.localStorage.getItem(globalKey);
     if (meta === null) {

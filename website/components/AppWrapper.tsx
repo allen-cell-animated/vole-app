@@ -6,6 +6,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ImageViewerApp, parseViewerUrlParams, type ViewerState, ViewerStateProvider } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { writeMetadata, writeScenes } from "../../src/aics-image-viewer/shared/utils/storage";
+import { addViewerParamsFromMessage } from "../../src/aics-image-viewer/shared/utils/urlParsing";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -48,14 +49,14 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     const locationArgs = location.state as AppDataProps;
     let ignore = false;
 
-    const getViewerStateFromSearchParams = async (force = false): Promise<void> => {
+    const getViewerStateFromSearchParams = async (): Promise<void> => {
       try {
         const urlArgs = await parseViewerUrlParams(searchParams, props.firestore);
-        if (ignore && !force) return;
+        if (ignore) return;
         setViewerSettings({ ...urlArgs.viewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs.args, ...locationArgs });
       } catch (reason) {
-        if (ignore && !force) return;
+        if (ignore) return;
         showErrorAlert("Failed to parse URL parameters: " + reason);
         setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
@@ -81,14 +82,17 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           writeScenes(storageid, encodeImageUrlProp(event.data));
         }
 
+        setViewerProps((currentProps) => {
+          if (currentProps === null) {
+            return null;
+          }
+          return addViewerParamsFromMessage(currentProps, event.data);
+        });
+
         searchParams.delete("msgorigin");
-        // TODO remove?
-        searchParams.delete("msgscenes");
         setSearchParams(searchParams, { replace: true });
 
         window.removeEventListener("message", receiveMessage);
-        // TODO any reason to worry that `location.state`, `props.firestore` will be stale here?
-        getViewerStateFromSearchParams(true);
       };
 
       window.addEventListener("message", receiveMessage);
