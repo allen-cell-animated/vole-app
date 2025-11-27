@@ -74,15 +74,10 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         }
 
         if (event.data.meta !== undefined) {
-          // window.localStorage.setItem("meta", JSON.stringify(event.data.meta));
           writeMetadata(event.data.meta);
-        } else {
-          window.localStorage.removeItem("meta");
         }
 
-        // TODO break storage writing out into its own function
         if (event.data.scenes !== undefined) {
-          window.localStorage.setItem("url", encodeImageUrlProp(event.data));
           writeScenes(storageid, encodeImageUrlProp(event.data));
         }
 

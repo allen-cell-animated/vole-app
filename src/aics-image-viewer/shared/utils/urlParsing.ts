@@ -1044,7 +1044,7 @@ export async function parseViewerUrlParams(
   args.viewerChannelSettings = channelSettings ?? deprecatedChannelSettings;
 
   // Parse data sources (URL or dataset/id pair)
-  if (params.manifest !== undefined || params.url !== undefined) {
+  if (params.manifest !== undefined || params.url !== undefined || params.storageid !== undefined) {
     let scenes: (string | string[])[];
 
     if (params.manifest) {
@@ -1060,7 +1060,6 @@ export async function parseViewerUrlParams(
       // ...and each scene into a list of multiple sources, if any.
       scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
       args.metadata = readStoredMetadata(sceneUrls);
-      console.log(args.metadata);
     }
 
     const firstScene = scenes[0];
