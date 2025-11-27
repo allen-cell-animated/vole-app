@@ -315,6 +315,8 @@ type ViewerMessage = {
   scenes?: string[];
   /** A (likely very large) list of metadata records for each scene. */
   meta?: Record<string, MetadataRecord>;
+  /** The scene to open once this message arrives. */
+  sceneIndex?: number;
 };
 
 const allowedParamKeys: Array<keyof AppParams> = [
