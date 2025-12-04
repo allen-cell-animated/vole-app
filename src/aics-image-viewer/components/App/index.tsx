@@ -5,7 +5,6 @@ import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
-import { remapMultisceneUrls } from "../../../../website/utils/urls";
 import {
   AXIS_MARGIN_DEFAULT,
   CLIPPING_PANEL_HEIGHT_DEFAULT,
@@ -183,7 +182,7 @@ const App: React.FC<AppProps> = (props) => {
       }
       imageUrlRef.current = path;
 
-      const result = remapMultisceneUrls((path as MultisceneUrls).scenes ?? [path]);
+      const result = (path as MultisceneUrls).scenes ?? [path];
       scenesRef.current = result;
       return result;
     }
