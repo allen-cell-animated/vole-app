@@ -19,6 +19,7 @@ const palette = {
   veryLtPurple: "#e7e4f2",
   brightRed: "#ff4d4d",
   brightGreen: "#61d900",
+  veryBrightGreen: "#61ff00",
   brightBlue: "#0099ff",
 };
 
@@ -94,7 +95,7 @@ const theme = {
       sectionBg: palette.medDarkGrey,
       drawerBg: palette.veryDarkGrey,
       rampSlider: palette.medPurple,
-      isovalueSlider: "lime",
+      isovalueSlider: palette.veryBrightGreen,
     },
     toolbar: {
       buttonBg: "#000000cc",
