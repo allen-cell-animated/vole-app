@@ -1,16 +1,26 @@
 import { Channel } from "@aics/vole-core";
 import { Collapse, CollapseProps, List } from "antd";
 import React from "react";
+import { useShallow } from "zustand/shallow";
 
 import type { IsosurfaceFormat } from "../shared/types";
 import type { ColorArray, ColorObject } from "../shared/utils/colorRepresentations";
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { getDisplayName } from "../shared/utils/viewerChannelSettings";
-import { select, useViewerState } from "../state/store";
-import type { ChannelStateKey } from "./ViewerStateProvider/types";
+import { select, useViewerState, type ViewerStore } from "../state/store";
+import { ChannelState } from "../state/types";
 
 import ChannelsWidgetRow from "./ChannelsWidgetRow";
 import SharedCheckBox from "./shared/SharedCheckBox";
+
+/** A quick custom hook to grab a single state field from every channel */
+const useSelectFromAllChannels = <K extends keyof ChannelState>(
+  key: K
+): ((store: ViewerStore) => ChannelState[K][]) => {
+  return useShallow(({ channelSettings }: ViewerStore) => {
+    return channelSettings.map((settings) => settings[key]);
+  });
+};
 
 export type ChannelsWidgetProps = {
   channelDataChannels: Channel[] | undefined;
@@ -28,9 +38,14 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   const { channelGroupedByType, channelDataChannels, filterFunc, viewerChannelSettings } = props;
 
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
-  const channelSettings = useViewerState(select("channelSettings"));
+  const selectVolumeEnabled = useSelectFromAllChannels("volumeEnabled");
+  const selectIsosurfaceEnabled = useSelectFromAllChannels("isosurfaceEnabled");
+  const selectNames = useSelectFromAllChannels("name");
+  const volumeEnabled = useViewerState(selectVolumeEnabled);
+  const isosurfaceEnabled = useViewerState(selectIsosurfaceEnabled);
+  const channelNames = useViewerState(selectNames);
 
-  const createCheckboxHandler = (key: ChannelStateKey) => (value: boolean, channelArray: number[]) => {
+  const createCheckboxHandler = (key: keyof ChannelState) => (value: boolean, channelArray: number[]) => {
     changeChannelSetting(channelArray, { [key]: value });
   };
 
@@ -41,12 +56,10 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
     let volChecked: number[] = [];
     let isoChecked: number[] = [];
     channelArray.forEach((channelIndex: number) => {
-      const channelSetting = channelSettings[channelIndex];
-      if (!channelSetting) return;
-      if (channelSetting.volumeEnabled) {
+      if (volumeEnabled[channelIndex]) {
         volChecked.push(channelIndex);
       }
-      if (channelSetting.isosurfaceEnabled) {
+      if (isosurfaceEnabled[channelIndex]) {
         isoChecked.push(channelIndex);
       }
     });
@@ -70,16 +83,13 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   };
 
   const renderChannelRow = (channelIndex: number): React.ReactNode => {
-    const thisChannelSettings = channelSettings[channelIndex];
-
-    return thisChannelSettings ? (
+    const channelName = channelNames[channelIndex];
+    return channelName ? (
       <ChannelsWidgetRow
-        key={`${channelIndex}_${thisChannelSettings.name}_${channelIndex}`}
+        key={`${channelIndex}_${channelName}_${channelIndex}`}
         index={channelIndex}
         channelDataForChannel={channelDataChannels![channelIndex]}
-        name={getDisplayName(thisChannelSettings.name, channelIndex, viewerChannelSettings)}
-        channelState={thisChannelSettings}
-        changeChannelSetting={changeChannelSetting}
+        name={getDisplayName(channelName, channelIndex, viewerChannelSettings)}
         onColorChangeComplete={props.onColorChangeComplete}
         saveIsosurface={props.saveIsosurface}
       />

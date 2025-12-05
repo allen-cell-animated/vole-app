@@ -1,6 +1,5 @@
 import type { StateCreator } from "zustand";
 
-import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
 import {
   getDefaultCameraState,
   getDefaultChannelColor,
@@ -10,7 +9,8 @@ import {
 import { ViewMode } from "../shared/enums";
 import { ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { getEnabledChannelIndices, initializeOneChannelSetting } from "../shared/utils/viewerState";
-import { ViewerStore } from "./store";
+import type { ChannelState, ViewerState } from "../state/types";
+import type { ViewerStore } from "./store";
 import { validateState } from "./util";
 
 export type ResetStateActions = {

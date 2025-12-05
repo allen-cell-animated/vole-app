@@ -9,19 +9,13 @@ import {
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
-  DTYPE_RANGE,
   getDefaultViewerChannelSettings,
   getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
 import { ImageType, ViewMode } from "../../shared/enums";
 import type { IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
-import {
-  controlPointsToRamp,
-  initializeLut,
-  rampToControlPoints,
-  remapControlPointsForChannel,
-} from "../../shared/utils/controlPointsToLut";
+import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
@@ -267,37 +261,24 @@ const App: React.FC<AppProps> = (props) => {
       if (isInitialLoad || noLut || channelsToResetOnLoad.includes(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, viewerChannelSettings);
-        const range = DTYPE_RANGE[thisChannel.dtype];
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
           ramp: controlPointsToRamp(ramp),
           // set the default range of the transfer function editor to cover the full range of the data type
-          plotMin: range.min,
-          plotMax: range.max,
-          isovalue: range.min + (range.max - range.min) / 2,
+          plotMin: thisChannel.rawMin,
+          plotMax: thisChannel.rawMax,
+          isovalue: thisChannel.rawMin + (thisChannel.rawMax - thisChannel.rawMin) / 2,
         });
-      } else {
-        // This channel has already been initialized, but its LUT was just remapped and we need to update some things
-        const oldRange = channelRangesRef.current[channelIndex];
-        if (thisChannelSettings.useControlPoints) {
-          // control points were just automatically remapped - update in state
-          const rampControlPoints = rampToControlPoints(thisChannelSettings.ramp);
-          // now manually remap ramp using the channel's old range
-          const remappedRampControlPoints = remapControlPointsForChannel(rampControlPoints, oldRange, thisChannel);
-          changeChannelSetting(channelIndex, {
-            ramp: controlPointsToRamp(remappedRampControlPoints),
-            controlPoints: thisChannel.lut.controlPoints,
-          });
-        } else {
-          // ramp was just automatically remapped - update in state
-          const ramp = controlPointsToRamp(thisChannel.lut.controlPoints);
-          // now manually remap control points using the channel's old range
-          const { controlPoints } = thisChannelSettings;
-          const remappedControlPoints = remapControlPointsForChannel(controlPoints, oldRange, thisChannel);
-          changeChannelSetting(channelIndex, { controlPoints: remappedControlPoints, ramp: ramp });
-        }
       }
+
+      // Expand the plot min and max to include the current data range as
+      // needed. This keeps the domain visually consistent when replaying
+      // through time or Z slices.
+      changeChannelSetting(channelIndex, {
+        plotMin: Math.min(thisChannel.rawMin, thisChannelSettings.plotMin),
+        plotMax: Math.max(thisChannel.rawMax, thisChannelSettings.plotMax),
+      });
 
       // save the channel's new range for remapping next time
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
