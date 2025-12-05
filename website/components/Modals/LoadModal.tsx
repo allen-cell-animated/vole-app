@@ -52,7 +52,7 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
     // Note: S3 URIs, GCS URIs, and Vast file paths are handled by vole-core.
     const trimmedUrlInput = urlInput.trim();
     if (!isValidUrl(trimmedUrlInput)) {
-      setErrorText("Please enter a valid HTTPS URL.");
+      setErrorText("Please enter a valid URL, starting with https://, s3://, or gs://.");
       return;
     }
 
