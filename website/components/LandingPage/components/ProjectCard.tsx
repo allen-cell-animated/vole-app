@@ -52,10 +52,11 @@ const InReviewFlag = styled(FlexRowAlignCenter)`
   height: 23px;
   flex-wrap: wrap;
 
-  & > p {
+  && > p {
     color: var(--color-flag-text);
-    font-size: 10px;
-    font-weight: bold;
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 0;
     white-space: nowrap;
   }
 `;
