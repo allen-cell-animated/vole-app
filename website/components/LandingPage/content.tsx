@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ViewMode } from "../../../src";
-import { AppDataProps, ProjectEntry } from "../../types";
+import type { AppDataProps, ProjectEntry } from "../../types";
 import { ExternalLink } from "./utils";
 
 const NUCMORPH_BASE_SETTINGS: Partial<AppDataProps> = {

@@ -1,4 +1,4 @@
-import { ControlPoint } from "@aics/vole-core";
+import type { ControlPoint } from "@aics/vole-core";
 
 import { OTHER_CHANNEL_KEY, SINGLE_GROUP_CHANNEL_KEY } from "../constants";
 

@@ -1,10 +1,10 @@
 import { type CameraState, type Channel, PrefetchDirection } from "@aics/vole-core";
 
-import { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
+import type { ChannelState, ViewerState } from "../components/ViewerStateProvider/types";
 import { ImageType, RenderMode, ViewMode } from "./enums";
-import { AxisName } from "./types";
-import { ColorArray } from "./utils/colorRepresentations";
-import { ViewerChannelSettings } from "./utils/viewerChannelSettings";
+import type { AxisName } from "./types";
+import type { ColorArray } from "./utils/colorRepresentations";
+import type { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
 // Add all exported constants here to prevent circular dependencies
 export const // Control panel will automatically close if viewport is less than this width

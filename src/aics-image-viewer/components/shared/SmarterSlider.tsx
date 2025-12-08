@@ -1,5 +1,5 @@
+import Nouislider, { type NouisliderProps } from "nouislider-react";
 import React from "react";
-import Nouislider, { NouisliderProps } from "nouislider-react";
 
 type CallbackArgs = Parameters<NonNullable<NouisliderProps["onStart"]>>;
 

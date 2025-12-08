@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef 
 
 import { getDefaultViewerChannelSettings, getDefaultViewerState } from "../../shared/constants";
 import { RenderMode, ViewMode } from "../../shared/enums";
-import { ColorArray } from "../../shared/utils/colorRepresentations";
+import type { ColorArray } from "../../shared/utils/colorRepresentations";
 import { useConstructor } from "../../shared/utils/hooks";
 import type {
   ChannelSettingUpdater,

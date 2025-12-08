@@ -4,7 +4,7 @@ import { debounce } from "lodash";
 import React from "react";
 
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
-import { ViewerSettingUpdater } from "../ViewerStateProvider/types";
+import type { ViewerSettingUpdater } from "../ViewerStateProvider/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import { connectToViewerState } from "../ViewerStateProvider";
