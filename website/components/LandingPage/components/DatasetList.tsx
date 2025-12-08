@@ -16,7 +16,7 @@ const DatasetListContainer = styled.ol`
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   justify-content: space-around;
   text-align: start;
-  gap: 0 20px;
+  gap: 0px 20px;
 `;
 
 const DatasetCardContainer = styled.li`
