@@ -29,7 +29,7 @@ const ProjectContainer = styled.li`
 
   & a {
     // Add 2px margin to maintain the same visual gap that text has
-    margin: 2px 0 0 0;
+    margin-top: 2px;
     text-decoration: underline;
   }
 
@@ -48,8 +48,8 @@ type ProjectCardProps = {
 const InReviewFlag = styled(FlexRowAlignCenter)`
   border-radius: 4px;
   padding: 1px 6px;
-  background-color: var(--color-flag-background);
-  height: 22px;
+  border: 1px solid var(--color-flag-background);
+  height: 23px;
   flex-wrap: wrap;
 
   & > p {

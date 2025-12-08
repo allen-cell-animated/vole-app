@@ -13,7 +13,7 @@ type ProjectListProps = {
 const ProjectListContainer = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
   padding: 0;
   margin-top: 0;
 
@@ -23,7 +23,7 @@ const ProjectListContainer = styled.ul`
     display: block;
     width: 100%;
     height: 1px;
-    background-color: var(--color-borders);
+    background-color: var(--color-layout-dividers);
     margin-bottom: 15px;
   }
 `;

@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { DatasetEntry, LoadDatasetCallback } from "../../../types";
 import { VisuallyHidden } from "../utils";
 
-const DatasetListContainer = styled.ol`
+const DatasetListContainer = styled.ul`
   padding: 0;
   width: 100%;
   display: grid;
@@ -25,7 +25,6 @@ const DatasetCardContainer = styled.li`
   grid-row: span 3;
   grid-row-gap: 2px;
   min-width: 180px;
-  align-items: flex-start;
   margin-top: 20px;
 
   & > h3 {
@@ -35,7 +34,8 @@ const DatasetCardContainer = styled.li`
   & > p {
     display: grid;
   }
-  & > a, & > button {
+  & > a,
+  & > button {
     margin: 4px auto 0 0;
     display: grid;
   }
