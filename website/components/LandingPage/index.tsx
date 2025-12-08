@@ -1,7 +1,5 @@
-import type { FirebaseFirestore } from "@firebase/firestore-types";
-import { faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Divider, Tooltip } from "antd";
+import { FirebaseFirestore } from "@firebase/firestore-types";
+import { Button, Divider } from "antd";
 import React, { type ReactElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
@@ -9,15 +7,16 @@ import styled from "styled-components";
 
 import { parseViewerUrlParams } from "../../../src";
 import { BannerVideo } from "../../assets/videos";
-import type { AppDataProps, DatasetEntry, ProjectEntry } from "../../types";
+import type { AppDataProps } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
-import { landingPageContent } from "./content";
-import { testDataContent } from "./testData";
+import { LANDING_PAGE_CONTENT } from "./content";
+import { TEST_DATA_CONTENT } from "./testData";
 import { FlexColumn, FlexColumnAlignCenter, FlexRowAlignCenter, VisuallyHidden } from "./utils";
 
 import Header from "../Header";
 import HelpDropdown from "../HelpDropdown";
 import LoadModal from "../Modals/LoadModal";
+import ProjectList from "./components/ProjectList";
 
 const MAX_CONTENT_WIDTH_PX = 1060;
 
@@ -131,106 +130,6 @@ const LoadPromptContainer = styled(FlexColumnAlignCenter)`
   }
 `;
 
-const ProjectList = styled.ul`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 0;
-  margin-top: 0;
-
-  // Add a pseudo-element line between cards
-  & > li:not(:first-child)::before {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 1px;
-    background-color: var(--color-layout-dividers);
-    margin-bottom: 15px;
-  }
-`;
-
-const ProjectCard = styled.li`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 10px;
-
-  & h3 {
-    font-weight: 600;
-  }
-
-  & h2 {
-    font-size: 20px;
-  }
-
-  & p,
-  & h2,
-  & span {
-    margin: 0;
-  }
-
-  & a {
-    // Add 2px margin to maintain the same visual gap that text has
-    margin-top: 2px;
-    text-decoration: underline;
-  }
-
-  & :first-child {
-    // Add some visual separation beneath title element
-    margin-bottom: 2px;
-  }
-`;
-
-const DatasetList = styled.ul`
-  padding: 0;
-  width: 100%;
-  display: grid;
-
-  // Use grid + subgrid to align the title, description, and button for each horizontal
-  // row of cards. repeat is used to tile the layout if the cards wrap to a new line.
-  grid-template-rows: repeat(3, auto);
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  justify-content: space-around;
-  gap: 0px 20px;
-`;
-
-const DatasetCard = styled.li`
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 3;
-  min-width: 180px;
-  margin-top: 20px;
-
-  & > h3 {
-    display: grid;
-    margin: 0;
-  }
-  & > p {
-    display: grid;
-  }
-  & > a,
-  & > button {
-    margin: 4px auto 0 0;
-    display: grid;
-  }
-`;
-
-const InReviewFlag = styled(FlexRowAlignCenter)`
-  border-radius: 4px;
-  padding: 1px 6px;
-  border: 1px solid var(--color-statusflag-border);
-  height: 23px;
-  flex-wrap: wrap;
-
-  && > p {
-    margin-bottom: 0;
-    color: var(--color-statusflag-text);
-    font-size: 11px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-`;
-
 const CookieSettingsButton = styled(Button)`
   color: var(--color-text-body);
   &:focus-visible > span,
@@ -270,77 +169,6 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
     navigation(`/viewer?url=${encodeImageUrlProp(appProps.imageUrl)}${hideTitleParam}`, {
       state: appProps,
     });
-  };
-
-  // TODO: Should the load buttons be link elements or buttons?
-  // Currently both the link and the button inside can be tab-selected.
-  const renderDataset = (dataset: DatasetEntry, index: number): ReactElement => {
-    // TODO: Use links here instead of button onClicks.
-    return (
-      <DatasetCard key={index}>
-        <h3>{dataset.name}</h3>
-        {dataset.description && <p>{dataset.description}</p>}
-        <Button type="primary" onClick={() => onClickLoad(dataset.loadParams, dataset.hideTitle)}>
-          Load<VisuallyHidden> dataset {dataset.name}</VisuallyHidden>
-        </Button>
-      </DatasetCard>
-    );
-  };
-
-  const renderProject = (project: ProjectEntry, index: number): ReactElement => {
-    const projectNameElement = project.inReview ? (
-      <FlexRowAlignCenter $gap={10}>
-        <h2>{project.name}</h2>
-        <Tooltip title="Final version of dataset will be released when associated paper is published">
-          <InReviewFlag>
-            <p>IN REVIEW</p>
-          </InReviewFlag>
-        </Tooltip>
-      </FlexRowAlignCenter>
-    ) : (
-      <h2>{project.name}</h2>
-    );
-
-    const publication = project.publicationInfo;
-    const publicationElement = publication ? (
-      <p>
-        Related publication:{" "}
-        <a
-          href={publication.url.toString()}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: "var(--color-text-link)" }}
-        >
-          {publication.name}
-          {/* Icon offset slightly to align with text */}
-          <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" style={{ marginBottom: "-1px", marginLeft: "3px" }} />
-          <VisuallyHidden>(opens in new tab)</VisuallyHidden>
-        </a>{" "}
-        ({publication.citation})
-      </p>
-    ) : null;
-
-    const { loadParams, hideTitle } = project;
-    const loadButton = loadParams ? (
-      <div>
-        <Button type="primary" onClick={() => onClickLoad(loadParams, hideTitle)}>
-          Load<VisuallyHidden> dataset {project.name}</VisuallyHidden>
-        </Button>
-      </div>
-    ) : null;
-
-    // TODO: Break up list of datasets when too long and hide under collapsible section.
-    const datasetList = project.datasets ? <DatasetList>{project.datasets.map(renderDataset)}</DatasetList> : null;
-
-    return (
-      <ProjectCard key={index}>
-        {projectNameElement}
-        <p>{project.description}</p>
-        {publicationElement}
-        {loadButton}
-        {datasetList}
-      </ProjectCard>
-    );
   };
 
   const [allowMotion, setAllowMotion] = useState(window.matchMedia("(prefers-reduced-motion: no-preference)").matches);
@@ -412,11 +240,12 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
       </LoadPromptContainer>
 
       <ContentContainer style={{ paddingBottom: "400px" }}>
-        <ProjectList>
-          {VOLEAPP_BUILD_ENVIRONMENT === "dev"
-            ? [...landingPageContent, ...testDataContent].map(renderProject)
-            : landingPageContent.map(renderProject)}
-        </ProjectList>
+        <ProjectList
+          projects={
+            VOLEAPP_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...TEST_DATA_CONTENT] : LANDING_PAGE_CONTENT
+          }
+          onClickLoad={onClickLoad}
+        />
       </ContentContainer>
 
       <ContentContainer style={{ padding: "0 30px 40px 30px" }}>
