@@ -776,7 +776,6 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                 <Checkbox
                   checked={props.useControlPoints}
                   onChange={(e) => changeChannelSetting({ useControlPoints: e.target.checked })}
-                  style={{ marginLeft: "auto" }}
                 >
                   Advanced
                 </Checkbox>
