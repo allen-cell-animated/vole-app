@@ -805,7 +805,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
               Isovalue
               <InputNumber
                 value={props.isovalue}
-                onChange={(v) => changeChannelSetting({ isovalue: v ?? undefined })}
+                onChange={(isovalue) => isovalue !== null && changeChannelSetting({ isovalue })}
                 formatter={numberFormatter}
                 min={typeRange.min}
                 max={typeRange.max}
