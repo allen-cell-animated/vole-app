@@ -96,6 +96,7 @@ const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
   resetXF: (_histo) => new Lut().createFullRange(),
 };
 
+// RAMP SLIDER HANDLE
 // *---*
 // |   |
 // |   |
@@ -118,22 +119,30 @@ const sliderHandleSymbol: d3.SymbolType = {
   },
 };
 
-// / \  / \
-// \  \/  /
-//  \    /
-//   *--*
-// TODO make this respond properly to `size`
+// ISOVALUE SLIDER HANDLE
+//     / \  / \
+//     \  \/  /
+//      \    /
+//       *--*
+// start ^  ^ end
+const LINE_WIDTH = 2;
+// the "base" is the 5-sided area where both lines meet - think of a square with side length
+// `LINE_WIDTH`, rotated 45deg, with the bottom corner cut off where the slider line meets the handle
+const BASE_AREA = Math.pow(LINE_WIDTH, 2) * 0.75;
+const BASE_HEIGHT = (Math.SQRT2 - 0.5) * LINE_WIDTH;
+// how much the base "sticks out" horizontally on either side of the slider line
+const BASE_MARGIN = (Math.SQRT2 - 1) * 0.5 * LINE_WIDTH;
 const isovalueHandleSymbol: d3.SymbolType = {
   draw: (context, size) => {
-    const TICK_LENGTH = 5;
-    const HEIGHT = TICK_LENGTH / Math.SQRT2;
+    const linesArea = Math.max(size - BASE_AREA, 0);
+    const halfWidth = linesArea / (2 * Math.SQRT2 * LINE_WIDTH) + BASE_MARGIN;
 
     context.moveTo(1, 0);
-    context.lineTo(HEIGHT + 1, -HEIGHT);
-    context.lineTo(HEIGHT + 1 - Math.SQRT2, -HEIGHT - Math.SQRT2);
-    context.lineTo(0, -1.8284);
-    context.lineTo(-HEIGHT - 1 + Math.SQRT2, -HEIGHT - Math.SQRT2);
-    context.lineTo(-HEIGHT - 1, -HEIGHT);
+    context.lineTo(halfWidth + 1, -halfWidth);
+    context.lineTo(halfWidth + 1 - Math.SQRT2, -halfWidth - Math.SQRT2);
+    context.lineTo(0, -BASE_HEIGHT);
+    context.lineTo(-halfWidth - 1 + Math.SQRT2, -halfWidth - Math.SQRT2);
+    context.lineTo(-halfWidth - 1, -halfWidth);
     context.lineTo(-1, 0);
     context.closePath();
   },
@@ -471,7 +480,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   /** d3-generated svg data string representing the "basic mode" min/max slider handles */
   const sliderHandlePath = useMemo(() => d3.symbol().type(sliderHandleSymbol).size(80)() ?? undefined, []);
 
-  const isovalueHandlePath = useMemo(() => d3.symbol().type(isovalueHandleSymbol).size(1)() ?? undefined, []);
+  const isovalueHandlePath = useMemo(() => d3.symbol().type(isovalueHandleSymbol).size(21)() ?? undefined, []);
 
   // The below `useCallback`s are used as "ref callbacks" - passed as the `ref` prop of SVG elements in order to render
   // these elements' content using D3. They are called when the ref'd component mounts and unmounts, and whenever their
