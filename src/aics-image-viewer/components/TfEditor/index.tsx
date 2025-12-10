@@ -135,14 +135,14 @@ const BASE_MARGIN = (Math.SQRT2 - 1) * 0.5 * LINE_WIDTH;
 const isovalueHandleSymbol: d3.SymbolType = {
   draw: (context, size) => {
     const linesArea = Math.max(size - BASE_AREA, 0);
-    const halfWidth = linesArea / (2 * Math.SQRT2 * LINE_WIDTH) + BASE_MARGIN;
+    const margin = BASE_MARGIN + linesArea / (2 * Math.SQRT2 * LINE_WIDTH);
 
     context.moveTo(1, 0);
-    context.lineTo(halfWidth + 1, -halfWidth);
-    context.lineTo(halfWidth + 1 - Math.SQRT2, -halfWidth - Math.SQRT2);
+    context.lineTo(margin + 1, -margin);
+    context.lineTo(margin + 1 - Math.SQRT2, -margin - Math.SQRT2);
     context.lineTo(0, -BASE_HEIGHT);
-    context.lineTo(-halfWidth - 1 + Math.SQRT2, -halfWidth - Math.SQRT2);
-    context.lineTo(-halfWidth - 1, -halfWidth);
+    context.lineTo(-margin - 1 + Math.SQRT2, -margin - Math.SQRT2);
+    context.lineTo(-margin - 1, -margin);
     context.lineTo(-1, 0);
     context.closePath();
   },
