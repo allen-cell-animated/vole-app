@@ -6,7 +6,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { type ColorResult, SketchPicker } from "react-color";
 
 import { DTYPE_RANGE, LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR } from "../../shared/constants";
-import { IsosurfaceFormat } from "../../shared/types";
+import type { IsosurfaceFormat } from "../../shared/types";
 import {
   type ColorArray,
   colorArrayToObject,
