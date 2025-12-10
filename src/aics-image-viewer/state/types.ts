@@ -1,4 +1,4 @@
-import { CameraState, ControlPoint } from "@aics/vole-core";
+import type { CameraState, ControlPoint } from "@aics/vole-core";
 
 import type { ImageType, RenderMode, ViewMode } from "../shared/enums";
 import type { PerAxis } from "../shared/types";

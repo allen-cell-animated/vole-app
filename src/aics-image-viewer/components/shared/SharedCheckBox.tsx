@@ -1,6 +1,6 @@
-import React from "react";
 import { Checkbox } from "antd";
-import { CheckboxChangeEvent } from "antd/lib/checkbox";
+import type { CheckboxChangeEvent } from "antd/lib/checkbox";
+import React from "react";
 
 type SharedCheckboxProps<T> = React.PropsWithChildren<{
   allOptions: T[];

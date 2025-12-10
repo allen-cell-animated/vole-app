@@ -1,10 +1,11 @@
-import { Lut, View3d, Volume } from "@aics/vole-core";
-import React, { useEffect } from "react";
+import { Lut, type View3d, type Volume } from "@aics/vole-core";
+import type React from "react";
+import { useEffect } from "react";
 import { useShallow } from "zustand/shallow";
 
 import { binIndexedControlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
 import { useViewerState, type ViewerStore } from "../../state/store";
-import { UseImageEffectType } from "./types";
+import type { UseImageEffectType } from "./types";
 
 interface ChannelUpdaterProps {
   index: number;

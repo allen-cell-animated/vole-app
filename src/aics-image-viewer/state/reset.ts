@@ -7,7 +7,7 @@ import {
   getDefaultViewerState,
 } from "../shared/constants";
 import { ViewMode } from "../shared/enums";
-import { ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
+import type { ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { getEnabledChannelIndices, initializeOneChannelSetting } from "../shared/utils/viewerState";
 import type { ChannelState, ViewerState } from "../state/types";
 import type { ViewerStore } from "./store";

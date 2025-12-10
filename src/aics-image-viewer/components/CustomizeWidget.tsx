@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Styles } from "../shared/types";
-import { ColorArray, colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
+import type { Styles } from "../shared/types";
+import { type ColorArray, colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
 import { select, useViewerState } from "../state/store";
 
 import ColorPicker from "./ColorPicker";

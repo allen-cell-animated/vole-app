@@ -1,11 +1,11 @@
-import { Volume } from "@aics/vole-core";
+import type { Volume } from "@aics/vole-core";
 import { CaretRightOutlined, PauseOutlined } from "@ant-design/icons";
 import { Button, Tooltip } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 
-import { ViewMode } from "../../shared/enums";
-import { activeAxisMap, AxisName, PerAxis } from "../../shared/types";
-import PlayControls from "../../shared/utils/playControls";
+import type { ViewMode } from "../../shared/enums";
+import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
+import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
 
 import NumericInput from "../shared/NumericInput";

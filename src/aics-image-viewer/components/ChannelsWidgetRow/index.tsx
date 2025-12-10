@@ -1,13 +1,13 @@
-import { Channel } from "@aics/vole-core";
+import type { Channel } from "@aics/vole-core";
 import { Button, Checkbox, InputNumber, List } from "antd";
-import { CheckboxChangeEvent } from "antd/lib/checkbox";
+import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
 import { DTYPE_RANGE, ISOSURFACE_OPACITY_SLIDER_MAX } from "../../shared/constants";
-import { IsosurfaceFormat } from "../../shared/types";
-import { colorArrayToObject, ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
+import type { IsosurfaceFormat } from "../../shared/types";
+import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
 import { select, useViewerState } from "../../state/store";
-import { ChannelState } from "../../state/types";
+import type { ChannelState } from "../../state/types";
 
 import ColorPicker from "../ColorPicker";
 import SliderRow from "../shared/SliderRow";

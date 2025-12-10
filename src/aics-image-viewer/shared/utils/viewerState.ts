@@ -1,12 +1,8 @@
 import type { ChannelState } from "../../state/types";
 import { getDefaultChannelState } from "../constants";
-import { ColorArray } from "./colorRepresentations";
-import {
-  findFirstChannelMatch,
-  getDisplayName,
-  ViewerChannelSetting,
-  ViewerChannelSettings,
-} from "./viewerChannelSettings";
+import type { ColorArray } from "./colorRepresentations";
+import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
+import { findFirstChannelMatch, getDisplayName } from "./viewerChannelSettings";
 
 /** Returns the indices of channels that have either the volume or isosurface enabled. */
 export function getEnabledChannelIndices(channelSettings: ChannelState[]): number[] {
