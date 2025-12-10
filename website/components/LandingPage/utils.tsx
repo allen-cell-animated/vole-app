@@ -1,6 +1,6 @@
 import { faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { ReactElement } from "react";
+import React, { type ReactElement } from "react";
 import styled, { css } from "styled-components";
 
 const FlexDiv = styled.div<{ $gap?: number }>`
@@ -68,7 +68,7 @@ export const VisuallyHidden = styled.span`
 
 export function ExternalLink(props: { href: string; children: React.ReactNode }): ReactElement {
   return (
-    <a href={props.href} style={{ whiteSpace: "nowrap" }} rel="noopener noreferrer" target="_blank">
+    <a href={props.href} rel="noopener noreferrer" target="_blank">
       {props.children}
       <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" style={{ marginBottom: "0px", marginLeft: "3px" }} />
     </a>

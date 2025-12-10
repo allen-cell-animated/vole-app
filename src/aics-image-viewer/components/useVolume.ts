@@ -11,19 +11,15 @@ import {
   QUEUE_MAX_SIZE,
 } from "../shared/constants";
 import { ViewMode } from "../shared/enums";
-import { AxisName } from "../shared/types";
+import type { AxisName } from "../shared/types";
 import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
-import {
-  ChannelGrouping,
-  getDisplayName,
-  makeChannelIndexGrouping,
-  ViewerChannelSettings,
-} from "../shared/utils/viewerChannelSettings";
+import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
+import { getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { select, useViewerState } from "../state/store";
-import { ChannelState } from "../state/types";
+import type { ChannelState } from "../state/types";
 
 export type UseVolumeOptions = {
   viewerChannelSettings?: ViewerChannelSettings;

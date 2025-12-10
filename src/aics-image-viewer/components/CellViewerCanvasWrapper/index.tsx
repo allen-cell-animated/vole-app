@@ -1,4 +1,4 @@
-import { View3d, Volume } from "@aics/vole-core";
+import type { View3d, Volume } from "@aics/vole-core";
 import { LoadingOutlined } from "@ant-design/icons";
 import React from "react";
 

@@ -1,5 +1,5 @@
 // 3rd Party Imports
-import { RawArrayLoaderOptions, View3d, Volume } from "@aics/vole-core";
+import { type RawArrayLoaderOptions, View3d, type Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";

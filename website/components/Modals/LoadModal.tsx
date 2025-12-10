@@ -1,11 +1,11 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { AutoComplete, Button, Modal } from "antd";
 import Fuse from "fuse.js";
-import React, { ReactElement, useMemo, useRef, useState } from "react";
+import React, { type ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
-import { AppDataProps } from "../../types";
-import { RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
+import type { AppDataProps } from "../../types";
+import { type RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
 import { isValidUrl } from "../../utils/urls";
 import { FlexRow } from "../LandingPage/utils";
 
@@ -48,15 +48,17 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
 
   const onClickLoad = (): void => {
     // TODO: Handle multiple URLs?
-    // TODO: Do any transformation of URLs here? Currently just using the labels directly.
-    if (!isValidUrl(urlInput)) {
-      setErrorText("Please enter a valid URL.");
+
+    // Note: S3 URIs, GCS URIs, and Vast file paths are handled by vole-core.
+    const trimmedUrlInput = urlInput.trim();
+    if (!isValidUrl(trimmedUrlInput)) {
+      setErrorText("Please enter a valid URL, starting with https://, s3://, or gs://.");
       return;
     }
 
     const appProps: AppDataProps = {
-      imageUrl: urlInput,
-      imageDownloadHref: urlInput,
+      imageUrl: trimmedUrlInput,
+      imageDownloadHref: trimmedUrlInput,
       cellId: "1",
       parentImageUrl: "",
       parentImageDownloadHref: "",

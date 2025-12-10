@@ -1,4 +1,4 @@
-import { Volume } from "@aics/vole-core";
+import type { Volume } from "@aics/vole-core";
 import { CaretRightOutlined, PauseOutlined } from "@ant-design/icons";
 import { Button, Tooltip } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
