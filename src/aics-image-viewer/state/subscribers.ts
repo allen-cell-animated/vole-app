@@ -1,4 +1,4 @@
-import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
+import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type View3d, type Volume } from "@aics/vole-core";
 import { shallow } from "zustand/shallow";
 
 import { RenderMode, ViewMode } from "../shared/enums";

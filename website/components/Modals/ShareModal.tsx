@@ -12,7 +12,7 @@ import {
   serializeViewerUrlParams,
 } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
-import { AppDataProps } from "../../types";
+import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
 
 type ShareModalProps = {

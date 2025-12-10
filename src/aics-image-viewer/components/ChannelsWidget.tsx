@@ -8,7 +8,7 @@ import type { ColorArray, ColorObject } from "../shared/utils/colorRepresentatio
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { getDisplayName } from "../shared/utils/viewerChannelSettings";
 import { select, useViewerState, type ViewerStore } from "../state/store";
-import { ChannelState } from "../state/types";
+import type { ChannelState } from "../state/types";
 
 import ChannelsWidgetRow from "./ChannelsWidgetRow";
 import SharedCheckBox from "./shared/SharedCheckBox";
