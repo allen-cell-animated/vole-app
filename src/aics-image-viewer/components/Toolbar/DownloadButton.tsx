@@ -1,5 +1,5 @@
+import { Button, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
-import { Dropdown, Button, MenuProps, Tooltip } from "antd";
 
 import ViewerIcon from "../shared/ViewerIcon";
 

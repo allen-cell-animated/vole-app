@@ -1,5 +1,6 @@
 import { theme as AntTheme, ConfigProvider } from "antd";
-import React, { PropsWithChildren, ReactElement } from "react";
+import React from "react";
+import type { PropsWithChildren, ReactElement } from "react";
 import styled, { css } from "styled-components";
 
 const palette = {
