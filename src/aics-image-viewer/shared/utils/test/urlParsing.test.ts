@@ -1,9 +1,10 @@
-import { CameraState } from "@aics/vole-core";
+import type { CameraState } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 
-import { ChannelState, ViewerState } from "../../../state/types";
+import type { ChannelState, ViewerState } from "../../../state/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../constants";
 import { ImageType, RenderMode, ViewMode } from "../../enums";
+import type { ViewerChannelSettingParams, ViewerStateParams } from "../urlParsing";
 import {
   CONTROL_POINTS_REGEX,
   deserializeViewerChannelSetting,
@@ -19,10 +20,8 @@ import {
   serializeViewerChannelSetting,
   serializeViewerState,
   serializeViewerUrlParams,
-  ViewerChannelSettingParams,
-  ViewerStateParams,
 } from "../urlParsing";
-import { ViewerChannelSetting } from "../viewerChannelSettings";
+import type { ViewerChannelSetting } from "../viewerChannelSettings";
 
 const defaultSettings: ViewerChannelSetting = {
   match: 0,
@@ -254,8 +253,8 @@ describe("Channel state serialization", () => {
     clz: "1",
     cza: "0.5",
     cpe: "0",
-    cps: "0:0.5:1:255:1:1",
-    rmp: "0:255",
+    cpt: "0:0.5:1:255:1:1",
+    ram: "0:255",
   };
 
   // Note that the serialization + deserialization are NOT direct inverses.
@@ -299,7 +298,7 @@ describe("Channel state serialization", () => {
         surfaceOpacity: 0.75,
         colorizeEnabled: true,
         colorizeAlpha: 0.5,
-        lut: ["0", "255"],
+        intensity: { lut: ["0", "255"] },
       });
     });
 
@@ -319,7 +318,7 @@ describe("Channel state serialization", () => {
       for (const [encodedLut, decodedLut] of luts) {
         const data = { lut: encodedLut } as ViewerChannelSettingParams;
         const result = deserializeViewerChannelSetting(0, data);
-        expect(result.lut).toEqual(decodedLut);
+        expect(result.intensity?.lut).toEqual(decodedLut);
       }
     });
 
@@ -382,7 +381,7 @@ describe("Channel state serialization", () => {
         plotMin: 0,
         plotMax: 255,
       };
-      const serializedCustomChannelState: Required<Omit<ViewerChannelSettingParams, "lut">> = {
+      const serializedCustomChannelState: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
         col: "03ff9d",
         ven: "0",
         sen: "0",
@@ -391,8 +390,8 @@ describe("Channel state serialization", () => {
         clz: "0",
         cza: "1",
         cpe: "0",
-        cps: "",
-        rmp: "0:255",
+        cpt: "",
+        ram: "0:255",
       };
       expect(serializeViewerChannelSetting(customChannelState, false)).toEqual(serializedCustomChannelState);
     });
@@ -590,25 +589,51 @@ describe("Channel state deserialization", () => {
     { x: 260, opacity: 1, color: [0, 255, 180] },
   ];
 
+  describe("legacy control points", () => {
+    it("parses comma-separated control points", () => {
+      const result = deserializeViewerChannelSetting(0, {
+        cps: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
+      });
+      expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
+    });
+
+    it("parses colon-separated control points", () => {
+      const result = deserializeViewerChannelSetting(0, {
+        cps: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
+      });
+      expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
+    });
+
+    it("replaces '1' color strings with default color #ffffff", () => {
+      const result = deserializeViewerChannelSetting(0, {
+        cps: "0:0:1:50:1:1",
+      });
+      expect(result.controlPoints).toEqual([
+        { x: 0, opacity: 0, color: [255, 255, 255] },
+        { x: 50, opacity: 1, color: [255, 255, 255] },
+      ]);
+    });
+  });
+
   it("parses comma-separated control points", () => {
     const result = deserializeViewerChannelSetting(0, {
-      cps: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
+      cpt: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
     });
-    expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
+    expect(result.intensity?.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
   });
 
   it("parses colon-separated control points", () => {
     const result = deserializeViewerChannelSetting(0, {
-      cps: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
+      cpt: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
     });
-    expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
+    expect(result.intensity?.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
   });
 
   it("replaces '1' color strings with default color #ffffff", () => {
     const result = deserializeViewerChannelSetting(0, {
-      cps: "0:0:1:50:1:1",
+      cpt: "0:0:1:50:1:1",
     });
-    expect(result.controlPoints).toEqual([
+    expect(result.intensity?.controlPoints).toEqual([
       { x: 0, opacity: 0, color: [255, 255, 255] },
       { x: 50, opacity: 1, color: [255, 255, 255] },
     ]);
@@ -633,7 +658,9 @@ describe("parseViewerUrlParams", () => {
         colorizeEnabled: false,
         colorizeAlpha: 0.9,
         isovalue: 129,
-        lut: ["p50", "p99"],
+        intensity: {
+          lut: ["p50", "p99"],
+        },
       },
     ],
     [
@@ -649,7 +676,9 @@ describe("parseViewerUrlParams", () => {
         surfaceEnabled: false,
         enabled: false,
         isovalue: 0,
-        lut: ["0", "255"],
+        intensity: {
+          lut: ["0", "255"],
+        },
       },
     ],
     [
@@ -665,7 +694,9 @@ describe("parseViewerUrlParams", () => {
         surfaceEnabled: true,
         enabled: false,
         isovalue: 100,
-        lut: ["autoij", ""],
+        intensity: {
+          lut: ["autoij", ""],
+        },
       },
     ],
   ];
@@ -715,7 +746,7 @@ describe("parseViewerUrlParams", () => {
 
     expect(channelSetting.match).toEqual(1);
     expect(channelSetting.enabled).toEqual(true);
-    expect(channelSetting.lut).toEqual(["4", "5"]);
+    expect(channelSetting.intensity?.lut).toEqual(["4", "5"]);
   });
 
   it("skips missing channel indices", async () => {
@@ -733,7 +764,7 @@ describe("parseViewerUrlParams", () => {
 
     expect(channelSetting2.match).toEqual(15);
     expect(channelSetting2.enabled).toEqual(true);
-    expect(channelSetting2.lut).toEqual(["4", "5"]);
+    expect(channelSetting2.intensity?.lut).toEqual(["4", "5"]);
   });
 
   it("creates empty default data for bad per-channel setting formats", async () => {
@@ -784,7 +815,7 @@ describe("parseViewerUrlParams", () => {
     expect(channelSettings.channels[0].enabled).toEqual(false);
     expect(channelSettings.channels[1].match).toEqual(1);
     expect(channelSettings.channels[1].enabled).toEqual(true);
-    expect(channelSettings.channels[1].lut).toEqual(["autoij", ""]);
+    expect(channelSettings.channels[1].intensity?.lut).toEqual(["autoij", ""]);
     expect(channelSettings.channels[2].match).toEqual(2);
     expect(channelSettings.channels[2].enabled).toEqual(true);
     expect(channelSettings.channels[2].colorizeEnabled).toEqual(true);
@@ -858,7 +889,7 @@ describe("serializeViewerUrlParams", () => {
     // Format should look like "ven:1,col:ff0000,clz:1,cza:0.75,isa:0.5,sen:1,isv:128", but ordering
     // is not guaranteed. Parse the string and check that the values match the expected values.
     // Note that `lut` is not included when serializing from existing viewer state.
-    const expectedChannel0: Required<Omit<ViewerChannelSettingParams, "lut">> = {
+    const expectedChannel0: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
       ven: "1",
       col: "ff0000",
       clz: "1",
@@ -866,11 +897,11 @@ describe("serializeViewerUrlParams", () => {
       isa: "0.75",
       sen: "1",
       isv: "128",
-      rmp: "-10:260.1",
-      cps: "0:0:808080:1:1:ff0000",
+      ram: "-10:260.1",
+      cpt: "0:0:808080:1:1:ff0000",
       cpe: "0",
     };
-    const expectedChannel1: Required<Omit<ViewerChannelSettingParams, "lut">> = {
+    const expectedChannel1: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
       ven: "0",
       col: "808080",
       clz: "0",
@@ -878,8 +909,8 @@ describe("serializeViewerUrlParams", () => {
       isa: "0",
       sen: "0",
       isv: "57",
-      rmp: "50:140",
-      cps: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
+      ram: "50:140",
+      cpt: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
       cpe: "1",
     };
 

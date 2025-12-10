@@ -50,7 +50,7 @@ const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
       {showControls.densitySlider && createSliderRow("density", density, 100, "density")}
       {showControls.levelsSliders && createSliderRow("levels", levels, 255, "levels")}
       {showControls.interpolationControl && (
-        <SliderRow label="interpolate">
+        <SliderRow label="interpolate" hideSlider={true}>
           <Checkbox
             checked={interpolationEnabled}
             onChange={({ target }) => changeViewerSetting("interpolationEnabled", target.checked)}

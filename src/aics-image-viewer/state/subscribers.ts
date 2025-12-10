@@ -1,10 +1,10 @@
-import { Lut, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, View3d, Volume } from "@aics/vole-core";
+import { Lut, RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type View3d, type Volume } from "@aics/vole-core";
 import { shallow } from "zustand/shallow";
 
 import { RenderMode, ViewMode } from "../shared/enums";
 import { activeAxisMap, type AxisName } from "../shared/types";
 import { colorArrayToFloats } from "../shared/utils/colorRepresentations";
-import { controlPointsToLut, rampToControlPoints } from "../shared/utils/controlPointsToLut";
+import { binIndexedControlPointsToLut, rampToControlPoints } from "../shared/utils/controlPointsToLut";
 import {
   alphaSliderToImageValue,
   brightnessSliderToImageValue,
@@ -12,7 +12,7 @@ import {
   gammaSliderToImageValues,
 } from "../shared/utils/sliderValuesToImageValues";
 import { select, type useViewerState, type ViewerStore } from "./store";
-import { ChannelState } from "./types";
+import type { ChannelState } from "./types";
 
 const REF_EQ = { fireImmediately: true };
 const DEEP_EQ = { fireImmediately: true, equalityFn: shallow };
@@ -233,7 +233,7 @@ export const subscribeChannelToState = (
         }
 
         const controlPointsToUse = useControlPoints ? controlPoints : rampToControlPoints(ramp);
-        const gradient = controlPointsToLut(controlPointsToUse);
+        const gradient = binIndexedControlPointsToLut(controlPointsToUse);
         image.setLut(index, gradient);
         view3d.updateLuts(image);
       }

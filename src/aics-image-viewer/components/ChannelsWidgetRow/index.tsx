@@ -1,13 +1,13 @@
-import { Channel } from "@aics/vole-core";
-import { Button, Checkbox, List } from "antd";
-import { CheckboxChangeEvent } from "antd/lib/checkbox";
+import type { Channel } from "@aics/vole-core";
+import { Button, Checkbox, InputNumber, List } from "antd";
+import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
-import { ISOSURFACE_OPACITY_SLIDER_MAX } from "../../shared/constants";
-import { IsosurfaceFormat } from "../../shared/types";
-import { colorArrayToObject, ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
+import { DTYPE_RANGE, ISOSURFACE_OPACITY_SLIDER_MAX } from "../../shared/constants";
+import type { IsosurfaceFormat } from "../../shared/types";
+import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
 import { select, useViewerState } from "../../state/store";
-import { ChannelState } from "../../state/types";
+import type { ChannelState } from "../../state/types";
 
 import ColorPicker from "../ColorPicker";
 import SliderRow from "../shared/SliderRow";
@@ -44,10 +44,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const isosurfaceCheckHandler = ({ target }: CheckboxChangeEvent): void => {
     changeChannelSetting(index, { isosurfaceEnabled: target.checked });
   };
-
-  const onIsovalueChange = ([newValue]: number[]): void => changeSettingForThisChannel({ isovalue: newValue });
-  const onOpacityChange = ([newValue]: number[]): void =>
-    changeSettingForThisChannel({ opacity: newValue / ISOSURFACE_OPACITY_SLIDER_MAX });
 
   const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
     const color = colorObjectToArray(newRGB);
@@ -102,28 +98,43 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     );
   };
 
-  const renderSurfaceControls = (): React.ReactNode => (
-    <div>
-      <SliderRow
-        label="Isovalue"
-        max={255}
-        start={channelState.isovalue}
-        onChange={onIsovalueChange}
-        formatInteger={true}
-      />
-      <SliderRow
-        label="Opacity"
-        max={ISOSURFACE_OPACITY_SLIDER_MAX}
-        start={channelState.opacity * ISOSURFACE_OPACITY_SLIDER_MAX}
-        onChange={onOpacityChange}
-        formatInteger={true}
-      />
-      <div className="button-row">
-        <Button onClick={() => saveIsosurface(index, "GLTF")}>Export GLTF</Button>
-        <Button onClick={() => saveIsosurface(index, "STL")}>Export STL</Button>
+  const renderSurfaceControls = (): React.ReactNode => {
+    const range = DTYPE_RANGE[props.channelDataForChannel.dtype];
+    return (
+      <div>
+        <SliderRow
+          label="Isovalue"
+          min={range.min}
+          max={range.max}
+          start={channelState.isovalue}
+          onChange={([isovalue]) => changeSettingForThisChannel({ isovalue })}
+          formatInteger={true}
+        >
+          <InputNumber
+            value={channelState.isovalue}
+            onChange={(isovalue) => isovalue !== null && changeSettingForThisChannel({ isovalue })}
+            formatter={(v) => (v === undefined ? "" : Number(v).toFixed(0))}
+            min={range.min}
+            max={range.max}
+            size="small"
+            controls={false}
+            style={{ width: "64px", marginLeft: "8px" }}
+          />
+        </SliderRow>
+        <SliderRow
+          label="Opacity"
+          max={ISOSURFACE_OPACITY_SLIDER_MAX}
+          start={channelState.opacity * ISOSURFACE_OPACITY_SLIDER_MAX}
+          onChange={([opacity]) => changeSettingForThisChannel({ opacity: opacity / ISOSURFACE_OPACITY_SLIDER_MAX })}
+          formatInteger={true}
+        />
+        <div className="button-row">
+          <Button onClick={() => saveIsosurface(index, "GLTF")}>Export GLTF</Button>
+          <Button onClick={() => saveIsosurface(index, "STL")}>Export STL</Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderControls = (): React.ReactNode => {
     if (!channelState.volumeEnabled && !channelState.isosurfaceEnabled) {

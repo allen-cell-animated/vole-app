@@ -1,4 +1,4 @@
-import { LoadSpec, RawArrayLoaderOptions, View3d, Volume, VolumeLoaderContext } from "@aics/vole-core";
+import { LoadSpec, type RawArrayLoaderOptions, type View3d, type Volume, VolumeLoaderContext } from "@aics/vole-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
@@ -11,19 +11,15 @@ import {
   QUEUE_MAX_SIZE,
 } from "../shared/constants";
 import { ViewMode } from "../shared/enums";
-import { AxisName } from "../shared/types";
+import type { AxisName } from "../shared/types";
 import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
-import {
-  ChannelGrouping,
-  getDisplayName,
-  makeChannelIndexGrouping,
-  ViewerChannelSettings,
-} from "../shared/utils/viewerChannelSettings";
+import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
+import { getDisplayName, makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { select, useViewerState } from "../state/store";
-import { ChannelState } from "../state/types";
+import type { ChannelState } from "../state/types";
 
 export type UseVolumeOptions = {
   viewerChannelSettings?: ViewerChannelSettings;
@@ -42,6 +38,11 @@ export const enum ImageLoadStatus {
   LOADING,
   LOADED,
   ERROR,
+}
+
+const enum LoadType {
+  TIME,
+  SCENE,
 }
 
 // Used by `channelVersions` (see below)
@@ -168,10 +169,18 @@ const useVolume = (
     return noneLoaded ? ImageLoadStatus.REQUESTED : allLoaded ? ImageLoadStatus.LOADED : ImageLoadStatus.LOADING;
   }, [channelVersions, channelSettings, maskChannelName, loadThrewError]);
 
-  const setIsLoading = useCallback(() => {
-    setLoadThrewError(false);
-    setChannelVersions(channelVersionsRef.current.map((version) => Math.min(version, CHANNEL_RELOAD)));
-  }, [channelVersionsRef, setChannelVersions]);
+  const setIsLoading = useCallback(
+    (loadType: LoadType) => {
+      setLoadThrewError(false);
+      setChannelVersions(
+        channelVersionsRef.current.map((version) =>
+          // For scenes, reinitialize all channels.
+          Math.min(version, loadType === LoadType.SCENE ? CHANNEL_INITIAL_LOAD : CHANNEL_RELOAD)
+        )
+      );
+    },
+    [channelVersionsRef, setChannelVersions]
+  );
 
   const onError = useCallback(
     (e: unknown): never => {
@@ -335,7 +344,7 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time, onChannelDataLoaded).catch(onError);
-        setIsLoading();
+        setIsLoading(LoadType.TIME);
       }
     },
     [image, onError, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
@@ -345,7 +354,7 @@ const useVolume = (
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
         sceneLoader.loadScene(scene, image, undefined, onChannelDataLoaded).catch(onError);
-        setIsLoading();
+        setIsLoading(LoadType.SCENE);
       }
     },
     [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChannelDataLoaded]

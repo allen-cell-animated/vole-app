@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "2.14.0",
+  "version": "2.15.0",
   "description": "web view of cell volume images",
   "repository": "github:allen-cell-animated/vole-app",
   "main": "es/index.js",
@@ -41,7 +41,7 @@
   "author": "Megan Riel-Mehan",
   "license": "ISC",
   "dependencies": {
-    "@aics/vole-core": "^4.3.1",
+    "@aics/vole-core": "^4.5.0",
     "@ant-design/icons": "^5.2.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",

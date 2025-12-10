@@ -1,18 +1,18 @@
-import { View3d } from "@aics/vole-core";
+import type { View3d } from "@aics/vole-core";
 import { ShareAltOutlined } from "@ant-design/icons";
 import { Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
-import { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import {
   ENCODED_COLON_REGEX,
   ENCODED_COMMA_REGEX,
   serializeViewerUrlParams,
 } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
-import { selectViewerSettings, useViewerState, ViewerStore } from "../../../src/aics-image-viewer/state/store";
-import { AppDataProps } from "../../types";
+import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
+import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
 
 type ShareModalProps = {
