@@ -1,10 +1,13 @@
 import type { View3d } from "@aics/vole-core";
 import type { FirebaseFirestore } from "@firebase/firestore-types";
+import { isEqual } from "lodash";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { ImageViewerApp, parseViewerUrlParams, type ViewerState, ViewerStateProvider } from "../../src";
+import { ImageViewerApp, parseViewerUrlParams } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
+import type { ViewerState } from "../../src/aics-image-viewer/state/types";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -36,7 +39,8 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   const navigation = useNavigate();
 
   const view3dRef = React.useRef<View3d | null>(null);
-  const [viewerSettings, setViewerSettings] = useState<Partial<ViewerState>>({});
+  const prevViewerSettingsRef = React.useRef<Partial<ViewerState> | undefined>(undefined);
+  const mergeViewerSettings = useViewerState(select("mergeViewerSettings"));
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
   const [imageTitle, setImageTitle] = useState<string | undefined>(undefined);
   const [searchParams] = useSearchParams();
@@ -47,16 +51,20 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     const locationArgs = location.state as AppDataProps;
     parseViewerUrlParams(searchParams, props.firestore).then(
       ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
-        setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
+
+        const viewerSettings = { ...urlViewerSettings, ...locationArgs?.viewerSettings };
+        if (viewerSettings && !isEqual(viewerSettings, prevViewerSettingsRef.current)) {
+          mergeViewerSettings(viewerSettings);
+          prevViewerSettingsRef.current = viewerSettings;
+        }
       },
       (reason) => {
         showErrorAlert("Failed to parse URL parameters: " + reason);
-        setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
     );
-  }, [location.state, searchParams, showErrorAlert, props.firestore]);
+  }, [location.state, searchParams, mergeViewerSettings, showErrorAlert, props.firestore]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
@@ -94,27 +102,25 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   return (
     <div>
       {errorAlert}
-      <ViewerStateProvider viewerSettings={viewerSettings}>
-        <Header title={imageTitle} noNavigate>
-          <FlexRowAlignCenter $gap={12}>
-            <FlexRowAlignCenter $gap={2}>
-              <LoadModal onLoad={onLoad} />
-              {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
-            </FlexRowAlignCenter>
-            <HelpDropdown />
+      <Header title={imageTitle} noNavigate>
+        <FlexRowAlignCenter $gap={12}>
+          <FlexRowAlignCenter $gap={2}>
+            <LoadModal onLoad={onLoad} />
+            {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
           </FlexRowAlignCenter>
-        </Header>
-        {viewerProps && (
-          <ImageViewerApp
-            {...viewerProps}
-            appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
-            canvasMargin="0 0 0 0"
-            view3dRef={view3dRef}
-            showError={showErrorAlert}
-            onImageTitleChange={onImageTitleChange}
-          />
-        )}
-      </ViewerStateProvider>
+          <HelpDropdown />
+        </FlexRowAlignCenter>
+      </Header>
+      {viewerProps && (
+        <ImageViewerApp
+          {...viewerProps}
+          appHeight={`calc(100vh - ${HEADER_HEIGHT_PX}px)`}
+          canvasMargin="0 0 0 0"
+          view3dRef={view3dRef}
+          showError={showErrorAlert}
+          onImageTitleChange={onImageTitleChange}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { FirebaseFirestore } from "@firebase/firestore-types";
+import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { Button, Divider } from "antd";
 import React, { type ReactElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router";

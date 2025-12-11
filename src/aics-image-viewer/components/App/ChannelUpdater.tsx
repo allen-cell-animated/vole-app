@@ -1,14 +1,14 @@
 import { Lut, type View3d, type Volume } from "@aics/vole-core";
 import type React from "react";
 import { useEffect } from "react";
+import { useShallow } from "zustand/shallow";
 
-import { controlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
-import type { ChannelState } from "../ViewerStateProvider/types";
+import { binIndexedControlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
+import { useViewerState, type ViewerStore } from "../../state/store";
 import type { UseImageEffectType } from "./types";
 
 interface ChannelUpdaterProps {
   index: number;
-  channelState: ChannelState;
   view3d: View3d;
   image: Volume | null;
   version: number;
@@ -18,7 +18,9 @@ interface ChannelUpdaterProps {
  * A component that doesn't render anything, but reacts to the provided `ChannelState`
  * and keeps it in sync with the viewer.
  */
-const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, view3d, image, version }) => {
+const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, version }) => {
+  const channelStateSelector = useShallow((state: ViewerStore) => state.channelSettings[index]);
+  const channelState = useViewerState(channelStateSelector);
   const { volumeEnabled, isosurfaceEnabled, isovalue, colorizeEnabled, colorizeAlpha, opacity, color } = channelState;
 
   // Effects to update channel settings should check if image is present and channel is loaded first
@@ -70,8 +72,14 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, channelState, vi
       if (useControlPoints && controlPoints.length < 2) {
         return;
       }
+      const histogram = currentImage.getHistogram(index);
       const controlPointsToUse = useControlPoints ? controlPoints : rampToControlPoints(ramp);
-      const gradient = controlPointsToLut(controlPointsToUse);
+      // Convert control points from raw intensity values to histogram bin indices
+      const binIndexedControlPoints = controlPointsToUse.map((cp) => ({
+        ...cp,
+        x: histogram.findFractionalBinOfValue(cp.x),
+      }));
+      const gradient = binIndexedControlPointsToLut(binIndexedControlPoints);
       currentImage.setLut(index, gradient);
       view3d.updateLuts(currentImage);
     },
