@@ -20,7 +20,7 @@ import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
-import { ViewerState } from "../../state/types";
+import type { ViewerState } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
