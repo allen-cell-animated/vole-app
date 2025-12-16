@@ -249,9 +249,11 @@ const App: React.FC<AppProps> = (props) => {
     [view3d, viewerState, changeChannelSetting, getCurrentViewerChannelSettings]
   );
 
+  const [loadedScene, setLoadedScene] = useState<number | undefined>(undefined);
   const onChangeScene = useCallback(
     (image: Volume, sceneIndex: number) => {
       onImageTitleChange?.(image.imageInfo.imageInfo.name);
+      setLoadedScene(sceneIndex);
     },
     [onImageTitleChange]
   );
@@ -368,17 +370,17 @@ const App: React.FC<AppProps> = (props) => {
   }, [view3d]);
 
   const metadata = useMemo((): MetadataRecord => {
-    const propsMetadata = props.metadata;
     let imageMetadata = image?.imageMetadata as MetadataRecord;
     if (imageMetadata && metadataFormatter) {
       imageMetadata = metadataFormatter(imageMetadata);
     }
+    const propsMetadata = props.metadata;
 
     let sceneMeta: MetadataRecord | undefined;
     if (Array.isArray(propsMetadata)) {
       // If metadata is an array, try to index it by scene
-      if (propsMetadata.length >= numScenes) {
-        sceneMeta = propsMetadata[viewerState.current.scene];
+      if (propsMetadata.length >= numScenes && loadedScene !== undefined) {
+        sceneMeta = propsMetadata[loadedScene];
       } else {
         sceneMeta = propsMetadata[0];
       }
@@ -391,7 +393,7 @@ const App: React.FC<AppProps> = (props) => {
     } else {
       return sceneMeta ?? {};
     }
-  }, [props.metadata, metadataFormatter, image, numScenes, viewerState]);
+  }, [props.metadata, metadataFormatter, image, loadedScene, numScenes]);
 
   useEffect((): void => {
     const hasTime = numTimesteps > 1;
