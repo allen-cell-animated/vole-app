@@ -244,10 +244,16 @@ const App: React.FC<AppProps> = (props) => {
         }),
       });
 
-      onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
     },
-    [view3d, viewerState, onImageTitleChange, changeChannelSetting, getCurrentViewerChannelSettings]
+    [view3d, viewerState, changeChannelSetting, getCurrentViewerChannelSettings]
+  );
+
+  const onChangeScene = useCallback(
+    (image: Volume, sceneIndex: number) => {
+      onImageTitleChange?.(image.imageInfo.imageInfo.name);
+    },
+    [onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
@@ -321,6 +327,7 @@ const App: React.FC<AppProps> = (props) => {
   const volume = useVolume(scenes, {
     onCreateImage,
     onChannelLoaded,
+    onChangeScene,
     onError,
     maskChannelName,
   });
