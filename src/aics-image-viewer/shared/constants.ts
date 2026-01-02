@@ -20,7 +20,6 @@ export const // Control panel will automatically close if viewport is less than 
   // and linearly increase intensity up to the LUT_MAX_PERCENTILE fraction of pixels.
   LUT_MIN_PERCENTILE = 0.5,
   LUT_MAX_PERCENTILE = 0.983,
-  ISOSURFACE_OPACITY_SLIDER_MAX = 255.0,
   ALPHA_MASK_SLIDER_DEFAULT = 0,
   BRIGHTNESS_SLIDER_LEVEL_DEFAULT = 70,
   DENSITY_SLIDER_LEVEL_DEFAULT = 50,

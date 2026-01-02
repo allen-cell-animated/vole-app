@@ -1,14 +1,14 @@
 @import "../../assets/styles/variables";
 
-.channel-row {
-  .tf-editor-svg.dragging {
-    &.basic {
-      cursor: ew-resize;
-    }
+.channel-row .tf-editor {
+  margin-top: 27px;
 
-    &.advanced {
-      cursor: move;
-    }
+  .tf-editor-svg.dragging-slider {
+    cursor: ew-resize;
+  }
+
+  .tf-editor-svg.dragging-point {
+    cursor: move;
   }
 
   .tf-editor-popover {
@@ -28,16 +28,17 @@
   .tf-editor-control-row {
     display: flex;
     color: var(--color-controlpanel-text);
+    justify-content: space-between;
     align-items: center;
     min-height: 24px;
-    gap: 5px;
 
-    &.ramp-row {
-      margin-top: 15px;
+    &:not(:first-child) {
+      margin-bottom: 12px;
     }
 
-    &.plot-range-row {
-      margin-bottom: 20px;
+    > div {
+      display: flex;
+      gap: 5px;
     }
 
     .ant-input-number {
@@ -48,6 +49,12 @@
         text-align: right;
       }
     }
+  }
+
+  h4 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 12px;
   }
 
   .tick text {
@@ -78,18 +85,33 @@
     stroke-width: 1px;
   }
 
-  .ramp-sliders {
-    path {
-      fill: var(--color-controlpanel-ramp-slider);
+  .sliders {
+    path,
+    line {
       cursor: ew-resize;
     }
 
-    line {
-      stroke: var(--color-controlpanel-ramp-slider);
-      cursor: ew-resize;
+    line.slider-click-target {
+      stroke: transparent;
+    }
 
-      &.ramp-slider-click-target {
-        stroke: transparent;
+    &.sliders-ramp {
+      path {
+        fill: var(--color-controlpanel-ramp-slider);
+      }
+
+      line:not(.slider-click-target) {
+        stroke: var(--color-controlpanel-ramp-slider);
+      }
+    }
+
+    &.sliders-isovalue {
+      path {
+        fill: var(--color-controlpanel-isovalue-slider);
+      }
+
+      line:not(.slider-click-target) {
+        stroke: var(--color-controlpanel-isovalue-slider);
       }
     }
   }
