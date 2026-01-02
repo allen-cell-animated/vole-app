@@ -1,7 +1,6 @@
 import type {
   CreateLoaderOptions,
   LoadSpec,
-  PerChannelCallback,
   PrefetchDirection,
   RawArrayLoaderOptions,
   Volume,
@@ -9,6 +8,11 @@ import type {
 } from "@aics/vole-core";
 import { VolumeFileFormat } from "@aics/vole-core";
 import type { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
+
+export type LoadSceneOptions = {
+  onCreateScene?: (volume: Volume, sceneIndex: number) => void;
+  onChannelLoaded?: (volume: Volume, channelIndex: number) => void;
+};
 
 export default class SceneStore {
   context: VolumeLoaderContext;
@@ -48,21 +52,21 @@ export default class SceneStore {
     return loader;
   }
 
-  public async loadScene(
-    scene: number,
-    image: Volume,
-    loadSpec?: LoadSpec,
-    onChannelLoaded?: PerChannelCallback
-  ): Promise<void> {
+  public async loadScene(scene: number, image: Volume, loadSpec?: LoadSpec, options?: LoadSceneOptions): Promise<void> {
     const loader = await this.getLoader(scene);
     const spec = loadSpec ?? image.loadSpecRequired;
 
     image.loader = loader;
     image.imageInfo.imageInfo = (await loader.createImageInfo(spec)).imageInfo;
-    loader.loadVolumeData(image, spec, onChannelLoaded);
+    options?.onCreateScene?.(image, scene);
+    loader.loadVolumeData(image, spec, options?.onChannelLoaded);
   }
 
-  public async createVolume(scene: number, loadSpec: LoadSpec, onChannelLoaded?: PerChannelCallback): Promise<Volume> {
+  public async createVolume(
+    scene: number,
+    loadSpec: LoadSpec,
+    onChannelLoaded?: (volume: Volume, channelIndex: number) => void
+  ): Promise<Volume> {
     const loader = await this.getLoader(scene);
     return loader.createVolume(loadSpec, onChannelLoaded);
   }
