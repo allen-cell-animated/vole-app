@@ -4,20 +4,23 @@ export function isValidUrl(url: string): boolean {
   return url.startsWith("http");
 }
 
-/** Wrapper around `encodeURIComponent` that tries to guess whether the input is already encoded before encoding it. */
-function ensureURIComponentIsEncoded(uriComponent: string): string {
+function isURIComponentEncoded(uriComponent: string): boolean {
   try {
     const decoded = decodeURIComponent(uriComponent);
     // extra regex test for a few reserved characters, to try to catch the case
     // where the URI *contains* encoded query params but is not itself encoded
     if (uriComponent !== decoded && !/\/,\+/.test(uriComponent)) {
-      return uriComponent;
+      return true;
     }
   } catch {
     // noop
   }
+  return false;
+}
 
-  return encodeURIComponent(uriComponent);
+/** Wrapper around `encodeURIComponent` that tries to guess whether the input is already encoded before encoding it. */
+function ensureURIComponentIsEncoded(uriComponent: string): string {
+  return isURIComponentEncoded(uriComponent) ? uriComponent : encodeURIComponent(uriComponent);
 }
 
 export function encodeImageUrlProp(imageUrl: string | MultisceneUrls): string {
