@@ -9,7 +9,7 @@ function isURIComponentEncoded(uriComponent: string): boolean {
     const decoded = decodeURIComponent(uriComponent);
     // extra regex test for a few reserved characters, to try to catch the case
     // where the URI *contains* encoded query params but is not itself encoded
-    return uriComponent !== decoded && !/\/,\+/.test(uriComponent);
+    return uriComponent !== decoded && !/[/,+]/.test(uriComponent);
   } catch {
     return false;
   }
