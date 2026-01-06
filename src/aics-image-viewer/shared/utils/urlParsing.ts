@@ -348,29 +348,33 @@ const decodeURL = (url: string): string => {
   return decodedUrl.endsWith("/") ? decodedUrl.slice(0, -1) : decodedUrl;
 };
 
-/** Try to parse a `string` as a list of 2 or more URLs. Returns `undefined` if the string is not a valid URL list. */
-const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] | undefined => {
-  if (typeof delim === "string" ? !url.includes(delim) : !delim.test(url)) {
-    return undefined;
-  }
+const testDelim = (string: string, delim: string | RegExp): boolean => {
+  return typeof delim === "string" ? string.includes(delim) : delim.test(string);
+};
 
-  const urls = url.split(delim).map((u) => decodeURL(u));
-
-  // Verify that all urls are valid
-  for (const u of urls) {
-    if (!URL.canParse(u)) {
+/**
+ * Tries to parse a string as either a single URL or as a list of multiple substrings.
+ *
+ * Applies `decodeURIComponent`
+ */
+const tryParseEncodedURLList = (url: string, delim: string | RegExp = ","): string[] | undefined => {
+  let decoded = url;
+  while (!testDelim(url, delim) && !URL.canParse(url)) {
+    const nextDecoded = decodeURIComponent(decoded);
+    if (nextDecoded === decoded) {
       return undefined;
     }
+    decoded = nextDecoded;
   }
 
-  return urls;
+  return decoded.split(delim);
 };
 
 export const parseImageUrlParam = (urlParam: string): (string | string[])[] => {
   // split encoded url into a list of one or more scenes...
-  const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
+  const sceneUrls = tryParseEncodedURLList(urlParam, /[+ ]/) ?? [urlParam];
   // ...and each scene into a list of multiple sources, if any.
-  return sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+  return sceneUrls.map((scene) => tryParseEncodedURLList(scene) ?? decodeURL(scene));
 };
 
 //// DATA PARSING //////////////////////
