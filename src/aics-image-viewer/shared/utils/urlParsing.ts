@@ -358,9 +358,7 @@ const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] |
 
   // Verify that all urls are valid
   for (const u of urls) {
-    try {
-      new URL(u);
-    } catch {
+    if (!URL.canParse(u)) {
       return undefined;
     }
   }
