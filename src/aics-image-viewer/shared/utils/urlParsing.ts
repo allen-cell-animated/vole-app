@@ -368,6 +368,13 @@ const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] |
   return urls;
 };
 
+export const parseImageUrlParam = (urlParam: string): (string | string[])[] => {
+  // split encoded url into a list of one or more scenes...
+  const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
+  // ...and each scene into a list of multiple sources, if any.
+  return sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+};
+
 //// DATA PARSING //////////////////////
 
 /**
@@ -1068,10 +1075,7 @@ export async function parseViewerUrlParams(
       // Load from URL
       const getFromStorage = params.storageid !== undefined && params.msgorigin === undefined;
       const urlParam = getFromStorage ? (readStoredScenes(params.storageid!) ?? params.url!) : params.url!;
-      // split encoded url into a list of one or more scenes...
-      const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
-      // ...and each scene into a list of multiple sources, if any.
-      scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+      scenes = parseImageUrlParam(urlParam);
       args.metadata = readStoredMetadata(scenes);
     }
 
