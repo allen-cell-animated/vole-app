@@ -343,6 +343,21 @@ export function getAllowedParams(searchParams: URLSearchParams): AppParams {
   return result;
 }
 
+/**
+ * Applies `decodeURIComponent` over and over until `url` either seems to be a valid `URL` or satisfies `condition`.
+ */
+const decodeURLUntilParseable = (url: string, condition: (url: string) => boolean = () => false): string => {
+  let decoded = url;
+  while (!condition(decoded) && !URL.canParse(decoded)) {
+    const nextDecoded = decodeURIComponent(decoded);
+    if (nextDecoded === decoded) {
+      return decoded;
+    }
+    decoded = nextDecoded;
+  }
+  return decoded;
+};
+
 const decodeURL = (url: string): string => {
   const decodedUrl = decodeURIComponent(url);
   return decodedUrl.endsWith("/") ? decodedUrl.slice(0, -1) : decodedUrl;
@@ -375,6 +390,25 @@ export const parseImageUrlParam = (urlParam: string): (string | string[])[] => {
   const sceneUrls = tryParseEncodedURLList(urlParam, /[+ ]/) ?? [urlParam];
   // ...and each scene into a list of multiple sources, if any.
   return sceneUrls.map((scene) => tryParseEncodedURLList(scene) ?? decodeURL(scene));
+};
+
+export const parseImageURLParam = (urlParam: string): (string | string[])[] => {
+  // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
+  const decodedScenes = decodeURLUntilParseable(urlParam, /[+ ,]/.test);
+  // Split into scene URLs.
+  const sceneUrls = decodedScenes.split(/[+ ]/);
+
+  return sceneUrls.map((scene) => {
+    // Split each scene into multiple sources, if any.
+    const decodedSources = decodeURLUntilParseable(scene, (url) => url.includes(","));
+    const sourceUrls = decodedSources.split(",");
+    if (sourceUrls.length === 1) {
+      return sourceUrls[0];
+    }
+
+    // Try to make sure the source URLs are decoded as well.
+    return sourceUrls.map((source) => decodeURLUntilParseable(source));
+  });
 };
 
 //// DATA PARSING //////////////////////
