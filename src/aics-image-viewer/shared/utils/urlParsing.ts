@@ -361,7 +361,7 @@ const decodeURLUntilParseable = (url: string, condition: (url: string) => boolea
 /** Parses the `url` query param into an array of scene URLs, each of which *may* itself be an array of source URLs. */
 export const parseImageURLParam = (urlParam: string): (string | string[])[] => {
   // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
-  const decodedScenes = decodeURLUntilParseable(urlParam, /[+ ,]/.test);
+  const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
   // Split into scene URLs.
   const sceneUrls = decodedScenes.split(/[+ ]/);
 
