@@ -343,6 +343,15 @@ export function getAllowedParams(searchParams: URLSearchParams): AppParams {
   return result;
 }
 
+/** Tries to retrieve the given `param` from a `search` string without using `URLSearchParams`, to avoid decoding. */
+const getSearchParamRaw = (search: string, param: string): string | undefined => {
+  const trimmedSearch = search.startsWith("?") ? search.slice(1) : search;
+  const entries = trimmedSearch.split("&");
+  const key = param + "=";
+  const foundKeyValue = entries.find((keyValue) => keyValue.startsWith(key));
+  return foundKeyValue?.slice(key.length);
+};
+
 /**
  * Applies `decodeURIComponent` over and over until `url` either seems to be a valid `URL` or satisfies `condition`.
  */
@@ -361,7 +370,7 @@ const decodeURLUntilParseable = (url: string, condition: (url: string) => boolea
 /** Parses the `url` query param into an array of scene URLs, each of which *may* itself be an array of source URLs. */
 export const parseImageURLParam = (urlParam: string): (string | string[])[] => {
   // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
-  const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
+  const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+, ]/.test(url));
   // Split into scene URLs.
   const sceneUrls = decodedScenes.split(/[+ ]/);
 
@@ -1037,7 +1046,7 @@ export async function loadFromManifest(
 
 /**
  * Parses a set of URL search parameters into props for the viewer.
- * @param urlSearchParams The URLSearchParams object to parse.
+ * @param search The URLSearchParams object to parse.
  * @param firestore Optional Firestore instance. If provided, the function can
  * load data from a Firestore dataset if the `dataset` and `id` parameters are
  * provided.
@@ -1049,13 +1058,14 @@ export async function loadFromManifest(
  * can be passed to `ViewerStateProvider`.
  */
 export async function parseViewerUrlParams(
-  urlSearchParams: URLSearchParams,
+  search: string,
   firestore?: FirebaseFirestore
 ): Promise<{
   args: Partial<AppProps>;
   viewerSettings: Partial<ViewerState>;
 }> {
-  const params = getAllowedParams(urlSearchParams);
+  const searchParams = new URLSearchParams(search);
+  const params = getAllowedParams(searchParams);
   let args: Partial<AppProps> = {};
   // Parse viewer state
   const viewerSettings: Partial<ViewerState> = deserializeViewerState(params);
@@ -1076,8 +1086,10 @@ export async function parseViewerUrlParams(
       args.metadata = manifestMetadata ?? undefined;
     } else {
       // Load from URL
-      const getFromStorage = params.storageid !== undefined && params.msgorigin === undefined;
-      const urlParam = getFromStorage ? (readStoredScenes(params.storageid!) ?? params.url!) : params.url!;
+      const { storageid, msgorigin } = params;
+      const getFromStorage = storageid !== undefined && msgorigin === undefined;
+      const urlParamFromStorage = getFromStorage ? readStoredScenes(storageid) : undefined;
+      const urlParam = urlParamFromStorage ?? getSearchParamRaw(search, "url")!;
       scenes = parseImageURLParam(urlParam);
       args.metadata = readStoredMetadata(scenes);
     }

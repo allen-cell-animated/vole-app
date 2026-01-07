@@ -252,7 +252,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
     // Check if the URL used to open the landing page has arguments;
     // if so, assume that this is an old URL intended to go to the viewer.
     // Navigate to the viewer while preserving URL arguments.
-    parseViewerUrlParams(searchParams, props.firestore).then(({ args }) => {
+    parseViewerUrlParams(window.location.search, props.firestore).then(({ args }) => {
       if (Object.keys(args).length > 0) {
         console.log("Detected URL parameters. Redirecting from landing page to viewer.");
         navigation("viewer" + "?" + searchParams.toString(), {
