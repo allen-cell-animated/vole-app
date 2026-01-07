@@ -789,6 +789,49 @@ describe("parseViewerUrlParams", () => {
     expect(channelSettings.channels[2].colorizeEnabled).toEqual(true);
   });
 
+  it("can handle arbitrary levels of URL encoding", async () => {
+    const scenes = [
+      "https://example.com/image1.ome.zarr",
+      ["https://example.com/image2.ome.zarr", "https://example.com/image3.ome.zarr?foo=1%2C2%2C3"],
+    ];
+
+    const encodingPermutationsBase = (url: string): [string, string, string] => {
+      const encodedOnce = encodeURIComponent(url);
+      return [url, encodedOnce, encodeURIComponent(encodedOnce)];
+    };
+
+    interface NestedArray<T> extends Array<T | NestedArray<T>> {}
+    const allEncodingPermutations = (urls: string | NestedArray<string>, delims: string[]): string[] => {
+      if (typeof urls === "string") {
+        return encodingPermutationsBase(urls);
+      }
+
+      const initial = allEncodingPermutations(urls[0], delims.slice(1));
+      const result = urls.slice(1).reduce<string[]>((accum, next) => {
+        const result = [];
+        const nextPermutations = allEncodingPermutations(next, delims.slice(1));
+
+        for (const a of accum) {
+          for (const n of nextPermutations) {
+            result.push(a + delims[0] + n);
+          }
+        }
+
+        return result;
+      }, initial);
+
+      return result.flatMap(encodingPermutationsBase);
+    };
+
+    const encodings = allEncodingPermutations(scenes, ["+", ","]);
+
+    for (const encoding of encodings) {
+      const params = new URLSearchParams(`url=${encoding}`);
+      const { args } = await parseViewerUrlParams(params);
+      expect(args.imageUrl).toEqual({ scenes });
+    }
+  });
+
   it("parses viewer settings", async () => {
     const queryString = "mask=30&view=X";
     const params = new URLSearchParams(queryString);
