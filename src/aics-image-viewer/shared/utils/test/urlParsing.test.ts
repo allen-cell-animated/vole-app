@@ -782,40 +782,44 @@ describe("parseViewerUrlParams", () => {
   });
 
   it("can handle arbitrary levels of URL encoding", async () => {
+    // GOAL: no matter how, where, or how many times URL encoding is applied when concatenating
+    // these scene URLs into one param, they should decode back to the same URLs.
     const scenes = [
       "https://example.com/image1.ome.zarr",
       ["https://example.com/image2.ome.zarr", "https://example.com/image3.ome.zarr?foo=1%2C2%2C3"],
     ];
 
-    const encodingPermutationsBase = (url: string): [string, string, string] => {
-      const encodedOnce = encodeURIComponent(url);
-      return [url, encodedOnce, encodeURIComponent(encodedOnce)];
-    };
-
+    // Recursively generate combinations of encoded and unencoded URLs
     interface NestedArray<T> extends Array<T | NestedArray<T>> {}
-    const allEncodingPermutations = (urls: string | NestedArray<string>, delims: string[]): string[] => {
+    const allEncodingCombindations = (urls: string | NestedArray<string>, delims: string[]): string[] => {
+      // BASE CASE: generate an unencoded and encoded variant of a single URL
       if (typeof urls === "string") {
-        return encodingPermutationsBase(urls);
+        return [urls, encodeURIComponent(urls)];
       }
 
-      const initial = allEncodingPermutations(urls[0], delims.slice(1));
-      const result = urls.slice(1).reduce<string[]>((accum, next) => {
-        const result = [];
-        const nextPermutations = allEncodingPermutations(next, delims.slice(1));
+      // Recursively generate combinations for all array elements
+      const nextDelims = delims.slice(1);
+      const encoded = urls.map((url) => allEncodingCombindations(url, nextDelims));
 
+      // Concatenate those together in all possible combinations
+      const combined = encoded.reduce((accum, next) => {
+        const result = [];
         for (const a of accum) {
-          for (const n of nextPermutations) {
+          for (const n of next) {
             result.push(a + delims[0] + n);
           }
         }
-
         return result;
-      }, initial);
+      });
 
-      return result.flatMap(encodingPermutationsBase);
+      // Generate unencoded, encoded, and double-encoded variants of all those concatenated strings
+      return combined.flatMap((url) => {
+        const encodedOnce = encodeURIComponent(url);
+        return [url, encodedOnce, encodeURIComponent(encodedOnce)];
+      });
     };
 
-    const encodings = allEncodingPermutations(scenes, ["+", ","]);
+    const encodings = allEncodingCombindations(scenes, ["+", ","]);
 
     for (const encoding of encodings) {
       const { args } = await parseViewerUrlParams(`url=${encoding}`);
