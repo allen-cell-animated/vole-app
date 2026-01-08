@@ -358,11 +358,15 @@ const getSearchParamRaw = (search: string, param: string): string | undefined =>
 const decodeURLUntilParseable = (url: string, condition: (url: string) => boolean = () => false): string => {
   let decoded = url;
   while (!condition(decoded) && !URL.canParse(decoded)) {
-    const nextDecoded = decodeURIComponent(decoded);
-    if (nextDecoded === decoded) {
+    try {
+      const nextDecoded = decodeURIComponent(decoded);
+      if (nextDecoded === decoded) {
+        return decoded;
+      }
+      decoded = nextDecoded;
+    } catch {
       return decoded;
     }
-    decoded = nextDecoded;
   }
   return decoded;
 };
@@ -370,7 +374,7 @@ const decodeURLUntilParseable = (url: string, condition: (url: string) => boolea
 /** Parses the `url` query param into an array of scene URLs, each of which *may* itself be an array of source URLs. */
 export const parseImageURLParam = (urlParam: string): (string | string[])[] => {
   // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
-  const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+, ]/.test(url));
+  const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
   // Split into scene URLs.
   const sceneUrls = decodedScenes.split(/[+ ]/);
 
@@ -1046,16 +1050,14 @@ export async function loadFromManifest(
 
 /**
  * Parses a set of URL search parameters into props for the viewer.
- * @param search The URLSearchParams object to parse.
- * @param firestore Optional Firestore instance. If provided, the function can
- * load data from a Firestore dataset if the `dataset` and `id` parameters are
- * provided.
+ * @param search The query string to parse, which must be valid in the `URLSearchParams constructor
+ * @param firestore Optional Firestore instance. If provided, the function can load data from a
+ * Firestore dataset if the `dataset` and `id` parameters are provided.
  * @returns An object containing:
  * - `args`: Partial AppProps object.
  * - `viewerSettings`: Partial ViewerState object.
  *
- * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings`
- * can be passed to `ViewerStateProvider`.
+ * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings`  can be passed to `ViewerStateProvider`.
  */
 export async function parseViewerUrlParams(
   search: string,
