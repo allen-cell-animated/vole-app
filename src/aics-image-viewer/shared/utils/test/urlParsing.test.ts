@@ -791,7 +791,7 @@ describe("parseViewerUrlParams", () => {
 
     // Recursively generate combinations of encoded and unencoded URLs
     interface NestedArray<T> extends Array<T | NestedArray<T>> {}
-    const allEncodingCombindations = (urls: string | NestedArray<string>, delims: string[]): string[] => {
+    const allEncodingCombinations = (urls: string | NestedArray<string>, delims: string[]): string[] => {
       // BASE CASE: generate an unencoded and encoded variant of a single URL
       if (typeof urls === "string") {
         return [urls, encodeURIComponent(urls)];
@@ -799,7 +799,7 @@ describe("parseViewerUrlParams", () => {
 
       // Recursively generate combinations for all array elements
       const nextDelims = delims.slice(1);
-      const encoded = urls.map((url) => allEncodingCombindations(url, nextDelims));
+      const encoded = urls.map((url) => allEncodingCombinations(url, nextDelims));
 
       // Concatenate those together in all possible combinations
       const combined = encoded.reduce((accum, next) => {
@@ -819,7 +819,7 @@ describe("parseViewerUrlParams", () => {
       });
     };
 
-    const encodings = allEncodingCombindations(scenes, ["+", ","]);
+    const encodings = allEncodingCombinations(scenes, ["+", ","]);
 
     for (const encoding of encodings) {
       const { args } = await parseViewerUrlParams(`url=${encoding}`);
