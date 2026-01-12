@@ -1057,7 +1057,7 @@ export async function loadFromManifest(
  * - `args`: Partial AppProps object.
  * - `viewerSettings`: Partial ViewerState object.
  *
- * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings`  can be passed to `ViewerStateProvider`.
+ * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings` can be passed to `ViewerStateProvider`.
  */
 export async function parseViewerUrlParams(
   search: string,
