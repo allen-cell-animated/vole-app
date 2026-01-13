@@ -567,7 +567,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
           </Button>
         </Tooltip>
         {!props.useControlPoints && (
-          <div className="tf-editor-control-row">
+          <div className="levels-row">
             Levels min/max
             <InputNumber
               value={props.ramp[0]}
