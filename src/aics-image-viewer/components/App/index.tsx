@@ -202,7 +202,7 @@ const App: React.FC<AppProps> = (props) => {
       const { channelSettings: channelState } = useViewerState.getState();
       const { channelNames } = newImage;
       channelRangesRef.current = channelNames.map((_, i) => {
-        return channelState[i]?.keepIntensityOnNewVolume ? channelRangesRef.current[i] : undefined;
+        return channelState[i]?.keepIntensityRange ? channelRangesRef.current[i] : undefined;
       });
 
       const { useDefaultViewerChannelSettings } = useViewerState.getState();
@@ -277,7 +277,7 @@ const App: React.FC<AppProps> = (props) => {
       const noLut = !channelState || !channelState.controlPoints || !channelState.ramp;
 
       const hasOldRange = channelRangesRef.current[channelIndex] !== undefined;
-      const initializeToExistingRange = channelState && channelState.keepIntensityOnNewVolume && hasOldRange;
+      const initializeToExistingRange = channelState && channelState.keepIntensityRange && hasOldRange;
       const initializeToDefaults = isInitialLoad && !initializeToExistingRange;
 
       if (initializeToDefaults || noLut || channelsToResetOnLoad.includes(channelIndex)) {

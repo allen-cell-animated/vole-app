@@ -65,7 +65,7 @@ type TfEditorProps = {
   ramp: [number, number];
   plotMin: number;
   plotMax: number;
-  keepIntensityOnNewVolume: boolean;
+  keepIntensityRange: boolean;
 };
 
 const TF_GENERATORS: Record<string, (histogram: Histogram) => Lut> = {
@@ -556,16 +556,14 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
       {/* ----- MIN/MAX SPINBOXES ----- */}
       <div className="tf-editor-control-row ramp-row">
         <Tooltip
-          title={`${props.keepIntensityOnNewVolume ? "Do not keep" : "Keep"} intensity threshold values when switching volumes.`}
+          title={`${props.keepIntensityRange ? "Do not keep" : "Keep"} intensity threshold values when switching volumes.`}
         >
           <Button
-            onClick={() => props.changeChannelSetting({ keepIntensityOnNewVolume: !props.keepIntensityOnNewVolume })}
+            onClick={() => props.changeChannelSetting({ keepIntensityRange: !props.keepIntensityRange })}
             style={{ height: 24, padding: "0 4px" }}
-            type={props.keepIntensityOnNewVolume ? "default" : "text"}
+            type={props.keepIntensityRange ? "default" : "text"}
           >
-            <span style={{ margin: 0 }}>
-              {props.keepIntensityOnNewVolume ? <PushpinFilled /> : <PushpinOutlined />}
-            </span>
+            <span style={{ margin: 0 }}>{props.keepIntensityRange ? <PushpinFilled /> : <PushpinOutlined />}</span>
           </Button>
         </Tooltip>
         {!props.useControlPoints && (
