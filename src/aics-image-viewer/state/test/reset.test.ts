@@ -45,6 +45,7 @@ const arbitraryChannelState = (): ChannelState => ({
   ],
   plotMin: 50,
   plotMax: 85,
+  keepIntensityRange: true,
 });
 
 const multipleArbitraryChannels = (): ChannelState[] => [
@@ -89,7 +90,7 @@ describe("reset state", () => {
     });
 
     it("resets most properties to their defaults", () => {
-      useViewerState.getState().initChannelSettings(multipleArbitraryChannels());
+      useViewerState.getState().replaceAllChannelSettings(multipleArbitraryChannels());
       useViewerState.getState().resetToDefaultViewerState();
 
       useViewerState.getState().channelSettings.forEach((channel, index) => {
@@ -99,7 +100,7 @@ describe("reset state", () => {
 
     it("preserves each channel's original names and transfer function configs", () => {
       const arbitraryChannels = multipleArbitraryChannels();
-      useViewerState.getState().initChannelSettings(arbitraryChannels);
+      useViewerState.getState().replaceAllChannelSettings(arbitraryChannels);
       useViewerState.getState().resetToDefaultViewerState();
 
       useViewerState.getState().channelSettings.forEach((channel, index) => {
@@ -114,7 +115,7 @@ describe("reset state", () => {
     });
 
     it("sets only the first three channels to have volumes enabled", () => {
-      useViewerState.getState().initChannelSettings(multipleArbitraryChannels());
+      useViewerState.getState().replaceAllChannelSettings(multipleArbitraryChannels());
       useViewerState.getState().resetToDefaultViewerState();
 
       const { channelSettings } = useViewerState.getState();
@@ -178,7 +179,7 @@ describe("reset state", () => {
       };
 
       const arbitraryChannels = multipleArbitraryChannels();
-      useViewerState.getState().initChannelSettings(arbitraryChannels);
+      useViewerState.getState().replaceAllChannelSettings(arbitraryChannels);
       useViewerState.getState().resetToSavedViewerState({}, viewerChannelSettings);
       const { channelSettings } = useViewerState.getState();
 

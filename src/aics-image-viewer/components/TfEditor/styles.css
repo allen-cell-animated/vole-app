@@ -34,6 +34,16 @@
 
     &.ramp-row {
       margin-top: 15px;
+      margin-right: 5px;
+      justify-content: space-between;
+      align-content: flex-end;
+      flex-direction: row-reverse;
+
+      & .levels-row {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
     }
 
     &.plot-range-row {

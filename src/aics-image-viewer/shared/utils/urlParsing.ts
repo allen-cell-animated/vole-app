@@ -131,6 +131,7 @@ export enum ViewerChannelSettingKeys {
   VolumeEnabled = "ven",
   SurfaceEnabled = "sen",
   IsosurfaceValue = "isv",
+  KeepRange = "pin",
 }
 
 /**
@@ -215,6 +216,11 @@ export class ViewerChannelSettingParams {
   [ViewerChannelSettingKeys.SurfaceEnabled]?: "1" | "0" = undefined;
   /** Isosurface value, in the [0, 255] range. Set to `128` by default. */
   [ViewerChannelSettingKeys.IsosurfaceValue]?: string = undefined;
+  /**
+   * Whether to keep the current contrast settings when loading a new volume.
+   * "1" is enabled. Disabled by default.
+   */
+  [ViewerChannelSettingKeys.KeepRange]?: "1" | "0" = undefined;
 }
 /**
  * Channels, matching the pattern `c0`, `c1`, etc. corresponding to the index of the channel being configured.
@@ -723,7 +729,8 @@ export function deserializeViewerChannelSetting(
     match: channelIndex,
     enabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
     surfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
-    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], 0, 255),
+    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(jsonState[ViewerChannelSettingKeys.KeepRange]),
     surfaceOpacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
     colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
     colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
@@ -789,6 +796,7 @@ export function serializeViewerChannelSetting(
       channelSetting.controlPoints && serializeControlPoints(channelSetting.controlPoints),
     [ViewerChannelSettingKeys.ControlPointsEnabled]: serializeBoolean(channelSetting.useControlPoints),
     [ViewerChannelSettingKeys.Ramp]: channelSetting.ramp?.join(":"),
+    [ViewerChannelSettingKeys.KeepRange]: serializeBoolean(channelSetting.keepIntensityRange),
     // Note that Lut is not saved here, as it is expected as user input and is redundant with
     // the control points and ramp.
   });
