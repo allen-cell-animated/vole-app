@@ -277,10 +277,12 @@ const App: React.FC<AppProps> = (props) => {
       const noLut = !channelState || !channelState.controlPoints || !channelState.ramp;
 
       const hasOldRange = channelRangesRef.current[channelIndex] !== undefined;
-      const initializeToExistingRange = channelState && channelState.keepIntensityRange && hasOldRange;
-      const initializeToDefaults = isInitialLoad && !initializeToExistingRange;
+      const canInitializeToExistingRange = channelState?.keepIntensityRange && hasOldRange;
+      // True if we are loading new data and the old range cannot or should not
+      // be kept (no saved range or keeping intensities is disabled).
+      const needsInitializeToDefaults = isInitialLoad && !canInitializeToExistingRange;
 
-      if (initializeToDefaults || noLut || channelsToResetOnLoad.includes(channelIndex)) {
+      if (needsInitializeToDefaults || noLut || channelsToResetOnLoad.includes(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, viewerChannelSettings);
 
