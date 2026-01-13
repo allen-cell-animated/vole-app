@@ -45,7 +45,7 @@ const arbitraryChannelState = (): ChannelState => ({
   ],
   plotMin: 50,
   plotMax: 85,
-  keepIntensityOnNewVolume: true,
+  keepIntensityRange: true,
 });
 
 const multipleArbitraryChannels = (): ChannelState[] => [

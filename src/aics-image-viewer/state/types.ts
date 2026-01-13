@@ -50,5 +50,5 @@ export type ChannelState = {
    * If true, when a new volume is loaded, keeps the current intensity values
    * (ramp, control points, and isovalue) instead of reinitializing them.
    */
-  keepIntensityOnNewVolume: boolean;
+  keepIntensityRange: boolean;
 };

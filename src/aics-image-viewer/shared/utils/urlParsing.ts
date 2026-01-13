@@ -796,7 +796,7 @@ export function serializeViewerChannelSetting(
       channelSetting.controlPoints && serializeControlPoints(channelSetting.controlPoints),
     [ViewerChannelSettingKeys.ControlPointsEnabled]: serializeBoolean(channelSetting.useControlPoints),
     [ViewerChannelSettingKeys.Ramp]: channelSetting.ramp?.join(":"),
-    [ViewerChannelSettingKeys.KeepRange]: serializeBoolean(channelSetting.keepIntensityOnNewVolume),
+    [ViewerChannelSettingKeys.KeepRange]: serializeBoolean(channelSetting.keepIntensityRange),
     // Note that Lut is not saved here, as it is expected as user input and is redundant with
     // the control points and ramp.
   });
