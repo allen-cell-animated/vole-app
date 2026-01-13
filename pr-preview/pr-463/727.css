@@ -758,6 +758,12 @@
       flex-direction:row-reverse;
     }
 
+.channel-row .tf-editor-control-row.ramp-row .levels-row{
+        display:flex;
+        align-items:center;
+        gap:5px;
+      }
+
 .channel-row .tf-editor-control-row.plot-range-row{
       margin-bottom:20px;
     }
