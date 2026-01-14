@@ -26,7 +26,7 @@ interface ControlPanelProps
       colorPresetsDropdown: boolean;
       metadataViewer: boolean;
     };
-  getMetadata: () => MetadataRecord;
+  metadata: MetadataRecord;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
   resetToDefaultViewerState: () => void;
@@ -168,7 +168,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
               />
             )}
             {tab === ControlTab.Advanced && renderAdvancedSettings()}
-            {tab === ControlTab.Metadata && <MetadataViewer metadata={props.getMetadata()} />}
+            {tab === ControlTab.Metadata && <MetadataViewer metadata={props.metadata} />}
           </div>
         )}
       </div>
