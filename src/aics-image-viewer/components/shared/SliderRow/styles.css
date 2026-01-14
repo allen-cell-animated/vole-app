@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   margin-right: 10px;
+  gap: 5px;
 
   &:not(:last-child) {
     margin-bottom: 20px;
