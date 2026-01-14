@@ -5,6 +5,8 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ImageViewerApp, parseViewerUrlParams, type ViewerState, ViewerStateProvider } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import { writeMetadata, writeScenes } from "../../src/aics-image-viewer/shared/utils/storage";
+import { addViewerParamsFromMessage } from "../../src/aics-image-viewer/shared/utils/urlParsing";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -14,6 +16,9 @@ import Header, { HEADER_HEIGHT_PX } from "./Header";
 import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";
 import ShareModal from "./Modals/ShareModal";
+
+const MSG_ORIGIN_PARAM = "msgorigin";
+const STORAGE_ID_PARAM = "storageid";
 
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
@@ -39,24 +44,75 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
   const [viewerSettings, setViewerSettings] = useState<Partial<ViewerState>>({});
   const [viewerProps, setViewerProps] = useState<AppDataProps | null>(null);
   const [imageTitle, setImageTitle] = useState<string | undefined>(undefined);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [errorAlert, showErrorAlert] = useErrorAlert();
 
   useEffect(() => {
     // On load, fetch parameters from the URL and location state, then merge.
     const locationArgs = location.state as AppDataProps;
-    parseViewerUrlParams(searchParams, props.firestore).then(
-      ({ args: urlArgs, viewerSettings: urlViewerSettings }) => {
-        setViewerSettings({ ...urlViewerSettings, ...locationArgs?.viewerSettings });
-        setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs, ...locationArgs });
-      },
-      (reason) => {
+    let ignore = false;
+
+    const getViewerStateFromSearchParams = async (): Promise<void> => {
+      try {
+        const urlArgs = await parseViewerUrlParams(searchParams, props.firestore);
+        if (ignore) return;
+        setViewerSettings({ ...urlArgs.viewerSettings, ...locationArgs?.viewerSettings });
+        setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs.args, ...locationArgs });
+      } catch (reason) {
+        if (ignore) return;
         showErrorAlert("Failed to parse URL parameters: " + reason);
         setViewerSettings({});
         setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
-    );
-  }, [location.state, searchParams, showErrorAlert, props.firestore]);
+    };
+
+    // Handle the opening window wanting to send more data via a message
+    const storageid = searchParams.get(STORAGE_ID_PARAM);
+    const msgorigin = searchParams.get(MSG_ORIGIN_PARAM);
+
+    if (storageid && msgorigin) {
+      const receiveMessage = (event: MessageEvent): void => {
+        if (event.origin !== msgorigin) {
+          return;
+        }
+
+        if (event.data.meta !== undefined) {
+          writeMetadata(event.data.meta);
+        }
+
+        if (event.data.scenes !== undefined) {
+          writeScenes(storageid, encodeImageUrlProp(event.data));
+        }
+
+        if (event.data.sceneIndex !== undefined) {
+          setViewerSettings((currentSettings) => ({ ...currentSettings, scene: event.data.sceneIndex }));
+          searchParams.set("scene", event.data.sceneIndex);
+        }
+
+        setViewerProps((currentProps) => {
+          if (currentProps === null) {
+            return null;
+          }
+          return addViewerParamsFromMessage(currentProps, event.data);
+        });
+
+        searchParams.delete(MSG_ORIGIN_PARAM);
+        setSearchParams(searchParams, { replace: true });
+
+        window.removeEventListener("message", receiveMessage);
+      };
+
+      window.addEventListener("message", receiveMessage);
+      window.setTimeout(() => window.removeEventListener("message", receiveMessage), 60000);
+      // Sending back `storageid` lets the opening window know we're ready to receive more data
+      (window.opener as Window | null)?.postMessage(storageid, msgorigin);
+    }
+
+    getViewerStateFromSearchParams();
+    return () => {
+      ignore = true;
+    };
+  }, [location.state, searchParams, setSearchParams, showErrorAlert, props.firestore]);
 
   // TODO: Disabled for now, since it only makes sense for Zarr/OME-tiff URLs. Checking for
   // validity may be more complex. (Also, we could add a callback to `ImageViewerApp` for successful
