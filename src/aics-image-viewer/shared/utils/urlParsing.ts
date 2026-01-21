@@ -355,7 +355,7 @@ const getSearchParamRaw = (search: string, param: string): string | undefined =>
 /**
  * Applies `decodeURIComponent` over and over until `url` either seems to be a valid `URL` or satisfies `condition`.
  */
-const decodeURLUntilParseable = (url: string, condition: (url: string) => boolean = () => false): string => {
+const decodeURLUntilParseable = (url: string, condition = (_url: string) => false): string => {
   let decoded = url;
   while (!condition(decoded) && !URL.canParse(decoded)) {
     try {
@@ -372,7 +372,7 @@ const decodeURLUntilParseable = (url: string, condition: (url: string) => boolea
 };
 
 /** Parses the `url` query param into an array of scene URLs, each of which *may* itself be an array of source URLs. */
-export const parseImageURLParam = (urlParam: string): (string | string[])[] => {
+export const parseImageURLParam = (urlParam: string): string[][] => {
   // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
   const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
   // Split into scene URLs.
@@ -383,7 +383,7 @@ export const parseImageURLParam = (urlParam: string): (string | string[])[] => {
     const decodedSources = decodeURLUntilParseable(scene, (url) => url.includes(","));
     const sourceUrls = decodedSources.split(",");
     if (sourceUrls.length === 1) {
-      return sourceUrls[0];
+      return sourceUrls;
     }
 
     // Try to make sure the source URLs are decoded as well.
