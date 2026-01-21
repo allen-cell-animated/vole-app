@@ -5,7 +5,8 @@ import React, { useCallback, useState } from "react";
 
 import type { IsosurfaceFormat } from "../../shared/types";
 import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
-import type { ChannelSettingUpdater, ChannelState, SingleChannelSettingUpdater } from "../ViewerStateProvider/types";
+import { select, useViewerState } from "../../state/store";
+import type { ChannelState } from "../../state/types";
 
 import ColorPicker from "../ColorPicker";
 import ViewerIcon from "../shared/ViewerIcon";
@@ -16,21 +17,21 @@ import "./styles.css";
 interface ChannelsWidgetRowProps {
   index: number;
   name: string;
-  channelState: ChannelState;
   channelDataForChannel: Channel;
-
-  changeChannelSetting: ChannelSettingUpdater;
 
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
 }
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
-  const { index, changeChannelSetting, saveIsosurface, channelState } = props;
+  const { index, saveIsosurface } = props;
   const [controlsOpen, setControlsOpen] = useState(false);
 
-  const changeSettingForThisChannel = useCallback<SingleChannelSettingUpdater>(
-    (value) => changeChannelSetting(index, value),
+  const changeChannelSetting = useViewerState(select("changeChannelSetting"));
+  const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
+
+  const changeSettingForThisChannel = useCallback(
+    (value: Partial<ChannelState>) => changeChannelSetting(index, value),
     [changeChannelSetting, index]
   );
 
@@ -49,7 +50,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
 
   const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
     const color = colorObjectToArray(newRGB);
-    props.changeChannelSetting(index!, { color: color });
+    changeChannelSetting(index!, { color: color });
   };
 
   const createColorPicker = (): React.ReactNode => (
