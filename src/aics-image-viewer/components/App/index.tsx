@@ -249,7 +249,6 @@ const App: React.FC<AppProps> = (props) => {
         }),
       });
 
-      onImageTitleChange?.(newImage.imageInfo.imageInfo.name);
       view3d.updateActiveChannels(newImage);
       const unsubscribeView = subscribeViewToState(useViewerState, view3d);
       const unsubscribeImage = subscribeImageToState(useViewerState, view3d, newImage);
@@ -260,7 +259,16 @@ const App: React.FC<AppProps> = (props) => {
         removePreviousImage.current = undefined;
       };
     },
-    [props.viewerChannelSettings, view3d, onImageTitleChange, changeChannelSetting]
+    [props.viewerChannelSettings, view3d, changeChannelSetting]
+  );
+
+  const [loadedScene, setLoadedScene] = useState<number | undefined>(undefined);
+  const onChangeScene = useCallback(
+    (image: Volume, sceneIndex: number) => {
+      onImageTitleChange?.(image.imageInfo.imageInfo.name);
+      setLoadedScene(sceneIndex);
+    },
+    [onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(
@@ -342,6 +350,7 @@ const App: React.FC<AppProps> = (props) => {
     viewerChannelSettings: props.viewerChannelSettings,
     onCreateImage,
     onChannelLoaded,
+    onChangeScene,
     onError,
     maskChannelName,
   });
@@ -379,23 +388,24 @@ const App: React.FC<AppProps> = (props) => {
     });
   }, [view3d]);
 
-  const { metadata, metadataFormatter } = props;
-  const getMetadata = useCallback((): MetadataRecord => {
+  const { metadataFormatter } = props;
+  const metadata = useMemo((): MetadataRecord => {
     let imageMetadata = image?.imageMetadata as MetadataRecord;
     if (imageMetadata && metadataFormatter) {
       imageMetadata = metadataFormatter(imageMetadata);
     }
+    const propsMetadata = props.metadata;
 
     let sceneMeta: MetadataRecord | undefined;
-    if (Array.isArray(metadata)) {
+    if (Array.isArray(propsMetadata)) {
       // If metadata is an array, try to index it by scene
-      if (metadata.length >= numScenes) {
-        sceneMeta = metadata[scene];
+      if (propsMetadata.length >= numScenes && loadedScene !== undefined) {
+        sceneMeta = propsMetadata[loadedScene];
       } else {
-        sceneMeta = metadata[0];
+        sceneMeta = propsMetadata[0];
       }
     } else {
-      sceneMeta = metadata;
+      sceneMeta = propsMetadata;
     }
 
     if (imageMetadata && Object.keys(imageMetadata).length > 0) {
@@ -403,7 +413,7 @@ const App: React.FC<AppProps> = (props) => {
     } else {
       return sceneMeta ?? {};
     }
-  }, [metadata, metadataFormatter, image, numScenes, scene]);
+  }, [props.metadata, metadataFormatter, image, loadedScene, numScenes]);
 
   useEffect((): void => {
     const hasTime = numTimesteps > 1;
@@ -556,7 +566,7 @@ const App: React.FC<AppProps> = (props) => {
             saveIsosurface={saveIsosurface}
             onApplyColorPresets={applyColorPresets}
             viewerChannelSettings={props.viewerChannelSettings}
-            getMetadata={getMetadata}
+            metadata={metadata}
           />
         </Sider>
         <Layout className="cell-viewer-wrapper" style={{ margin: props.canvasMargin }}>

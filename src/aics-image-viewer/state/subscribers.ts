@@ -124,7 +124,7 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
     // bounding box color
     store.subscribe(
       select("boundingBoxColor"),
-      (boundingBoxColor) => view3d.setBoundingBoxColor(image, boundingBoxColor),
+      (boundingBoxColor) => view3d.setBoundingBoxColor(image, colorArrayToFloats(boundingBoxColor)),
       REF_EQ
     ),
 

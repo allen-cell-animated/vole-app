@@ -23,8 +23,10 @@ import type { ChannelState } from "../state/types";
 
 export type UseVolumeOptions = {
   viewerChannelSettings?: ViewerChannelSettings;
-  /** Callback for when the volume is created. */
+  /** Callback called just once when the volume is created. */
   onCreateImage?: (image: Volume) => void;
+  /** Callback called on any scene change, including the initial image load. */
+  onChangeScene?: (image: Volume, sceneIndex: number) => void;
   /** Callback for when a single channel of the volume has loaded. */
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
@@ -108,6 +110,7 @@ const useVolume = (
 
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
+  const onChangeSceneRef = useEffectEventRef(options?.onChangeScene);
   const onCreateImageRef = useEffectEventRef(options?.onCreateImage);
   const maskChannelName = options?.maskChannelName;
 
@@ -307,7 +310,8 @@ const useVolume = (
 
       // initiate loading only after setting up new channel settings,
       // in case the loader callback fires before the state is set
-      sceneLoader.loadScene(scene, aimg, requiredLoadSpec).catch(onError);
+      const onCreateScene = onChangeSceneRef.current;
+      sceneLoader.loadScene(scene, aimg, requiredLoadSpec, { onCreateScene }).catch(onError);
     };
 
     openImage();
@@ -315,6 +319,7 @@ const useVolume = (
     sceneLoader,
     onError,
     onCreateImageRef,
+    onChangeSceneRef,
     onChannelLoadedRef,
     channelVersionsRef,
     setChannelVersions,
@@ -330,21 +335,22 @@ const useVolume = (
   const setTime = useCallback(
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
-        view3d.setTime(image, time, onChannelDataLoaded).catch(onError);
+        view3d.setTime(image, time).catch(onError);
         setIsLoading(LoadType.TIME);
       }
     },
-    [image, onError, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
+    [image, onError, setIsLoading, inInitialLoadRef]
   );
 
   const setScene = useCallback(
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
-        sceneLoader.loadScene(scene, image, undefined, onChannelDataLoaded).catch(onError);
+        const onCreateScene = onChangeSceneRef.current;
+        sceneLoader.loadScene(scene, image, undefined, { onCreateScene }).catch(onError);
         setIsLoading(LoadType.SCENE);
       }
     },
-    [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChannelDataLoaded]
+    [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChangeSceneRef]
   );
 
   return useMemo(
