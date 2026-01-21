@@ -371,7 +371,7 @@ const decodeURLUntilParseable = (url: string, condition = (_url: string) => fals
   return decoded;
 };
 
-/** Parses the `url` query param into an array of scene URLs, each of which *may* itself be an array of source URLs. */
+/** Parses the `url` query param into a 2D URL array: one or more scenes, with one or more sources per scene. */
 export const parseImageURLParam = (urlParam: string): string[][] => {
   // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
   const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
