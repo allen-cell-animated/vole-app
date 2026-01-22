@@ -785,7 +785,7 @@ describe("parseViewerUrlParams", () => {
     // GOAL: no matter how, where, or how many times URL encoding is applied when concatenating
     // these scene URLs into one param, they should decode back to the same URLs.
     const scenes = [
-      "https://example.com/image1.ome.zarr",
+      ["https://example.com/image1.ome.zarr"],
       ["https://example.com/image2.ome.zarr", "https://example.com/image3.ome.zarr?foo=1%2C2%2C3"],
     ];
 
