@@ -14,7 +14,7 @@ export type ViewerStateActions = {
     index: number | number[],
     value: Partial<Record<K, ChannelState[K]>>
   ) => void;
-  initChannelSettings: (channelSettings: ChannelState[]) => void;
+  replaceAllChannelSettings: (channelSettings: ChannelState[]) => void;
   applyColorPresets: (colors: ColorArray[]) => void;
 };
 
@@ -42,7 +42,7 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set, ...etc) => ({
     }));
   },
 
-  initChannelSettings: (channelSettings) => set({ channelSettings }),
+  replaceAllChannelSettings: (channelSettings) => set({ channelSettings }),
 
   applyColorPresets: (colors) => {
     set(({ channelSettings }) => ({

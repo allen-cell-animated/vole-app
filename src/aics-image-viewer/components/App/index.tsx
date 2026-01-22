@@ -20,6 +20,7 @@ import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
+import type { ViewerState } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
@@ -132,6 +133,19 @@ const App: React.FC<AppProps> = (props) => {
     [resetToSavedState, props.viewerSettings, props.viewerChannelSettings]
   );
 
+  // Apply viewer settings to state that have changed since the last prop
+  const prevViewerSettingsPropsRef = useRef<Partial<ViewerState> | undefined>();
+  if (props.viewerSettings && !isEqual(props.viewerSettings, prevViewerSettingsPropsRef.current)) {
+    for (const key of Object.keys(props.viewerSettings) as (keyof ViewerState)[]) {
+      const value = props.viewerSettings[key];
+      const lastValue = prevViewerSettingsPropsRef.current?.[key] ?? undefined;
+      if (value !== undefined && !isEqual(value, lastValue)) {
+        useViewerState.getState().changeViewerSetting(key, value);
+      }
+    }
+    prevViewerSettingsPropsRef.current = props.viewerSettings;
+  }
+
   const view3d = useConstructor(() => new View3d());
   if (props.view3dRef !== undefined) {
     props.view3dRef.current = view3d;
@@ -185,10 +199,13 @@ const App: React.FC<AppProps> = (props) => {
         return;
       }
 
+      const { channelSettings: channelState } = useViewerState.getState();
       const { channelNames } = newImage;
-      channelRangesRef.current = new Array(channelNames.length).fill(undefined);
+      channelRangesRef.current = channelNames.map((_, i) => {
+        return channelState[i]?.keepIntensityRange ? channelRangesRef.current[i] : undefined;
+      });
 
-      const { channelSettings, useDefaultViewerChannelSettings } = useViewerState.getState();
+      const { useDefaultViewerChannelSettings } = useViewerState.getState();
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
@@ -218,7 +235,7 @@ const App: React.FC<AppProps> = (props) => {
         // Immediately passing down channel parameters isn't strictly necessary, but keeps things looking consistent on load
         channels: newImage.channelNames.map((name, index) => {
           // TODO do we really need to be searching by name here?
-          const ch = channelSettings.find((channel) => channel.name === name);
+          const ch = channelState.find((channel) => channel.name === name);
           if (!ch) {
             return {};
           }
@@ -256,19 +273,32 @@ const App: React.FC<AppProps> = (props) => {
 
   const onChannelLoaded = useCallback(
     (image: Volume, channelIndex: number, isInitialLoad: boolean): void => {
-      // TODO this was once a search by name - is that still necessary or will the index always be correct?
-      const thisChannelSettings = channelSettings[channelIndex];
-      const viewerState = useViewerState.getState();
-      const { channelsToResetOnLoad, useDefaultViewerChannelSettings } = viewerState;
+      // TODO this was once a search by name - is that still necessary or will
+      // the index always be correct?
+      const { channelsToResetOnLoad, useDefaultViewerChannelSettings, channelSettings } = useViewerState.getState();
+      const channelState = channelSettings[channelIndex];
+
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : props.viewerChannelSettings;
       const thisChannel = image.getChannel(channelIndex);
-      const noLut = !thisChannelSettings || !thisChannelSettings.controlPoints || !thisChannelSettings.ramp;
+      const noLut = !channelState || !channelState.controlPoints || !channelState.ramp;
 
-      if (isInitialLoad || noLut || channelsToResetOnLoad.includes(channelIndex)) {
+      const hasOldRange = channelRangesRef.current[channelIndex] !== undefined;
+      const canInitializeToExistingRange = channelState?.keepIntensityRange && hasOldRange;
+      // True if we are loading new data and the old range cannot or should not
+      // be kept (no saved range or keeping intensities is disabled).
+      const needsInitializeToDefaults = isInitialLoad && !canInitializeToExistingRange;
+
+      if (needsInitializeToDefaults || noLut || channelsToResetOnLoad.includes(channelIndex)) {
         // This channel needs its LUT initialized
         const { ramp, controlPoints } = initializeLut(image, channelIndex, viewerChannelSettings);
+
+        // Initialize isovalue to channel settings or default to midpoint of data range
+        const name = image.channelNames[channelIndex];
+        const initSettings = viewerChannelSettings && findFirstChannelMatch(name, channelIndex, viewerChannelSettings);
+        const defaultIsovalue = thisChannel.rawMin + (thisChannel.rawMax - thisChannel.rawMin) / 2;
+        const isovalue = initSettings?.isovalue ?? defaultIsovalue;
 
         changeChannelSetting(channelIndex, {
           controlPoints: controlPoints,
@@ -276,17 +306,21 @@ const App: React.FC<AppProps> = (props) => {
           // set the default range of the transfer function editor to cover the full range of the data type
           plotMin: thisChannel.rawMin,
           plotMax: thisChannel.rawMax,
-          isovalue: thisChannel.rawMin + (thisChannel.rawMax - thisChannel.rawMin) / 2,
+          isovalue,
+        });
+      } else {
+        // Expand the plot min and max to include the current data range as
+        // needed. This keeps the domain visually consistent when replaying
+        // through time or Z slices.
+        //
+        // NOTE: This must use the most up-to-date channel plot range, because
+        // onChannelLoaded can be called multiple times per channel during
+        // loading.
+        changeChannelSetting(channelIndex, {
+          plotMin: Math.min(thisChannel.rawMin, channelState.plotMin),
+          plotMax: Math.max(thisChannel.rawMax, channelState.plotMax),
         });
       }
-
-      // Expand the plot min and max to include the current data range as
-      // needed. This keeps the domain visually consistent when replaying
-      // through time or Z slices.
-      changeChannelSetting(channelIndex, {
-        plotMin: Math.min(thisChannel.rawMin, thisChannelSettings.plotMin),
-        plotMax: Math.max(thisChannel.rawMax, thisChannelSettings.plotMax),
-      });
 
       // save the channel's new range for remapping next time
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
@@ -301,7 +335,7 @@ const App: React.FC<AppProps> = (props) => {
         view3d.updateActiveChannels(image);
       }
     },
-    [view3d, channelSettings, changeChannelSetting, maskChannelName, props.viewerChannelSettings]
+    [view3d, changeChannelSetting, maskChannelName, props.viewerChannelSettings]
   );
 
   const onError = useCallback(

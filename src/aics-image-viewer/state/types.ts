@@ -46,4 +46,9 @@ export type ChannelState = {
   controlPoints: ControlPoint[];
   plotMin: number;
   plotMax: number;
+  /**
+   * If true, when a new volume is loaded, keeps the current intensity values
+   * (ramp, control points, and isovalue) instead of reinitializing them.
+   */
+  keepIntensityRange: boolean;
 };

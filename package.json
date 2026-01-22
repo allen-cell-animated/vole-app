@@ -36,7 +36,8 @@
     "postpublish-patch": "git push origin main",
     "prepare": "cross-env DEPLOYMENT_ENV=production npm run build",
     "predeploy": "cross-env DEPLOYMENT_ENV=production npm run dev",
-    "deploy": "gh-pages -d imageviewer -t true"
+    "deploy": "gh-pages -d imageviewer -t true",
+    "checks": "npm run lint && npm run typeCheck && npm run test"
   },
   "author": "Megan Riel-Mehan",
   "license": "ISC",

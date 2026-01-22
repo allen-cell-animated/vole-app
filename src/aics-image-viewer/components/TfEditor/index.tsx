@@ -1,5 +1,6 @@
 import { type Channel, type ControlPoint, type Histogram, Lut } from "@aics/vole-core";
-import { Button, Checkbox, Dropdown, InputNumber } from "antd";
+import { PushpinFilled, PushpinOutlined } from "@ant-design/icons";
+import { Button, Checkbox, Dropdown, InputNumber, Tooltip } from "antd";
 import * as d3 from "d3";
 import "nouislider/distribute/nouislider.css";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -71,6 +72,7 @@ type TfEditorProps = {
   opacity: number;
   plotMin: number;
   plotMax: number;
+  keepIntensityRange: boolean;
   saveIsosurface: (format: IsosurfaceFormat) => void;
 };
 
@@ -759,6 +761,19 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                     size="small"
                     controls={false}
                   />
+                  <Tooltip
+                    title={`${props.keepIntensityRange ? "Do not keep" : "Keep"} intensity threshold values when switching volumes.`}
+                  >
+                    <Button
+                      onClick={() => props.changeChannelSetting({ keepIntensityRange: !props.keepIntensityRange })}
+                      style={{ height: 24, padding: "0 4px" }}
+                      type={props.keepIntensityRange ? "default" : "text"}
+                    >
+                      <span style={{ margin: 0 }}>
+                        {props.keepIntensityRange ? <PushpinFilled /> : <PushpinOutlined />}
+                      </span>
+                    </Button>
+                  </Tooltip>
                 </>
               )}
             </div>
