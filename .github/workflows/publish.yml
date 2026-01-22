@@ -16,6 +16,7 @@ permissions:
   # See https://docs.github.com/en/actions/concepts/security/openid-connect
   # and https://docs.npmjs.com/trusted-publishers.
   id-token: write
+  contents: read
 
 jobs:
   lint:
