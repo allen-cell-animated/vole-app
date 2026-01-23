@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "2.15.0",
+  "version": "3.0.0",
   "description": "web view of cell volume images",
   "repository": "github:allen-cell-animated/vole-app",
   "main": "es/index.js",
@@ -36,12 +36,13 @@
     "postpublish-patch": "git push origin main",
     "prepare": "cross-env DEPLOYMENT_ENV=production npm run build",
     "predeploy": "cross-env DEPLOYMENT_ENV=production npm run dev",
-    "deploy": "gh-pages -d imageviewer -t true"
+    "deploy": "gh-pages -d imageviewer -t true",
+    "checks": "npm run lint && npm run typeCheck && npm run test"
   },
   "author": "Megan Riel-Mehan",
   "license": "ISC",
   "dependencies": {
-    "@aics/vole-core": "^4.3.1",
+    "@aics/vole-core": "^4.5.0",
     "@ant-design/icons": "^5.2.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
@@ -54,7 +55,8 @@
     "react-color": "^2.19.3",
     "react-router-dom": "^6.26.2",
     "styled-components": "^6.1.13",
-    "usehooks-ts": "^3.1.0"
+    "usehooks-ts": "^3.1.0",
+    "zustand": "^5.0.6"
   },
   "peerDependencies": {
     "antd": "^5.16.2",
@@ -79,8 +81,8 @@
     "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.x",
     "@types/three": "^0.171.0",
-    "@typescript-eslint/eslint-plugin": "^5.31.0",
-    "@typescript-eslint/parser": "^5.31.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "antd": "^5.16.2",
     "axios": "^0.21.1",
     "babel-loader": "^8.2.2",

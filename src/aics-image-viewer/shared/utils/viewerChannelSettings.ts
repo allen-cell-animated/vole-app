@@ -2,6 +2,31 @@ import type { ControlPoint } from "@aics/vole-core";
 
 import { OTHER_CHANNEL_KEY, SINGLE_GROUP_CHANNEL_KEY } from "../constants";
 
+export type IntensitySettings = {
+  /**
+   * Defines a linear function for mapping from intensity values in the volume
+   * to opacity between two [min, max] intensity values.
+   */
+  ramp?: [number, number];
+  /**
+   * Defines a piecewise linear function for mapping from intensity values in
+   * the volume to opacity and color.
+   */
+  controlPoints?: ControlPoint[];
+  /**
+   * Min and max values for the intensity lookup table, which maps from raw intensity values
+   * in the volume to opacity and color. Defaults to [0, 255].
+   *
+   * - Plain numbers are indices of histogram bins, in the range [0, 255].
+   * - `v{n}` represents a raw intensity value, where `n` is an integer.
+   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100] range.
+   * - `m{n}` represents the median multiplied by `n / 100`.
+   * - `autoij` in either the min or max fields will use the "auto" algorithm
+   * from ImageJ to select the min and max.
+   */
+  lut?: [string, string];
+};
+
 /** Settings for a single channel, as passed in via props by App users */
 export interface ViewerChannelSetting {
   // regex or string or array of regexes or strings or number for raw channel index
@@ -28,6 +53,8 @@ export interface ViewerChannelSetting {
    * - `m{n}` represents the median multiplied by `n / 100`.
    * - `autoij` in either the min or max fields will use the "auto" algorithm
    * from ImageJ to select the min and max.
+   * @deprecated Will be removed in a future update. Specify via `intensity.lut`
+   * instead.
    */
   lut?: [string, string];
   /**
@@ -35,14 +62,26 @@ export interface ViewerChannelSetting {
    * Defaults to false.
    */
   controlPointsEnabled?: boolean;
+  /**
+   * Control points for the transfer function, as histogram bin values.
+   * @deprecated Will be removed in a future update. Specify via `intensity.controlPoints` instead.
+   */
   controlPoints?: ControlPoint[];
+  /**
+   * Min and max ramp values for the transfer function, as histogram bin values.
+   * @deprecated Will be removed in a future update. Specify via
+   * `intensity.ramp` instead.
+   */
   ramp?: [number, number];
+  intensity?: IntensitySettings;
   // valid when surfaceEnabled = true. default 128 or 0.5 of max intensity range
   isovalue?: number;
   // valid when surfaceEnabled = true. default 1.0 fully opaque
   surfaceOpacity?: number;
   colorizeEnabled?: boolean;
   colorizeAlpha?: number;
+  /** Whether to keep the current contrast settings when switching volumes. */
+  keepIntensityRange?: boolean;
 }
 
 export interface ViewerChannelGroup {

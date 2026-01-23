@@ -4,13 +4,13 @@ import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
 import type { MetadataRecord } from "../../shared/types";
+import { select, useViewerState } from "../../state/store";
 
 import ChannelsWidget from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
-import { connectToViewerState } from "../ViewerStateProvider";
 
 import "./styles.css";
 
@@ -26,10 +26,9 @@ interface ControlPanelProps
       colorPresetsDropdown: boolean;
       metadataViewer: boolean;
     };
-  getMetadata: () => MetadataRecord;
+  metadata: MetadataRecord;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
-  resetToDefaultViewerState: () => void;
 }
 
 const enum ControlTab {
@@ -50,6 +49,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     _setTab(newTab);
     props.setCollapsed(false);
   };
+  const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
 
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
@@ -128,7 +128,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             title="Clears ALL rendering settings and channel configuration to the default viewer state.
             This will replace any edits to channel settings, color presets, and rendering adjustments."
           >
-            <Button onClick={props.resetToDefaultViewerState}>Clear all settings</Button>
+            <Button onClick={resetToDefaultViewerState}>Clear all settings</Button>
           </Tooltip>
         </div>
       </Flex>
@@ -168,7 +168,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
               />
             )}
             {tab === ControlTab.Advanced && renderAdvancedSettings()}
-            {tab === ControlTab.Metadata && <MetadataViewer metadata={props.getMetadata()} />}
+            {tab === ControlTab.Metadata && <MetadataViewer metadata={props.metadata} />}
           </div>
         )}
       </div>
@@ -176,4 +176,4 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   );
 }
 
-export default connectToViewerState(ControlPanel, ["resetToDefaultViewerState"]);
+export default ControlPanel;

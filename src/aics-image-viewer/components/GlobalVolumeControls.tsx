@@ -1,15 +1,13 @@
 import { Checkbox } from "antd";
 import React from "react";
 
-import type { ViewerSettingUpdater } from "./ViewerStateProvider/types";
+import { select, useViewerState } from "../state/store";
 
 import SliderRow from "./shared/SliderRow";
-import { connectToViewerState } from "./ViewerStateProvider";
 
 type GlobalVolumeControlKey = "maskAlpha" | "brightness" | "density" | "levels";
 
 export interface GlobalVolumeControlsProps {
-  // From parent
   imageName: string | undefined;
   pixelSize: [number, number, number];
   visibleControls: {
@@ -19,18 +17,16 @@ export interface GlobalVolumeControlsProps {
     levelsSliders: boolean;
     interpolationControl: boolean;
   };
-
-  // From viewer state
-  maskAlpha: number;
-  brightness: number;
-  density: number;
-  levels: [number, number, number];
-  interpolationEnabled: boolean;
-
-  changeViewerSetting: ViewerSettingUpdater;
 }
 
 const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
+  const maskAlpha = useViewerState(select("maskAlpha"));
+  const brightness = useViewerState(select("brightness"));
+  const density = useViewerState(select("density"));
+  const levels = useViewerState(select("levels"));
+  const interpolationEnabled = useViewerState(select("interpolationEnabled"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
+
   const createSliderRow = (
     label: string,
     start: number | number[],
@@ -39,13 +35,13 @@ const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
   ): React.ReactNode => {
     const onUpdate = (_strValues: string[], _handle: number, values: number[]): void => {
       const selectValue = values.length === 1 ? values[0] : (values as [number, number, number]);
-      props.changeViewerSetting(propKey, selectValue);
+      changeViewerSetting(propKey, selectValue);
     };
 
     return <SliderRow label={label} start={start} max={max} onUpdate={onUpdate} />;
   };
 
-  const { visibleControls: showControls, maskAlpha, brightness, density, levels } = props;
+  const { visibleControls: showControls } = props;
 
   return (
     <div style={{ paddingTop: 18, paddingBottom: 22 }}>
@@ -56,8 +52,8 @@ const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
       {showControls.interpolationControl && (
         <SliderRow label="interpolate" hideSlider={true}>
           <Checkbox
-            checked={props.interpolationEnabled}
-            onChange={({ target }) => props.changeViewerSetting("interpolationEnabled", target.checked)}
+            checked={interpolationEnabled}
+            onChange={({ target }) => changeViewerSetting("interpolationEnabled", target.checked)}
           />
         </SliderRow>
       )}
@@ -65,11 +61,4 @@ const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
   );
 };
 
-export default connectToViewerState(GlobalVolumeControls, [
-  "maskAlpha",
-  "brightness",
-  "density",
-  "levels",
-  "interpolationEnabled",
-  "changeViewerSetting",
-]);
+export default GlobalVolumeControls;

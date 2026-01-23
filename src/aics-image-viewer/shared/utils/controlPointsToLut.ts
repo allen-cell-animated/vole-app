@@ -1,11 +1,15 @@
-import { type Channel, type ControlPoint, type Histogram, Lut, remapControlPoints, type Volume } from "@aics/vole-core";
+import {  type ControlPoint, type Histogram, Lut, type Volume } from "@aics/vole-core";
 
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
 import { findFirstChannelMatch, type ViewerChannelSetting, type ViewerChannelSettings } from "./viewerChannelSettings";
 
-// @param {Object[]} controlPoints - array of {x:number, opacity:number, color:string}
-// @return {Uint8Array} array of length 256*4 representing the rgba values of the gradient
-export function controlPointsToLut(controlPoints: ControlPoint[]): Lut {
+/**
+ * @param {Object[]} controlPoints - array of `{x:number, opacity:number,
+ * color:string}`, where `x` is a histogram bin index.
+ * @returns {Uint8Array} array of length 256*4 representing the rgba values of
+ * the gradient
+ */
+export function binIndexedControlPointsToLut(controlPoints: ControlPoint[]): Lut {
   const lut = new Lut().createFromControlPoints(controlPoints);
   return lut;
 }
@@ -73,15 +77,20 @@ export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerC
   // wrapper around the control point array, e.g.
   // `parseControlPointsFromLutParam(histogram: Histogram, lutParam: [string,
   // string] | undefined): ControlPoint[] | undefined`
-  if (initSettings.lut === undefined || initSettings.lut.length !== 2) {
+
+  // There are two possible locations for the LUT settings, due to legacy
+  // reasons. `initSettings.lut` is deprecated in favor of
+  // `initSettings.intensity.lut`.
+  const settingsLut = initSettings.intensity?.lut ?? initSettings.lut;
+  if (settingsLut === undefined || settingsLut.length !== 2) {
     return undefined;
   }
 
   let lutValues: [number, number];
-  if (initSettings.lut[0] === "autoij" || initSettings.lut[1] === "autoij") {
+  if (settingsLut[0] === "autoij" || settingsLut[1] === "autoij") {
     lutValues = histogram.findAutoIJBins();
   } else {
-    lutValues = [parseLutValue(initSettings.lut[0], histogram), parseLutValue(initSettings.lut[1], histogram)];
+    lutValues = [parseLutValue(settingsLut[0], histogram), parseLutValue(settingsLut[1], histogram)];
   }
   if (!Number.isFinite(lutValues[0]) || !Number.isFinite(lutValues[1])) {
     return undefined;
@@ -137,14 +146,38 @@ export function initializeLut(
   const name = aimg.channelNames[channelIndex];
   const initSettings = channelSettings && findFirstChannelMatch(name, channelIndex, channelSettings);
 
-  // Attempt to load a LUT from the settings, which will be used to initialize the control points and ramp
-  if (initSettings && initSettings.lut) {
+  // Attempt to load a LUT from the settings, which will be used as a fallback
+  // to initialize the control points and ramp.
+  if (initSettings) {
     lut = parseLutFromSettings(histogram, initSettings) ?? defaultLut;
   }
-  // Initialize the control points + ramp using the LUT.
-  // Optionally, override the LUT's control points with the provided control points and/or ramp.
-  controlPoints = initSettings?.controlPoints ?? [...lut.controlPoints];
-  ramp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
+
+  // Use raw intensity values for control points or ramp if provided in the
+  // settings. Otherwise, get default values from the LUT by remapping
+  // from histogram bin indices.
+  if (initSettings?.intensity?.controlPoints) {
+    // Raw intensity values can be used directly.
+    controlPoints = initSettings.intensity.controlPoints;
+  } else {
+    // No provided value; use histogram to convert from bin index to raw
+    // intensity values.
+    const binIndexedControlPoints = initSettings?.controlPoints ?? [...lut.controlPoints];
+    controlPoints = binIndexedControlPoints.map((cp) => ({
+      ...cp,
+      x: histogram.getValueFromBinIndex(cp.x),
+    }));
+  }
+
+  // Initialize the ramp
+  if (initSettings?.intensity?.ramp) {
+    ramp = rampToControlPoints(initSettings.intensity.ramp);
+  } else {
+    const binIndexedRamp = initSettings?.ramp ? rampToControlPoints(initSettings.ramp) : [...lut.controlPoints];
+    ramp = binIndexedRamp.map((cp) => ({
+      ...cp,
+      x: histogram.getValueFromBinIndex(cp.x),
+    }));
+  }
 
   // Apply whatever lut is currently visible
   let visibleLut: Lut;
@@ -187,17 +220,4 @@ export function rampToControlPoints([min, max]: [number, number]): ControlPoint[
     { x: max, opacity: 1, color: TFEDITOR_DEFAULT_COLOR },
     { x: Math.max(max + 1, TFEDITOR_MAX_BIN), opacity: 1, color: TFEDITOR_DEFAULT_COLOR },
   ];
-}
-
-/** Remaps an array of control points from an old range (as a 2-tuple) to a new one (extracted from a `Channel`) */
-export function remapControlPointsForChannel(
-  controlPoints: ControlPoint[],
-  oldRange: [number, number] | undefined,
-  { rawMin, rawMax }: Channel
-): ControlPoint[] {
-  if (oldRange === undefined) {
-    return controlPoints;
-  }
-
-  return remapControlPoints(controlPoints, oldRange[0], oldRange[1], rawMin, rawMax);
 }
