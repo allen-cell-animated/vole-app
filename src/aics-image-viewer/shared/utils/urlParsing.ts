@@ -286,13 +286,6 @@ class DataParams {
    * is check whether it is present.
    */
   msgorigin?: string = undefined;
-  /**
-   * If this param is present, the opening window wants to send more scene URLs via `postMessage`.
-   *
-   * The value of this param should be the total number of scenes the opening window wants to send, so we can set up
-   * the app with the correct number of scenes before knowing what all the scenes are.
-   */
-  msgscenes?: string = undefined;
 }
 
 class DeprecatedParams {
