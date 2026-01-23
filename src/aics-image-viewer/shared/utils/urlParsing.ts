@@ -1065,7 +1065,7 @@ export async function parseViewerUrlParams(
       scenes = manifestScenes;
       args.metadata = manifestMetadata ?? undefined;
     } else {
-      // Load from URL
+      // Load from URL or storage
       const getFromStorage = params.storageid !== undefined && params.msgorigin === undefined;
       const urlParam = getFromStorage ? (readStoredScenes(params.storageid!) ?? params.url!) : params.url!;
       // split encoded url into a list of one or more scenes...
