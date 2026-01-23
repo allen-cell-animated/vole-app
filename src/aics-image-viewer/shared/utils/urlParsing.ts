@@ -291,8 +291,17 @@ export class ViewerStateParams {
 
 /** URL parameters that define data sources when loading volumes. */
 class DataParams {
-  /** One or more volume URLs to load. If multiple URLs are provided, they should be separated by commas. */
-  // TODO ...commas or `+` depending on what we're delimiting (multi-source vs multi-scene)
+  /**
+   * One or more volume URLs to load.
+   *
+   * This parameter may represent a single image with multiple data sources by delimiting each source URL with `,`.
+   * It may also represent multiple scenes by delimiting each scene URL (and/or each collection of multiple
+   * `,`-delimited source URLs) with `+`. E.g. `url1+url2,url3` represents a collection of two scenes, where the first
+   * scene comes from `url1` and the second is a combination of the channels from the images at `url2` and `url3`.
+   *
+   * When parsing, we do our best to account for `%`-encoding, including the possibility that each source/scene URL was
+   * encoded separately, then concatenated with the proper delimiters, then encoded again.
+   */
   url?: string = undefined;
   /**
    * The URL of a JSON manifest. The JSON should contain two properties:
