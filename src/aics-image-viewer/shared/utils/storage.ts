@@ -30,6 +30,7 @@ function setStorageItem(key: string, value: string | string[], queue: string[]):
       window.localStorage.setItem(key, Array.isArray(value) ? value.join(",") : value);
       success = true;
     } catch (e) {
+      // `setItem` throws a `QuotaExceededError` when the browser won't let us put any more data in local storage
       if (e instanceof DOMException && e.name === "QuotaExceededError") {
         const evictKey = queue.shift();
         if (evictKey === undefined) {
