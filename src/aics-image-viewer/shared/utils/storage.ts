@@ -83,7 +83,7 @@ const setStorageQueue = (queue: string[]): boolean => setStorageItem(QUEUE_KEY, 
 function writeStorage(entries: Record<string, string>, entryType?: StorageEntryType): boolean {
   const prevQueue = getStorageQueue();
   const typePrefix = entryType ? `${entryType}@` : "";
-  const escapedEntries = mapKeys(entries, sanitizeStorageKey);
+  const escapedEntries = mapKeys(entries, (_, key) => sanitizeStorageKey(key));
 
   // filter keys we're currently inserting out of the queue (to be re-inserted at the front)
   let index = 0;
