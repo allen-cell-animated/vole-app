@@ -1,4 +1,4 @@
-import { mapValues } from "lodash";
+import { mapKeys, mapValues } from "lodash";
 
 import type { MetadataRecord } from "../types";
 
@@ -14,6 +14,8 @@ const MAX_ENTRIES: { [K in StorageEntryType]: number } = {
   meta: 1000,
 };
 
+const sanitizeStorageKey = (key: string): string => (key.includes(",") ? encodeURIComponent(key) : key);
+
 /**
  * Wrapper for `window.localStorage.setItem` that accepts a `queue` of evictable storage keys, and attempts to safely
  * handle exceeding the storage quota by removing items off the back of the `queue` until space is available.
@@ -28,6 +30,7 @@ function setStorageItem(key: string, value: string | string[], queue: string[]):
       window.localStorage.setItem(key, Array.isArray(value) ? value.join(",") : value);
       success = true;
     } catch (e) {
+      // `setItem` throws a `QuotaExceededError` when the browser won't let us put any more data in local storage
       if (e instanceof DOMException && e.name === "QuotaExceededError") {
         const evictKey = queue.shift();
         if (evictKey === undefined) {
@@ -56,13 +59,14 @@ const setStorageQueue = (queue: string[]): void => setStorageItem(QUEUE_KEY, que
 function writeStorage(entries: Record<string, string>, entryType?: StorageEntryType): void {
   const prevQueue = getStorageQueue();
   const typePrefix = entryType ? `${entryType}@` : "";
+  const escapedEntries = mapKeys(entries, sanitizeStorageKey);
 
   // filter keys we're currently inserting out of the queue (to be re-inserted at the front)
   let index = 0;
   const thisTypeIndexes: number[] = [];
   const queue = prevQueue.filter((k) => {
     if (k.startsWith(typePrefix)) {
-      if (k.slice(typePrefix.length) in entries) {
+      if (k.slice(typePrefix.length) in escapedEntries) {
         return false;
       } else if (entryType !== undefined) {
         // start saving the location of entries of this type, for enforcing the maximum entry count below
@@ -75,10 +79,7 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
   });
 
   // push new keys onto the end
-  for (const key of Object.keys(entries)) {
-    if (key.indexOf(",") !== -1) {
-      throw new Error(`Cannot write to local storage at key "${key}": keys may not contain commas.`);
-    }
+  for (const key of Object.keys(escapedEntries)) {
     thisTypeIndexes.push(queue.length);
     queue.push(typePrefix + key);
   }
@@ -89,12 +90,12 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
     for (const index of evictIndexes.reverse()) {
       let [evictKey] = queue.splice(index, 1);
       window.localStorage.removeItem(evictKey);
-      delete entries[evictKey.slice(typePrefix.length)];
+      delete escapedEntries[evictKey.slice(typePrefix.length)];
     }
   }
 
   // write the new entries
-  for (const [key, value] of Object.entries(entries)) {
+  for (const [key, value] of Object.entries(escapedEntries)) {
     setStorageItem(typePrefix + key, value, queue);
   }
   setStorageQueue(queue);
@@ -120,7 +121,7 @@ export function readStoredMetadata(
       return undefined;
     }
 
-    const globalKey = `${StorageEntryType.Meta}@${scene}`;
+    const globalKey = `${StorageEntryType.Meta}@${sanitizeStorageKey(scene)}`;
     const meta = window.localStorage.getItem(globalKey);
     if (meta === null) {
       return undefined;
@@ -141,7 +142,7 @@ export function readStoredMetadata(
 }
 
 export function readStoredScenes(key: string, skipCacheUpdate: boolean = false): string | undefined {
-  const globalKey = `${StorageEntryType.Scenes}@${key}`;
+  const globalKey = `${StorageEntryType.Scenes}@${sanitizeStorageKey(key)}`;
   const result = window.localStorage.getItem(globalKey);
 
   if (result === null) {

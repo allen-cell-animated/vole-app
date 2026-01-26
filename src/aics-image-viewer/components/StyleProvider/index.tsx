@@ -20,6 +20,7 @@ const palette = {
   veryLtPurple: "#e7e4f2",
   brightRed: "#ff4d4d",
   brightGreen: "#61d900",
+  veryBrightGreen: "#61ff00",
   brightBlue: "#0099ff",
 };
 
@@ -95,6 +96,7 @@ const theme = {
       sectionBg: palette.medDarkGrey,
       drawerBg: palette.veryDarkGrey,
       rampSlider: palette.medPurple,
+      isovalueSlider: palette.veryBrightGreen,
     },
     toolbar: {
       buttonBg: "#000000cc",
@@ -199,6 +201,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-controlpanel-section-bg: ${$theme.colors.controlPanel.sectionBg};
       --color-controlpanel-drawer-bg: ${$theme.colors.controlPanel.drawerBg};
       --color-controlpanel-ramp-slider: ${$theme.colors.controlPanel.rampSlider};
+      --color-controlpanel-isovalue-slider: ${$theme.colors.controlPanel.isovalueSlider};
 
       --color-landingpage-bg: ${$theme.colors.landingPage.bg};
       --color-landingpage-bg-alt: ${$theme.colors.landingPage.bgAlt};

@@ -2,18 +2,18 @@
   "extends": ["eslint:recommended", "plugin:react/recommended"],
   "env": {
     "es6": true,
-    "browser": true
+    "browser": true,
   },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true,
       "experimentalObjectRestSpread": true,
-      "impliedStrict": true
+      "impliedStrict": true,
     },
     "ecmaVersion": 2018,
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.json",
   },
   "plugins": ["react", "react-hooks", "@typescript-eslint"],
   "rules": {
@@ -28,7 +28,10 @@
     "no-new-object": 1,
     "no-redeclare": 0,
     "no-shadow-restricted-names": 1,
-    "@typescript-eslint/no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "args": "none", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" },
+    ],
     "no-unused-vars": 0, // Rely on typescript-eslint rule above
     "@typescript-eslint/explicit-function-return-type": ["error", { "allowExpressions": true }],
     "@typescript-eslint/typedef": ["error", { "parameter": true }],
@@ -39,11 +42,8 @@
     "react/no-deprecated": 0,
     "react/prop-types": 0,
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": [
-      "warn",
-      { "additionalHooks": "useImageEffect" }
-    ],
+    "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useImageEffect" }],
     "semi": 2,
-    "space-before-blocks": [1, "always"]
-  }
+    "space-before-blocks": [1, "always"],
+  },
 }

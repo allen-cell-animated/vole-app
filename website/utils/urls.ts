@@ -1,7 +1,13 @@
 import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 
 export function isValidUrl(url: string): boolean {
-  return url.startsWith("http");
+  return (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("/allen/aics/") ||
+    url.startsWith("s3://") ||
+    url.startsWith("gs://")
+  );
 }
 
 function isURIComponentEncoded(uriComponent: string): boolean {
