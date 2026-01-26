@@ -4,10 +4,14 @@ import { isEqual } from "lodash";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { ImageViewerApp, parseViewerUrlParams } from "../../src";
+import {
+  addViewerParamsFromMessage,
+  ImageViewerApp,
+  parseViewerUrlParams,
+  writeMetadata,
+  writeScenes,
+} from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
-import { writeMetadata, writeScenes } from "../../src/aics-image-viewer/shared/utils/storage";
-import { addViewerParamsFromMessage } from "../../src/aics-image-viewer/shared/utils/urlParsing";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { ViewerState } from "../../src/aics-image-viewer/state/types";
 import type { AppDataProps } from "../types";
