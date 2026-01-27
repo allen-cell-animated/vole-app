@@ -147,7 +147,7 @@ export function writeMetadata(meta: Record<string, MetadataRecord>): boolean {
  * Returns `false` if the entry did not fit in local storage, or `true` if it did.
  */
 export function writeScenes(key: string, url: string): boolean {
-  return writeStorage({ [key]: url }, StorageEntryType.Scenes);
+  return writeStorage({ [sanitizeStorageKey(key)]: url }, StorageEntryType.Scenes);
 }
 
 export function readStoredMetadata(
