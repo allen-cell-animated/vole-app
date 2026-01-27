@@ -9,7 +9,7 @@ import "./styles.css";
 
 export type ErrorAlertDescription = {
   title: string;
-  description: string;
+  description: React.ReactNode;
 };
 
 const IssueLink: React.FC<React.PropsWithChildren<{ bug?: boolean }>> = ({ bug, children }) => (
