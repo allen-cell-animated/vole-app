@@ -18,7 +18,7 @@ import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
-import { useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
+import { type ErrorAlertDescription, useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
 import Header, { HEADER_HEIGHT_PX } from "./Header";
 import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";
@@ -37,6 +37,26 @@ const DEFAULT_APP_PROPS: AppDataProps = {
 
 type AppWrapperProps = {
   firestore?: FirebaseFirestore;
+};
+
+const TOO_MANY_SCENES_ERROR: ErrorAlertDescription = {
+  title: "Too many scenes to fit in local storage",
+  description: (
+    <>
+      An external application sent more image URLs than can fit in your browser&apos;s local storage. Reloading the page
+      or returning later may cause your session to be lost.
+    </>
+  ),
+};
+
+const TOO_MUCH_METADATA_ERROR: ErrorAlertDescription = {
+  title: "Received more metadata than can fit in local storage",
+  description: (
+    <>
+      An external application sent more image metadata than can fit in your browser&apos;s local storage. Reloading the
+      page or returning later may cause some data to be lost.
+    </>
+  ),
 };
 
 /**
@@ -88,12 +108,13 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           return;
         }
 
-        if (event.data.meta !== undefined) {
-          writeMetadata(event.data.meta);
-        }
+        const metaFit = event.data.meta === undefined || writeMetadata(event.data.meta);
+        const scenesFit = event.data.scenes === undefined || writeScenes(storageid, encodeImageUrlProp(event.data));
 
-        if (event.data.scenes !== undefined) {
-          writeScenes(storageid, encodeImageUrlProp(event.data));
+        if (!scenesFit) {
+          showErrorAlert(TOO_MANY_SCENES_ERROR);
+        } else if (!metaFit) {
+          showErrorAlert(TOO_MUCH_METADATA_ERROR);
         }
 
         if (event.data.sceneIndex !== undefined) {
