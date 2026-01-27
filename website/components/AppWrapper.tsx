@@ -130,6 +130,10 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         });
 
         searchParams.delete(MSG_ORIGIN_PARAM);
+        if (event.data.scenes === undefined) {
+          // don't need to keep `storageid` around if it's not keying a scene collection in storage
+          searchParams.delete(STORAGE_ID_PARAM);
+        }
         setSearchParams(searchParams, { replace: true });
 
         window.removeEventListener("message", receiveMessage);
