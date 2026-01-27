@@ -7,6 +7,11 @@ import { useConstructor } from "../../shared/utils/hooks";
 
 import "./styles.css";
 
+export type ErrorAlertDescription = {
+  title: string;
+  description: string;
+};
+
 const IssueLink: React.FC<React.PropsWithChildren<{ bug?: boolean }>> = ({ bug, children }) => (
   <a
     href={`https://github.com/allen-cell-animated/vole-app/issues/new${bug ? "?template=bug_report.md" : "/choose"}`}
@@ -69,12 +74,18 @@ const ERROR_TYPE_DESCRIPTIONS: { [T in VolumeLoadErrorType]: React.ReactNode } =
 };
 
 const getErrorTitle = (error: unknown): string =>
-  (error instanceof Error && error.toString?.()) || (typeof error === "string" && error) || "Unknown error";
+  (error instanceof Error && error.toString?.()) ||
+  (typeof error === "string" && error) ||
+  (typeof error === "object" && error !== null && (error as ErrorAlertDescription).title) ||
+  "Unknown error";
 
 const getErrorDescription = (error: unknown): React.ReactNode => {
   const type: VolumeLoadErrorType | undefined = (error as VolumeLoadError).type;
   if (!type) {
-    return UNKNOWN_ERROR_DESCRIPTION;
+    return (
+      (typeof error === "object" && error !== null && (error as ErrorAlertDescription).description) ||
+      UNKNOWN_ERROR_DESCRIPTION
+    );
   }
   return ERROR_TYPE_DESCRIPTIONS[type] ?? UNKNOWN_ERROR_DESCRIPTION;
 };
@@ -140,8 +151,8 @@ export const useErrorAlert = (): [React.ReactNode, (error: unknown) => void] => 
 
   const addError = React.useCallback(
     (error: unknown) => {
-      console.error(error);
       const errorTitle = getErrorTitle(error);
+      console.error(error instanceof Error ? error : errorTitle);
       const errorSeenCount = (seenErrors.get(errorTitle) ?? 0) + 1;
 
       setErrorList((prev) => [...prev, error]);
