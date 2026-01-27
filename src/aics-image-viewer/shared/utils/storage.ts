@@ -120,15 +120,18 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
 
   // write the new entries
   const entryList = Object.entries(escapedEntries);
-  const allEntriesFit = entryList.reduce((allFit, [key, value]) => {
-    const entryFit = setStorageItem(typePrefix + key, value, queue);
-    return allFit && entryFit;
-  }, true);
+  const firstKey = entryList.length < 2 ? undefined : typePrefix + entryList[0][0];
+  let allEntriesFit = true;
 
-  // TODO if the queue doesn't fit, it's a much more serious problem than an individual entry.
+  for (const [key, value] of Object.entries(escapedEntries)) {
+    const entryFits = setStorageItem(typePrefix + key, value, queue);
+    allEntriesFit = allEntriesFit && entryFits;
+  }
+
+  // TODO if the queue somehow doesn't fit, it's a much more serious problem than an individual entry.
   //   Should that be communicated in the return type?
   const queueFit = setStorageQueue(queue);
-  return allEntriesFit && queueFit;
+  return allEntriesFit && queueFit && (firstKey === undefined || window.localStorage.getItem(firstKey) !== null);
 }
 
 /**

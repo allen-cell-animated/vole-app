@@ -90,7 +90,28 @@ describe("writeMetadata/readStoredMetadata", () => {
     ]);
   });
 
-  it("returns undefined for keys that are arrays", () => {
+  it("moves entries to the front of the queue when overwritten", () => {
+    writeMetadata({ one: LARGE_ENTRY, two: LARGE_ENTRY });
+    writeMetadata({ three: LARGE_ENTRY, one: LARGE_ENTRY });
+    writeMetadata({ four: LARGE_ENTRY });
+    expect(readStoredMetadata(["one", "two", "three", "four"])).toEqual([
+      LARGE_ENTRY,
+      undefined,
+      LARGE_ENTRY,
+      LARGE_ENTRY,
+    ]);
+  });
+
+  it("returns `false` on an attempt to write more data than local storage can hold", () => {
+    const fits = writeMetadata({ one: LARGE_ENTRY, two: LARGE_ENTRY, three: LARGE_ENTRY });
+    expect(fits).toBe(true);
+    const tooBig = writeMetadata({ big: { one: LONG_STRING, two: LONG_STRING, four: LONG_STRING, six: LONG_STRING } });
+    expect(tooBig).toBe(false);
+    const tooMany = writeMetadata({ one: LARGE_ENTRY, two: LARGE_ENTRY, three: LARGE_ENTRY, four: LARGE_ENTRY });
+    expect(tooMany).toBe(false);
+  });
+
+  it("returns `undefined` on an attempt to get an array key", () => {
     writeMetadata({ one: { digits: 1 }, "one,two": { digits: 12 } });
     expect(readStoredMetadata(["one", "one,two", ["one", "two"]])).toEqual([{ digits: 1 }, { digits: 12 }, undefined]);
   });
@@ -149,6 +170,21 @@ describe("writeScenes/readStoredScenes", () => {
     writeMetadata({ two: LARGE_ENTRY, three: LARGE_ENTRY });
     expect(readStoredScenes("one")).toBe(LONG_STRING);
     expect(readStoredMetadata(["one", "two", "three"])).toEqual([undefined, LARGE_ENTRY, LARGE_ENTRY]);
+  });
+
+  it("moves entries to the front of the queue when overwritten", () => {
+    writeScenes("one", LONG_STRING);
+    writeMetadata({ two: LARGE_ENTRY });
+    writeMetadata({ three: LARGE_ENTRY });
+    writeScenes("one", LONG_STRING);
+    writeMetadata({ four: LARGE_ENTRY });
+    expect(readStoredScenes("one")).toBe(LONG_STRING);
+    expect(readStoredMetadata(["two", "three", "four"])).toEqual([undefined, LARGE_ENTRY, LARGE_ENTRY]);
+  });
+
+  it("returns `false` on an attempt to write a longer scene url than local storage can hold", () => {
+    expect(writeScenes("fits", LONG_STRING)).toBe(true);
+    expect(writeScenes("does_not_fit", LONG_STRING + LONG_STRING + LONG_STRING + LONG_STRING)).toBe(false);
   });
 
   it("enforces a maximum number of scene entries", () => {
