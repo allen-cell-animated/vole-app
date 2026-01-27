@@ -18,9 +18,9 @@ the following additional query parameters:
 
 - `msgorigin`, identifying the _origin_ of the app that just opened Vol-E. The
   origin is the segment of the URL from the beginning through the hostname and
-  (optional) port (for instance, the origin of
-  `https://example.com/index.html?foo=bar` is `https://example.com`) and can
-  be easily learned using `window.location.origin`.
+  (optional) port. For instance, the origin of
+  `https://example.com/index.html?foo=bar` is `https://example.com`. The origin
+  for the current context can be easily learned using `window.location.origin`.
 - `storageid`, an identifier for the scene collection the external application
   wants to open. This can technically be any string, but the external
   application should make an effort to generate a globally unique `storageid`
