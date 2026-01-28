@@ -8,7 +8,7 @@ You can include none or all of these parameters in the URL. If a parameter is
 not specified, the listed default value will be used instead.
 
 If you are using our public build, set
-[`https://volumeviewer.allencell.org/viewer`](https://volumeviewer.allencell.org/viewer)
+[`https://vole.allencell.org/viewer`](https://vole.allencell.org/viewer)
 as the base address. If you are running Vol-E locally, you can substitute this
 for a `localhost` address.
 
@@ -25,19 +25,31 @@ for a `localhost` address.
 The `url` parameter specifies the HTTPS URL of one or more volume to be loaded.
 Supported formats include OME-Zarr and OME-TIFF files.
 
-Multiple volumes can be loaded by including commas between each URL, and will
-appear in the viewer as a single volume with all channels appended. This
-requires all volumes to have **some resolution/scale where the dimensions
-match.** The viewer will throw an error if there is no match possible.
+This parameter can take a list of multiple URLs, with different behavior
+depending on the delimiters used:
+
+- Multiple URLs separated by _commas_ (`,`) will appear in the viewer as a
+  single volume with all channels appended. This requires all volumes to have
+  **some resolution/scale where the dimensions match.** The viewer will throw
+  an error if there is no match possible.
+- Multiple URLs separated by _plus signs_ (`+`) will appear in the viewer as
+  multiple volumes in a sequence of "scenes" which can be browsed using the
+  Scene slider in the bottom clipping panel.
+
+Both styles can be combined in a single URL list. For instance, the value
+`{url1}+{url2},{url3}` will result in a viewer session with two scenes, one
+using volume channels from `{url1}` and one using the combined volume channels
+from both `{url2}` and `{url3}`.
 
 URLs containing special characters (`?`, `#`, `&`, or `,`) must be first encoded
 using
 [`encodeURIComponent`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent).
 
-| Query Parameters                | Description                                                                  | Example                                                                                      |
-| ------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `?url={url}`                    | Load a volume from the specified URL.                                        | `?url=https://example.com/data/example1.ome.zarr`                                            |
-| `?url={url1},{url2},{url3},...` | Load multiple volumes from multiple URLs, appending their channels together. | `?url=https://example.com/data/example1.ome.zarr,https://example.com/data/example2.ome.zarr` |
+| Query Parameters                | Description                                                                                                   | Example                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `?url={url}`                    | Load a volume from the specified URL.                                                                         | `?url=https://example.com/data/example1.ome.zarr`                                            |
+| `?url={url1},{url2},{url3},...` | Load multiple volumes from multiple URLs, appending their channels together.                                  | `?url=https://example.com/data/example1.ome.zarr,https://example.com/data/example2.ome.zarr` |
+| `?url={url1}+{url2}+{url3}+...` | Load multiple volumes from multiple URLs, presenting each as different "scenes" in a single image collection. | `?url=https://example.com/data/example1.ome.zarr+https://example.com/data/example2.ome.zarr` |
 
 ## View settings
 

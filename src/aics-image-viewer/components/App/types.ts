@@ -64,7 +64,7 @@ export interface AppProps {
     translation: [number, number, number];
     rotation: [number, number, number];
   };
-  metadata?: MetadataRecord | MetadataRecord[];
+  metadata?: MetadataRecord | (MetadataRecord | undefined)[];
 
   view3dRef?: MutableRefObject<View3d | null>;
   metadataFormatter?: (metadata: MetadataRecord) => MetadataRecord;
