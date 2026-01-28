@@ -707,8 +707,7 @@ describe("parseViewerUrlParams", () => {
 
   it("parses unencoded per-channel setting", async () => {
     for (const [queryString, , expected] of channelParamToSetting) {
-      const params = new URLSearchParams(queryString);
-      const { args } = await parseViewerUrlParams(params);
+      const { args } = await parseViewerUrlParams(queryString);
       const channelSetting = args.viewerChannelSettings?.groups[0].channels[0]!;
       expect(channelSetting).toEqual(expected);
     }
@@ -716,8 +715,7 @@ describe("parseViewerUrlParams", () => {
 
   it("parses encoded per-channel settings", async () => {
     for (const [, queryString, expected] of channelParamToSetting) {
-      const params = new URLSearchParams(queryString);
-      const { args } = await parseViewerUrlParams(params);
+      const { args } = await parseViewerUrlParams(queryString);
       const channelSetting = args.viewerChannelSettings?.groups[0].channels[0]!;
       expect(channelSetting).toEqual(expected);
     }
@@ -728,8 +726,7 @@ describe("parseViewerUrlParams", () => {
     for (let i = 0; i < 2; i++) {
       const queryString =
         channelParamToSetting[0][i] + "&" + channelParamToSetting[1][i] + "&" + channelParamToSetting[2][i];
-      const params = new URLSearchParams(queryString);
-      const { args } = await parseViewerUrlParams(params);
+      const { args } = await parseViewerUrlParams(queryString);
       const channelSettings = args.viewerChannelSettings?.groups[0].channels!;
 
       // Order is not guaranteed, so check if any of the expected settings are present
@@ -741,8 +738,7 @@ describe("parseViewerUrlParams", () => {
 
   it("overrides ch settings when per-channel settings are included", async () => {
     const queryString = "?ch=0&lut=1,2&c1=ven:1,lut:4:5";
-    const params = new URLSearchParams(queryString);
-    const { args } = await parseViewerUrlParams(params);
+    const { args } = await parseViewerUrlParams(queryString);
 
     const groups = args.viewerChannelSettings?.groups[0]!;
     expect(groups.channels).toHaveLength(1);
@@ -755,8 +751,7 @@ describe("parseViewerUrlParams", () => {
 
   it("skips missing channel indices", async () => {
     const queryString = "?c0=ven:1&c15=ven:1,lut:4:5";
-    const params = new URLSearchParams(queryString);
-    const { args } = await parseViewerUrlParams(params);
+    const { args } = await parseViewerUrlParams(queryString);
 
     const groups = args.viewerChannelSettings?.groups[0]!;
     expect(groups.channels).toHaveLength(2);
@@ -773,8 +768,7 @@ describe("parseViewerUrlParams", () => {
 
   it("creates empty default data for bad per-channel setting formats", async () => {
     const queryString = "c1=bad&c0=ultrabad:bad&c2=,,,,,,";
-    const params = new URLSearchParams(queryString);
-    const { args } = await parseViewerUrlParams(params);
+    const { args } = await parseViewerUrlParams(queryString);
     const channelSettings = args.viewerChannelSettings?.groups[0].channels!;
     expect(channelSettings).toHaveLength(3);
     for (let i = 0; i < channelSettings.length; i++) {
@@ -786,8 +780,7 @@ describe("parseViewerUrlParams", () => {
 
   it("enables first three channels by default if no channel settings are provided", async () => {
     const queryString = "url=https://example.com/image.tiff";
-    const params = new URLSearchParams(queryString);
-    const { args } = await parseViewerUrlParams(params);
+    const { args } = await parseViewerUrlParams(queryString);
 
     // Should have one group
     const channelSettingsGroups = args.viewerChannelSettings?.groups!;
@@ -800,8 +793,7 @@ describe("parseViewerUrlParams", () => {
   it("parses default nucmorph settings", async () => {
     const queryString =
       "url=https://example.com/image1.ome.zarr,https://example.com/image2.ome.zarr&c0=ven:0&c1=ven:1,lut:autoij:&c2=ven:1,clz:1&view=Z";
-    const params = new URLSearchParams(queryString);
-    const { args, viewerSettings } = await parseViewerUrlParams(params);
+    const { args, viewerSettings } = await parseViewerUrlParams(queryString);
 
     expect(viewerSettings.viewMode).toEqual(ViewMode.xy);
     expect(args.imageUrl).toEqual({
@@ -825,18 +817,62 @@ describe("parseViewerUrlParams", () => {
     expect(channelSettings.channels[2].colorizeEnabled).toEqual(true);
   });
 
+  it("can handle arbitrary levels of URL encoding", async () => {
+    // GOAL: no matter how, where, or how many times URL encoding is applied when concatenating
+    // these scene URLs into one param, they should decode back to the same URLs.
+    const scenes = [
+      ["https://example.com/image1.ome.zarr"],
+      ["https://example.com/image2.ome.zarr", "https://example.com/image3.ome.zarr?foo=1%2C2%2C3"],
+    ];
+
+    // Recursively generate combinations of encoded and unencoded URLs
+    interface NestedArray<T> extends Array<T | NestedArray<T>> {}
+    const allEncodingCombinations = (urls: string | NestedArray<string>, delims: string[]): string[] => {
+      // BASE CASE: generate an unencoded and encoded variant of a single URL
+      if (typeof urls === "string") {
+        return [urls, encodeURIComponent(urls)];
+      }
+
+      // Recursively generate combinations for all array elements
+      const nextDelims = delims.slice(1);
+      const encoded = urls.map((url) => allEncodingCombinations(url, nextDelims));
+
+      // Concatenate those together in all possible combinations
+      const combined = encoded.reduce((accum, next) => {
+        const result = [];
+        for (const a of accum) {
+          for (const n of next) {
+            result.push(a + delims[0] + n);
+          }
+        }
+        return result;
+      });
+
+      // Generate unencoded, encoded, and double-encoded variants of all those concatenated strings
+      return combined.flatMap((url) => {
+        const encodedOnce = encodeURIComponent(url);
+        return [url, encodedOnce, encodeURIComponent(encodedOnce)];
+      });
+    };
+
+    const encodings = allEncodingCombinations(scenes, ["+", ","]);
+
+    for (const encoding of encodings) {
+      const { args } = await parseViewerUrlParams(`url=${encoding}`);
+      expect(args.imageUrl).toEqual({ scenes });
+    }
+  });
+
   it("parses viewer settings", async () => {
     const queryString = "mask=30&view=X";
-    const params = new URLSearchParams(queryString);
-    const { viewerSettings } = await parseViewerUrlParams(params);
+    const { viewerSettings } = await parseViewerUrlParams(queryString);
     expect(viewerSettings.viewMode).toEqual(ViewMode.yz);
     expect(viewerSettings.maskAlpha).toEqual(30);
   });
 
   it("returns an empty object when no params are passed in", async () => {
     const queryString = "";
-    const params = new URLSearchParams(queryString);
-    const { args, viewerSettings } = await parseViewerUrlParams(params);
+    const { args, viewerSettings } = await parseViewerUrlParams(queryString);
     expect(Object.keys(args).length === 0);
     expect(args).toEqual({});
     expect(Object.keys(viewerSettings).length === 0);
