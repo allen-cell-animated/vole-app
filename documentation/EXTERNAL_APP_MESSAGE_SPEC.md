@@ -110,6 +110,6 @@ function openScenesInVolE(scenes: string[], meta: Record<string, Record<string, 
 ```
 
 [URL specification]: ./URL_SPEC.md#data-source-url
-[`postMessage']: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+[`postMessage`]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
 [`window.open`]: https://developer.mozilla.org/en-US/docs/Web/API/Window/open
 [`WindowProxy`]: https://developer.mozilla.org/en-US/docs/Glossary/WindowProxy
