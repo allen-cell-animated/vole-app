@@ -5,7 +5,7 @@ Including more than a few URLs in a list as described in the
 Additionally, Vol-E features a metadata view for displaying arbitrary JSON data
 associated with an image, but no way to inject image metadata through a URL
 query parameter, since including non-trivial JSON data could quickly lead to an
-unreasonably long viewer URL even when viewing a single scene. To transfer
+unreasonably long viewer URL, even when describing a single scene. To transfer
 large collections of image URLs and/or metadata from external applications,
 Vol-E provides an alternative to including everything in query parameters. This
 process requires the external application to send the additional data using
@@ -56,9 +56,9 @@ and can include any of the following optional properties:
 | `meta`           | `Record<string, Record<string, any>>` | A collection of metadata records, keyed by scene URL            | None (scenes will have no metadata) |
 
 When it receives this message, Vol-E will remove the `msgorigin` parameter from
-its URL and save the transferred data metadata in the browser's local storage.
-Image metadata is stored based on the URL it describes, meaning that if the
-user later opens a different session that includes a scene for which Vol-E
+its URL and save the transferred data in the browser's local storage. Image
+metadata is stored based on the URL it describes, meaning that if the user
+later opens a different session that includes a scene for which Vol-E
 previously received metadata, that metadata record will be used in the new
 session. Scene URLs are saved by the value of `storageid`, meaning that the
 user can return to the same URL later and restore the same multi-scene
@@ -82,7 +82,7 @@ function openScenesInVolE(scenes: string[], meta: Record<string, Record<string, 
   const storageid = uuidv4();
   url.searchParams.append("msgorigin", window.location.origin);
   url.searchParams.append("storageid", storageid);
-  // included as a fallback in case the message fails
+  // included only as a fallback in case the message fails
   url.searchParams.append("url", scenes[startingScene]);
 
   const handle = window.open(url);
