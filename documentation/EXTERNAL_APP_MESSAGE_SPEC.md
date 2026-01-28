@@ -9,7 +9,7 @@ unreasonably long viewer URL, even when describing a single scene. To transfer
 large collections of image URLs and/or metadata from external applications,
 Vol-E provides an alternative to including everything in query parameters. This
 process requires the external application to send the additional data using
-`postMessage`, and happens in three steps:
+[`postMessage`], and happens in three steps:
 
 ## Step 1: Open Vol-E
 
@@ -45,9 +45,9 @@ case the user opened multiple windows one right after the other).
 ## Step 3: Send data
 
 Once the external application knows that the Vol-E window it opened is ready
-and waiting for a message, it can send additional data by calling `postMessage`
-on the [`WindowProxy`] object from Step 1. The message data must be an object,
-and can include any of the following optional properties:
+and waiting for a message, it can send additional data by calling
+[`postMessage`] on the [`WindowProxy`] object from Step 1. The message data
+must be an object, and can include any of the following optional properties:
 
 | Message property | Type (TypeScript)                     | Description                                                     | Default                             |
 | ---------------- | ------------------------------------- | --------------------------------------------------------------- | ----------------------------------- |
@@ -110,5 +110,6 @@ function openScenesInVolE(scenes: string[], meta: Record<string, Record<string, 
 ```
 
 [URL specification]: ./URL_SPEC.md#data-source-url
+[`postMessage']: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
 [`window.open`]: https://developer.mozilla.org/en-US/docs/Web/API/Window/open
 [`WindowProxy`]: https://developer.mozilla.org/en-US/docs/Glossary/WindowProxy
