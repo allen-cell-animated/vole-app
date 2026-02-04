@@ -26,7 +26,7 @@ import LoadModal from "./Modals/LoadModal";
 import ShareModal from "./Modals/ShareModal";
 
 const MSG_ORIGIN_PARAM = "msgorigin";
-const STORAGE_ID_PARAM = "storageid";
+const COLLECTION_ID_PARAM = "collectionid";
 
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
@@ -112,9 +112,9 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
 
         let scenesFit = true;
         if (event.data.scenes !== undefined) {
-          const storageid = uuidv4();
-          scenesFit = writeScenes(storageid, encodeImageUrlProp(event.data));
-          searchParams.set(STORAGE_ID_PARAM, storageid);
+          const collectionid = uuidv4();
+          scenesFit = writeScenes(collectionid, encodeImageUrlProp(event.data));
+          searchParams.set(COLLECTION_ID_PARAM, collectionid);
         }
 
         if (!scenesFit) {
