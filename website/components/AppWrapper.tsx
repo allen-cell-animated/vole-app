@@ -3,6 +3,7 @@ import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   addViewerParamsFromMessage,
@@ -99,17 +100,22 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     };
 
     // Handle the opening window wanting to send more data via a message
-    const storageid = searchParams.get(STORAGE_ID_PARAM);
     const msgorigin = searchParams.get(MSG_ORIGIN_PARAM);
 
-    if (storageid && msgorigin) {
+    if (msgorigin !== null) {
       const receiveMessage = (event: MessageEvent): void => {
         if (event.origin !== msgorigin) {
           return;
         }
 
         const metaFit = event.data.meta === undefined || writeMetadata(event.data.meta);
-        const scenesFit = event.data.scenes === undefined || writeScenes(storageid, encodeImageUrlProp(event.data));
+
+        let scenesFit = true;
+        if (event.data.scenes !== undefined) {
+          const storageid = uuidv4();
+          scenesFit = writeScenes(storageid, encodeImageUrlProp(event.data));
+          searchParams.set(STORAGE_ID_PARAM, storageid);
+        }
 
         if (!scenesFit) {
           showErrorAlert(TOO_MANY_SCENES_ERROR);
@@ -130,10 +136,6 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         });
 
         searchParams.delete(MSG_ORIGIN_PARAM);
-        if (event.data.scenes === undefined) {
-          // don't need to keep `storageid` around if it's not keying a scene collection in storage
-          searchParams.delete(STORAGE_ID_PARAM);
-        }
         setSearchParams(searchParams, { replace: true });
 
         window.removeEventListener("message", receiveMessage);
@@ -141,8 +143,8 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
 
       window.addEventListener("message", receiveMessage);
       window.setTimeout(() => window.removeEventListener("message", receiveMessage), 60000);
-      // Sending back `storageid` lets the opening window know we're ready to receive more data
-      (window.opener as Window | null)?.postMessage(storageid, msgorigin);
+      // Sending a message back lets the opening window know we're ready to receive more data
+      (window.opener as Window | null)?.postMessage(undefined, msgorigin);
     }
 
     getViewerStateFromSearchParams();
