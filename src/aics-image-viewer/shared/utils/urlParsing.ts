@@ -315,15 +315,15 @@ class DataParams {
   dataset?: string = undefined;
   /** The ID of a cell within the loaded dataset. Used with `dataset`. */
   id?: string = undefined;
-  /** The key of a collection of scenes stored in local storage. Overrides `url` unless `msgorigin` is present. */
+  /** The key of a collection of scenes stored in local storage. Overrides `url`. */
   storageid?: string = undefined;
   /**
    * The origin of an opening window that wants to send a message to this window.
    *
-   * The presence of both this param and `storageid` implies that this window has just been opened by another app, and
-   * that the opening app has more data to send. Until that message is received, we fall back to `url`. Once that
-   * message arrives, the scenes to open are written to local storage at key `storageid` and `msgorigin` is removed,
-   * allowing the window to switch to reading local storage.
+   * The presence of this param implies that this window has just been opened by another app, and the opening app has
+   * more data to send. Until that message is received, we fall back to `url`. Once that message arrives, the scenes to
+   * open are written to local storage at a new `storageid` and `msgorigin` is removed, allowing the window to switch
+   * to reading local storage.
    *
    * All this happens independently of URL parsing, so the only meaningful thing this parsing code does with this param
    * is check whether it is present.
