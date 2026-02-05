@@ -31,9 +31,9 @@ returned from [`window.open`] for the following steps.
 On load, if the `msgorigin` query parameter is present, Vol-E will send a
 message back to the opening application. The external application code should
 wait for this message before moving to the next step, to ensure that the Vol-E
-window is open and ready to receive data. Ideally, it should also check that
-the message's `source` property matches the [`WindowProxy`] object it saved in
-step 1, to ensure it's sending data to the right Vol-E window (in case the user
+window is open and ready to receive data. It should also check that the
+message's `source` property matches the [`WindowProxy`] object it saved in step
+1, to ensure it's sending data to the right Vol-E window (in case the user
 opened multiple windows one right after the other).
 
 ## Step 3: Send data
