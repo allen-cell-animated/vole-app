@@ -144,7 +144,10 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
       window.addEventListener("message", receiveMessage);
       window.setTimeout(() => window.removeEventListener("message", receiveMessage), 60000);
       // Sending a message back lets the opening window know we're ready to receive more data
-      (window.opener as Window | null)?.postMessage(undefined, msgorigin);
+      const msg = {
+        appInfo: { name: "Vol-E", version: VOLEAPP_VERSION, coreVersion: VOLECORE_VERSION },
+      };
+      (window.opener as Window | null)?.postMessage(msg, msgorigin);
     }
 
     getViewerStateFromSearchParams();
