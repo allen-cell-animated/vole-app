@@ -5,6 +5,9 @@ module.exports = {
     "^.+\\.(js|jsx)$": "esbuild-jest",
   },
   testEnvironment: "jsdom",
+  testEnvironmentOptions: {
+    storageQuota: 5000,
+  },
   testPathIgnorePatterns: ["<rootDir>/es/"],
 
   // From https://jestjs.io/docs/webpack#mocking-css-modules

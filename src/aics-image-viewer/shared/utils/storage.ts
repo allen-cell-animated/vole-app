@@ -16,38 +16,60 @@ const MAX_ENTRIES: { [K in StorageEntryType]: number } = {
 
 const sanitizeStorageKey = (key: string): string => (key.includes(",") ? encodeURIComponent(key) : key);
 
+/** `window.localStorage.setItem`, but returns `false` on quota exceeded instead of erroring */
+function safeSetItem(key: string, value: string): boolean {
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    // `setItem` throws a `QuotaExceededError` when the browser won't let us put any more data in local storage
+    if (e instanceof DOMException && e.name === "QuotaExceededError") {
+      return false;
+    }
+    throw e;
+  }
+}
+
 /**
  * Wrapper for `window.localStorage.setItem` that accepts a `queue` of evictable storage keys, and attempts to safely
  * handle exceeding the storage quota by removing items off the back of the `queue` until space is available.
  *
  * Also, unlike `setItem`, this function can accept `value`s of type `string[]`. This allows `queue` to also be passed
  * into `value`, so that it can be written to storage *after* picking up any evictions that are made during the write.
+ *
+ * Returns `false` if `value` could not fit into storage even after removing everything from `queue`, `true` otherwise.
  */
-function setStorageItem(key: string, value: string | string[], queue: string[]): void {
-  let success = false;
-  while (!success) {
-    try {
-      window.localStorage.setItem(key, Array.isArray(value) ? value.join(",") : value);
-      success = true;
-    } catch (e) {
-      // `setItem` throws a `QuotaExceededError` when the browser won't let us put any more data in local storage
-      if (e instanceof DOMException && e.name === "QuotaExceededError") {
-        const evictKey = queue.shift();
-        if (evictKey === undefined) {
-          const err = new Error("Tried to insert a single entry into local storage that was larger than the quota.");
-          err.cause = e;
-          throw err;
+function setStorageItem(key: string, value: string | string[], queue: string[]): boolean {
+  const removedItems: [string, string][] = [];
+
+  while (!safeSetItem(key, Array.isArray(value) ? value.join(",") : value)) {
+    // can't fit `value` in the store; remove something off the back of `queue` and try again
+    const evictKey = queue.shift();
+
+    if (evictKey === undefined) {
+      // nothing left to remove means `value` is larger than the entire store
+      // give up on inserting it and try to put everything we removed back
+      for (const [key, value] of removedItems) {
+        if (safeSetItem(key, value)) {
+          queue.unshift(key);
         }
-        window.localStorage.removeItem(evictKey);
-      } else {
-        throw e;
       }
+      return false;
+    }
+
+    const removedValue = window.localStorage.getItem(evictKey);
+    if (removedValue !== null) {
+      removedItems.push([evictKey, removedValue]);
+      window.localStorage.removeItem(evictKey);
     }
   }
+
+  return true;
 }
 
 const getStorageQueue = (): string[] => window.localStorage.getItem(QUEUE_KEY)?.split(",") ?? [];
-const setStorageQueue = (queue: string[]): void => setStorageItem(QUEUE_KEY, queue, queue);
+/** If this function returns `false`, something serious has gone wrong and using local storage is likely impossible. */
+const setStorageQueue = (queue: string[]): boolean => setStorageItem(QUEUE_KEY, queue, queue);
 
 /**
  * Writes a bundle of `entries` to local storage, all with an optional `entryType` for categorizing the data.
@@ -55,11 +77,13 @@ const setStorageQueue = (queue: string[]): void => setStorageItem(QUEUE_KEY, que
  * Entries written with this function are tracked like a least-recently-used cache, and evicted when either:
  * - the size of local storage exceeds the browser's quota
  * - the number of entries of type `entryType` exceeds the maximum for that type
+ *
+ * Returns `true` if all entries fit in storage, or `false` if some did not.
  */
-function writeStorage(entries: Record<string, string>, entryType?: StorageEntryType): void {
+function writeStorage(entries: Record<string, string>, entryType?: StorageEntryType): boolean {
   const prevQueue = getStorageQueue();
   const typePrefix = entryType ? `${entryType}@` : "";
-  const escapedEntries = mapKeys(entries, sanitizeStorageKey);
+  const escapedEntries = mapKeys(entries, (_, key) => sanitizeStorageKey(key));
 
   // filter keys we're currently inserting out of the queue (to be re-inserted at the front)
   let index = 0;
@@ -95,19 +119,38 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
   }
 
   // write the new entries
+  const entryList = Object.entries(escapedEntries);
+  const firstKey = entryList.length < 2 ? undefined : typePrefix + entryList[0][0];
+  let allEntriesFit = true;
+
   for (const [key, value] of Object.entries(escapedEntries)) {
-    setStorageItem(typePrefix + key, value, queue);
+    const entryFits = setStorageItem(typePrefix + key, value, queue);
+    allEntriesFit = allEntriesFit && entryFits;
   }
-  setStorageQueue(queue);
+
+  // TODO if the queue somehow doesn't fit, it's a much more serious problem than an individual entry.
+  //   Should that be communicated in the return type?
+  const queueFit = setStorageQueue(queue);
+  return allEntriesFit && queueFit && (firstKey === undefined || window.localStorage.getItem(firstKey) !== null);
 }
 
-export function writeMetadata(meta: Record<string, MetadataRecord>): void {
+/**
+ * Writes a bundle of metadata records keyed by image URL to local storage.
+ *
+ * Returns `true` if all records fit into local storage, or `false` if at least one did not.
+ */
+export function writeMetadata(meta: Record<string, MetadataRecord>): boolean {
   const stringMeta = mapValues(meta, (metaVal) => JSON.stringify(metaVal));
-  writeStorage(stringMeta, StorageEntryType.Meta);
+  return writeStorage(stringMeta, StorageEntryType.Meta);
 }
 
-export function writeScenes(key: string, url: string): void {
-  writeStorage({ [key]: url }, StorageEntryType.Scenes);
+/**
+ * Writes a scene `url` to local storage at the given `key`.
+ *
+ * Returns `false` if the entry did not fit in local storage, or `true` if it did.
+ */
+export function writeScenes(key: string, url: string): boolean {
+  return writeStorage({ [sanitizeStorageKey(key)]: url }, StorageEntryType.Scenes);
 }
 
 export function readStoredMetadata(

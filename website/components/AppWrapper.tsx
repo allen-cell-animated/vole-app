@@ -3,25 +3,30 @@ import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 import React, { type ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
-import { ImageViewerApp, parseViewerUrlParams } from "../../src";
+import {
+  addViewerParamsFromMessage,
+  ImageViewerApp,
+  parseViewerUrlParams,
+  writeMetadata,
+  writeScenes,
+} from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
-import { writeMetadata, writeScenes } from "../../src/aics-image-viewer/shared/utils/storage";
-import { addViewerParamsFromMessage } from "../../src/aics-image-viewer/shared/utils/urlParsing";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { ViewerState } from "../../src/aics-image-viewer/state/types";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
-import { useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
+import { type ErrorAlertDescription, useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
 import Header, { HEADER_HEIGHT_PX } from "./Header";
 import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";
 import ShareModal from "./Modals/ShareModal";
 
 const MSG_ORIGIN_PARAM = "msgorigin";
-const STORAGE_ID_PARAM = "storageid";
+const COLLECTION_ID_PARAM = "collectionid";
 
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
@@ -33,6 +38,26 @@ const DEFAULT_APP_PROPS: AppDataProps = {
 
 type AppWrapperProps = {
   firestore?: FirebaseFirestore;
+};
+
+const TOO_MANY_SCENES_ERROR: ErrorAlertDescription = {
+  title: "Too many scenes to fit in local storage",
+  description: (
+    <>
+      An external application sent more image URLs than can fit in your browser&apos;s local storage. Reloading the page
+      or returning later may cause your session to be lost.
+    </>
+  ),
+};
+
+const TOO_MUCH_METADATA_ERROR: ErrorAlertDescription = {
+  title: "Received more metadata than can fit in local storage",
+  description: (
+    <>
+      An external application sent more image metadata than can fit in your browser&apos;s local storage. Reloading the
+      page or returning later may cause some data to be lost.
+    </>
+  ),
 };
 
 /**
@@ -75,21 +100,27 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     };
 
     // Handle the opening window wanting to send more data via a message
-    const storageid = searchParams.get(STORAGE_ID_PARAM);
     const msgorigin = searchParams.get(MSG_ORIGIN_PARAM);
 
-    if (storageid && msgorigin) {
+    if (msgorigin !== null) {
       const receiveMessage = (event: MessageEvent): void => {
         if (event.origin !== msgorigin) {
           return;
         }
 
-        if (event.data.meta !== undefined) {
-          writeMetadata(event.data.meta);
+        const metaFit = event.data.meta === undefined || writeMetadata(event.data.meta);
+
+        let scenesFit = true;
+        if (event.data.scenes !== undefined) {
+          const collectionid = uuidv4();
+          scenesFit = writeScenes(collectionid, encodeImageUrlProp(event.data));
+          searchParams.set(COLLECTION_ID_PARAM, collectionid);
         }
 
-        if (event.data.scenes !== undefined) {
-          writeScenes(storageid, encodeImageUrlProp(event.data));
+        if (!scenesFit) {
+          showErrorAlert(TOO_MANY_SCENES_ERROR);
+        } else if (!metaFit) {
+          showErrorAlert(TOO_MUCH_METADATA_ERROR);
         }
 
         if (event.data.sceneIndex !== undefined) {
@@ -112,8 +143,11 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
 
       window.addEventListener("message", receiveMessage);
       window.setTimeout(() => window.removeEventListener("message", receiveMessage), 60000);
-      // Sending back `storageid` lets the opening window know we're ready to receive more data
-      (window.opener as Window | null)?.postMessage(storageid, msgorigin);
+      // Sending a message back lets the opening window know we're ready to receive more data
+      const msg = {
+        appInfo: { name: "Vol-E", version: VOLEAPP_VERSION, coreVersion: VOLECORE_VERSION },
+      };
+      (window.opener as Window | null)?.postMessage(msg, msgorigin);
     }
 
     getViewerStateFromSearchParams();
