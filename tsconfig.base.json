@@ -6,7 +6,7 @@
     "declarationDir": "type-declarations",
     "downlevelIteration": true,
     "jsx": "preserve",
-    "lib": ["DOM", "ES2015", "ES6", "DOM.Iterable", "ScriptHost", "es2016.array.include"],
+    "lib": ["DOM", "ES2022", "ES6", "DOM.Iterable", "ScriptHost", "es2016.array.include"],
     "moduleResolution": "Node",
     "noImplicitAny": true,
     "noImplicitReturns": true,

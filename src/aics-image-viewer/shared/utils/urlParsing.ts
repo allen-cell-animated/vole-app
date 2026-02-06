@@ -12,15 +12,13 @@ import type { ColorArray } from "./colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
 import { clamp } from "./math";
+import { readStoredMetadata, readStoredScenes } from "./storage";
 import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
 export const ENCODED_COMMA_REGEX = /%2C/g;
 export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
-
-/** If the `url` query param equals this, parse image url(s) and metadata from local storage instead of params */
-const URL_FETCH_FROM_STORAGE = "storage";
 
 const FLOAT_REGEX = /-?[0-9]*.?[0-9]+/;
 
@@ -294,8 +292,15 @@ export class ViewerStateParams {
 /** URL parameters that define data sources when loading volumes. */
 class DataParams {
   /**
-   * One or more volume URLs to load. If multiple URLs are provided, they should
-   * be separated by commas.
+   * One or more volume URLs to load.
+   *
+   * This parameter may represent a single image with multiple data sources by delimiting each source URL with `,`.
+   * It may also represent multiple scenes by delimiting each scene URL (and/or each collection of multiple
+   * `,`-delimited source URLs) with `+`. E.g. `url1+url2,url3` represents a collection of two scenes, where the first
+   * scene comes from `url1` and the second is a combination of the channels from the images at `url2` and `url3`.
+   *
+   * When parsing, we do our best to account for `%`-encoding, including the possibility that each source/scene URL was
+   * encoded separately, then concatenated with the proper delimiters, then encoded again.
    */
   url?: string = undefined;
   /**
@@ -306,14 +311,24 @@ class DataParams {
    * See `ManifestJson` for the type definition.
    */
   manifest?: string = undefined;
-  /**
-   * The name of a dataset in the Cell Feature Explorer database. Used with `id`.
-   */
+  /** The name of a dataset in the Cell Feature Explorer database. Used with `id`. */
   dataset?: string = undefined;
-  /**
-   * The ID of a cell within the loaded dataset. Used with `dataset`.
-   */
+  /** The ID of a cell within the loaded dataset. Used with `dataset`. */
   id?: string = undefined;
+  /** The key of a collection of scenes stored in local storage. Overrides `url`. */
+  collectionid?: string = undefined;
+  /**
+   * The origin of an opening window that wants to send a message to this window.
+   *
+   * The presence of this param implies that this window has just been opened by another app, and the opening app has
+   * more data to send. Until that message is received, we fall back to `url`. Once that message arrives, the scenes to
+   * open are written to local storage at a new `collectionid` and `msgorigin` is removed, allowing the window to
+   * switch to reading local storage.
+   *
+   * All this happens independently of URL parsing, so the only meaningful thing this parsing code does with this param
+   * is check whether it is present.
+   */
+  msgorigin?: string = undefined;
 }
 
 class DeprecatedParams {
@@ -326,6 +341,19 @@ class DeprecatedParams {
 }
 
 type AppParams = Partial<ViewerStateParams & DataParams & DeprecatedParams & ChannelParams>;
+
+/**
+ * A message sent from an external application after this app was opened,
+ * containing data that was too large to pack into the URL.
+ */
+type ViewerMessage = {
+  /** A (possibly very long) list of scene URLs. */
+  scenes?: string[];
+  /** A (likely very large) list of metadata records for each scene. */
+  meta?: Record<string, MetadataRecord>;
+  /** The scene to open once this message arrives. */
+  sceneIndex?: number;
+};
 
 const allowedParamKeys: Array<keyof AppParams> = [
   ...Object.keys(new ViewerStateParams()),
@@ -1080,7 +1108,7 @@ export async function parseViewerUrlParams(
   args.viewerChannelSettings = channelSettings ?? deprecatedChannelSettings;
 
   // Parse data sources (URL or dataset/id pair)
-  if (params.manifest !== undefined || params.url !== undefined) {
+  if (params.manifest !== undefined || params.url !== undefined || params.collectionid !== undefined) {
     let scenes: (string | string[])[];
 
     if (params.manifest) {
@@ -1088,17 +1116,14 @@ export async function parseViewerUrlParams(
       scenes = manifestScenes;
       args.metadata = manifestMetadata ?? undefined;
     } else {
-      // Load from URL
-      const getFromStorage = params.url === URL_FETCH_FROM_STORAGE;
-      const urlParam = getFromStorage ? (localStorage.getItem("url") ?? params.url!) : params.url!;
+      // Load from URL or storage
+      const getFromStorage = params.collectionid !== undefined && params.msgorigin === undefined;
+      const urlParam = getFromStorage ? (readStoredScenes(params.collectionid!) ?? params.url!) : params.url!;
       // split encoded url into a list of one or more scenes...
       const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
       // ...and each scene into a list of multiple sources, if any.
       scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
-      if (getFromStorage) {
-        const metadataJson = localStorage.getItem("meta");
-        args.metadata = metadataJson !== null ? JSON.parse(metadataJson) : undefined;
-      }
+      args.metadata = readStoredMetadata(scenes);
     }
 
     const firstScene = scenes[0];
@@ -1137,6 +1162,38 @@ export async function parseViewerUrlParams(
   }
 
   return { args: removeUndefinedProperties(args), viewerSettings: removeUndefinedProperties(viewerSettings) };
+}
+
+/** Adds the data in a newly-arrived `ViewerMessage` to an existing stored `AppProps` instance. */
+export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" | "metadata">>(
+  args: P,
+  message: ViewerMessage
+): P {
+  // get scenes
+  const { imageUrl } = args;
+  const scenes = message.scenes ?? (typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes);
+  const firstScene = scenes[0];
+  const newImageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
+
+  // get metadata
+  const { meta } = message;
+  const messageMeta =
+    meta &&
+    scenes.map((scene) => {
+      if (Array.isArray(scene)) {
+        // can't handle multi-source scenes (yet)
+        return undefined;
+      }
+
+      return meta[scene] as MetadataRecord | undefined;
+    });
+  const newMetadata = messageMeta ?? args.metadata;
+
+  if (newMetadata === undefined) {
+    return { ...args, imageUrl: newImageUrl };
+  } else {
+    return { ...args, imageUrl: newImageUrl, metadata: newMetadata };
+  }
 }
 
 /**
