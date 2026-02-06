@@ -83,7 +83,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
 
     const getViewerStateFromSearchParams = async (): Promise<void> => {
       try {
-        const urlArgs = await parseViewerUrlParams(searchParams, props.firestore);
+        const urlArgs = await parseViewerUrlParams(window.location.search, props.firestore);
         if (ignore) return;
         setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs.args, ...locationArgs });
 

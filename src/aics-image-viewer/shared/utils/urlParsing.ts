@@ -379,29 +379,52 @@ export function getAllowedParams(searchParams: URLSearchParams): AppParams {
   return result;
 }
 
-const decodeURL = (url: string): string => {
-  const decodedUrl = decodeURIComponent(url);
-  return decodedUrl.endsWith("/") ? decodedUrl.slice(0, -1) : decodedUrl;
+/** Tries to retrieve the given `param` from a `search` string without using `URLSearchParams`, to avoid decoding. */
+const getSearchParamRaw = (search: string, param: string): string | undefined => {
+  const trimmedSearch = search.startsWith("?") ? search.slice(1) : search;
+  const entries = trimmedSearch.split("&");
+  const key = param + "=";
+  const foundKeyValue = entries.find((keyValue) => keyValue.startsWith(key));
+  return foundKeyValue?.slice(key.length);
 };
 
-/** Try to parse a `string` as a list of 2 or more URLs. Returns `undefined` if the string is not a valid URL list. */
-const tryDecodeURLList = (url: string, delim: string | RegExp = ","): string[] | undefined => {
-  if (typeof delim === "string" ? !url.includes(delim) : !delim.test(url)) {
-    return undefined;
-  }
-
-  const urls = url.split(delim).map((u) => decodeURL(u));
-
-  // Verify that all urls are valid
-  for (const u of urls) {
+/**
+ * Applies `decodeURIComponent` over and over until `url` either seems to be a valid `URL` or satisfies `condition`.
+ */
+const decodeURLUntilParseable = (url: string, condition = (_url: string) => false): string => {
+  let decoded = url;
+  while (!condition(decoded) && !URL.canParse(decoded)) {
     try {
-      new URL(u);
+      const nextDecoded = decodeURIComponent(decoded);
+      if (nextDecoded === decoded) {
+        return decoded;
+      }
+      decoded = nextDecoded;
     } catch {
-      return undefined;
+      return decoded;
     }
   }
+  return decoded;
+};
 
-  return urls;
+/** Parses the `url` query param into a 2D URL array: one or more scenes, with one or more sources per scene. */
+export const parseImageURLParam = (urlParam: string): string[][] => {
+  // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
+  const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
+  // Split into scene URLs.
+  const sceneUrls = decodedScenes.split(/[+ ]/);
+
+  return sceneUrls.map((scene) => {
+    // Split each scene into multiple sources, if any.
+    const decodedSources = decodeURLUntilParseable(scene, (url) => url.includes(","));
+    const sourceUrls = decodedSources.split(",");
+    if (sourceUrls.length === 1) {
+      return sourceUrls;
+    }
+
+    // Try to make sure the source URLs are decoded as well.
+    return sourceUrls.map((source) => decodeURLUntilParseable(source));
+  });
 };
 
 //// DATA PARSING //////////////////////
@@ -1078,25 +1101,24 @@ export async function loadFromManifest(
 
 /**
  * Parses a set of URL search parameters into props for the viewer.
- * @param urlSearchParams The URLSearchParams object to parse.
- * @param firestore Optional Firestore instance. If provided, the function can
- * load data from a Firestore dataset if the `dataset` and `id` parameters are
- * provided.
+ * @param search The query string to parse, which must be valid in the `URLSearchParams constructor
+ * @param firestore Optional Firestore instance. If provided, the function can load data from a
+ * Firestore dataset if the `dataset` and `id` parameters are provided.
  * @returns An object containing:
  * - `args`: Partial AppProps object.
  * - `viewerSettings`: Partial ViewerState object.
  *
- * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings`
- * can be passed to `ViewerStateProvider`.
+ * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings` can be passed to `ViewerStateProvider`.
  */
 export async function parseViewerUrlParams(
-  urlSearchParams: URLSearchParams,
+  search: string,
   firestore?: FirebaseFirestore
 ): Promise<{
   args: Partial<AppProps>;
   viewerSettings: Partial<ViewerState>;
 }> {
-  const params = getAllowedParams(urlSearchParams);
+  const searchParams = new URLSearchParams(search);
+  const params = getAllowedParams(searchParams);
   let args: Partial<AppProps> = {};
   // Parse viewer state
   const viewerSettings: Partial<ViewerState> = deserializeViewerState(params);
@@ -1117,12 +1139,11 @@ export async function parseViewerUrlParams(
       args.metadata = manifestMetadata ?? undefined;
     } else {
       // Load from URL or storage
-      const getFromStorage = params.collectionid !== undefined && params.msgorigin === undefined;
-      const urlParam = getFromStorage ? (readStoredScenes(params.collectionid!) ?? params.url!) : params.url!;
-      // split encoded url into a list of one or more scenes...
-      const sceneUrls = tryDecodeURLList(urlParam, /[+ ]/) ?? [urlParam];
-      // ...and each scene into a list of multiple sources, if any.
-      scenes = sceneUrls.map((scene) => tryDecodeURLList(scene) ?? decodeURL(scene));
+      const { collectionid, msgorigin } = params;
+      const getFromStorage = collectionid !== undefined && msgorigin === undefined;
+      const urlParamFromStorage = getFromStorage ? readStoredScenes(collectionid) : undefined;
+      const urlParam = urlParamFromStorage ?? getSearchParamRaw(search, "url")!;
+      scenes = parseImageURLParam(urlParam);
       args.metadata = readStoredMetadata(scenes);
     }
 
