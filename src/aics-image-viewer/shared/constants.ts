@@ -26,7 +26,8 @@ export const // Control panel will automatically close if viewport is less than 
   LEVELS_SLIDER_DEFAULT: ColorArray = [35.0, 140.0, 255.0],
   INTERPOLATION_ENABLED_DEFAULT = true,
   OTHER_CHANNEL_KEY = "Other",
-  SINGLE_GROUP_CHANNEL_KEY = "Channels";
+  SINGLE_GROUP_CHANNEL_KEY = "Channels",
+  SINGLE_CHANNEL_MODE_COLOR: ColorArray = [255, 255, 255];
 
 export const TFEDITOR_DEFAULT_COLOR: ColorArray = [255, 255, 255];
 export const TFEDITOR_MAX_BIN = 255;
@@ -184,6 +185,8 @@ export const getDefaultViewerState = (): ViewerState => ({
   slice: { x: 0.5, y: 0.5, z: 0.5 },
   time: 0,
   scene: 0,
+  singleChannelMode: false,
+  singleChannelIndex: 0,
   // Do not override camera position, target, etc. by default;
   // instead, let the viewer apply default camera settings based on the view mode.
   // This prevents a bug where the camera's position and view mode are set to

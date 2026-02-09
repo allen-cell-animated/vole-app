@@ -3,8 +3,9 @@ import type React from "react";
 import { useEffect } from "react";
 import { useShallow } from "zustand/shallow";
 
+import { SINGLE_CHANNEL_MODE_COLOR } from "../../shared/constants";
 import { binIndexedControlPointsToLut, rampToControlPoints } from "../../shared/utils/controlPointsToLut";
-import { useViewerState, type ViewerStore } from "../../state/store";
+import { select, useViewerState, type ViewerStore } from "../../state/store";
 import type { UseImageEffectType } from "./types";
 
 interface ChannelUpdaterProps {
@@ -21,6 +22,8 @@ interface ChannelUpdaterProps {
 const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, version }) => {
   const channelStateSelector = useShallow((state: ViewerStore) => state.channelSettings[index]);
   const channelState = useViewerState(channelStateSelector);
+  const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const singleChannelIndex = useViewerState(select("singleChannelIndex"));
   const { volumeEnabled, isosurfaceEnabled, isovalue, colorizeEnabled, colorizeAlpha, opacity, color } = channelState;
 
   // Effects to update channel settings should check if image is present and channel is loaded first
@@ -37,10 +40,11 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
   // enable/disable channel can't be dependent on channel load state because it may trigger the channel to load
   useEffect(() => {
     if (image) {
-      view3d.setVolumeChannelEnabled(image, index, volumeEnabled);
+      const enabled = singleChannelMode ? index === singleChannelIndex : volumeEnabled;
+      view3d.setVolumeChannelEnabled(image, index, enabled);
       view3d.updateLuts(image);
     }
-  }, [image, volumeEnabled, index, view3d]);
+  }, [image, volumeEnabled, index, view3d, singleChannelMode, singleChannelIndex]);
 
   useEffect(() => {
     if (image) {
@@ -60,10 +64,11 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
 
   useImageEffect(
     (currentImage) => {
-      view3d.setVolumeChannelOptions(currentImage, index, { color });
+      const finalColor = singleChannelMode ? SINGLE_CHANNEL_MODE_COLOR : color;
+      view3d.setVolumeChannelOptions(currentImage, index, { color: finalColor });
       view3d.updateLuts(currentImage);
     },
-    [color, index, view3d]
+    [color, index, view3d, singleChannelMode]
   );
 
   const { controlPoints, ramp, useControlPoints } = channelState;
