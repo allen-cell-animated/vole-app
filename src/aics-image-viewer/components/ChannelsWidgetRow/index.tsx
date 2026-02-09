@@ -28,9 +28,16 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const [controlsOpen, setControlsOpen] = useState(false);
 
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
+
+  const onClickChannel = useCallback(() => {
+    if (singleChannelMode) {
+      changeViewerSetting("singleChannelIndex", index);
+    }
+  }, [singleChannelMode, changeViewerSetting, index]);
 
   const changeSettingForThisChannel = useCallback(
     (value: Partial<ChannelState>) => changeChannelSetting(index, value),
@@ -75,7 +82,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     />
   );
 
-  const thisChannelOnly = singleChannelIndex === index;
+  const thisChannelOnly = singleChannelMode && singleChannelIndex === index;
 
   const visibilityControls = singleChannelMode ? (
     <div className={`channel-visibility-controls${thisChannelOnly ? " single-channel" : ""}`}>
@@ -131,7 +138,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
 
   const rowClass = `channel-row${controlsOpen ? " controls-closed" : ""}${thisChannelOnly ? " single-channel" : ""}`;
   return (
-    <List.Item key={index} className={rowClass}>
+    <List.Item key={index} className={rowClass} onClick={onClickChannel}>
       <List.Item.Meta title={props.name} avatar={createColorPicker()} />
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
