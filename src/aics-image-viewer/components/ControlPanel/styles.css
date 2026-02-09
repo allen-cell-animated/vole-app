@@ -100,9 +100,14 @@
         width: 40%;
         display: flex;
 
-        .ant-checkbox-wrapper {
+        .ant-checkbox-wrapper,
+        .single-channel-text {
           flex: 4;
         }
+      }
+
+      .channel-visibility-controls .single-channel-text {
+        font-size: 11px;
       }
 
       .ant-collapse-content-box {

@@ -29,6 +29,8 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
 
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
+  const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const singleChannelIndex = useViewerState(select("singleChannelIndex"));
 
   const changeSettingForThisChannel = useCallback(
     (value: Partial<ChannelState>) => changeChannelSetting(index, value),
@@ -50,7 +52,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
 
   const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
     const color = colorObjectToArray(newRGB);
-    changeChannelSetting(index!, { color: color });
+    changeChannelSetting(index!, { color });
   };
 
   const createColorPicker = (): React.ReactNode => (
@@ -64,7 +66,23 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     />
   );
 
-  const visibilityControls = (
+  const settingsButton = (
+    <Button
+      icon={<ViewerIcon type="preferences" style={{ fontSize: "16px" }} />}
+      onClick={() => setControlsOpen(!controlsOpen)}
+      title="Open channel settings"
+      type="text"
+    />
+  );
+
+  const thisChannelOnly = singleChannelIndex === index;
+
+  const visibilityControls = singleChannelMode ? (
+    <div className={`channel-visibility-controls${thisChannelOnly ? " single-channel" : ""}`}>
+      <span className="single-channel-text">{thisChannelOnly ? "Showing this channel only" : ""}</span>
+      {settingsButton}
+    </div>
+  ) : (
     <div className="channel-visibility-controls">
       <Checkbox checked={channelState.volumeEnabled} onChange={volumeCheckHandler}>
         Vol
@@ -72,12 +90,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      <Button
-        icon={<ViewerIcon type="preferences" style={{ fontSize: "16px" }} />}
-        onClick={() => setControlsOpen(!controlsOpen)}
-        title="Open channel settings"
-        type="text"
-      />
+      {settingsButton}
     </div>
   );
 
