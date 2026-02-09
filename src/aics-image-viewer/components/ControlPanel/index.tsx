@@ -1,4 +1,4 @@
-import { Button, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
+import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
@@ -50,6 +50,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     props.setCollapsed(false);
   };
   const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
+  const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
@@ -78,6 +80,13 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             </div>
           </Button>
         </Dropdown>
+
+        <Checkbox
+          checked={singleChannelMode}
+          onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
+        >
+          Single channel mode
+        </Checkbox>
       </div>
     );
   };
