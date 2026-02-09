@@ -97,6 +97,8 @@ export enum ViewerStateKeys {
   Time = "t",
   Scene = "scene",
   CameraState = "cam",
+  SingleChannelMode = "scm",
+  SingleChannelIndex = "sci",
 }
 
 export enum CameraTransformKeys {
@@ -244,6 +246,10 @@ export class ViewerStateParams {
   [ViewerStateKeys.Axes]?: string = undefined;
   /** Whether to show the bounding box. "1" is enabled. Disabled by default. */
   [ViewerStateKeys.BoundingBox]?: string = undefined;
+  /** Whether single-channel mode is active. "1" is active. Inactive by default. */
+  [ViewerStateKeys.SingleChannelMode]?: string = undefined;
+  /** If single-channel mode is active, which channel index is shown. Defaults to 0. */
+  [ViewerStateKeys.SingleChannelIndex]?: string = undefined;
   /** The color of the bounding box, as a 6-digit hex color. */
   [ViewerStateKeys.BoundingBoxColor]?: string = undefined;
   /** The background color, as a 6-digit hex color. */
@@ -871,6 +877,8 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
     time: parseStringInt(params[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
     scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
     renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
+    singleChannelMode: parseStringBoolean(params[ViewerStateKeys.SingleChannelMode]),
+    singleChannelIndex: parseStringInt(params[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
     cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
   };
 
@@ -923,6 +931,8 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Levels]: state.levels?.join(","),
     [ViewerStateKeys.Time]: state.time?.toString(),
     [ViewerStateKeys.Scene]: state.scene?.toString(),
+    [ViewerStateKeys.SingleChannelMode]: serializeBoolean(state.singleChannelMode),
+    [ViewerStateKeys.SingleChannelIndex]: state.singleChannelIndex?.toString(),
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };
