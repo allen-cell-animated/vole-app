@@ -75,6 +75,8 @@ export const selectViewerSettings = (store: ViewerStore): ViewerState => ({
   time: store.time,
   scene: store.scene,
   cameraState: store.cameraState,
+  singleChannelMode: store.singleChannelMode,
+  singleChannelIndex: store.singleChannelIndex,
 });
 
 /**
