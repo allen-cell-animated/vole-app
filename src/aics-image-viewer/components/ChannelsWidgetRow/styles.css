@@ -34,4 +34,10 @@
   &.controls-closed .ant-btn-text:not(:focus-visible) {
     color: var(--color-controlpanel-text);
   }
+
+  &.single-channel,
+  &.single-channel .ant-list-item-meta-title {
+    color: var(--color-controlpanel-icon-activated-text);
+    font-weight: 600;
+  }
 }

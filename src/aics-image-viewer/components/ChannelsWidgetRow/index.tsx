@@ -129,7 +129,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     return <>{(channelState.volumeEnabled || channelState.isosurfaceEnabled) && createTFEditor()}</>;
   };
 
-  const rowClass = controlsOpen ? "channel-row" : "channel-row controls-closed";
+  const rowClass = `channel-row${controlsOpen ? " controls-closed" : ""}${thisChannelOnly ? " single-channel" : ""}`;
   return (
     <List.Item key={index} className={rowClass}>
       <List.Item.Meta title={props.name} avatar={createColorPicker()} />
