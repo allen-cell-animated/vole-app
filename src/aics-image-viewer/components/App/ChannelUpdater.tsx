@@ -48,9 +48,10 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
 
   useEffect(() => {
     if (image) {
-      view3d.setVolumeChannelOptions(image, index, { isosurfaceEnabled });
+      const enabled = isosurfaceEnabled && !singleChannelMode;
+      view3d.setVolumeChannelOptions(image, index, { isosurfaceEnabled: enabled });
     }
-  }, [image, isosurfaceEnabled, index, view3d]);
+  }, [image, isosurfaceEnabled, index, view3d, singleChannelMode]);
 
   useImageEffect(
     (currentImage) => view3d.setVolumeChannelOptions(currentImage, index, { isovalue }),
