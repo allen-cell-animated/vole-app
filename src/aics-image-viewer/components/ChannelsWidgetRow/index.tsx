@@ -101,7 +101,15 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     </div>
   );
 
-  const createTFEditor = (): React.ReactNode => {
+  const renderControls = (): React.ReactNode => {
+    const showEditor = singleChannelMode
+      ? singleChannelIndex === index
+      : channelState.volumeEnabled || channelState.isosurfaceEnabled;
+
+    if (!showEditor) {
+      return <h4 style={{ fontStyle: "italic" }}>Not currently visible</h4>;
+    }
+
     // TODO this is most of `channelState`... should `TfEditor` just get `channelState`?
     const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp, plotMin, plotMax, isovalue } =
       channelState;
@@ -122,18 +130,11 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         keepIntensityRange={channelState.keepIntensityRange}
         isovalue={isovalue}
         opacity={channelState.opacity}
-        volumeEnabled={channelState.volumeEnabled}
-        isosurfaceEnabled={channelState.isosurfaceEnabled}
+        volumeEnabled={singleChannelMode ? singleChannelIndex === index : channelState.volumeEnabled}
+        isosurfaceEnabled={channelState.isosurfaceEnabled && !singleChannelMode}
         saveIsosurface={saveThisIsosurface}
       />
     );
-  };
-
-  const renderControls = (): React.ReactNode => {
-    if (!channelState.volumeEnabled && !channelState.isosurfaceEnabled) {
-      return <h4 style={{ fontStyle: "italic" }}>Not currently visible</h4>;
-    }
-    return <>{(channelState.volumeEnabled || channelState.isosurfaceEnabled) && createTFEditor()}</>;
   };
 
   const rowClass = `channel-row${controlsOpen ? " controls-closed" : ""}${thisChannelOnly ? " single-channel" : ""}`;
