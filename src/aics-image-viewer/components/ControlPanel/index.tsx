@@ -1,6 +1,6 @@
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
 import type { MetadataRecord } from "../../shared/types";
@@ -51,12 +51,32 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
   const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
   const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const singleChannelIndex = useViewerState(select("singleChannelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
+  const channelCount = props.channelDataChannels?.length ?? 1;
+
+  // Switch between channels in single-channel mode with arrow keys
+  useEffect(() => {
+    if (singleChannelMode && tab === ControlTab.Channels) {
+      const handleKeyPress = (e: KeyboardEvent): void => {
+        if (e.key === "ArrowUp") {
+          changeViewerSetting("singleChannelIndex", (singleChannelIndex + channelCount - 1) % channelCount);
+        } else if (e.key === "ArrowDown") {
+          changeViewerSetting("singleChannelIndex", (singleChannelIndex + 1) % channelCount);
+        }
+      };
+
+      window.addEventListener("keydown", handleKeyPress);
+      return () => window.removeEventListener("keydown", handleKeyPress);
+    }
+
+    return undefined;
+  }, [singleChannelMode, tab, singleChannelIndex, channelCount, changeViewerSetting]);
 
   // TODO key is a number, but MenuInfo assumes keys will always be strings
   //   if future versions of antd make this type more permissive, remove ugly double-cast
