@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "web view of cell volume images",
   "main": "es/index.js",
   "module": "es/index.js",
