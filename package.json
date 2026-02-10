@@ -2,7 +2,6 @@
   "name": "@aics/vole-app",
   "version": "3.1.0",
   "description": "web view of cell volume images",
-  "repository": "github:allen-cell-animated/vole-app",
   "main": "es/index.js",
   "module": "es/index.js",
   "browser": "es/index.js",
@@ -16,6 +15,10 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allen-cell-animated/vole-app.git"
   },
   "scripts": {
     "start": "webpack serve --config webpack.dev.js  --env env=dev",
