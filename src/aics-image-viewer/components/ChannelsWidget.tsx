@@ -56,6 +56,10 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   const showSurfaces = createCheckboxHandler("isosurfaceEnabled");
 
   const renderVisibilityControls = (channelArray: number[]): React.ReactNode => {
+    if (singleChannelMode) {
+      return null;
+    }
+
     const volChecked: number[] = [];
     const isoChecked: number[] = [];
     channelArray.forEach((channelIndex: number) => {
