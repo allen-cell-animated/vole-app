@@ -44,6 +44,9 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   const volumeEnabled = useViewerState(selectVolumeEnabled);
   const isosurfaceEnabled = useViewerState(selectIsosurfaceEnabled);
   const channelNames = useViewerState(selectNames);
+  const singleChannelMode = useViewerState(select("singleChannelMode"));
+
+  const collapseClass = singleChannelMode ? "single-channel-mode" : "";
 
   const createCheckboxHandler = (key: keyof ChannelState) => (value: boolean, channelArray: number[]) => {
     changeChannelSetting(channelArray, { [key]: value });
@@ -112,7 +115,9 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
         };
       });
 
-  return <Collapse bordered={false} defaultActiveKey={firstKey} items={rows} collapsible="icon" />;
+  return (
+    <Collapse className={collapseClass} bordered={false} defaultActiveKey={firstKey} items={rows} collapsible="icon" />
+  );
 };
 
 export default ChannelsWidget;
