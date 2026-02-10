@@ -25,13 +25,16 @@ interface ChannelsWidgetRowProps {
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
   const { index, saveIsosurface } = props;
-  const [controlsOpen, setControlsOpen] = useState(false);
 
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
+
+  const [_controlsOpen, setControlsOpen] = useState(false);
+  // Don't show controls for non-selected channels in single-channel mode
+  const controlsOpen = _controlsOpen && !(singleChannelMode && singleChannelIndex !== index);
 
   const onClickChannel = useCallback(() => {
     if (singleChannelMode) {
