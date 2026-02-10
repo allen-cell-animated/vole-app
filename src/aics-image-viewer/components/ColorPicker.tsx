@@ -57,9 +57,9 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   React.useEffect(() => setCurrentColor(props.color), [props.color]);
 
   const width = props.width || 36;
-  const popoverDirectionStyle = openAboveSwatch ? { bottom: "23px" } : { top: "0px" };
+  const popoverDirectionStyle = openAboveSwatch ? { bottom: "18px" } : { top: "3px" };
   return (
-    <>
+    <div>
       <div
         ref={swatchRef}
         onClick={handleClick}
@@ -78,7 +78,7 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
           </div>
         ) : null}
       </div>
-    </>
+    </div>
   );
 };
 

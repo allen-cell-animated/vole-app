@@ -69,6 +69,8 @@ const STYLES: Styles = {
   },
   colorPicker: {
     marginRight: "16px",
+    display: "flex",
+    alignItems: "center",
   },
 };
 
