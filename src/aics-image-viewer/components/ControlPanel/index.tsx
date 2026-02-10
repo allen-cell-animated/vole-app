@@ -83,6 +83,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
         <Checkbox
           checked={singleChannelMode}
+          style={{ width: "40%" }}
           onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
         >
           Single channel mode

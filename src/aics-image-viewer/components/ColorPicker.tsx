@@ -57,12 +57,14 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   React.useEffect(() => setCurrentColor(props.color), [props.color]);
 
   const width = props.width || 36;
-  const popoverDirectionStyle = openAboveSwatch ? { bottom: "21px" } : { top: "0px" };
+  const popoverDirectionStyle = openAboveSwatch ? { bottom: "23px" } : { top: "0px" };
   return (
-    <div>
-      <div style={STYLES.swatch} ref={swatchRef} onClick={handleClick}>
-        <div style={{ ...STYLES.color, width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }} />
-      </div>
+    <>
+      <div
+        ref={swatchRef}
+        onClick={handleClick}
+        style={{ ...STYLES.swatch, width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }}
+      />
       <div style={{ position: "absolute" }}>
         {isOpen ? (
           <div style={{ ...STYLES.popover, ...popoverDirectionStyle }}>
@@ -76,24 +78,18 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
           </div>
         ) : null}
       </div>
-    </div>
+    </>
   );
 };
 
 export default ColorPicker;
 
 const STYLES: Styles = {
-  color: {
-    height: "14px",
-    margin: "3px",
-    borderRadius: "2px",
-  },
   swatch: {
+    height: "15px",
     borderRadius: "3px",
     border: "1px solid var(--color-controlpanel-border)",
-    display: "inline-block",
     cursor: "pointer",
-    verticalAlign: "middle",
   },
   popover: {
     position: "absolute",

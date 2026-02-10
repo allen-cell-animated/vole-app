@@ -9,6 +9,10 @@
     color: var(--color-controlpanel-text);
   }
 
+  .ant-list-item-meta {
+    align-items: center;
+  }
+
   .ant-btn-text {
     color: var(--color-button-icon-activated-text);
     transition: color 0.3s;
@@ -35,9 +39,11 @@
     color: var(--color-controlpanel-text);
   }
 
-  &.single-channel .channel-visibility-controls,
-  &.single-channel .ant-list-item-meta-title {
-    color: var(--color-controlpanel-icon-activated-text);
-    font-weight: 600;
+  &.single-channel {
+    .channel-visibility-controls,
+    .ant-list-item-meta-title {
+      color: var(--color-controlpanel-icon-activated-text);
+      font-weight: 600;
+    }
   }
 }
