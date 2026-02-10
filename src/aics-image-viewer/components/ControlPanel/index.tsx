@@ -1,4 +1,5 @@
-import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
+import { Button, Checkbox, Collapse, Dropdown, Flex, Tooltip } from "antd";
+import type { CheckboxRef, CollapseProps, MenuProps } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React, { useEffect } from "react";
 
@@ -54,6 +55,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
+  const singleChannelModeCheckboxRef = React.useRef<CheckboxRef>(null);
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
 
@@ -64,10 +66,14 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   useEffect(() => {
     if (singleChannelMode && tab === ControlTab.Channels) {
       const handleKeyPress = (e: KeyboardEvent): void => {
-        if (e.key === "ArrowUp") {
-          changeViewerSetting("singleChannelIndex", (singleChannelIndex + channelCount - 1) % channelCount);
-        } else if (e.key === "ArrowDown") {
-          changeViewerSetting("singleChannelIndex", (singleChannelIndex + 1) % channelCount);
+        // Only navigate with arrow keys if no unrelated input element has focus
+        const { activeElement, body } = document;
+        if (activeElement === body || activeElement === singleChannelModeCheckboxRef.current?.input) {
+          if (e.key === "ArrowUp") {
+            changeViewerSetting("singleChannelIndex", (singleChannelIndex + channelCount - 1) % channelCount);
+          } else if (e.key === "ArrowDown") {
+            changeViewerSetting("singleChannelIndex", (singleChannelIndex + 1) % channelCount);
+          }
         }
       };
 
@@ -102,9 +108,11 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         </Dropdown>
 
         <Checkbox
+          name="Single channel mode"
           checked={singleChannelMode}
           style={{ width: "40%" }}
           onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
+          ref={singleChannelModeCheckboxRef}
         >
           Single channel mode
         </Checkbox>
