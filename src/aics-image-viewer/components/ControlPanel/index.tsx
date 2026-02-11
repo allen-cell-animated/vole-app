@@ -1,7 +1,6 @@
-import { Button, Checkbox, Collapse, Dropdown, Flex, Tooltip } from "antd";
-import type { CheckboxRef, CollapseProps, MenuProps } from "antd";
+import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
 import type { MetadataRecord } from "../../shared/types";
@@ -52,42 +51,12 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
   const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
   const singleChannelMode = useViewerState(select("singleChannelMode"));
-  const singleChannelIndex = useViewerState(select("singleChannelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
-  const singleChannelCheckboxRef = React.useRef<CheckboxRef>(null);
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
 
-  const { viewerChannelSettings, visibleControls, hasImage, channelGroupedByType } = props;
-
-  // Switch between channels in single-channel mode with arrow keys
-  useEffect(() => {
-    if (singleChannelMode && tab === ControlTab.Channels) {
-      const handleKeyPress = ({ key }: KeyboardEvent): void => {
-        const { activeElement, body } = document;
-        const singleChannelCheckbox = singleChannelCheckboxRef.current?.input;
-
-        if (
-          (key === "ArrowUp" || key === "ArrowDown") &&
-          // Only navigate with arrow keys if no unrelated input element has focus
-          (activeElement === body || activeElement === singleChannelCheckbox)
-        ) {
-          // We have to check the channel grouping - channels may not appear in index order
-          const channelOrder = Object.values(channelGroupedByType).flat();
-          const currentIndex = channelOrder.indexOf(singleChannelIndex);
-          const delta = key === "ArrowUp" ? -1 : 1;
-          const nextIndex = (currentIndex + channelOrder.length + delta) % channelOrder.length;
-          changeViewerSetting("singleChannelIndex", channelOrder[nextIndex]);
-        }
-      };
-
-      window.addEventListener("keydown", handleKeyPress);
-      return () => window.removeEventListener("keydown", handleKeyPress);
-    }
-
-    return undefined;
-  }, [singleChannelMode, tab, singleChannelIndex, channelGroupedByType, changeViewerSetting]);
+  const { viewerChannelSettings, visibleControls, hasImage } = props;
 
   // TODO key is a number, but MenuInfo assumes keys will always be strings
   //   if future versions of antd make this type more permissive, remove ugly double-cast
@@ -117,7 +86,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
           checked={singleChannelMode}
           style={{ width: "40%" }}
           onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
-          ref={singleChannelCheckboxRef}
         >
           Single channel mode
         </Checkbox>

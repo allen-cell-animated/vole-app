@@ -45,8 +45,40 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   const isosurfaceEnabled = useViewerState(selectIsosurfaceEnabled);
   const channelNames = useViewerState(selectNames);
   const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const singleChannelIndex = useViewerState(select("singleChannelIndex"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const collapseClass = singleChannelMode ? "single-channel-mode" : "";
+
+  // Switch between channels in single-channel mode with arrow keys
+  React.useEffect(() => {
+    if (singleChannelMode) {
+      const handleKeyPress = ({ key }: KeyboardEvent): void => {
+        if (!(key === "ArrowUp" || key === "ArrowDown")) {
+          return;
+        }
+
+        // Only navigate with arrow keys if no unrelated input element has focus
+        // (special case for checkboxes: they don't use arrow keys, and the user must click one to enter this mode)
+        const { activeElement: activeEl, body } = document;
+        if (activeEl !== body && !(activeEl instanceof HTMLInputElement && activeEl.type === "checkbox")) {
+          return;
+        }
+
+        // We have to check the channel grouping - channels may not appear in index order
+        const channelOrder = Object.values(channelGroupedByType).flat();
+        const currentIndex = channelOrder.indexOf(singleChannelIndex);
+        const delta = key === "ArrowUp" ? -1 : 1;
+        const nextIndex = (currentIndex + channelOrder.length + delta) % channelOrder.length;
+        changeViewerSetting("singleChannelIndex", channelOrder[nextIndex]);
+      };
+
+      window.addEventListener("keydown", handleKeyPress);
+      return () => window.removeEventListener("keydown", handleKeyPress);
+    }
+
+    return undefined;
+  }, [singleChannelMode, singleChannelIndex, channelGroupedByType, changeViewerSetting]);
 
   const createCheckboxHandler = (key: keyof ChannelState) => (value: boolean, channelArray: number[]) => {
     changeChannelSetting(channelArray, { [key]: value });
@@ -120,7 +152,14 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
       });
 
   return (
-    <Collapse className={collapseClass} bordered={false} defaultActiveKey={firstKey} items={rows} collapsible="icon" />
+    <Collapse
+      className={collapseClass}
+      bordered={false}
+      defaultActiveKey={firstKey}
+      items={rows}
+      onChange={console.log}
+      collapsible="icon"
+    />
   );
 };
 
