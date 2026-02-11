@@ -2,8 +2,8 @@ import { map } from "lodash";
 import React from "react";
 import { type ColorResult, SketchPicker } from "react-color";
 
-import type { Styles } from "../shared/types";
-import type { ColorObject } from "../shared/utils/colorRepresentations";
+import type { Styles } from "../../shared/types";
+import type { ColorObject } from "../../shared/utils/colorRepresentations";
 
 // if there are fewer than this many screen pixels below the swatch but more above, open above the swatch
 const OPEN_ABOVE_MARGIN = 310;
