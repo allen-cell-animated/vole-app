@@ -48,29 +48,50 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
+  const [openGroups, setOpenGroups] = React.useState([Object.keys(channelGroupedByType)[0]]);
+
   const collapseClass = singleChannelMode ? "single-channel-mode" : "";
 
   // Switch between channels in single-channel mode with arrow keys
   React.useEffect(() => {
     if (singleChannelMode) {
       const handleKeyPress = ({ key }: KeyboardEvent): void => {
+        // We only care about up/down arrows!
         if (!(key === "ArrowUp" || key === "ArrowDown")) {
           return;
         }
 
         // Only navigate with arrow keys if no unrelated input element has focus
-        // (special case for checkboxes: they don't use arrow keys, and the user must click one to enter this mode)
+        // (special case for checkboxes: they don't use arrow keys, and the user just clicked one to enter this mode)
         const { activeElement: activeEl, body } = document;
         if (activeEl !== body && !(activeEl instanceof HTMLInputElement && activeEl.type === "checkbox")) {
           return;
         }
 
         // We have to check the channel grouping - channels may not appear in index order
-        const channelOrder = Object.values(channelGroupedByType).flat();
+        const channelGroups = Object.values(channelGroupedByType);
+        const channelOrder = channelGroups.flat();
         const currentIndex = channelOrder.indexOf(singleChannelIndex);
         const delta = key === "ArrowUp" ? -1 : 1;
         const nextIndex = (currentIndex + channelOrder.length + delta) % channelOrder.length;
         changeViewerSetting("singleChannelIndex", channelOrder[nextIndex]);
+
+        // Which group is the new channel in?
+        let nextGroupIndex = 0;
+        let accumulator = 0;
+        while (accumulator + channelGroups[nextGroupIndex].length <= nextIndex) {
+          accumulator += channelGroups[nextGroupIndex].length;
+          nextGroupIndex += 1;
+        }
+
+        // If the new channel is in a closed group, open it
+        const nextGroupName = Object.keys(channelGroupedByType)[nextGroupIndex];
+        setOpenGroups((currentOpenGroups) => {
+          if (!currentOpenGroups.includes(nextGroupName)) {
+            return [...currentOpenGroups, nextGroupName];
+          }
+          return currentOpenGroups;
+        });
       };
 
       window.addEventListener("keydown", handleKeyPress);
@@ -135,7 +156,6 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
     ) : null;
   };
 
-  const firstKey = Object.keys(channelGroupedByType)[0];
   const rows: CollapseProps["items"] =
     channelDataChannels &&
     Object.entries(channelGroupedByType)
@@ -155,9 +175,9 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
     <Collapse
       className={collapseClass}
       bordered={false}
-      defaultActiveKey={firstKey}
       items={rows}
-      onChange={console.log}
+      activeKey={openGroups}
+      onChange={setOpenGroups}
       collapsible="icon"
     />
   );
