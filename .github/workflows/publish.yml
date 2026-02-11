@@ -3,7 +3,7 @@
 
 name: NPM Package
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 permissions:
-  # Required for OIDC token for NPM publishing.
+  # Required for OIDC token for NPM Trusted Publishers.
   # See https://docs.github.com/en/actions/concepts/security/openid-connect
   # and https://docs.npmjs.com/trusted-publishers.
   id-token: write
@@ -23,11 +23,12 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
       - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
+          cache: "npm"
       - run: npm ci
       - run: npm run lint --if-present
 
@@ -35,11 +36,12 @@ jobs:
     name: Unit Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
       - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
+          cache: "npm"
       - run: npm ci
       - run: npm test --if-present
 
@@ -47,11 +49,12 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
       - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
+          cache: "npm"
       - run: npm ci
       - run: npm run typeCheck --if-present
 
@@ -59,10 +62,11 @@ jobs:
     needs: [lint, typeCheck, test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
+          cache: "npm"
       - run: npm ci
       - run: npm run build
 
@@ -73,25 +77,28 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
           registry-url: https://registry.npmjs.org/
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
+      - run: npm install -g npm@11.9.0 # >= v11.5.1 required for OIDC token support
       - run: npm ci
       - run: npm run build
-      - run: npm publish
+      - run: npm publish --provenance # Provenance required for Trusted Publishers
 
   deploy:
     needs: publish-npm
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
           registry-url: https://registry.npmjs.org/
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
       - run: npm ci
       - run: npm run gh-build-release
       - name: Deploy
