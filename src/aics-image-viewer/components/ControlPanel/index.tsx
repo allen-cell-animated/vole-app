@@ -63,7 +63,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const makeTurnOnPresetFn = ({ key }: MenuInfo): void =>
     props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors);
 
-  const renderColorPresetsDropdown = (): React.ReactNode => {
+  const renderChannelSettingsHeader = (): React.ReactNode => {
     const dropDownMenuProps: MenuProps = {
       items: PRESET_COLOR_MAP.map((preset, index) => {
         return { key: index, label: preset.name };
@@ -71,24 +71,29 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       onClick: makeTurnOnPresetFn,
     };
     return (
-      <div className="color-presets-dropdown">
-        <Dropdown trigger={["click"]} menu={dropDownMenuProps} getPopupContainer={getDropdownContainer}>
-          <Button>
-            <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>
-              Apply palette
-              <ViewerIcon type="dropdownArrow" style={{ fontSize: "14px" }} />
-            </div>
-          </Button>
-        </Dropdown>
+      <div className="channel-settings-header">
+        <div className="channel-settings-header-controls">
+          <Dropdown trigger={["click"]} menu={dropDownMenuProps} getPopupContainer={getDropdownContainer}>
+            <Button>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>
+                Apply palette
+                <ViewerIcon type="dropdownArrow" style={{ fontSize: "14px" }} />
+              </div>
+            </Button>
+          </Dropdown>
 
-        <Checkbox
-          name="Single channel mode"
-          checked={singleChannelMode}
-          style={{ width: "40%" }}
-          onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
-        >
-          Single channel mode
-        </Checkbox>
+          <Checkbox
+            name="Single channel mode"
+            checked={singleChannelMode}
+            style={{ width: "40%" }}
+            onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
+          >
+            Single channel mode
+          </Checkbox>
+        </div>
+        <div className="channel-settings-header-support-text">
+          {singleChannelMode ? "Use up/down arrow keys to change channel" : ""}
+        </div>
       </div>
     );
   };
@@ -164,7 +169,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       </div>
       <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
         <h2 className="control-panel-title">{ControlTabNames[tab]}</h2>
-        {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderColorPresetsDropdown()}
+        {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
         {hasImage && (
           <div className="channel-rows-list">
             {tab === ControlTab.Channels && (
