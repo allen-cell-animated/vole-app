@@ -863,10 +863,16 @@
     }
 
 .channel-rows-list .ant-list-item.channel-row{
-  padding:22px 0;
-  border-bottom:1px solid var(--color-controlpanel-border);
+  padding:22px 16px 0;
+  border-bottom:none;
   flex-flow:row wrap;
 }
+
+.channel-rows-list .ant-list-item.channel-row .channel-row-border{
+    width:100%;
+    height:22px;
+    border-bottom:1px solid var(--color-controlpanel-border);
+  }
 
 .channel-rows-list .ant-list-item.channel-row .ant-list-item-meta-title,
   .channel-rows-list .ant-list-item.channel-row .ant-checkbox-wrapper{
@@ -901,6 +907,10 @@
 
 .channel-rows-list .ant-list-item.channel-row.controls-closed .ant-btn-text:not(:focus-visible){
     color:var(--color-controlpanel-text);
+  }
+
+.channel-rows-list .ant-list-item.channel-row.single-channel{
+    background-color:var(--color-button-primary-bg);
   }
 
 .channel-rows-list .ant-list-item.channel-row.single-channel .channel-visibility-controls,
@@ -1111,7 +1121,7 @@
       }
 
 .control-panel-col-container .control-panel-col .channel-rows-list .ant-collapse-content-box{
-        padding:0 16px;
+        padding:0;
       }
 
 .control-panel-col-container .control-panel-col .ant-collapse{
