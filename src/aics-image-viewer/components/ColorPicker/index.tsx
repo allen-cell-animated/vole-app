@@ -2,8 +2,9 @@ import { map } from "lodash";
 import React from "react";
 import { type ColorResult, SketchPicker } from "react-color";
 
-import type { Styles } from "../../shared/types";
 import type { ColorObject } from "../../shared/utils/colorRepresentations";
+
+import "./styles.css";
 
 // if there are fewer than this many screen pixels below the swatch but more above, open above the swatch
 const OPEN_ABOVE_MARGIN = 310;
@@ -59,16 +60,17 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   const width = props.width || 36;
   const popoverDirectionStyle = openAboveSwatch ? { bottom: "18px" } : { top: "3px" };
   return (
-    <div>
+    <div className="color-picker">
       <div
         ref={swatchRef}
         onClick={handleClick}
-        style={{ ...STYLES.swatch, width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }}
+        className="color-picker-swatch"
+        style={{ width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }}
       />
       <div style={{ position: "absolute" }}>
         {isOpen ? (
-          <div style={{ ...STYLES.popover, ...popoverDirectionStyle }}>
-            <div style={STYLES.cover} onClick={handleClose} />
+          <div className="color-picker-popover" style={popoverDirectionStyle}>
+            <div className="color-picker-cover" onClick={handleClose} />
             <SketchPicker
               color={currentColor}
               onChange={handleChange}
@@ -83,23 +85,3 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
 };
 
 export default ColorPicker;
-
-const STYLES: Styles = {
-  swatch: {
-    height: "15px",
-    borderRadius: "3px",
-    border: "1px solid var(--color-controlpanel-border)",
-    cursor: "pointer",
-  },
-  popover: {
-    position: "absolute",
-    zIndex: "9999",
-  },
-  cover: {
-    position: "fixed",
-    top: "0px",
-    right: "0px",
-    bottom: "0px",
-    left: "0px",
-  },
-};
