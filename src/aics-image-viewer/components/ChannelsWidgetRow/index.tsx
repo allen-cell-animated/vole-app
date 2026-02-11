@@ -146,6 +146,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <List.Item.Meta title={props.name} avatar={createColorPicker()} />
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
+      <div className="channel-row-border" />
     </List.Item>
   );
 };
