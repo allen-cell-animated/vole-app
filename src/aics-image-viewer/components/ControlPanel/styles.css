@@ -71,21 +71,10 @@
       max-height: 24px; /* align bottom border with divider to the left */
       font-size: 1.4em;
     }
-
-    .channel-settings-header {
-      margin: 0 16px 5px;
-
-      .channel-settings-header-controls {
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .channel-settings-header-support-text {
-        font-size: 11px;
-        text-align: right;
-        min-height: 15px;
-        color: var(--color-controlpanel-text);
-      }
+    .color-presets-dropdown {
+      margin: 0 16px 16px;
+      display: flex;
+      justify-content: space-between;
     }
 
     .channel-rows-list {
