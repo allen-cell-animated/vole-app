@@ -33,8 +33,8 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
 
   const [_controlsOpen, setControlsOpen] = useState(false);
-  // Don't show controls for non-selected channels in single-channel mode
-  const controlsOpen = _controlsOpen && !(singleChannelMode && singleChannelIndex !== index);
+  // Don't show controls in single-channel mode
+  const controlsOpen = _controlsOpen && !singleChannelMode;
 
   const onClickChannel = useCallback(() => {
     if (singleChannelMode) {
