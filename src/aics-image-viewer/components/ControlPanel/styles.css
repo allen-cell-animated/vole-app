@@ -82,16 +82,16 @@
       }
     }
 
+    /* hover states of checkboxes */
+    .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+      border-color: white;
+    }
+
     .control-panel-content {
       border-top: 1px solid var(--color-controlpanel-border);
 
       .ant-list-item-meta .ant-list-item-meta-title {
         margin: 0;
-      }
-
-      /* hover states of checkboxes */
-      .ant-checkbox-wrapper:hover .ant-checkbox-inner {
-        border-color: white;
       }
 
       /* checkbox spacing, in channel entries and shared in headings */
