@@ -40,18 +40,21 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
   // enable/disable channel can't be dependent on channel load state because it may trigger the channel to load
   useEffect(() => {
     if (image) {
-      const enabled = singleChannelMode ? index === singleChannelIndex : volumeEnabled;
+      // if this is the focused channel in single-channel mode, enable it unless *only* isosurface is enabled
+      const enabled = singleChannelMode
+        ? index === singleChannelIndex && !(!volumeEnabled && isosurfaceEnabled)
+        : volumeEnabled;
       view3d.setVolumeChannelEnabled(image, index, enabled);
       view3d.updateLuts(image);
     }
-  }, [image, volumeEnabled, index, view3d, singleChannelMode, singleChannelIndex]);
+  }, [image, volumeEnabled, index, view3d, singleChannelMode, singleChannelIndex, isosurfaceEnabled]);
 
   useEffect(() => {
     if (image) {
-      const enabled = isosurfaceEnabled && !singleChannelMode;
+      const enabled = isosurfaceEnabled && (!singleChannelMode || singleChannelIndex === index);
       view3d.setVolumeChannelOptions(image, index, { isosurfaceEnabled: enabled });
     }
-  }, [image, isosurfaceEnabled, index, view3d, singleChannelMode]);
+  }, [image, isosurfaceEnabled, index, view3d, singleChannelMode, singleChannelIndex]);
 
   useImageEffect(
     (currentImage) => view3d.setVolumeChannelOptions(currentImage, index, { isovalue }),
