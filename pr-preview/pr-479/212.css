@@ -915,12 +915,12 @@
 
 .channel-rows-list .ant-list-item.channel-row.single-channel .channel-visibility-controls,
     .channel-rows-list .ant-list-item.channel-row.single-channel .ant-list-item-meta-title{
-      color:var(--color-controlpanel-icon-activated-text);
+      color:var(--color-button-primary-text);
       font-weight:600;
     }
 
 .channel-rows-list .ant-list-item.channel-row.single-channel .color-picker .color-picker-swatch{
-      border-color:var(--color-controlpanel-icon-activated-text);
+      border-color:var(--color-button-primary-text);
     }
 
 .viewer-metadata-table{
@@ -1076,18 +1076,12 @@
     }
 
 .control-panel-col-container .control-panel-col .channel-settings-header{
-      margin:0 16px 5px;
+      margin:0 16px 16px;
+      display:flex;
+      justify-content:space-between;
     }
 
-.control-panel-col-container .control-panel-col .channel-settings-header .channel-settings-header-controls{
-        display:flex;
-        justify-content:space-between;
-      }
-
-.control-panel-col-container .control-panel-col .channel-settings-header .channel-settings-header-support-text{
-        font-size:11px;
-        text-align:right;
-        min-height:15px;
+.control-panel-col-container .control-panel-col .channel-settings-header .ant-checkbox-wrapper{
         color:var(--color-controlpanel-text);
       }
 
