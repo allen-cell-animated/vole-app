@@ -38,8 +38,8 @@ const enum ControlTab {
 }
 
 const ControlTabNames = {
-  [ControlTab.Channels]: "Channel Settings",
-  [ControlTab.Advanced]: "Advanced Settings",
+  [ControlTab.Channels]: "Channel settings",
+  [ControlTab.Advanced]: "Advanced settings",
   [ControlTab.Metadata]: "Metadata",
 };
 
