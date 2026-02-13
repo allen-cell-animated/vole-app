@@ -71,7 +71,8 @@
       max-height: 24px; /* align bottom border with divider to the left */
       font-size: 1.4em;
     }
-    .color-presets-dropdown {
+
+    .channel-settings-header {
       margin: 0 16px 16px;
       display: flex;
       justify-content: space-between;

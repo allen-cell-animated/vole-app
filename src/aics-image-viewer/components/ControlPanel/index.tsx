@@ -71,7 +71,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       onClick: makeTurnOnPresetFn,
     };
     return (
-      <div className="color-presets-dropdown">
+      <div className="channel-settings-header">
         <Dropdown trigger={["click"]} menu={dropDownMenuProps} getPopupContainer={getDropdownContainer}>
           <Button>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>
@@ -81,14 +81,15 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
           </Button>
         </Dropdown>
 
-        <Checkbox
-          name="Single channel mode"
-          checked={singleChannelMode}
-          style={{ width: "40%" }}
-          onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
-        >
-          Single channel mode
-        </Checkbox>
+        <div style={{ alignSelf: "end", width: "40%" }}>
+          <Checkbox
+            name="Single channel mode"
+            checked={singleChannelMode}
+            onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
+          >
+            Single channel mode
+          </Checkbox>
+        </div>
       </div>
     );
   };
