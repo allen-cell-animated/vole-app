@@ -130,11 +130,38 @@
       .ant-collapse-item:not(.ant-collapse-item-active):last-child {
         border-bottom: 1px solid var(--color-controlpanel-border);
       }
+    }
 
-      .ant-list-item {
-        padding: 22px 16px 0;
-        border-bottom: none;
-        flex-flow: row wrap;
+    .ant-list-item,
+    .color-picker-row {
+      padding: 0 16px;
+      border-bottom: none;
+      display: flex;
+      flex-flow: row wrap;
+      color: var(--color-controlpanel-text);
+
+      /* Provides the border in between list elements */
+      &::after {
+        content: "";
+        margin-top: 22px;
+        width: 100%;
+        border-bottom: 1px solid var(--color-controlpanel-border);
+      }
+    }
+
+    .ant-list-item {
+      padding-top: 22px;
+
+      &::after {
+        margin-top: 22px;
+      }
+    }
+
+    .color-picker-row {
+      padding-top: 16px;
+
+      &::after {
+        margin-top: 16px;
       }
     }
 

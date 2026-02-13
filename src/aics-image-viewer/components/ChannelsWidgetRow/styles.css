@@ -1,14 +1,6 @@
 @import "../../assets/styles/variables";
 
 .control-panel-content .ant-list-item.channel-row {
-  /* Provides the border in between list elements */
-  &::after {
-    content: "";
-    margin-top: 22px;
-    width: 100%;
-    border-bottom: 1px solid var(--color-controlpanel-border);
-  }
-
   .ant-list-item-meta-title,
   .ant-checkbox-wrapper {
     color: var(--color-controlpanel-text);
