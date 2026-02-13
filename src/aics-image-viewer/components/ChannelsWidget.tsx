@@ -56,8 +56,8 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
   React.useEffect(() => {
     if (singleChannelMode) {
       const handleKeyPress = ({ key }: KeyboardEvent): void => {
-        // We only care about up/down arrows!
-        if (!(key === "ArrowUp" || key === "ArrowDown")) {
+        // We only care about arrow keys!
+        if (!(key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight")) {
           return;
         }
 
@@ -68,11 +68,11 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
           return;
         }
 
-        // We have to check the channel grouping - channels may not appear in index order
+        // Channels appear in the order determined by grouping props, not index order
         const channelGroups = Object.values(channelGroupedByType);
         const channelOrder = channelGroups.flat();
         const currentIndex = channelOrder.indexOf(singleChannelIndex);
-        const delta = key === "ArrowUp" ? -1 : 1;
+        const delta = key === "ArrowUp" || key === "ArrowLeft" ? -1 : 1;
         const nextIndex = (currentIndex + channelOrder.length + delta) % channelOrder.length;
         changeViewerSetting("singleChannelIndex", channelOrder[nextIndex]);
 

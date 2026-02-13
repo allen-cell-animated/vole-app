@@ -79,7 +79,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const thisChannelOnly = singleChannelMode && singleChannelIndex === index;
 
   const visibilityControls = singleChannelMode ? (
-    // TODO text alignment?
     <div className={`channel-visibility-controls${thisChannelOnly ? " single-channel" : ""}`}>
       <span className="single-channel-text">{thisChannelOnly ? "Showing this volume only" : ""}</span>
     </div>
