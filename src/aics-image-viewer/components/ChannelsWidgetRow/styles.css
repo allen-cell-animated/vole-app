@@ -1,13 +1,11 @@
 @import "../../assets/styles/variables";
-.channel-rows-list .ant-list-item.channel-row {
-  padding: 22px 16px 0;
-  border-bottom: none;
-  flex-flow: row wrap;
 
-  /* Provides the bottom border of the list element */
-  .channel-row-border {
+.control-panel-content .ant-list-item.channel-row {
+  /* Provides the border in between list elements */
+  &::after {
+    content: "";
+    margin-top: 22px;
     width: 100%;
-    height: 22px;
     border-bottom: 1px solid var(--color-controlpanel-border);
   }
 

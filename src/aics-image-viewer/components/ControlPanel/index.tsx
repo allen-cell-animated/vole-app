@@ -167,7 +167,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         <h2 className="control-panel-title">{ControlTabNames[tab]}</h2>
         {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderColorPresetsDropdown()}
         {hasImage && (
-          <div className="channel-rows-list">
+          <div className="control-panel-content">
             {tab === ControlTab.Channels && (
               <ChannelsWidget
                 channelDataChannels={props.channelDataChannels}

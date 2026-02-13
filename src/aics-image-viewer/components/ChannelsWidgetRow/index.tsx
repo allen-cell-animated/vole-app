@@ -136,13 +136,12 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     );
   };
 
-  const rowClass = `channel-row${controlsOpen ? " controls-closed" : ""}${thisChannelOnly ? " single-channel" : ""}`;
+  const rowClass = `channel-row${controlsOpen ? "" : " controls-closed"}${thisChannelOnly ? " single-channel" : ""}`;
   return (
     <List.Item key={index} className={rowClass} onClick={onClickChannel}>
       <List.Item.Meta title={props.name} avatar={createColorPicker()} />
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
-      <div className="channel-row-border" />
     </List.Item>
   );
 };

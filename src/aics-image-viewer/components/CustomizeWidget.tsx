@@ -62,7 +62,7 @@ const CustomizeWidget: React.FC<CustomizeWidgetProps> = (props) => {
 
 const STYLES: Styles = {
   colorPickerRow: {
-    padding: "14px 0",
+    padding: "14px 26px",
     display: "flex",
     borderBottom: "1px solid #6e6e6e",
     color: "var(--color-controlpanel-text)",
