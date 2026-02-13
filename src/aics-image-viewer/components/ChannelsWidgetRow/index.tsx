@@ -76,21 +76,12 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     />
   );
 
-  const settingsButton = (
-    <Button
-      icon={<ViewerIcon type="preferences" style={{ fontSize: "16px" }} />}
-      onClick={() => setControlsOpen(!controlsOpen)}
-      title="Open channel settings"
-      type="text"
-    />
-  );
-
   const thisChannelOnly = singleChannelMode && singleChannelIndex === index;
 
   const visibilityControls = singleChannelMode ? (
+    // TODO text alignment?
     <div className={`channel-visibility-controls${thisChannelOnly ? " single-channel" : ""}`}>
-      <span className="single-channel-text">{thisChannelOnly ? "Showing this channel only" : ""}</span>
-      {settingsButton}
+      <span className="single-channel-text">{thisChannelOnly ? "Showing this volume only" : ""}</span>
     </div>
   ) : (
     <div className="channel-visibility-controls">
@@ -100,7 +91,12 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      {settingsButton}
+      <Button
+        icon={<ViewerIcon type="preferences" style={{ fontSize: "16px" }} />}
+        onClick={() => setControlsOpen(!controlsOpen)}
+        title="Open channel settings"
+        type="text"
+      />
     </div>
   );
 
