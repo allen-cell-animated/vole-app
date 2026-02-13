@@ -76,6 +76,10 @@
       margin: 0 16px 16px;
       display: flex;
       justify-content: space-between;
+
+      .ant-checkbox-wrapper {
+        color: var(--color-controlpanel-text);
+      }
     }
 
     .channel-rows-list {
