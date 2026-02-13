@@ -51,12 +51,12 @@
 
     .channel-visibility-controls,
     .ant-list-item-meta-title {
-      color: var(--color-controlpanel-icon-activated-text);
+      color: white;
       font-weight: 600;
     }
 
     .color-picker .color-picker-swatch {
-      border-color: var(--color-controlpanel-icon-activated-text);
+      border-color: white;
     }
   }
 }
