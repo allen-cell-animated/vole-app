@@ -9,14 +9,13 @@ import "./styles.css";
 // if there are fewer than this many screen pixels below the swatch but more above, open above the swatch
 const OPEN_ABOVE_MARGIN = 310;
 
-type ColorChangeHandler = (currentColor: ColorObject, prevColor?: ColorObject, idx?: number) => void;
+type ColorChangeHandler = (currentColor: ColorObject, prevColor: ColorObject) => void;
 
 export interface ColorPickerProps {
   color: ColorObject;
   width: number;
   onColorChange?: ColorChangeHandler;
   onColorChangeComplete?: ColorChangeHandler;
-  idx?: any;
   disableAlpha?: boolean;
 }
 
@@ -46,13 +45,13 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   const handleChange = (color: ColorResult): void => {
     setCurrentColor(color.rgb);
     // supply onColorChange callback in props.
-    props.onColorChange?.(color.rgb, currentColor, props.idx);
+    props.onColorChange?.(color.rgb, currentColor);
   };
 
   const handleChangeComplete = (color: ColorResult): void => {
     setCurrentColor(color.rgb);
     // supply onColorChange callback in props.
-    props.onColorChangeComplete?.(color.rgb, currentColor, props.idx);
+    props.onColorChangeComplete?.(color.rgb, currentColor);
   };
 
   React.useEffect(() => setCurrentColor(props.color), [props.color]);
