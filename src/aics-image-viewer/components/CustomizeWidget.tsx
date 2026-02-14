@@ -1,27 +1,9 @@
 import React from "react";
 
-import { type ColorArray, colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
+import { colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
 import { select, useViewerState } from "../state/store";
 
-import ColorPicker from "./ColorPicker";
-
-const ColorPickerRow: React.FC<{
-  color: ColorArray;
-  onColorChange: (color: ColorArray) => void;
-  children?: React.ReactNode;
-}> = ({ color, onColorChange, children }) => (
-  <div className="color-picker-row">
-    <span style={{ marginRight: "16px", display: "flex", alignItems: "center" }}>
-      <ColorPicker
-        color={colorArrayToObject(color)}
-        onColorChange={(color) => onColorChange(colorObjectToArray(color))}
-        width={18}
-        disableAlpha={true}
-      />
-    </span>
-    <span>{children}</span>
-  </div>
-);
+import ControlPanelRow from "./shared/ControlPanelRow";
 
 export interface CustomizeWidgetProps {
   visibleControls: {
@@ -39,21 +21,25 @@ const CustomizeWidget: React.FC<CustomizeWidgetProps> = (props) => {
   return (
     <>
       {props.visibleControls.backgroundColorPicker && (
-        <ColorPickerRow
-          color={backgroundColor}
-          onColorChange={(color) => changeViewerSetting("backgroundColor", color)}
-        >
-          Background color
-        </ColorPickerRow>
+        <ControlPanelRow
+          color={colorArrayToObject(backgroundColor)}
+          onColorChange={(color) => changeViewerSetting("backgroundColor", colorObjectToArray(color))}
+          title="Background color"
+          verticalMargin={16}
+        />
       )}
       {props.visibleControls.boundingBoxColorPicker && (
-        <ColorPickerRow
-          color={boundingBoxColor}
-          onColorChange={(color) => changeViewerSetting("boundingBoxColor", color)}
-        >
-          Bounding box color
-          {!showBoundingBox && <i> - bounding box turned off</i>}
-        </ColorPickerRow>
+        <ControlPanelRow
+          color={colorArrayToObject(boundingBoxColor)}
+          onColorChange={(color) => changeViewerSetting("boundingBoxColor", colorObjectToArray(color))}
+          title={
+            <>
+              Bounding box color
+              {!showBoundingBox && <i> - bounding box turned off</i>}
+            </>
+          }
+          verticalMargin={16}
+        />
       )}
     </>
   );
