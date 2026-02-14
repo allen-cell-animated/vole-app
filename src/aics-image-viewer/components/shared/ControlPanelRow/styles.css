@@ -1,0 +1,36 @@
+.control-panel-col .control-panel-row {
+  padding: var(--control-panel-row-vertical-margin) 16px 0;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  color: var(--color-controlpanel-text);
+
+  .ant-checkbox-wrapper {
+    color: var(--color-controlpanel-text);
+  }
+
+  .control-panel-row-title {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+
+    .color-picker {
+      margin-right: 16px;
+    }
+
+    h4 {
+      margin: 0;
+    }
+  }
+
+  &::after {
+    content: "";
+    margin-top: var(--control-panel-row-vertical-margin);
+    width: 100%;
+    border-bottom: 1px solid var(--color-controlpanel-border);
+  }
+}
+
+.control-panel-col .ant-collapse-item:not(:last-child) .control-panel-row:last-child::after {
+  border-bottom: none;
+}
