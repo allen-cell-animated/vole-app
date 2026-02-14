@@ -9,6 +9,7 @@
     color: var(--color-controlpanel-text);
   }
 
+  /* Title and color picker container */
   .control-panel-row-title {
     display: flex;
     align-items: center;
@@ -23,6 +24,22 @@
     }
   }
 
+  /* Channel settings open/close button */
+  .ant-btn-text {
+    color: var(--color-button-icon-activated-text);
+    transition: color 0.3s;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-button-tertiary-hover-text) !important;
+    }
+  }
+
+  &.controls-closed .ant-btn-text:not(:focus-visible) {
+    color: var(--color-controlpanel-text);
+  }
+
+  /* Highlight rows (used for single-channel mode) */
   &.control-panel-row-highlight {
     background-color: var(--color-button-primary-bg);
 
@@ -37,6 +54,7 @@
     }
   }
 
+  /* Pseudo-element provides the border between rows */
   &::after {
     content: "";
     margin-top: var(--control-panel-row-vertical-margin);
@@ -45,6 +63,7 @@
   }
 }
 
+/* If this row is up against another collapsible section immediately below, their borders would double up */
 .control-panel-col .ant-collapse-item:not(:last-child) .control-panel-row:last-child::after {
   border-bottom: none;
 }

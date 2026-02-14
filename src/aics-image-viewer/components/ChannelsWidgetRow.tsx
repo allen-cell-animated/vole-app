@@ -3,16 +3,14 @@ import { Button, Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
-import type { IsosurfaceFormat } from "../../shared/types";
-import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../../shared/utils/colorRepresentations";
-import { select, useViewerState } from "../../state/store";
-import type { ChannelState } from "../../state/types";
+import type { IsosurfaceFormat } from "../shared/types";
+import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
+import { select, useViewerState } from "../state/store";
+import type { ChannelState } from "../state/types";
 
-import ControlPanelRow from "../shared/ControlPanelRow";
-import ViewerIcon from "../shared/ViewerIcon";
-import TfEditor from "../TfEditor";
-
-import "./styles.css";
+import ControlPanelRow from "./shared/ControlPanelRow";
+import ViewerIcon from "./shared/ViewerIcon";
+import TfEditor from "./TfEditor";
 
 interface ChannelsWidgetRowProps {
   index: number;
