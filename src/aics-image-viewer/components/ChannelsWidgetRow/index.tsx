@@ -1,5 +1,5 @@
 import type { Channel } from "@aics/vole-core";
-import { Button, Checkbox, List } from "antd";
+import { Button, Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
@@ -8,7 +8,7 @@ import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../../
 import { select, useViewerState } from "../../state/store";
 import type { ChannelState } from "../../state/types";
 
-import ColorPicker from "../ColorPicker";
+import ControlPanelRow from "../shared/ControlPanelRow";
 import ViewerIcon from "../shared/ViewerIcon";
 import TfEditor from "../TfEditor";
 
@@ -60,20 +60,12 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     changeChannelSetting(index, { isosurfaceEnabled: target.checked });
   };
 
-  const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
-    const color = colorObjectToArray(newRGB);
-    changeChannelSetting(index!, { color });
-  };
-
-  const createColorPicker = (): React.ReactNode => (
-    <ColorPicker
-      color={colorArrayToObject(channelState.color)}
-      onColorChange={onColorChange}
-      onColorChangeComplete={props.onColorChangeComplete}
-      disableAlpha={true}
-      idx={index}
-      width={18}
-    />
+  const onColorChange = useCallback(
+    (newRGB: ColorObject): void => {
+      const color = colorObjectToArray(newRGB);
+      changeChannelSetting(index, { color });
+    },
+    [index, changeChannelSetting]
   );
 
   const thisChannelOnly = singleChannelMode && singleChannelIndex === index;
@@ -137,11 +129,18 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
 
   const rowClass = `channel-row${controlsOpen ? "" : " controls-closed"}${thisChannelOnly ? " single-channel" : ""}`;
   return (
-    <List.Item key={index} className={rowClass} onClick={onClickChannel}>
-      <List.Item.Meta title={props.name} avatar={createColorPicker()} />
+    <ControlPanelRow
+      key={index}
+      title={props.name}
+      color={colorArrayToObject(channelState.color)}
+      onColorChange={onColorChange}
+      onColorChangeComplete={props.onColorChangeComplete}
+      onClick={onClickChannel}
+      className={rowClass}
+    >
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
-    </List.Item>
+    </ControlPanelRow>
   );
 };
 
