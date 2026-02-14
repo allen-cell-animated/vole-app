@@ -11,7 +11,7 @@ const OPEN_ABOVE_MARGIN = 310;
 
 type ColorChangeHandler = (currentColor: ColorObject, prevColor?: ColorObject, idx?: number) => void;
 
-interface ColorPickerProps {
+export interface ColorPickerProps {
   color: ColorObject;
   width: number;
   onColorChange?: ColorChangeHandler;
