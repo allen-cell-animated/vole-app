@@ -2,8 +2,9 @@ import { map } from "lodash";
 import React from "react";
 import { type ColorResult, SketchPicker } from "react-color";
 
-import type { Styles } from "../shared/types";
-import type { ColorObject } from "../shared/utils/colorRepresentations";
+import type { ColorObject } from "../../shared/utils/colorRepresentations";
+
+import "./styles.css";
 
 // if there are fewer than this many screen pixels below the swatch but more above, open above the swatch
 const OPEN_ABOVE_MARGIN = 310;
@@ -57,16 +58,19 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   React.useEffect(() => setCurrentColor(props.color), [props.color]);
 
   const width = props.width || 36;
-  const popoverDirectionStyle = openAboveSwatch ? { bottom: "21px" } : { top: "0px" };
+  const popoverDirectionStyle = openAboveSwatch ? { bottom: "18px" } : { top: "3px" };
   return (
-    <div>
-      <div style={STYLES.swatch} ref={swatchRef} onClick={handleClick}>
-        <div style={{ ...STYLES.color, width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }} />
-      </div>
+    <div className="color-picker">
+      <div
+        ref={swatchRef}
+        onClick={handleClick}
+        className="color-picker-swatch"
+        style={{ width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }}
+      />
       <div style={{ position: "absolute" }}>
         {isOpen ? (
-          <div style={{ ...STYLES.popover, ...popoverDirectionStyle }}>
-            <div style={STYLES.cover} onClick={handleClose} />
+          <div className="color-picker-popover" style={popoverDirectionStyle}>
+            <div className="color-picker-cover" onClick={handleClose} />
             <SketchPicker
               color={currentColor}
               onChange={handleChange}
@@ -81,29 +85,3 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
 };
 
 export default ColorPicker;
-
-const STYLES: Styles = {
-  color: {
-    height: "14px",
-    margin: "3px",
-    borderRadius: "2px",
-  },
-  swatch: {
-    borderRadius: "3px",
-    border: "1px solid var(--color-controlpanel-border)",
-    display: "inline-block",
-    cursor: "pointer",
-    verticalAlign: "middle",
-  },
-  popover: {
-    position: "absolute",
-    zIndex: "9999",
-  },
-  cover: {
-    position: "fixed",
-    top: "0px",
-    right: "0px",
-    bottom: "0px",
-    left: "0px",
-  },
-};

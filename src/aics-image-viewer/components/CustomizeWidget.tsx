@@ -1,6 +1,5 @@
 import React from "react";
 
-import type { Styles } from "../shared/types";
 import { type ColorArray, colorArrayToObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
 import { select, useViewerState } from "../state/store";
 
@@ -11,8 +10,8 @@ const ColorPickerRow: React.FC<{
   onColorChange: (color: ColorArray) => void;
   children?: React.ReactNode;
 }> = ({ color, onColorChange, children }) => (
-  <div style={STYLES.colorPickerRow}>
-    <span style={STYLES.colorPicker}>
+  <div className="color-picker-row">
+    <span style={{ marginRight: "16px", display: "flex", alignItems: "center" }}>
       <ColorPicker
         color={colorArrayToObject(color)}
         onColorChange={(color) => onColorChange(colorObjectToArray(color))}
@@ -58,18 +57,6 @@ const CustomizeWidget: React.FC<CustomizeWidgetProps> = (props) => {
       )}
     </>
   );
-};
-
-const STYLES: Styles = {
-  colorPickerRow: {
-    padding: "14px 0",
-    display: "flex",
-    borderBottom: "1px solid #6e6e6e",
-    color: "var(--color-controlpanel-text)",
-  },
-  colorPicker: {
-    marginRight: "16px",
-  },
 };
 
 export default CustomizeWidget;

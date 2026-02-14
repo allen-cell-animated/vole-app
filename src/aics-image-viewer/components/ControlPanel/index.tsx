@@ -1,4 +1,4 @@
-import { Button, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
+import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
@@ -38,8 +38,8 @@ const enum ControlTab {
 }
 
 const ControlTabNames = {
-  [ControlTab.Channels]: "Channel Settings",
-  [ControlTab.Advanced]: "Advanced Settings",
+  [ControlTab.Channels]: "Channel settings",
+  [ControlTab.Advanced]: "Advanced settings",
   [ControlTab.Metadata]: "Metadata",
 };
 
@@ -50,6 +50,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     props.setCollapsed(false);
   };
   const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
+  const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
@@ -61,15 +63,25 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const makeTurnOnPresetFn = ({ key }: MenuInfo): void =>
     props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors);
 
-  const renderColorPresetsDropdown = (): React.ReactNode => {
+  const renderChannelSettingsHeader = (): React.ReactNode => {
     const dropDownMenuProps: MenuProps = {
       items: PRESET_COLOR_MAP.map((preset, index) => {
         return { key: index, label: preset.name };
       }),
       onClick: makeTurnOnPresetFn,
     };
+
+    const singleChannelTitle = singleChannelMode ? (
+      "Turn off single channel mode"
+    ) : (
+      <>
+        <div>Turn on single channel mode</div>
+        <div>Use arrow keys to navigate</div>
+      </>
+    );
+
     return (
-      <div className="color-presets-dropdown">
+      <div className="channel-settings-header">
         <Dropdown trigger={["click"]} menu={dropDownMenuProps} getPopupContainer={getDropdownContainer}>
           <Button>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>
@@ -78,6 +90,18 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             </div>
           </Button>
         </Dropdown>
+
+        <div style={{ alignSelf: "end", width: "40%" }}>
+          <Tooltip title={singleChannelTitle}>
+            <Checkbox
+              name="Single channel mode"
+              checked={singleChannelMode}
+              onChange={({ target }) => changeViewerSetting("singleChannelMode", target.checked)}
+            >
+              Single channel mode
+            </Checkbox>
+          </Tooltip>
+        </div>
       </div>
     );
   };
@@ -153,9 +177,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       </div>
       <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
         <h2 className="control-panel-title">{ControlTabNames[tab]}</h2>
-        {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderColorPresetsDropdown()}
+        {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
         {hasImage && (
-          <div className="channel-rows-list">
+          <div className="control-panel-content">
             {tab === ControlTab.Channels && (
               <ChannelsWidget
                 channelDataChannels={props.channelDataChannels}

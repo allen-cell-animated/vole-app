@@ -1,12 +1,13 @@
 @import "../../assets/styles/variables";
-.channel-rows-list .ant-list-item.channel-row {
-  padding: 22px 0;
-  border-bottom: 1px solid var(--color-controlpanel-border);
-  flex-flow: row wrap;
 
+.control-panel-content .ant-list-item.channel-row {
   .ant-list-item-meta-title,
   .ant-checkbox-wrapper {
     color: var(--color-controlpanel-text);
+  }
+
+  .ant-list-item-meta {
+    align-items: center;
   }
 
   .ant-btn-text {
@@ -33,5 +34,19 @@
 
   &.controls-closed .ant-btn-text:not(:focus-visible) {
     color: var(--color-controlpanel-text);
+  }
+
+  &.single-channel {
+    background-color: var(--color-button-primary-bg);
+
+    .channel-visibility-controls,
+    .ant-list-item-meta-title {
+      color: var(--color-button-primary-text);
+      font-weight: 600;
+    }
+
+    .color-picker .color-picker-swatch {
+      border-color: var(--color-button-primary-text);
+    }
   }
 }
