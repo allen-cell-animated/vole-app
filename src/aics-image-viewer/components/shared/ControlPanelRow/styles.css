@@ -23,6 +23,20 @@
     }
   }
 
+  &.control-panel-row-highlight {
+    background-color: var(--color-button-primary-bg);
+
+    &,
+    h4 {
+      color: var(--color-button-primary-text);
+      font-weight: 600;
+    }
+
+    .color-picker .color-picker-swatch {
+      border-color: var(--color-button-primary-text);
+    }
+  }
+
   &::after {
     content: "";
     margin-top: var(--control-panel-row-vertical-margin);

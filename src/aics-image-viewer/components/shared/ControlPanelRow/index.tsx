@@ -13,6 +13,7 @@ export type ControlPanelRowProps = React.PropsWithChildren<
     title?: React.ReactNode;
     onClick?: React.MouseEventHandler;
     className?: string;
+    highlight?: boolean;
   }
 >;
 
@@ -20,6 +21,7 @@ const defaultProps = {
   verticalMargin: 22,
   showColorPicker: true,
   color: { r: 255, g: 255, b: 255 },
+  highlight: false,
 } satisfies Partial<ControlPanelRowProps>;
 
 const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
@@ -32,7 +34,8 @@ const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
   } as React.CSSProperties;
 
   const createTitle = props.title !== undefined || props.showColorPicker;
-  const className = props.className ? `control-panel-row ${props.className}` : "control-panel-row";
+  const baseClass = `control-panel-row${props.highlight ? " control-panel-row-highlight" : ""}`;
+  const className = props.className ? `${baseClass} ${props.className}` : baseClass;
 
   return (
     <div className={className} style={style} onClick={props.onClick}>

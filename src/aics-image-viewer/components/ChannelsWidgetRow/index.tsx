@@ -127,7 +127,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     );
   };
 
-  const rowClass = `channel-row${controlsOpen ? "" : " controls-closed"}${thisChannelOnly ? " single-channel" : ""}`;
+  const rowClass = controlsOpen ? "" : " controls-closed";
   return (
     <ControlPanelRow
       key={index}
@@ -137,6 +137,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       onColorChangeComplete={props.onColorChangeComplete}
       onClick={onClickChannel}
       className={rowClass}
+      highlight={thisChannelOnly}
     >
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
