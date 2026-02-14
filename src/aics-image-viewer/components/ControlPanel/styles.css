@@ -90,10 +90,6 @@
     .control-panel-content {
       border-top: 1px solid var(--color-controlpanel-border);
 
-      .ant-list-item-meta .ant-list-item-meta-title {
-        margin: 0;
-      }
-
       /* checkbox spacing, in channel entries and shared in headings */
       .channel-visibility-controls,
       .ant-collapse-extra {
