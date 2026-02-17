@@ -161,7 +161,7 @@ export function readStoredMetadata(
   const result = scenes.map((scene) => {
     if (Array.isArray(scene)) {
       // can't handle multi-source scenes (yet)
-      return undefined;
+      scene = scene[0];
     }
 
     const globalKey = `${StorageEntryType.Meta}@${sanitizeStorageKey(scene)}`;
