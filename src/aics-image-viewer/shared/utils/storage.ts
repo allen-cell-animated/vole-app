@@ -158,11 +158,9 @@ export function readStoredMetadata(
   skipCacheUpdate: boolean = false
 ): (MetadataRecord | undefined)[] {
   const keySet = new Set<string>();
-  const result = scenes.map((scene) => {
-    if (Array.isArray(scene)) {
-      // can't handle multi-source scenes (yet)
-      scene = scene[0];
-    }
+  const result = scenes.map((s) => {
+    // can't handle multi-source scenes (yet)
+    const scene = Array.isArray(s) ? s[0] : s;
 
     const globalKey = `${StorageEntryType.Meta}@${sanitizeStorageKey(scene)}`;
     const meta = window.localStorage.getItem(globalKey);
