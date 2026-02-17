@@ -25,10 +25,22 @@ interface ChannelsWidgetRowProps {
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
   const { index, saveIsosurface } = props;
-  const [controlsOpen, setControlsOpen] = useState(false);
 
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
+  const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const singleChannelIndex = useViewerState(select("singleChannelIndex"));
+
+  const [_controlsOpen, setControlsOpen] = useState(false);
+  // Don't show controls in single-channel mode
+  const controlsOpen = _controlsOpen && !singleChannelMode;
+
+  const onClickChannel = useCallback(() => {
+    if (singleChannelMode) {
+      changeViewerSetting("singleChannelIndex", index);
+    }
+  }, [singleChannelMode, changeViewerSetting, index]);
 
   const changeSettingForThisChannel = useCallback(
     (value: Partial<ChannelState>) => changeChannelSetting(index, value),
@@ -50,7 +62,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
 
   const onColorChange = (newRGB: ColorObject, _oldRGB?: ColorObject, index?: number): void => {
     const color = colorObjectToArray(newRGB);
-    changeChannelSetting(index!, { color: color });
+    changeChannelSetting(index!, { color });
   };
 
   const createColorPicker = (): React.ReactNode => (
@@ -64,7 +76,13 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     />
   );
 
-  const visibilityControls = (
+  const thisChannelOnly = singleChannelMode && singleChannelIndex === index;
+
+  const visibilityControls = singleChannelMode ? (
+    <div className={`channel-visibility-controls${thisChannelOnly ? " single-channel" : ""}`}>
+      <span className="single-channel-text">{thisChannelOnly ? "Showing this volume only" : ""}</span>
+    </div>
+  ) : (
     <div className="channel-visibility-controls">
       <Checkbox checked={channelState.volumeEnabled} onChange={volumeCheckHandler}>
         Vol
@@ -81,7 +99,15 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     </div>
   );
 
-  const createTFEditor = (): React.ReactNode => {
+  const renderControls = (): React.ReactNode => {
+    const showEditor = singleChannelMode
+      ? singleChannelIndex === index
+      : channelState.volumeEnabled || channelState.isosurfaceEnabled;
+
+    if (!showEditor) {
+      return <h4 style={{ fontStyle: "italic" }}>Not currently visible</h4>;
+    }
+
     // TODO this is most of `channelState`... should `TfEditor` just get `channelState`?
     const { controlPoints, colorizeEnabled, colorizeAlpha, useControlPoints, ramp, plotMin, plotMax, isovalue } =
       channelState;
@@ -102,23 +128,16 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         keepIntensityRange={channelState.keepIntensityRange}
         isovalue={isovalue}
         opacity={channelState.opacity}
-        volumeEnabled={channelState.volumeEnabled}
-        isosurfaceEnabled={channelState.isosurfaceEnabled}
+        volumeEnabled={singleChannelMode ? singleChannelIndex === index : channelState.volumeEnabled}
+        isosurfaceEnabled={channelState.isosurfaceEnabled && !singleChannelMode}
         saveIsosurface={saveThisIsosurface}
       />
     );
   };
 
-  const renderControls = (): React.ReactNode => {
-    if (!channelState.volumeEnabled && !channelState.isosurfaceEnabled) {
-      return <h4 style={{ fontStyle: "italic" }}>Not currently visible</h4>;
-    }
-    return <>{(channelState.volumeEnabled || channelState.isosurfaceEnabled) && createTFEditor()}</>;
-  };
-
-  const rowClass = controlsOpen ? "channel-row" : "channel-row controls-closed";
+  const rowClass = `channel-row${controlsOpen ? "" : " controls-closed"}${thisChannelOnly ? " single-channel" : ""}`;
   return (
-    <List.Item key={index} className={rowClass}>
+    <List.Item key={index} className={rowClass} onClick={onClickChannel}>
       <List.Item.Meta title={props.name} avatar={createColorPicker()} />
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}

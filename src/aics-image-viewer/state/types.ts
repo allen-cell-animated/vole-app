@@ -29,6 +29,8 @@ export type ViewerState = {
   time: number;
   scene: number;
   cameraState: Partial<CameraState> | undefined;
+  singleChannelMode: boolean;
+  singleChannelIndex: number;
 };
 
 export type ChannelState = {

@@ -24,6 +24,8 @@ const arbitraryViewerState = (): ViewerState => ({
   slice: { x: 3, y: 3, z: 3 },
   time: 12,
   scene: 3,
+  singleChannelMode: true,
+  singleChannelIndex: 3,
   cameraState: undefined,
 });
 

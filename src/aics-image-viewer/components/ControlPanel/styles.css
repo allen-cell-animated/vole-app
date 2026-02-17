@@ -10,6 +10,10 @@
     border-right: 1px solid var(--color-controlpanel-border);
   }
 
+  .ant-checkbox-wrapper {
+    align-items: center;
+  }
+
   .control-panel-tab-col {
     text-align: center;
 
@@ -67,25 +71,27 @@
       max-height: 24px; /* align bottom border with divider to the left */
       font-size: 1.4em;
     }
-    .color-presets-dropdown {
+
+    .channel-settings-header {
       margin: 0 16px 16px;
+      display: flex;
+      justify-content: space-between;
+
+      .ant-checkbox-wrapper {
+        color: var(--color-controlpanel-text);
+      }
     }
 
-    .channel-rows-list {
+    /* hover states of checkboxes */
+    .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+      border-color: white;
+    }
+
+    .control-panel-content {
       border-top: 1px solid var(--color-controlpanel-border);
 
-      /* Fix vertical alignment of title */
-      .ant-list-item-meta {
-        align-items: center;
-
-        .ant-list-item-meta-title {
-          margin: 0;
-        }
-      }
-
-      /* hover states of checkboxes */
-      .ant-checkbox-wrapper:hover .ant-checkbox-inner {
-        border-color: white;
+      .ant-list-item-meta .ant-list-item-meta-title {
+        margin: 0;
       }
 
       /* checkbox spacing, in channel entries and shared in headings */
@@ -94,13 +100,18 @@
         width: 40%;
         display: flex;
 
-        .ant-checkbox-wrapper {
+        .ant-checkbox-wrapper,
+        .single-channel-text {
           flex: 4;
         }
       }
 
+      .channel-visibility-controls .single-channel-text {
+        font-size: 11px;
+      }
+
       .ant-collapse-content-box {
-        padding: 0 16px;
+        padding: 0;
       }
     }
 
@@ -110,6 +121,47 @@
       .ant-collapse-header {
         padding: 13px 16px;
         background-color: var(--color-controlpanel-section-bg);
+      }
+
+      &.single-channel-mode .ant-list {
+        cursor: pointer;
+      }
+
+      .ant-collapse-item:not(.ant-collapse-item-active):last-child {
+        border-bottom: 1px solid var(--color-controlpanel-border);
+      }
+    }
+
+    .ant-list-item,
+    .color-picker-row {
+      padding: 0 16px;
+      border-bottom: none;
+      display: flex;
+      flex-flow: row wrap;
+      color: var(--color-controlpanel-text);
+
+      /* Provides the border in between list elements */
+      &::after {
+        content: "";
+        margin-top: 22px;
+        width: 100%;
+        border-bottom: 1px solid var(--color-controlpanel-border);
+      }
+    }
+
+    .ant-list-item {
+      padding-top: 22px;
+
+      &::after {
+        margin-top: 22px;
+      }
+    }
+
+    .color-picker-row {
+      padding-top: 16px;
+
+      &::after {
+        margin-top: 16px;
       }
     }
 

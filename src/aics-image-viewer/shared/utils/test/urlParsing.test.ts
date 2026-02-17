@@ -422,6 +422,8 @@ describe("Viewer state", () => {
     time: 0,
     scene: 0,
     cameraState: undefined,
+    singleChannelMode: false,
+    singleChannelIndex: 0,
   };
   const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
     mode: "volumetric",
@@ -441,6 +443,8 @@ describe("Viewer state", () => {
     slice: "0.5,0.5,0.5",
     t: "0",
     scene: "0",
+    scm: "0",
+    sci: "0",
   };
 
   const CUSTOM_VIEWER_STATE: ViewerState = {
@@ -461,6 +465,8 @@ describe("Viewer state", () => {
     slice: { x: 0.25, y: 0.75, z: 0.5 },
     time: 100,
     scene: 3,
+    singleChannelMode: true,
+    singleChannelIndex: 3,
     cameraState: {
       position: [-1.05, -4, 45],
       target: [0, 0, 0],
@@ -487,6 +493,8 @@ describe("Viewer state", () => {
     slice: "0.25,0.75,0.5",
     t: "100",
     scene: "3",
+    scm: "1",
+    sci: "3",
     cam: "pos:-1.05:-4:45,tar:0:0:0,up:0:1:0,ort:3.534,fov:43.5",
   };
 

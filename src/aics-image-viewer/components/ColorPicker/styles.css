@@ -1,0 +1,21 @@
+.color-picker {
+  .color-picker-swatch {
+    height: 15px;
+    border-radius: 3px;
+    border: 1px solid var(--color-controlpanel-border);
+    cursor: pointer;
+  }
+
+  .color-picker-popover {
+    position: absolute;
+    z-index: 9999;
+  }
+
+  .color-picker-cover {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+}
