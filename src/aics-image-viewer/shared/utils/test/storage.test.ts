@@ -111,9 +111,13 @@ describe("writeMetadata/readStoredMetadata", () => {
     expect(tooMany).toBe(false);
   });
 
-  it("returns `undefined` on an attempt to get an array key", () => {
+  it("returns metadata for only the first URL when it receives an array key", () => {
     writeMetadata({ one: { digits: 1 }, "one,two": { digits: 12 } });
-    expect(readStoredMetadata(["one", "one,two", ["one", "two"]])).toEqual([{ digits: 1 }, { digits: 12 }, undefined]);
+    expect(readStoredMetadata(["one", "one,two", ["one", "two"]])).toEqual([
+      { digits: 1 },
+      { digits: 12 },
+      { digits: 1 },
+    ]);
   });
 });
 
