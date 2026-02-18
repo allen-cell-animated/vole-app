@@ -159,12 +159,13 @@ export function readStoredMetadata(
 ): (MetadataRecord | undefined)[] {
   const keySet = new Set<string>();
   const result = scenes.map((scene) => {
-    if (Array.isArray(scene)) {
-      // can't handle multi-source scenes (yet)
+    // can't handle multi-source scenes (yet)
+    const firstScene = Array.isArray(scene) ? scene[0] : scene;
+    if (firstScene === undefined) {
       return undefined;
     }
 
-    const globalKey = `${StorageEntryType.Meta}@${sanitizeStorageKey(scene)}`;
+    const globalKey = `${StorageEntryType.Meta}@${sanitizeStorageKey(firstScene)}`;
     const meta = window.localStorage.getItem(globalKey);
     if (meta === null) {
       return undefined;
