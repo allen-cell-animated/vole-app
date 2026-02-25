@@ -16,7 +16,7 @@ import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
-import {  makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
+import { makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
@@ -80,14 +80,10 @@ export type ReactiveVolume = {
  *
  * See https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
  */
-const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
-  callback: T
-): React.MutableRefObject<T> => {
-  const callbackRef = useRef<T>(callback);
-  useEffect(() => {
-    callbackRef.current = callback;
-  }, [callback]);
-  return callbackRef;
+const useEffectEventRef = <T extends (...args: any[]) => void>(callback: T | undefined): T => {
+  const callbackRef = useRef<T | undefined>(callback);
+  callbackRef.current = callback;
+  return useCallback(((...args): void => callbackRef.current?.(...args)) as T, [callbackRef]);
 };
 
 /**
@@ -188,7 +184,7 @@ const useVolume = (
   const onError = useCallback(
     (e: unknown): never => {
       setLoadThrewError(true);
-      onErrorRef.current?.(e);
+      onErrorRef(e);
       throw e;
     },
     [onErrorRef]
@@ -201,7 +197,7 @@ const useVolume = (
     (aimg: Volume, channelIndex: number): void => {
       // let the hook caller know that this channel has loaded
       const isInitialLoad = channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD;
-      onChannelLoadedRef.current?.(aimg, channelIndex, isInitialLoad);
+      onChannelLoadedRef(aimg, channelIndex, isInitialLoad);
 
       // set this channel as loaded
       const newVersions = channelVersionsRef.current.slice();
@@ -256,7 +252,7 @@ const useVolume = (
       setChannelVersions(new Array(channelNames.length).fill(CHANNEL_INITIAL_LOAD));
       setImage(aimg);
 
-      onCreateImageRef.current?.(aimg);
+      onCreateImageRef(aimg);
 
       playControls.stepAxis = (axis: AxisName | "t") => {
         const time = useViewerState.getState().time;
@@ -310,8 +306,7 @@ const useVolume = (
 
       // initiate loading only after setting up new channel settings,
       // in case the loader callback fires before the state is set
-      const onCreateScene = onChangeSceneRef.current;
-      sceneLoader.loadScene(scene, aimg, requiredLoadSpec, { onCreateScene }).catch(onError);
+      sceneLoader.loadScene(scene, aimg, requiredLoadSpec, { onCreateScene: onChangeSceneRef }).catch(onError);
     };
 
     openImage();
@@ -345,8 +340,7 @@ const useVolume = (
   const setScene = useCallback(
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
-        const onCreateScene = onChangeSceneRef.current;
-        sceneLoader.loadScene(scene, image, undefined, { onCreateScene }).catch(onError);
+        sceneLoader.loadScene(scene, image, undefined, { onCreateScene: onChangeSceneRef }).catch(onError);
         setIsLoading(LoadType.SCENE);
       }
     },
