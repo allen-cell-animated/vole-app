@@ -1,5 +1,9 @@
 # Vol-E App
 
+<p>
+  <a href="https://www.npmjs.com/package/@aics/vole-app"><img src="https://img.shields.io/npm/v/%40aics%2Fvole-app" alt="npm package"></a>
+</p>
+
 Volume Explorer (Vol-E) is a browser based volume viewer built with React and WebGL (Three.js). This package wraps the [vole-core](https://github.com/allen-cell-animated/vole-core) library.
 
 For the latest stable release, please visit [https://vole.allencell.org](https://vole.allencell.org)
