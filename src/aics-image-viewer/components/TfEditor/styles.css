@@ -1,6 +1,6 @@
 @import "../../assets/styles/variables";
 
-.channel-row .tf-editor {
+.aics-tf-editor {
   margin-top: 27px;
 
   .tf-editor-svg.dragging-slider {
