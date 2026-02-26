@@ -5,7 +5,6 @@ import { Box3, Vector3 } from "three";
 import {
   AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
-  getDefaultChannelColor,
   getDefaultViewerChannelSettings,
   QUEUE_MAX_LOW_PRIORITY_SIZE,
   QUEUE_MAX_SIZE,
@@ -17,7 +16,6 @@ import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
-import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
 
@@ -102,7 +100,7 @@ const useVolume = (
 ): ReactiveVolume => {
   const channelSettings = useViewerState(select("channelSettings"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
-  const replaceAllChannelSettings = useViewerState(select("replaceAllChannelSettings"));
+  const initChannelSettings = useViewerState(select("initChannelSettings"));
 
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
@@ -214,7 +212,6 @@ const useVolume = (
 
   // effect to start the initial load of the image
   useEffect(() => {
-    const channelSettings = useViewerState.getState().channelSettings;
     setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
     setLoadThrewError(false);
     inInitialLoadRef.current = true;
@@ -227,14 +224,7 @@ const useVolume = (
       const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
-      const newChannelSettings = channelNames.map((name, index) => {
-        const color = getDefaultChannelColor(index);
-        const channelSetting =
-          channelSettings[index] ?? initializeOneChannelSetting(name, index, color, viewerChannelSettings);
-        return { ...channelSetting, name };
-      });
-      replaceAllChannelSettings(newChannelSettings);
-      return newChannelSettings;
+      return initChannelSettings(channelNames, viewerChannelSettings);
     };
 
     const openImage = async (): Promise<void> => {
@@ -322,7 +312,7 @@ const useVolume = (
     setIsLoading,
     onChannelDataLoaded,
     changeViewerSetting,
-    replaceAllChannelSettings,
+    initChannelSettings,
     options?.viewerChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
