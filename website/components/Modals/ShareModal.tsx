@@ -69,6 +69,11 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
     hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
     hasStoredMetadata = readStoredMetadata(urls).some((meta) => meta !== undefined);
+
+    if (hasTooManyScenes) {
+      paramProps.scene = 0;
+    }
+
     const serializedUrl = hasTooManyScenes
       ? encodeSceneUrl(urls[viewerSettings.scene])
       : urls.map(encodeSceneUrl).join("+");
