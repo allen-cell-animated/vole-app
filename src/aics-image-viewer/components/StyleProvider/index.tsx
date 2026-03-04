@@ -407,6 +407,10 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             defaultActiveBg: theme.colors.button.secondary.bg,
             defaultActiveBorderColor: theme.colors.button.tertiary.activeOutline,
           },
+          Card: {
+            borderRadiusLG: 0,
+            headerHeight: 48,
+          },
           Collapse: {
             borderRadiusLG: 0,
             colorTextHeading: theme.colors.text.section,

@@ -1,7 +1,8 @@
 import type { View3d } from "@aics/vole-core";
-import { ExclamationCircleFilled, ShareAltOutlined } from "@ant-design/icons";
-import { Button, Card, Input, Modal, notification } from "antd";
+import { ShareAltOutlined } from "@ant-design/icons";
+import { Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
+import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
@@ -21,13 +22,9 @@ type ShareModalProps = {
   view3dRef?: React.RefObject<View3d | null>;
 };
 
-const MAX_SCENE_URL_COUNT = 4;
+const ModalContainer = styled.div``;
 
-const WARNING_STYLE = {
-  marginTop: "12px",
-  borderColor: "#d89614",
-  backgroundColor: "#59421430",
-};
+const MAX_SCENE_URL_COUNT = 4;
 
 const encodeSceneUrl = (scene: string | string[]): string => {
   if (Array.isArray(scene)) {
@@ -42,8 +39,6 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
   const [showModal, setShowModal] = useState(false);
-  const [showWarningDetails, setShowWarningDetails] = useState(false);
-  const toggleWarningDetails = (): void => setShowWarningDetails(!showWarningDetails);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
   const [notificationApi, notificationContextHolder] = notification.useNotification({
@@ -76,12 +71,6 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     urlParams.push(`url=${serializedUrl}`);
   }
 
-  const warning = hasTooManyScenes
-    ? "Only the current scene will be shared"
-    : hasStoredMetadata
-      ? "Not all image metadata will be shared"
-      : undefined;
-
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
     // Decode specifically colons and commas for better readability + decreased char count
@@ -102,7 +91,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   };
 
   return (
-    <div ref={modalContainerRef}>
+    <ModalContainer ref={modalContainerRef}>
       {notificationContextHolder}
 
       <Button type="link" onClick={() => setShowModal(!showModal)}>
@@ -116,8 +105,15 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
           setShowModal(false);
         }}
         getContainer={modalContainerRef.current || undefined}
+        footer={
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            test
+            <Button type="default" onClick={() => setShowModal(false)}>
+              Close
+            </Button>
+          </div>
+        }
         destroyOnClose={true}
-        footer={null}
       >
         <FlexRow $gap={8} style={{ marginTop: "12px" }}>
           <Input value={shareUrl} readOnly={true}></Input>
@@ -125,34 +121,8 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             Copy URL
           </Button>
         </FlexRow>
-        {warning !== undefined && (
-          <Card size="small" style={WARNING_STYLE}>
-            <ExclamationCircleFilled style={{ color: "#d89614", marginRight: 8 }} />
-            {warning} (
-            <Button type="text" style={{ fontWeight: "bold" }} onClick={toggleWarningDetails}>
-              {showWarningDetails ? "less info" : "more info"}
-            </Button>
-            )
-            {showWarningDetails && (
-              <ul>
-                {hasTooManyScenes && (
-                  <li>
-                    Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the
-                    current scene.
-                  </li>
-                )}
-                {hasStoredMetadata && (
-                  <li>
-                    One or more open images has metadata that was shared with Vol-E by an external application (like
-                    BioFile Finder). This metadata can&apos;t be included in the URL above.
-                  </li>
-                )}
-              </ul>
-            )}
-          </Card>
-        )}
       </Modal>
-    </div>
+    </ModalContainer>
   );
 };
 
