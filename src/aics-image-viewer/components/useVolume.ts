@@ -336,7 +336,7 @@ const useVolume = (
       if (image && !inInitialLoadRef.current) {
         const onCreateScene = (volume: Volume, sceneIndex: number): void => {
           setChannelStateForNewImage(volume.imageInfo.channelNames);
-          volume.updateChannels();
+          volume.updateChannelCount();
 
           const newChannelVersions = channelVersionsRef.current.slice(0, volume.imageInfo.numChannels);
           while (newChannelVersions.length < volume.imageInfo.numChannels) {
