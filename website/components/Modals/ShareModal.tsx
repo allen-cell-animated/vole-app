@@ -6,7 +6,6 @@ import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
-import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
 import {
   ENCODED_COLON_REGEX,
   ENCODED_COMMA_REGEX,
@@ -23,16 +22,6 @@ type ShareModalProps = {
 };
 
 const ModalContainer = styled.div``;
-
-const MAX_SCENE_URL_COUNT = 4;
-
-const encodeSceneUrl = (scene: string | string[]): string => {
-  if (Array.isArray(scene)) {
-    return scene.map((url) => encodeURIComponent(url)).join(",");
-  } else {
-    return encodeURIComponent(scene);
-  }
-};
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
@@ -57,16 +46,18 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
   const urlParams: string[] = [];
   const { imageUrl } = props.appProps;
-  let hasTooManyScenes = false;
-  let hasStoredMetadata = false;
 
   if (imageUrl) {
     const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
-    hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
-    hasStoredMetadata = readStoredMetadata(urls).some((meta) => meta !== undefined);
-    const serializedUrl = hasTooManyScenes
-      ? encodeSceneUrl(urls[viewerSettings.scene])
-      : urls.map(encodeSceneUrl).join("+");
+    const serializedUrl = urls
+      .map((scene) => {
+        if (Array.isArray(scene)) {
+          return scene.map((url) => encodeURIComponent(url)).join(",");
+        } else {
+          return encodeURIComponent(scene);
+        }
+      })
+      .join("+");
 
     urlParams.push(`url=${serializedUrl}`);
   }
@@ -106,12 +97,9 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         }}
         getContainer={modalContainerRef.current || undefined}
         footer={
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            test
-            <Button type="default" onClick={() => setShowModal(false)}>
-              Close
-            </Button>
-          </div>
+          <Button type="default" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
         }
         destroyOnClose={true}
       >
