@@ -210,13 +210,8 @@ const useVolume = (
     [channelVersionsRef, onChannelLoadedRef, playControls, setChannelVersions]
   );
 
-  // effect to start the initial load of the image
-  useEffect(() => {
-    setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
-    setLoadThrewError(false);
-    inInitialLoadRef.current = true;
-
-    const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
+  const setChannelStateForNewImage = useCallback(
+    (channelNames: string[]): ChannelState[] => {
       const { useDefaultViewerChannelSettings } = useViewerState.getState();
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
@@ -225,7 +220,15 @@ const useVolume = (
       setChannelGroupedByType(grouping);
 
       return initChannelSettings(channelNames, viewerChannelSettings);
-    };
+    },
+    [initChannelSettings, options?.viewerChannelSettings]
+  );
+
+  // effect to start the initial load of the image
+  useEffect(() => {
+    setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
+    setLoadThrewError(false);
+    inInitialLoadRef.current = true;
 
     const openImage = async (): Promise<void> => {
       const scene = useViewerState.getState().scene;
@@ -313,6 +316,7 @@ const useVolume = (
     onChannelDataLoaded,
     changeViewerSetting,
     initChannelSettings,
+    setChannelStateForNewImage,
     options?.viewerChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
@@ -330,11 +334,33 @@ const useVolume = (
   const setScene = useCallback(
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
-        sceneLoader.loadScene(scene, image, undefined, { onCreateScene: onChangeSceneRef }).catch(onError);
+        const onCreateScene = (volume: Volume, sceneIndex: number): void => {
+          setChannelStateForNewImage(volume.imageInfo.channelNames);
+          volume.updateChannels();
+
+          const newChannelVersions = channelVersionsRef.current.slice(0, volume.imageInfo.numChannels);
+          while (newChannelVersions.length < volume.imageInfo.numChannels) {
+            newChannelVersions.push(CHANNEL_INITIAL_LOAD);
+          }
+          setChannelVersions(newChannelVersions);
+
+          onChangeSceneRef(volume, sceneIndex);
+        };
+
+        sceneLoader.loadScene(scene, image, undefined, { onCreateScene }).catch(onError);
         setIsLoading(LoadType.SCENE);
       }
     },
-    [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChangeSceneRef]
+    [
+      image,
+      sceneLoader,
+      onError,
+      setIsLoading,
+      setChannelStateForNewImage,
+      channelVersionsRef,
+      setChannelVersions,
+      onChangeSceneRef,
+    ]
   );
 
   return useMemo(
