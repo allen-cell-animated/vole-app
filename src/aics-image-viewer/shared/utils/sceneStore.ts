@@ -6,7 +6,7 @@ import type {
   Volume,
   VolumeLoaderContext,
 } from "@aics/vole-core";
-import { VolumeFileFormat } from "@aics/vole-core";
+import { createDefaultMetadata, VolumeFileFormat } from "@aics/vole-core";
 import type { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
 
 export type LoadSceneOptions = {
@@ -58,6 +58,7 @@ export default class SceneStore {
 
     image.loader = loader;
     image.imageInfo.imageInfo = (await loader.createImageInfo(spec)).imageInfo;
+    image.imageMetadata = createDefaultMetadata(image.imageInfo.imageInfo);
     options?.onCreateScene?.(image, scene);
     loader.loadVolumeData(image, spec, options?.onChannelLoaded);
   }
