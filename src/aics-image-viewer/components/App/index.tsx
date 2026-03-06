@@ -1,5 +1,6 @@
 // 3rd Party Imports
-import { type RawArrayLoaderOptions, View3d, type Volume } from "@aics/vole-core";
+import { View3d } from "@aics/vole-core";
+import type { LoadSpec, RawArrayLoaderOptions, Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -124,6 +125,7 @@ const App: React.FC<AppProps> = (props) => {
   const time = useViewerState(select("time"));
   const showAxes = useViewerState(select("showAxes"));
   const channelSettings = useViewerState(select("channelSettings"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const applyColorPresets = useViewerState(select("applyColorPresets"));
   const resetToSavedState = useViewerState(select("resetToSavedViewerState"));
@@ -264,11 +266,12 @@ const App: React.FC<AppProps> = (props) => {
 
   const [loadedScene, setLoadedScene] = useState<number | undefined>(undefined);
   const onChangeScene = useCallback(
-    (image: Volume, sceneIndex: number) => {
+    (image: Volume, sceneIndex: number, loadSpec: LoadSpec) => {
+      changeViewerSetting("time", loadSpec.time);
       onImageTitleChange?.(image.imageInfo.imageInfo.name);
       setLoadedScene(sceneIndex);
     },
-    [onImageTitleChange]
+    [changeViewerSetting, onImageTitleChange]
   );
 
   const onChannelLoaded = useCallback(

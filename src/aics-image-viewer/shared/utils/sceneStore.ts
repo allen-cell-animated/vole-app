@@ -6,11 +6,11 @@ import type {
   Volume,
   VolumeLoaderContext,
 } from "@aics/vole-core";
-import { VolumeFileFormat } from "@aics/vole-core";
+import { createDefaultMetadata, VolumeFileFormat } from "@aics/vole-core";
 import type { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
 
 export type LoadSceneOptions = {
-  onCreateScene?: (volume: Volume, sceneIndex: number) => void;
+  onCreateScene?: (volume: Volume, sceneIndex: number, loadSpec: LoadSpec) => void;
   onChannelLoaded?: (volume: Volume, channelIndex: number) => void;
 };
 
@@ -57,9 +57,19 @@ export default class SceneStore {
     const spec = loadSpec ?? image.loadSpecRequired;
 
     image.loader = loader;
-    image.imageInfo.imageInfo = (await loader.createImageInfo(spec)).imageInfo;
-    options?.onCreateScene?.(image, scene);
-    loader.loadVolumeData(image, spec, options?.onChannelLoaded);
+    const imageInfo = (await loader.createImageInfo(spec)).imageInfo;
+    image.imageInfo.imageInfo = imageInfo;
+    image.imageMetadata = createDefaultMetadata(imageInfo);
+
+    const maxTime = imageInfo.multiscaleLevelDims[imageInfo.multiscaleLevel].shape[0] - 1;
+    const adjustedSpec: LoadSpec = {
+      ...spec,
+      channels: spec.channels?.filter((channelIndex) => channelIndex < imageInfo.channelNames.length),
+      time: Math.min(spec.time, maxTime),
+    };
+
+    options?.onCreateScene?.(image, scene, adjustedSpec);
+    loader.loadVolumeData(image, adjustedSpec, options?.onChannelLoaded);
   }
 
   public async createVolume(
