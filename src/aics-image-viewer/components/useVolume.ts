@@ -24,7 +24,7 @@ export type UseVolumeOptions = {
   /** Callback called just once when the volume is created. */
   onCreateImage?: (image: Volume) => void;
   /** Callback called on any scene change, including the initial image load. */
-  onChangeScene?: (image: Volume, sceneIndex: number) => void;
+  onChangeScene?: (image: Volume, sceneIndex: number, loadSpec: LoadSpec) => void;
   /** Callback for when a single channel of the volume has loaded. */
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
@@ -334,7 +334,7 @@ const useVolume = (
   const setScene = useCallback(
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
-        const onCreateScene = (volume: Volume, sceneIndex: number): void => {
+        const onCreateScene = (volume: Volume, sceneIndex: number, loadSpec: LoadSpec): void => {
           setChannelStateForNewImage(volume.imageInfo.channelNames);
           volume.updateChannelCount();
 
@@ -344,7 +344,7 @@ const useVolume = (
           }
           setChannelVersions(newChannelVersions);
 
-          onChangeSceneRef(volume, sceneIndex);
+          onChangeSceneRef(volume, sceneIndex, loadSpec);
         };
 
         sceneLoader.loadScene(scene, image, undefined, { onCreateScene }).catch(onError);
