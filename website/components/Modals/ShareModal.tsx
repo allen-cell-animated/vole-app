@@ -1,11 +1,11 @@
 import type { View3d } from "@aics/vole-core";
-import { ShareAltOutlined } from "@ant-design/icons";
-import { Button, Input, Modal, notification } from "antd";
+import { ExclamationCircleFilled, ShareAltOutlined } from "@ant-design/icons";
+import { Button, Card, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
-import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
 import {
   ENCODED_COLON_REGEX,
   ENCODED_COMMA_REGEX,
@@ -21,7 +21,36 @@ type ShareModalProps = {
   view3dRef?: React.RefObject<View3d | null>;
 };
 
-const ModalContainer = styled.div``;
+const MAX_SCENE_URL_COUNT = 4;
+
+const WARNING_STYLE = {
+  marginTop: "12px",
+  borderColor: "#d89614",
+  backgroundColor: "#59421430",
+};
+
+const encodeSceneUrl = (scene: string | string[]): string => {
+  if (Array.isArray(scene)) {
+    return scene.map((url) => encodeURIComponent(url)).join(",");
+  } else {
+    return encodeURIComponent(scene);
+  }
+};
+
+const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> = ({ message, children }) => {
+  const [showDetails, setShowDetails] = useState(false);
+
+  return (
+    <Card size="small" style={WARNING_STYLE}>
+      <ExclamationCircleFilled style={{ color: "#d89614", marginRight: 8 }} />
+      {message} (
+      <Button type="text" style={{ fontWeight: "bold" }} onClick={() => setShowDetails(!showDetails)}>
+        {showDetails ? "less info" : "more info"}
+      </Button>
+      ){showDetails && <div style={{ marginLeft: 24, marginTop: 8 }}>{children}</div>}
+    </Card>
+  );
+};
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
@@ -46,18 +75,21 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
   const urlParams: string[] = [];
   const { imageUrl } = props.appProps;
+  let hasTooManyScenes = false;
+  let hasStoredMetadata = false;
 
   if (imageUrl) {
     const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
-    const serializedUrl = urls
-      .map((scene) => {
-        if (Array.isArray(scene)) {
-          return scene.map((url) => encodeURIComponent(url)).join(",");
-        } else {
-          return encodeURIComponent(scene);
-        }
-      })
-      .join("+");
+    hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
+    hasStoredMetadata = readStoredMetadata(urls).some((meta) => meta !== undefined);
+
+    if (hasTooManyScenes) {
+      paramProps.scene = 0;
+    }
+
+    const serializedUrl = hasTooManyScenes
+      ? encodeSceneUrl(urls[viewerSettings.scene])
+      : urls.map(encodeSceneUrl).join("+");
 
     urlParams.push(`url=${serializedUrl}`);
   }
@@ -82,7 +114,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   };
 
   return (
-    <ModalContainer ref={modalContainerRef}>
+    <div ref={modalContainerRef}>
       {notificationContextHolder}
 
       <Button type="link" onClick={() => setShowModal(!showModal)}>
@@ -96,12 +128,8 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
           setShowModal(false);
         }}
         getContainer={modalContainerRef.current || undefined}
-        footer={
-          <Button type="default" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-        }
         destroyOnClose={true}
+        footer={null}
       >
         <FlexRow $gap={8} style={{ marginTop: "12px" }}>
           <Input value={shareUrl} readOnly={true}></Input>
@@ -109,8 +137,20 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             Copy URL
           </Button>
         </FlexRow>
+        {hasTooManyScenes && (
+          <Warning message="Only the current scene will be shared">
+            Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the current
+            scene.
+          </Warning>
+        )}
+        {hasStoredMetadata && (
+          <Warning message="Not all image metadata will be shared">
+            One or more open images has metadata that was shared with Vol-E by an external application (like BioFile
+            Finder). This metadata can&apos;t be included in the URL above.
+          </Warning>
+        )}
       </Modal>
-    </ModalContainer>
+    </div>
   );
 };
 
