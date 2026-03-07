@@ -37,13 +37,26 @@ const encodeSceneUrl = (scene: string | string[]): string => {
   }
 };
 
+const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> = ({ message, children }) => {
+  const [showDetails, setShowDetails] = useState(false);
+
+  return (
+    <Card size="small" style={WARNING_STYLE}>
+      <ExclamationCircleFilled style={{ color: "#d89614", marginRight: 8 }} />
+      {message} (
+      <Button type="text" style={{ fontWeight: "bold" }} onClick={() => setShowDetails(!showDetails)}>
+        {showDetails ? "less info" : "more info"}
+      </Button>
+      ){showDetails && <div style={{ marginLeft: 24, marginTop: 8 }}>{children}</div>}
+    </Card>
+  );
+};
+
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
   const [showModal, setShowModal] = useState(false);
-  const [showWarningDetails, setShowWarningDetails] = useState(false);
-  const toggleWarningDetails = (): void => setShowWarningDetails(!showWarningDetails);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
   const [notificationApi, notificationContextHolder] = notification.useNotification({
@@ -80,12 +93,6 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
     urlParams.push(`url=${serializedUrl}`);
   }
-
-  const warning = hasTooManyScenes
-    ? "Only the current scene will be shared"
-    : hasStoredMetadata
-      ? "Not all image metadata will be shared"
-      : undefined;
 
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
@@ -130,31 +137,17 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             Copy URL
           </Button>
         </FlexRow>
-        {warning !== undefined && (
-          <Card size="small" style={WARNING_STYLE}>
-            <ExclamationCircleFilled style={{ color: "#d89614", marginRight: 8 }} />
-            {warning} (
-            <Button type="text" style={{ fontWeight: "bold" }} onClick={toggleWarningDetails}>
-              {showWarningDetails ? "less info" : "more info"}
-            </Button>
-            )
-            {showWarningDetails && (
-              <ul>
-                {hasTooManyScenes && (
-                  <li>
-                    Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the
-                    current scene.
-                  </li>
-                )}
-                {hasStoredMetadata && (
-                  <li>
-                    One or more open images has metadata that was shared with Vol-E by an external application (like
-                    BioFile Finder). This metadata can&apos;t be included in the URL above.
-                  </li>
-                )}
-              </ul>
-            )}
-          </Card>
+        {hasTooManyScenes && (
+          <Warning message="Only the current scene will be shared">
+            Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the current
+            scene.
+          </Warning>
+        )}
+        {hasStoredMetadata && (
+          <Warning message="Not all image metadata will be shared">
+            One or more open images has metadata that was shared with Vol-E by an external application (like BioFile
+            Finder). This metadata can&apos;t be included in the URL above.
+          </Warning>
         )}
       </Modal>
     </div>
