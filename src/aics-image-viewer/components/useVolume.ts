@@ -338,9 +338,11 @@ const useVolume = (
           setChannelStateForNewImage(volume.imageInfo.channelNames);
           volume.updateChannelCount();
 
-          const newChannelVersions = channelVersionsRef.current.slice(0, volume.imageInfo.numChannels);
-          while (newChannelVersions.length < volume.imageInfo.numChannels) {
-            newChannelVersions.push(CHANNEL_INITIAL_LOAD);
+          let newChannelVersions = channelVersionsRef.current.slice(0, volume.imageInfo.numChannels);
+
+          const addedChannelCount = volume.imageInfo.numChannels - newChannelVersions.length;
+          if (addedChannelCount > 0) {
+            newChannelVersions = newChannelVersions.concat(Array(addedChannelCount).fill(CHANNEL_INITIAL_LOAD));
           }
           setChannelVersions(newChannelVersions);
 
