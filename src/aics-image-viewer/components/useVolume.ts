@@ -338,12 +338,16 @@ const useVolume = (
           setChannelStateForNewImage(volume.imageInfo.channelNames);
           volume.updateChannelCount();
 
-          let newChannelVersions = channelVersionsRef.current.slice(0, volume.imageInfo.numChannels);
+          const prevChannelVersions = channelVersionsRef.current;
+          let newChannelVersions: number[];
 
-          const addedChannelCount = volume.imageInfo.numChannels - newChannelVersions.length;
+          const addedChannelCount = volume.imageInfo.numChannels - prevChannelVersions.length;
           if (addedChannelCount > 0) {
-            newChannelVersions = newChannelVersions.concat(Array(addedChannelCount).fill(CHANNEL_INITIAL_LOAD));
+            newChannelVersions = prevChannelVersions.concat(Array(addedChannelCount).fill(CHANNEL_INITIAL_LOAD));
+          } else {
+            newChannelVersions = prevChannelVersions.slice(0, volume.imageInfo.numChannels);
           }
+
           setChannelVersions(newChannelVersions);
 
           onChangeSceneRef(volume, sceneIndex, loadSpec);
