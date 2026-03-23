@@ -10,7 +10,6 @@ import {
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
   getDefaultViewerChannelSettings,
-  getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
 import { ImageType, ViewMode } from "../../shared/enums";
@@ -67,7 +66,6 @@ const defaultProps: AppProps = {
 
   appHeight: "100vh",
   visibleControls: defaultVisibleControls,
-  viewerSettings: getDefaultViewerState(),
   cellId: "",
   imageDownloadHref: "",
   parentImageDownloadHref: "",
