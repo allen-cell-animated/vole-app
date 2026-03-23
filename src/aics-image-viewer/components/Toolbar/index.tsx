@@ -18,6 +18,7 @@ type ToolbarProps = {
   hasCellId: boolean;
   hasParentImage: boolean;
   canPathTrace: boolean;
+  hasScaleLevels: boolean;
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
@@ -240,6 +241,17 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                   </Button>
                 </Tooltip>
               )}
+            </div>
+          )}
+
+          {props.hasScaleLevels && (
+            <div className="viewer-toolbar-group">
+              <span>Resolution</span>
+              <Radio.Group>
+                {/* TODO value, onChange */}
+                <Radio.Button value={false}>Auto</Radio.Button>
+                <Radio.Button value={true}>Manual</Radio.Button>
+              </Radio.Group>
             </div>
           )}
         </div>
