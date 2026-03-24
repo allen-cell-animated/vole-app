@@ -10,10 +10,7 @@
     border-right: 1px solid var(--color-controlpanel-border);
   }
 
-  .ant-checkbox-wrapper {
-    align-items: center;
-  }
-
+  /* TAB COLUMN */
   .control-panel-tab-col {
     text-align: center;
 
@@ -56,8 +53,8 @@
     }
   }
 
+  /* CONTENT COLUMN */
   .control-panel-col {
-    flex: 1 auto;
     max-width: 540px;
     overflow-y: scroll;
     scrollbar-width: none;
@@ -90,18 +87,14 @@
     .control-panel-content {
       border-top: 1px solid var(--color-controlpanel-border);
 
-      .ant-list-item-meta .ant-list-item-meta-title {
-        margin: 0;
-      }
-
       /* checkbox spacing, in channel entries and shared in headings */
       .channel-visibility-controls,
       .ant-collapse-extra {
+        align-self: end;
         width: 40%;
         display: flex;
 
-        .ant-checkbox-wrapper,
-        .single-channel-text {
+        .ant-checkbox-wrapper {
           flex: 4;
         }
       }
@@ -129,39 +122,6 @@
 
       .ant-collapse-item:not(.ant-collapse-item-active):last-child {
         border-bottom: 1px solid var(--color-controlpanel-border);
-      }
-    }
-
-    .ant-list-item,
-    .color-picker-row {
-      padding: 0 16px;
-      border-bottom: none;
-      display: flex;
-      flex-flow: row wrap;
-      color: var(--color-controlpanel-text);
-
-      /* Provides the border in between list elements */
-      &::after {
-        content: "";
-        margin-top: 22px;
-        width: 100%;
-        border-bottom: 1px solid var(--color-controlpanel-border);
-      }
-    }
-
-    .ant-list-item {
-      padding-top: 22px;
-
-      &::after {
-        margin-top: 22px;
-      }
-    }
-
-    .color-picker-row {
-      padding-top: 16px;
-
-      &::after {
-        margin-top: 16px;
       }
     }
 

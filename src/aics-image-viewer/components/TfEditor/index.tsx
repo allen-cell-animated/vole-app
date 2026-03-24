@@ -585,7 +585,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const { rawMin, rawMax } = props.channelData;
 
   return (
-    <div className="tf-editor">
+    <div className="aics-tf-editor">
       {/* ----- PLOT RANGE ----- */}
       <div className="tf-editor-control-row">
         <div>

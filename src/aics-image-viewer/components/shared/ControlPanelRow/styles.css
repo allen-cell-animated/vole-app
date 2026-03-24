@@ -1,0 +1,69 @@
+.control-panel-col .control-panel-row {
+  padding: var(--control-panel-row-vertical-margin) 16px 0;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  color: var(--color-controlpanel-text);
+
+  .ant-checkbox-wrapper {
+    color: var(--color-controlpanel-text);
+  }
+
+  /* Title and color picker container */
+  .control-panel-row-title {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+
+    .color-picker {
+      margin-right: 16px;
+    }
+
+    h4 {
+      margin: 0;
+    }
+  }
+
+  /* Channel settings open/close button */
+  .ant-btn-text {
+    color: var(--color-button-icon-activated-text);
+    transition: color 0.3s;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-button-tertiary-hover-text) !important;
+    }
+  }
+
+  &.controls-closed .ant-btn-text:not(:focus-visible) {
+    color: var(--color-controlpanel-text);
+  }
+
+  /* Highlight rows (used for single-channel mode) */
+  &.control-panel-row-highlight {
+    background-color: var(--color-button-primary-bg);
+
+    &,
+    h4 {
+      color: var(--color-button-primary-text);
+      font-weight: 600;
+    }
+
+    .color-picker .color-picker-swatch {
+      border-color: var(--color-button-primary-text);
+    }
+  }
+
+  /* Pseudo-element provides the border between rows */
+  &::after {
+    content: "";
+    margin-top: var(--control-panel-row-vertical-margin);
+    width: 100%;
+    border-bottom: 1px solid var(--color-controlpanel-border);
+  }
+}
+
+/* If this row is up against another collapsible section immediately below, their borders would double up */
+.control-panel-col .ant-collapse-item:not(:last-child) .control-panel-row:last-child::after {
+  border-bottom: none;
+}
