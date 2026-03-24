@@ -19,9 +19,11 @@ const palette = {
   veryDarkPurple: "#5f369f",
   veryLtPurple: "#e7e4f2",
   brightRed: "#ff4d4d",
+  brightYellow: "#e39b0d",
   brightGreen: "#61d900",
   veryBrightGreen: "#61ff00",
   brightBlue: "#0099ff",
+  darkYellow: "#4c3c29",
 };
 
 const theme = {
@@ -32,7 +34,7 @@ const theme = {
       primaryDk: palette.darkPurple,
       success: palette.brightGreen,
       error: palette.brightRed,
-      warning: palette.brightRed,
+      warning: palette.brightYellow,
       info: palette.brightBlue,
     },
     text: {
@@ -122,6 +124,10 @@ const theme = {
       selectedBg: palette.medGrey,
       textPlaceholder: palette.ltPurple,
     },
+    message: {
+      text: palette.brightYellow,
+      bg: palette.darkYellow,
+    },
     tooltip: {
       bg: palette.black,
     },
@@ -210,6 +216,9 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
       --color-statusflag-border: ${$theme.colors.statusFlag.border};
       --color-statusflag-text: ${$theme.colors.statusFlag.text};
+
+      --color-message-warning-text: ${theme.colors.message.text};
+      --color-message-warning-bg: ${theme.colors.message.bg};
 
       --color-layout-dividers: ${$theme.colors.layout.dividers};
 

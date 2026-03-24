@@ -25,8 +25,9 @@ const MAX_SCENE_URL_COUNT = 4;
 
 const WARNING_STYLE = {
   marginTop: "12px",
-  borderColor: "#d89614",
-  backgroundColor: "#59421430",
+  color: "var(--color-message-warning-text)",
+  borderColor: "var(--color-message-warning-text)",
+  backgroundColor: "var(--color-message-warning-bg)",
 };
 
 const encodeSceneUrl = (scene: string | string[]): string => {
