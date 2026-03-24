@@ -1,7 +1,8 @@
 import type { View3d } from "@aics/vole-core";
 import { ExclamationCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Button, Card, Input, Modal, notification } from "antd";
+import { Alert, Button, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
+import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
@@ -21,14 +22,33 @@ type ShareModalProps = {
   view3dRef?: React.RefObject<View3d | null>;
 };
 
-const MAX_SCENE_URL_COUNT = 4;
+const ModalContainer = styled.div`
+  .ant-alert {
+    align-items: flex-start;
+    margin-top: 12px;
+    transition-property: all;
+    color: var(--color-message-warning-text);
+  }
 
-const WARNING_STYLE = {
-  marginTop: "12px",
-  color: "var(--color-message-warning-text)",
-  borderColor: "var(--color-message-warning-text)",
-  backgroundColor: "var(--color-message-warning-bg)",
-};
+  .ant-alert-motion-leave {
+    margin-top: 0;
+  }
+
+  .ant-alert button,
+  .ant-alert button .anticon {
+    color: var(--color-message-warning-text);
+  }
+
+  .ant-alert button .anticon {
+    font-size: 14px;
+  }
+
+  .ant-alert > .anticon {
+    font-size: 21px;
+  }
+`;
+
+const MAX_SCENE_URL_COUNT = 4;
 
 const encodeSceneUrl = (scene: string | string[]): string => {
   if (Array.isArray(scene)) {
@@ -41,16 +61,21 @@ const encodeSceneUrl = (scene: string | string[]): string => {
 const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> = ({ message, children }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  return (
-    <Card size="small" style={WARNING_STYLE}>
-      <ExclamationCircleOutlined style={{ color: "#d89614", marginRight: 12 }} />
-      {message} (
-      <Button type="text" style={{ fontWeight: "bold" }} onClick={() => setShowDetails(!showDetails)}>
-        {showDetails ? "less info" : "more info"}
+  const warningContents = (
+    <>
+      <div>{message}</div>
+      {showDetails && <div style={{ margin: "8px 0" }}>{children}</div>}
+      <Button
+        type="text"
+        style={{ textDecoration: "underline", fontWeight: "bold", lineHeight: 0.8 }}
+        onClick={() => setShowDetails(!showDetails)}
+      >
+        {showDetails ? "Show less" : "Show more"}
       </Button>
-      ){showDetails && <div style={{ marginLeft: 24, marginTop: 8 }}>{children}</div>}
-    </Card>
+    </>
   );
+
+  return <Alert showIcon closable icon={<ExclamationCircleOutlined />} type="warning" message={warningContents} />;
 };
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
@@ -115,7 +140,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   };
 
   return (
-    <div ref={modalContainerRef}>
+    <ModalContainer ref={modalContainerRef}>
       {notificationContextHolder}
 
       <Button type="link" onClick={() => setShowModal(!showModal)}>
@@ -139,19 +164,19 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
           </Button>
         </FlexRow>
         {hasTooManyScenes && (
-          <Warning message="Only the current scene will be shared">
+          <Warning message="Only the current scene will be shared.">
             Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the current
             scene.
           </Warning>
         )}
         {hasStoredMetadata && (
-          <Warning message="Not all image metadata will be shared">
+          <Warning message="Not all image metadata will be shared.">
             One or more open images has metadata that was shared with Vol-E by an external application (like BioFile
             Finder). This metadata can&apos;t be included in the URL above.
           </Warning>
         )}
       </Modal>
-    </div>
+    </ModalContainer>
   );
 };
 

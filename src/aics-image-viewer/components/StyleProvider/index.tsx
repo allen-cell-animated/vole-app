@@ -124,7 +124,7 @@ const theme = {
       selectedBg: palette.medGrey,
       textPlaceholder: palette.ltPurple,
     },
-    message: {
+    warning: {
       text: palette.brightYellow,
       bg: palette.darkYellow,
     },
@@ -217,8 +217,8 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-statusflag-border: ${$theme.colors.statusFlag.border};
       --color-statusflag-text: ${$theme.colors.statusFlag.text};
 
-      --color-message-warning-text: ${theme.colors.message.text};
-      --color-message-warning-bg: ${theme.colors.message.bg};
+      --color-message-warning-text: ${theme.colors.warning.text};
+      --color-message-warning-bg: ${theme.colors.warning.bg};
 
       --color-layout-dividers: ${$theme.colors.layout.dividers};
 
@@ -401,6 +401,10 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           colorBgContainer: "transparent",
           colorSplit: theme.colors.layout.split,
           colorPrimaryTextHover: theme.colors.text.selectionText,
+          colorWarning: theme.colors.warning.text,
+          colorWarningBg: theme.colors.warning.bg,
+          colorWarningBorder: theme.colors.warning.text,
+          colorWarningText: theme.colors.warning.text,
           fontWeightStrong: 400,
           colorBgElevated: palette.darkGrey,
           controlItemBgHover: theme.colors.menu.hoverBg,
