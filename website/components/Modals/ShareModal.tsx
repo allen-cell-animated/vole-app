@@ -1,5 +1,5 @@
 import type { View3d } from "@aics/vole-core";
-import { ExclamationCircleFilled, ShareAltOutlined } from "@ant-design/icons";
+import { ExclamationCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
 import { Button, Card, Input, Modal, notification } from "antd";
 import React, { useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -43,7 +43,7 @@ const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> =
 
   return (
     <Card size="small" style={WARNING_STYLE}>
-      <ExclamationCircleFilled style={{ color: "#d89614", marginRight: 8 }} />
+      <ExclamationCircleOutlined style={{ color: "#d89614", marginRight: 12 }} />
       {message} (
       <Button type="text" style={{ fontWeight: "bold" }} onClick={() => setShowDetails(!showDetails)}>
         {showDetails ? "less info" : "more info"}
