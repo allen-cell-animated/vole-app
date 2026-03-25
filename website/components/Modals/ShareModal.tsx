@@ -18,6 +18,7 @@ import { FlexRow } from "../LandingPage/utils";
 
 type ShareModalProps = {
   appProps: AppDataProps;
+  imageTitle?: string;
   // Used to retrieve the current camera position information
   view3dRef?: React.RefObject<View3d | null>;
 };
@@ -163,7 +164,10 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
               onChange={(e) => setShowCurrentScene(e.target.value)}
               options={[
                 { value: false, label: "All scenes" },
-                { value: true, label: "Current scene" },
+                {
+                  value: true,
+                  label: props.imageTitle !== undefined ? `Current scene (${props.imageTitle})` : "Current scene",
+                },
               ]}
             />
             {hasTooManyScenes && (
