@@ -1,6 +1,6 @@
 import type { View3d } from "@aics/vole-core";
 import { ExclamationCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Alert, Button, Input, Modal, notification, Radio } from "antd";
+import { Alert, Button, Input, Modal, notification, Radio, Tooltip } from "antd";
 import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
@@ -157,14 +157,25 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         footer={null}
       >
         {urls.length > 0 && (
-          <Radio.Group
-            value={showCurrentScene}
-            onChange={(e) => setShowCurrentScene(e.target.value)}
-            options={[
-              { value: false, label: "All scenes" },
-              { value: true, label: "Current scene" },
-            ]}
-          />
+          <FlexRow style={{ justifyContent: "space-between" }}>
+            <Radio.Group
+              value={showCurrentScene}
+              onChange={(e) => setShowCurrentScene(e.target.value)}
+              options={[
+                { value: false, label: "All scenes" },
+                { value: true, label: "Current scene" },
+              ]}
+            />
+            {hasTooManyScenes && (
+              <Tooltip
+                title={`Vol-E currently has ${urls.length} scenes open. Sharing a large scene collection requires a very long URL. We don't recommend including more than 4 scenes in a sharing link.`}
+                overlayStyle={{ zIndex: 10000 }}
+                placement="left"
+              >
+                <ExclamationCircleOutlined style={{ color: "var(--color-message-warning-text)", cursor: "pointer" }} />
+              </Tooltip>
+            )}
+          </FlexRow>
         )}
         <FlexRow $gap={8} style={{ marginTop: "12px" }}>
           <Input value={shareUrl} readOnly={true}></Input>
