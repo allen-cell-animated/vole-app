@@ -158,28 +158,35 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         footer={null}
       >
         {urls.length > 0 && (
-          <FlexRow style={{ justifyContent: "space-between" }}>
-            <Radio.Group
-              value={showCurrentScene}
-              onChange={(e) => setShowCurrentScene(e.target.value)}
-              options={[
-                { value: false, label: "All scenes" },
-                {
-                  value: true,
-                  label: props.imageTitle !== undefined ? `Current scene (${props.imageTitle})` : "Current scene",
-                },
-              ]}
-            />
-            {hasTooManyScenes && (
-              <Tooltip
-                title={`Vol-E currently has ${urls.length} scenes open. Sharing a large scene collection requires a very long URL. We don't recommend including more than 4 scenes in a sharing link.`}
-                overlayStyle={{ zIndex: 10000 }}
-                placement="left"
-              >
-                <ExclamationCircleOutlined style={{ color: "var(--color-message-warning-text)", cursor: "pointer" }} />
-              </Tooltip>
-            )}
-          </FlexRow>
+          <Radio.Group
+            value={showCurrentScene}
+            onChange={(e) => setShowCurrentScene(e.target.value)}
+            options={[
+              {
+                value: true,
+                label: props.imageTitle !== undefined ? `Current scene (${props.imageTitle})` : "Current scene",
+              },
+              {
+                value: false,
+                label: hasTooManyScenes ? (
+                  <>
+                    All scenes{" "}
+                    <Tooltip
+                      title={`Vol-E currently has ${urls.length} scenes open. Sharing a large scene collection requires a very long URL. We don't recommend including more than 4 scenes in a sharing link.`}
+                      overlayStyle={{ zIndex: 10000 }}
+                      placement="left"
+                    >
+                      <ExclamationCircleOutlined
+                        style={{ color: "var(--color-message-warning-text)", cursor: "pointer", fontSize: "16px" }}
+                      />
+                    </Tooltip>
+                  </>
+                ) : (
+                  "All scenes"
+                ),
+              },
+            ]}
+          />
         )}
         <FlexRow $gap={8} style={{ marginTop: "12px" }}>
           <Input value={shareUrl} readOnly={true}></Input>
