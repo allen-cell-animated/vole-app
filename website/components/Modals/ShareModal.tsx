@@ -157,7 +157,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         destroyOnClose={true}
         footer={null}
       >
-        {urls.length > 0 && (
+        {urls.length > 1 && (
           <Radio.Group
             value={showCurrentScene}
             onChange={(e) => setShowCurrentScene(e.target.value)}
