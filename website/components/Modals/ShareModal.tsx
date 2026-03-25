@@ -1,7 +1,7 @@
 import type { View3d } from "@aics/vole-core";
 import { ExclamationCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Alert, Button, Input, Modal, notification } from "antd";
-import React, { useRef, useState } from "react";
+import { Alert, Button, Input, Modal, notification, Radio } from "antd";
+import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
@@ -79,11 +79,21 @@ const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> =
 };
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
+  const { imageUrl } = props.appProps;
+  const urls = useMemo(
+    () => (imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : []),
+    [imageUrl]
+  );
+  const hasStoredMetadata = useMemo(() => readStoredMetadata(urls).some((meta) => meta !== undefined), [urls]);
+  const hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
+
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
   const [showModal, setShowModal] = useState(false);
   const modalContainerRef = useRef<HTMLDivElement>(null);
+
+  const [showCurrentScene, setShowCurrentScene] = useState(hasTooManyScenes);
 
   const [notificationApi, notificationContextHolder] = notification.useNotification({
     getContainer: modalContainerRef.current ? () => modalContainerRef.current! : undefined,
@@ -91,34 +101,20 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     duration: 2,
   });
 
-  // location.pathname will include up to `.../viewer`
-  const baseUrl = location.protocol + "//" + location.host + location.pathname;
   const paramProps = {
     ...viewerSettings,
+    scene: showCurrentScene ? 0 : viewerSettings.scene,
     channelSettings,
     cameraState: props.view3dRef?.current?.getCameraState(),
   };
 
   const urlParams: string[] = [];
-  const { imageUrl } = props.appProps;
-  let hasTooManyScenes = false;
-  let hasStoredMetadata = false;
 
-  if (imageUrl) {
-    const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
-    hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
-    hasStoredMetadata = readStoredMetadata(urls).some((meta) => meta !== undefined);
+  const serializedUrl = showCurrentScene
+    ? encodeSceneUrl(urls[viewerSettings.scene])
+    : urls.map(encodeSceneUrl).join("+");
 
-    if (hasTooManyScenes) {
-      paramProps.scene = 0;
-    }
-
-    const serializedUrl = hasTooManyScenes
-      ? encodeSceneUrl(urls[viewerSettings.scene])
-      : urls.map(encodeSceneUrl).join("+");
-
-    urlParams.push(`url=${serializedUrl}`);
-  }
+  urlParams.push(`url=${serializedUrl}`);
 
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
@@ -129,6 +125,9 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
       .replace(ENCODED_COMMA_REGEX, ",");
     urlParams.push(viewerParamString);
   }
+
+  // location.pathname will include up to `.../viewer`
+  const baseUrl = location.protocol + "//" + location.host + location.pathname;
 
   const shareUrl = urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
 
@@ -157,6 +156,16 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         destroyOnClose={true}
         footer={null}
       >
+        {urls.length > 0 && (
+          <Radio.Group
+            value={showCurrentScene}
+            onChange={(e) => setShowCurrentScene(e.target.value)}
+            options={[
+              { value: false, label: "All scenes" },
+              { value: true, label: "Current scene" },
+            ]}
+          />
+        )}
         <FlexRow $gap={8} style={{ marginTop: "12px" }}>
           <Input value={shareUrl} readOnly={true}></Input>
           <Button type="primary" onClick={onClickCopy}>
