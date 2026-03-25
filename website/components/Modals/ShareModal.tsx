@@ -172,12 +172,6 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             Copy URL
           </Button>
         </FlexRow>
-        {hasTooManyScenes && (
-          <Warning message="Only the current scene will be shared.">
-            Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the current
-            scene.
-          </Warning>
-        )}
         {hasStoredMetadata && (
           <Warning message="Not all image metadata will be shared.">
             One or more open images has metadata that was shared with Vol-E by an external application (like BioFile
