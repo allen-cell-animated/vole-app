@@ -25,23 +25,8 @@ type ShareModalProps = {
 
 const ModalContainer = styled.div`
   .ant-alert {
-    align-items: flex-start;
     margin-top: 12px;
-    transition-property: all;
-    color: var(--color-alert-warning-text);
-  }
-
-  .ant-alert-motion-leave {
-    margin-top: 0;
-  }
-
-  .ant-alert button,
-  .ant-alert button .anticon {
-    color: var(--color-alert-warning-text);
-  }
-
-  .ant-alert button .anticon {
-    font-size: 14px;
+    color: var(--color-alert-info-text);
   }
 
   .ant-alert > .anticon {
