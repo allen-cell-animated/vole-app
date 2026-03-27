@@ -252,6 +252,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Radio.Button value={false}>Auto</Radio.Button>
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
+              <Select className="select-render-setting" style={{ minWidth: 160 }} value="1824 x 1248 x 42">
+                <Select.Option value="1824 x 1248 x 42" key="1824 x 1248 x 42">
+                  1824 x 1248 x 42
+                </Select.Option>
+              </Select>
             </div>
           )}
         </div>
