@@ -26,6 +26,7 @@ type ShareModalProps = {
 const ModalContainer = styled.div`
   .ant-alert {
     margin-top: 12px;
+    padding: 10px 14px;
     color: var(--color-alert-info-text);
     border: none;
   }
@@ -43,26 +44,6 @@ const encodeSceneUrl = (scene: string | string[]): string => {
   } else {
     return encodeURIComponent(scene);
   }
-};
-
-const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> = ({ message, children }) => {
-  const [showDetails, setShowDetails] = useState(false);
-
-  const warningContents = (
-    <>
-      <div>{message}</div>
-      {showDetails && <div style={{ margin: "8px 0" }}>{children}</div>}
-      <Button
-        type="text"
-        style={{ textDecoration: "underline", fontWeight: "bold", lineHeight: 0.8 }}
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        {showDetails ? "Show less" : "Show more"}
-      </Button>
-    </>
-  );
-
-  return <Alert showIcon icon={<InfoCircleOutlined />} type="info" message={warningContents} />;
 };
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
@@ -181,10 +162,12 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
           </Button>
         </FlexRow>
         {hasStoredMetadata && (
-          <Warning message="Not all image metadata will be shared.">
-            One or more open images has metadata that was shared with Vol-E by an external application (like BioFile
-            Finder). This metadata can&apos;t be included in the URL above.
-          </Warning>
+          <Alert
+            showIcon
+            icon={<InfoCircleOutlined />}
+            type="info"
+            message="Image metadata from external apps (like BFF) can't be shared."
+          />
         )}
       </Modal>
     </ModalContainer>
