@@ -1,6 +1,6 @@
 import type { View3d } from "@aics/vole-core";
-import { ExclamationCircleOutlined, InfoCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Alert, Button, Input, Modal, notification, Radio, Tooltip } from "antd";
+import { InfoCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
+import { Alert, Button, Input, Modal, notification, Radio } from "antd";
 import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
@@ -23,6 +23,8 @@ type ShareModalProps = {
   view3dRef?: React.RefObject<View3d | null>;
 };
 
+const MAX_URL_CHARACTERS = 2000;
+
 const ModalContainer = styled.div`
   .ant-alert {
     margin-top: 12px;
@@ -35,8 +37,6 @@ const ModalContainer = styled.div`
     font-size: 21px;
   }
 `;
-
-const MAX_SCENE_URL_COUNT = 4;
 
 const encodeSceneUrl = (scene: string | string[]): string => {
   if (Array.isArray(scene)) {
@@ -53,7 +53,6 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     [imageUrl]
   );
   const hasStoredMetadata = useMemo(() => readStoredMetadata(urls).some((meta) => meta !== undefined), [urls]);
-  const hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
 
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
@@ -61,7 +60,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const [showModal, setShowModal] = useState(false);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
-  const [showCurrentScene, setShowCurrentScene] = useState(hasTooManyScenes);
+  const [showAllScenes, setShowAllScenes] = useState(false);
 
   const [notificationApi, notificationContextHolder] = notification.useNotification({
     getContainer: modalContainerRef.current ? () => modalContainerRef.current! : undefined,
@@ -71,16 +70,14 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
   const paramProps = {
     ...viewerSettings,
-    scene: showCurrentScene ? 0 : viewerSettings.scene,
+    scene: showAllScenes ? viewerSettings.scene : 0,
     channelSettings,
     cameraState: props.view3dRef?.current?.getCameraState(),
   };
 
   const urlParams: string[] = [];
 
-  const serializedUrl = showCurrentScene
-    ? encodeSceneUrl(urls[viewerSettings.scene])
-    : urls.map(encodeSceneUrl).join("+");
+  const serializedUrl = showAllScenes ? urls.map(encodeSceneUrl).join("+") : encodeSceneUrl(urls[viewerSettings.scene]);
 
   urlParams.push(`url=${serializedUrl}`);
 
@@ -126,31 +123,16 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
       >
         {urls.length > 1 && (
           <Radio.Group
-            value={showCurrentScene}
-            onChange={(e) => setShowCurrentScene(e.target.value)}
+            value={showAllScenes}
+            onChange={(e) => setShowAllScenes(e.target.value)}
             options={[
               {
-                value: true,
+                value: false,
                 label: props.imageTitle !== undefined ? `Current scene (${props.imageTitle})` : "Current scene",
               },
               {
-                value: false,
-                label: hasTooManyScenes ? (
-                  <>
-                    All scenes{" "}
-                    <Tooltip
-                      title={`Vol-E currently has ${urls.length} scenes open. Sharing a large scene collection requires a very long URL. We don't recommend including more than 4 scenes in a sharing link.`}
-                      overlayStyle={{ zIndex: 10000 }}
-                      placement="left"
-                    >
-                      <ExclamationCircleOutlined
-                        style={{ color: "var(--color-alert-warning-text)", cursor: "pointer", fontSize: "16px" }}
-                      />
-                    </Tooltip>
-                  </>
-                ) : (
-                  "All scenes"
-                ),
+                value: true,
+                label: "All scenes",
               },
             ]}
           />
