@@ -27,6 +27,7 @@ const ModalContainer = styled.div`
   .ant-alert {
     margin-top: 12px;
     color: var(--color-alert-info-text);
+    border: none;
   }
 
   .ant-alert > .anticon {
