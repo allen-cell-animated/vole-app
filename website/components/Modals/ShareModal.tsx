@@ -1,5 +1,5 @@
 import type { View3d } from "@aics/vole-core";
-import { ExclamationCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
+import { ExclamationCircleOutlined, InfoCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
 import { Alert, Button, Input, Modal, notification, Radio, Tooltip } from "antd";
 import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
@@ -28,7 +28,7 @@ const ModalContainer = styled.div`
     align-items: flex-start;
     margin-top: 12px;
     transition-property: all;
-    color: var(--color-message-warning-text);
+    color: var(--color-alert-warning-text);
   }
 
   .ant-alert-motion-leave {
@@ -37,7 +37,7 @@ const ModalContainer = styled.div`
 
   .ant-alert button,
   .ant-alert button .anticon {
-    color: var(--color-message-warning-text);
+    color: var(--color-alert-warning-text);
   }
 
   .ant-alert button .anticon {
@@ -76,7 +76,7 @@ const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> =
     </>
   );
 
-  return <Alert showIcon closable icon={<ExclamationCircleOutlined />} type="warning" message={warningContents} />;
+  return <Alert showIcon icon={<InfoCircleOutlined />} type="info" message={warningContents} />;
 };
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
@@ -177,7 +177,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
                       placement="left"
                     >
                       <ExclamationCircleOutlined
-                        style={{ color: "var(--color-message-warning-text)", cursor: "pointer", fontSize: "16px" }}
+                        style={{ color: "var(--color-alert-warning-text)", cursor: "pointer", fontSize: "16px" }}
                       />
                     </Tooltip>
                   </>
