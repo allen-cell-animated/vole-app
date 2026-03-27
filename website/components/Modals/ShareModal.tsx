@@ -151,6 +151,14 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             message="Image metadata from external apps (like BFF) can't be shared."
           />
         )}
+        {shareUrl.length > MAX_URL_CHARACTERS && (
+          <Alert
+            showIcon
+            icon={<InfoCircleOutlined />}
+            type="info"
+            message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene." : ""}`}
+          />
+        )}
       </Modal>
     </ModalContainer>
   );
