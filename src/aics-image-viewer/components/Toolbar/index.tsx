@@ -67,6 +67,8 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const autorotate = useViewerState(select("autorotate"));
   const showAxes = useViewerState(select("showAxes"));
   const showBoundingBox = useViewerState(select("showBoundingBox"));
+  const useExactScaleLevel = useViewerState(select("useExactScaleLevel"));
+  const scaleLevelIndex = useViewerState(select("scaleLevelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   // Scroll buttons are only visible when toolbar can be scrolled in that direction.
@@ -249,12 +251,20 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           {props.multiscaleDims !== undefined && props.multiscaleDims.length > 1 && (
             <div className="viewer-toolbar-group">
               <span>Resolution</span>
-              <Radio.Group>
-                {/* TODO value, onChange */}
+              <Radio.Group
+                value={useExactScaleLevel}
+                onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
+              >
                 <Radio.Button value={false}>Auto</Radio.Button>
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
-              <Select className="select-render-setting" style={{ minWidth: 160 }} value={0}>
+              <Select
+                className="select-render-setting"
+                style={{ minWidth: 160 }}
+                value={scaleLevelIndex}
+                onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
+                disabled={!useExactScaleLevel}
+              >
                 {props.multiscaleDims.map((dims, idx) => {
                   const [_t, _c, z, y, x] = dims.shape;
                   return (
