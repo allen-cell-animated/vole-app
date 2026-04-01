@@ -1,8 +1,10 @@
 import { create, type StateCreator } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import { getDefaultViewerState } from "../shared/constants";
+import { getDefaultChannelColor, getDefaultViewerState } from "../shared/constants";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
+import type { ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
+import { initializeOneChannelSetting } from "../shared/utils/viewerState";
 import { createResetSlice, type ResetStateSlice } from "./reset";
 import type { ChannelState, ViewerState } from "./types";
 import { validateState, validateStateValue } from "./util";
@@ -15,6 +17,7 @@ export type ViewerStateActions = {
     value: Partial<Record<K, ChannelState[K]>>
   ) => void;
   replaceAllChannelSettings: (channelSettings: ChannelState[]) => void;
+  initChannelSettings: (names: string[], settings?: ViewerChannelSettings) => ChannelState[];
   applyColorPresets: (colors: ColorArray[]) => void;
 };
 
@@ -24,8 +27,8 @@ export type ViewerStore = ViewerState &
     channelSettings: ChannelState[];
   };
 
-const createViewerStateStore: StateCreator<ViewerStore> = (set, ...etc) => ({
-  ...createResetSlice(set, ...etc),
+const createViewerStateStore: StateCreator<ViewerStore> = (set, get, ...etc) => ({
+  ...createResetSlice(set, get, ...etc),
   ...getDefaultViewerState(),
   channelSettings: [],
 
@@ -43,6 +46,18 @@ const createViewerStateStore: StateCreator<ViewerStore> = (set, ...etc) => ({
   },
 
   replaceAllChannelSettings: (channelSettings) => set({ channelSettings }),
+
+  initChannelSettings: (names, settings) => {
+    const currentSettings = get().channelSettings;
+    const channelSettings: ChannelState[] = names.map((name, index) => {
+      const color = getDefaultChannelColor(index);
+      const channelSetting = currentSettings[index] ?? initializeOneChannelSetting(name, index, color, settings);
+      return { ...channelSetting, name };
+    });
+
+    set({ channelSettings });
+    return channelSettings;
+  },
 
   applyColorPresets: (colors) => {
     set(({ channelSettings }) => ({

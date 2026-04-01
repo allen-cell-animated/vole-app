@@ -1,5 +1,6 @@
 // 3rd Party Imports
-import { type RawArrayLoaderOptions, View3d, type Volume } from "@aics/vole-core";
+import { View3d } from "@aics/vole-core";
+import type { LoadSpec, RawArrayLoaderOptions, Volume } from "@aics/vole-core";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,7 +11,6 @@ import {
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
   getDefaultViewerChannelSettings,
-  getDefaultViewerState,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
 import { ImageType, ViewMode } from "../../shared/enums";
@@ -67,7 +67,6 @@ const defaultProps: AppProps = {
 
   appHeight: "100vh",
   visibleControls: defaultVisibleControls,
-  viewerSettings: getDefaultViewerState(),
   cellId: "",
   imageDownloadHref: "",
   parentImageDownloadHref: "",
@@ -265,7 +264,8 @@ const App: React.FC<AppProps> = (props) => {
 
   const [loadedScene, setLoadedScene] = useState<number | undefined>(undefined);
   const onChangeScene = useCallback(
-    (image: Volume, sceneIndex: number) => {
+    (image: Volume, sceneIndex: number, loadSpec: LoadSpec) => {
+      changeViewerSetting("time", loadSpec.time);
       onImageTitleChange?.(image.imageInfo.imageInfo.name);
       setLoadedScene(sceneIndex);
       changeViewerSetting("scaleLevelIndex", image.imageInfo.multiscaleLevel);
