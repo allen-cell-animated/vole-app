@@ -173,6 +173,18 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
       REF_EQ
     ),
 
+    store.subscribe(
+      ({ useExactScaleLevel, scaleLevelIndex }) => ({ useExactScaleLevel, scaleLevelIndex }),
+      ({ useExactScaleLevel, scaleLevelIndex }) => {
+        if (useExactScaleLevel) {
+          image.updateRequiredData({ useExplicitLevel: true, multiscaleLevel: scaleLevelIndex });
+        } else {
+          image.updateRequiredData({ useExplicitLevel: false });
+        }
+      },
+      DEEP_EQ
+    ),
+
     // clipping
     store.subscribe(selectAxisClipUpdateInfo("x"), axisClipUpdater("x"), DEEP_EQ),
     store.subscribe(selectAxisClipUpdateInfo("y"), axisClipUpdater("y"), DEEP_EQ),
