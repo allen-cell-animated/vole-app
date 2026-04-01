@@ -27,6 +27,8 @@ const arbitraryViewerState = (): ViewerState => ({
   singleChannelMode: true,
   singleChannelIndex: 3,
   cameraState: undefined,
+  useExactScaleLevel: true,
+  scaleLevelIndex: 3,
 });
 
 const arbitraryChannelState = (): ChannelState => ({
