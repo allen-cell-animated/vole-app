@@ -1,3 +1,5 @@
+// TODO this really ought to be exported at the top level...
+import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
@@ -18,7 +20,7 @@ type ToolbarProps = {
   hasCellId: boolean;
   hasParentImage: boolean;
   canPathTrace: boolean;
-  hasScaleLevels: boolean;
+  multiscaleDims?: VolumeDims[];
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
@@ -244,7 +246,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             </div>
           )}
 
-          {props.hasScaleLevels && (
+          {props.multiscaleDims !== undefined && props.multiscaleDims.length > 1 && (
             <div className="viewer-toolbar-group">
               <span>Resolution</span>
               <Radio.Group>
@@ -252,10 +254,15 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Radio.Button value={false}>Auto</Radio.Button>
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
-              <Select className="select-render-setting" style={{ minWidth: 160 }} value="1824 x 1248 x 42">
-                <Select.Option value="1824 x 1248 x 42" key="1824 x 1248 x 42">
-                  1824 x 1248 x 42
-                </Select.Option>
+              <Select className="select-render-setting" style={{ minWidth: 160 }} value={0}>
+                {props.multiscaleDims.map((dims, idx) => {
+                  const [_t, _c, z, y, x] = dims.shape;
+                  return (
+                    <Select.Option key={idx} value={idx}>
+                      {x} x {y} x {z}
+                    </Select.Option>
+                  );
+                })}
               </Select>
             </div>
           )}

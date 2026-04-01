@@ -581,7 +581,7 @@ const App: React.FC<AppProps> = (props) => {
               downloadScreenshot={saveScreenshot}
               resetToSavedViewerState={resetToSavedViewerState}
               visibleControls={visibleControls}
-              hasScaleLevels={true} // TODO
+              multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}
