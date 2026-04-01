@@ -124,6 +124,7 @@ const App: React.FC<AppProps> = (props) => {
   const time = useViewerState(select("time"));
   const showAxes = useViewerState(select("showAxes"));
   const channelSettings = useViewerState(select("channelSettings"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const applyColorPresets = useViewerState(select("applyColorPresets"));
   const resetToSavedState = useViewerState(select("resetToSavedViewerState"));
@@ -267,8 +268,9 @@ const App: React.FC<AppProps> = (props) => {
     (image: Volume, sceneIndex: number) => {
       onImageTitleChange?.(image.imageInfo.imageInfo.name);
       setLoadedScene(sceneIndex);
+      changeViewerSetting("scaleLevelIndex", image.imageInfo.multiscaleLevel);
     },
-    [onImageTitleChange]
+    [onImageTitleChange, changeViewerSetting]
   );
 
   const onChannelLoaded = useCallback(

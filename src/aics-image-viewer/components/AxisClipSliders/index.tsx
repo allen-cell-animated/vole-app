@@ -310,7 +310,10 @@ const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
                 label={""}
                 vals={[props.scene]}
                 max={props.numScenes}
-                onChange={([scene]) => props.changeViewerSetting("scene", scene)}
+                onChange={([scene]) => {
+                  props.changeViewerSetting("scene", scene);
+                  props.changeViewerSetting("useExactScaleLevel", false);
+                }}
               />
             </div>
           </span>

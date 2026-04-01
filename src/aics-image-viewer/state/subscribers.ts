@@ -179,7 +179,7 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
         if (useExactScaleLevel) {
           image.updateRequiredData({ useExplicitLevel: true, multiscaleLevel: scaleLevelIndex });
         } else {
-          image.updateRequiredData({ useExplicitLevel: false });
+          image.updateRequiredData({ useExplicitLevel: false, multiscaleLevel: undefined });
         }
       },
       DEEP_EQ
