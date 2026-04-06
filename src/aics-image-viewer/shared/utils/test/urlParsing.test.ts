@@ -424,6 +424,8 @@ describe("Viewer state", () => {
     cameraState: undefined,
     singleChannelMode: false,
     singleChannelIndex: 0,
+    useExactScaleLevel: false,
+    scaleLevelIndex: 0,
   };
   const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
     mode: "volumetric",
@@ -445,6 +447,8 @@ describe("Viewer state", () => {
     scene: "0",
     scm: "0",
     sci: "0",
+    esl: "0",
+    scl: "0",
   };
 
   const CUSTOM_VIEWER_STATE: ViewerState = {
@@ -467,6 +471,8 @@ describe("Viewer state", () => {
     scene: 3,
     singleChannelMode: true,
     singleChannelIndex: 3,
+    useExactScaleLevel: true,
+    scaleLevelIndex: 3,
     cameraState: {
       position: [-1.05, -4, 45],
       target: [0, 0, 0],
@@ -495,6 +501,8 @@ describe("Viewer state", () => {
     scene: "3",
     scm: "1",
     sci: "3",
+    esl: "1",
+    scl: "3",
     cam: "pos:-1.05:-4:45,tar:0:0:0,up:0:1:0,ort:3.534,fov:43.5",
   };
 
