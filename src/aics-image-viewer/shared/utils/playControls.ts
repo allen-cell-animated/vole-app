@@ -20,24 +20,25 @@ export default class PlayControls {
     this.onPlayingAxisChanged?.(axis);
   }
 
-  private scheduleNextStep(): void {
-    const elapsed = performance.now() - this.lastStepTime;
-    const delay = Math.max(0, PLAY_STEP_INTERVAL_MS - elapsed);
-    this.playTimeoutId = window.setTimeout(this.playStep.bind(this), delay);
-  }
-
   private playStep(): void {
     if (!this.playingAxis || this.playHolding || !this.stepAxis) {
       return;
     }
-    // If the volume is not loaded, wait for it to load before continuing
     if (!this.getVolumeIsLoaded?.()) {
       this.playWaitingForLoad = true;
       return;
     }
 
+    // Enforce minimum interval between frame *presentations* (not requests).
+    // lastStepTime is set in onImageLoaded when a frame's data arrives.
+    const delay = PLAY_STEP_INTERVAL_MS - (performance.now() - this.lastStepTime);
+    if (delay > 0) {
+      this.playTimeoutId = window.setTimeout(this.playStep.bind(this), delay);
+      return;
+    }
+
     this.stepAxis(this.playingAxis);
-    this.scheduleNextStep();
+    this.playTimeoutId = window.setTimeout(this.playStep.bind(this), PLAY_STEP_INTERVAL_MS);
   }
 
   /** Call whenever new data is loaded to resume playback if it was paused for data loading. */
@@ -47,7 +48,7 @@ export default class PlayControls {
     this.lastStepTime = performance.now();
     if (this.playWaitingForLoad) {
       this.playWaitingForLoad = false;
-      this.scheduleNextStep();
+      this.playStep();
     }
   }
 
