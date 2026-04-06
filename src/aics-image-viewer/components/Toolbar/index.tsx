@@ -21,6 +21,7 @@ type ToolbarProps = {
   hasParentImage: boolean;
   canPathTrace: boolean;
   multiscaleDims?: VolumeDims[];
+  multiscaleIndex?: number;
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
@@ -261,7 +262,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               <Select
                 className="select-render-setting"
                 style={{ minWidth: 160 }}
-                value={scaleLevelIndex}
+                value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
                 onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
                 disabled={!useExactScaleLevel}
               >
