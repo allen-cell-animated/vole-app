@@ -170,6 +170,28 @@
       transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
     }
 
+    &.ant-select-disabled {
+      .ant-select-selection-item,
+      .ant-select-selection-search {
+        padding-inline-end: 0;
+      }
+
+      .ant-select-selection-item {
+        color: var(--color-button-icon-disabled-text);
+        &:hover {
+          color: var(--color-button-icon-disabled-text);
+        }
+      }
+
+      .ant-select-selector {
+        border-color: var(--color-button-icon-disabled-text);
+      }
+
+      .ant-select-arrow {
+        display: none;
+      }
+    }
+
     & .ant-select-selector {
       /* Override default button styling */
       border-color: $light-gray;

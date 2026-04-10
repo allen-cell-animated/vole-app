@@ -261,7 +261,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               </Radio.Group>
               <Select
                 className="select-render-setting"
-                style={{ minWidth: 160 }}
                 value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
                 onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
                 disabled={!useExactScaleLevel}
