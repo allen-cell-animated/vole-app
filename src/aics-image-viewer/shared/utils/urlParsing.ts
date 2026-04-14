@@ -834,7 +834,7 @@ export function deserializeViewerChannelSetting(
  * @param removeDefaults Whether to remove properties that match the output of `GET_DEFAULT_CHANNEL_STATE`.
  * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
  */
-export function serializeViewerChannelSetting(
+export function serializeChannelState(
   channelSetting: Partial<ChannelState>,
   removeDefaults: boolean
 ): Partial<ViewerChannelSettingParams> {
@@ -1239,9 +1239,7 @@ export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefa
   const channelParams = state.channelSettings?.reduce<Record<string, string>>(
     (acc, channelSetting, index): Record<string, string> => {
       const key = `c${index}`;
-      acc[key] = objectToKeyValueList(
-        serializeViewerChannelSetting(channelSetting, removeDefaults) as Record<string, string>
-      );
+      acc[key] = objectToKeyValueList(serializeChannelState(channelSetting, removeDefaults) as Record<string, string>);
       return acc;
     },
     {} as Record<string, string>
