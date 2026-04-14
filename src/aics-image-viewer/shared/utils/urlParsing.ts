@@ -827,6 +827,27 @@ export function deserializeViewerChannelSetting(
   return result;
 }
 
+export function deserializeChannelState(params: Partial<ViewerChannelSettingParams>): Partial<ChannelState> {
+  const result: Partial<ChannelState> = {
+    color: parseHexColorAsColorArray(params[ViewerChannelSettingKeys.Color]),
+    colorizeEnabled: parseStringBoolean(params[ViewerChannelSettingKeys.Colorize]),
+    colorizeAlpha: parseStringFloat(params[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
+    opacity: parseStringFloat(params[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
+    controlPoints: parseControlPoints(params[ViewerChannelSettingKeys.ControlPoints]),
+    useControlPoints: parseStringBoolean(params[ViewerChannelSettingKeys.ControlPointsEnabled]),
+    volumeEnabled: parseStringBoolean(params[ViewerChannelSettingKeys.VolumeEnabled]),
+    isosurfaceEnabled: parseStringBoolean(params[ViewerChannelSettingKeys.SurfaceEnabled]),
+    isovalue: parseStringFloat(params[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(params[ViewerChannelSettingKeys.KeepRange]),
+  };
+
+  if (params[ViewerChannelSettingKeys.Ramp] !== undefined && RAMP_REGEX.test(params[ViewerChannelSettingKeys.Ramp])) {
+    const [min, max] = params[ViewerChannelSettingKeys.Ramp].split(":");
+    result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+  }
+  return removeUndefinedProperties(result);
+}
+
 /**
  * Serializes a single viewer channel setting into a dictionary of URL parameters
  * (`ViewerChannelSettingParams`).
