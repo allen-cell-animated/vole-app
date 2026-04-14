@@ -1,4 +1,5 @@
 import type { Channel } from "@aics/vole-core";
+import { CopyOutlined, SnippetsOutlined } from "@ant-design/icons";
 import { Button, Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
@@ -138,7 +139,15 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       highlight={thisChannelOnly}
     >
       {visibilityControls}
-      {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
+      {controlsOpen && (
+        <div style={{ width: "100%" }}>
+          <div style={{ marginTop: 20 }}>
+            <Button icon={<CopyOutlined />} />
+            <Button icon={<SnippetsOutlined />} />
+          </div>
+          {renderControls()}
+        </div>
+      )}
     </ControlPanelRow>
   );
 };
