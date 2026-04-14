@@ -6,6 +6,13 @@ import React, { useCallback, useState } from "react";
 
 import type { IsosurfaceFormat } from "../shared/types";
 import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
+import {
+  deserializeChannelState,
+  objectToKeyValueList,
+  parseKeyValueList,
+  serializeChannelState,
+  type ViewerChannelSettingParams,
+} from "../shared/utils/urlParsing";
 import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
 
@@ -66,6 +73,23 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     },
     [index, changeChannelSetting]
   );
+
+  const onCopy = useCallback((): Promise<void> => {
+    const stateObj = serializeChannelState(channelState, false);
+    const stateString = objectToKeyValueList(stateObj);
+    return navigator.clipboard.writeText(stateString);
+  }, [channelState]);
+
+  const onPaste = useCallback(async (): Promise<void> => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const channelData = parseKeyValueList(text);
+      const channelSetting = deserializeChannelState(channelData as ViewerChannelSettingParams);
+      changeChannelSetting(index, channelSetting);
+    } catch (e) {
+      console.warn("Error when attempting to paste channel settings:", e);
+    }
+  }, [index, changeChannelSetting]);
 
   const thisChannelOnly = singleChannelMode && singleChannelIndex === index;
 
@@ -142,8 +166,8 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       {controlsOpen && (
         <div style={{ width: "100%" }}>
           <div style={{ marginTop: 20 }}>
-            <Button icon={<CopyOutlined />} />
-            <Button icon={<SnippetsOutlined />} />
+            <Button title="Copy" icon={<CopyOutlined />} onClick={onCopy} />
+            <Button title="Paste" icon={<SnippetsOutlined />} onClick={onPaste} />
           </div>
           {renderControls()}
         </div>
