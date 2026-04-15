@@ -196,7 +196,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
         <FlexRowAlignCenter $gap={12}>
           <FlexRowAlignCenter $gap={2}>
             <LoadModal onLoad={onLoad} />
-            {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} />}
+            {viewerProps && <ShareModal appProps={viewerProps} view3dRef={view3dRef} imageTitle={imageTitle} />}
           </FlexRowAlignCenter>
           <HelpDropdown />
         </FlexRowAlignCenter>

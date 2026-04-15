@@ -23,6 +23,8 @@ const palette = {
   brightGreen: "#61d900",
   veryBrightGreen: "#61ff00",
   brightBlue: "#0099ff",
+  veryBrightBlue: "#0dc4d9",
+  darkBlue: "#29484c",
   darkYellow: "#4c3c29",
 };
 
@@ -124,9 +126,15 @@ const theme = {
       selectedBg: palette.medGrey,
       textPlaceholder: palette.ltPurple,
     },
-    warning: {
-      text: palette.brightYellow,
-      bg: palette.darkYellow,
+    alert: {
+      warning: {
+        text: palette.brightYellow,
+        bg: palette.darkYellow,
+      },
+      info: {
+        text: palette.veryBrightBlue,
+        bg: palette.darkBlue,
+      },
     },
     tooltip: {
       bg: palette.black,
@@ -217,8 +225,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-statusflag-border: ${$theme.colors.statusFlag.border};
       --color-statusflag-text: ${$theme.colors.statusFlag.text};
 
-      --color-message-warning-text: ${theme.colors.warning.text};
-      --color-message-warning-bg: ${theme.colors.warning.bg};
+      --color-alert-warning-text: ${$theme.colors.alert.warning.text};
+      --color-alert-warning-bg: ${$theme.colors.alert.warning.bg};
+      --color-alert-info-text: ${$theme.colors.alert.info.text};
+      --color-alert-info-bg: ${$theme.colors.alert.info.bg};
 
       --color-layout-dividers: ${$theme.colors.layout.dividers};
 
@@ -401,10 +411,14 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           colorBgContainer: "transparent",
           colorSplit: theme.colors.layout.split,
           colorPrimaryTextHover: theme.colors.text.selectionText,
-          colorWarning: theme.colors.warning.text,
-          colorWarningBg: theme.colors.warning.bg,
-          colorWarningBorder: theme.colors.warning.text,
-          colorWarningText: theme.colors.warning.text,
+          colorWarning: theme.colors.alert.warning.text,
+          colorWarningBg: theme.colors.alert.warning.bg,
+          colorWarningBorder: theme.colors.alert.warning.text,
+          colorWarningText: theme.colors.alert.warning.text,
+          colorInfo: theme.colors.alert.info.text,
+          colorInfoBg: theme.colors.alert.info.bg,
+          colorInfoBorder: theme.colors.alert.info.text,
+          colorInfoText: theme.colors.alert.info.text,
           fontWeightStrong: 400,
           colorBgElevated: palette.darkGrey,
           controlItemBgHover: theme.colors.menu.hoverBg,

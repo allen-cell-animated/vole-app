@@ -1,7 +1,7 @@
 import type { View3d } from "@aics/vole-core";
-import { ExclamationCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Alert, Button, Input, Modal, notification } from "antd";
-import React, { useRef, useState } from "react";
+import { InfoCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
+import { Alert, Button, Input, Modal, notification, Radio } from "antd";
+import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
@@ -18,37 +18,25 @@ import { FlexRow } from "../LandingPage/utils";
 
 type ShareModalProps = {
   appProps: AppDataProps;
+  imageTitle?: string;
   // Used to retrieve the current camera position information
   view3dRef?: React.RefObject<View3d | null>;
 };
 
+const MAX_URL_CHARACTERS = 2000;
+
 const ModalContainer = styled.div`
   .ant-alert {
-    align-items: flex-start;
     margin-top: 12px;
-    transition-property: all;
-    color: var(--color-message-warning-text);
-  }
-
-  .ant-alert-motion-leave {
-    margin-top: 0;
-  }
-
-  .ant-alert button,
-  .ant-alert button .anticon {
-    color: var(--color-message-warning-text);
-  }
-
-  .ant-alert button .anticon {
-    font-size: 14px;
+    padding: 10px 14px;
+    color: var(--color-alert-info-text);
+    border: none;
   }
 
   .ant-alert > .anticon {
     font-size: 21px;
   }
 `;
-
-const MAX_SCENE_URL_COUNT = 4;
 
 const encodeSceneUrl = (scene: string | string[]): string => {
   if (Array.isArray(scene)) {
@@ -58,32 +46,21 @@ const encodeSceneUrl = (scene: string | string[]): string => {
   }
 };
 
-const Warning: React.FC<React.PropsWithChildren<{ message: React.ReactNode }>> = ({ message, children }) => {
-  const [showDetails, setShowDetails] = useState(false);
-
-  const warningContents = (
-    <>
-      <div>{message}</div>
-      {showDetails && <div style={{ margin: "8px 0" }}>{children}</div>}
-      <Button
-        type="text"
-        style={{ textDecoration: "underline", fontWeight: "bold", lineHeight: 0.8 }}
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        {showDetails ? "Show less" : "Show more"}
-      </Button>
-    </>
-  );
-
-  return <Alert showIcon closable icon={<ExclamationCircleOutlined />} type="warning" message={warningContents} />;
-};
-
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
+  const { imageUrl } = props.appProps;
+  const urls = useMemo(
+    () => (imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : []),
+    [imageUrl]
+  );
+  const hasStoredMetadata = useMemo(() => readStoredMetadata(urls).some((meta) => meta !== undefined), [urls]);
+
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
   const [showModal, setShowModal] = useState(false);
   const modalContainerRef = useRef<HTMLDivElement>(null);
+
+  const [showAllScenes, setShowAllScenes] = useState(false);
 
   const [notificationApi, notificationContextHolder] = notification.useNotification({
     getContainer: modalContainerRef.current ? () => modalContainerRef.current! : undefined,
@@ -91,34 +68,18 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     duration: 2,
   });
 
-  // location.pathname will include up to `.../viewer`
-  const baseUrl = location.protocol + "//" + location.host + location.pathname;
   const paramProps = {
     ...viewerSettings,
+    scene: showAllScenes ? viewerSettings.scene : 0,
     channelSettings,
     cameraState: props.view3dRef?.current?.getCameraState(),
   };
 
   const urlParams: string[] = [];
-  const { imageUrl } = props.appProps;
-  let hasTooManyScenes = false;
-  let hasStoredMetadata = false;
 
-  if (imageUrl) {
-    const urls = (imageUrl as MultisceneUrls).scenes ?? [imageUrl];
-    hasTooManyScenes = urls.length > MAX_SCENE_URL_COUNT;
-    hasStoredMetadata = readStoredMetadata(urls).some((meta) => meta !== undefined);
+  const serializedUrl = showAllScenes ? urls.map(encodeSceneUrl).join("+") : encodeSceneUrl(urls[viewerSettings.scene]);
 
-    if (hasTooManyScenes) {
-      paramProps.scene = 0;
-    }
-
-    const serializedUrl = hasTooManyScenes
-      ? encodeSceneUrl(urls[viewerSettings.scene])
-      : urls.map(encodeSceneUrl).join("+");
-
-    urlParams.push(`url=${serializedUrl}`);
-  }
+  urlParams.push(`url=${serializedUrl}`);
 
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
@@ -129,6 +90,9 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
       .replace(ENCODED_COMMA_REGEX, ",");
     urlParams.push(viewerParamString);
   }
+
+  // location.pathname will include up to `.../viewer`
+  const baseUrl = location.protocol + "//" + location.host + location.pathname;
 
   const shareUrl = urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
 
@@ -157,23 +121,43 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         destroyOnClose={true}
         footer={null}
       >
+        {urls.length > 1 && (
+          <Radio.Group
+            value={showAllScenes}
+            onChange={(e) => setShowAllScenes(e.target.value)}
+            options={[
+              {
+                value: false,
+                label: props.imageTitle !== undefined ? `Current scene (${props.imageTitle})` : "Current scene",
+              },
+              {
+                value: true,
+                label: "All scenes",
+              },
+            ]}
+          />
+        )}
         <FlexRow $gap={8} style={{ marginTop: "12px" }}>
           <Input value={shareUrl} readOnly={true}></Input>
           <Button type="primary" onClick={onClickCopy}>
             Copy URL
           </Button>
         </FlexRow>
-        {hasTooManyScenes && (
-          <Warning message="Only the current scene will be shared.">
-            Vol-E has more scenes open than can fit in a single sharing link, so the URL above only includes the current
-            scene.
-          </Warning>
-        )}
         {hasStoredMetadata && (
-          <Warning message="Not all image metadata will be shared.">
-            One or more open images has metadata that was shared with Vol-E by an external application (like BioFile
-            Finder). This metadata can&apos;t be included in the URL above.
-          </Warning>
+          <Alert
+            showIcon
+            icon={<InfoCircleOutlined />}
+            type="info"
+            message="Image metadata from external apps (like BFF) can't be shared."
+          />
+        )}
+        {shareUrl.length > MAX_URL_CHARACTERS && (
+          <Alert
+            showIcon
+            icon={<InfoCircleOutlined />}
+            type="info"
+            message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene." : ""}`}
+          />
         )}
       </Modal>
     </ModalContainer>
