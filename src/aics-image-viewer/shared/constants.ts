@@ -187,6 +187,8 @@ export const getDefaultViewerState = (): ViewerState => ({
   scene: 0,
   singleChannelMode: false,
   singleChannelIndex: 0,
+  useExactScaleLevel: false,
+  scaleLevelIndex: 0,
   // Do not override camera position, target, etc. by default;
   // instead, let the viewer apply default camera settings based on the view mode.
   // This prevents a bug where the camera's position and view mode are set to

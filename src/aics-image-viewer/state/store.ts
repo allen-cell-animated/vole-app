@@ -92,6 +92,8 @@ export const selectViewerSettings = (store: ViewerStore): ViewerState => ({
   cameraState: store.cameraState,
   singleChannelMode: store.singleChannelMode,
   singleChannelIndex: store.singleChannelIndex,
+  useExactScaleLevel: store.useExactScaleLevel,
+  scaleLevelIndex: store.scaleLevelIndex,
 });
 
 /**

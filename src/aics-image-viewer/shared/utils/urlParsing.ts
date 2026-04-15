@@ -99,6 +99,8 @@ export enum ViewerStateKeys {
   CameraState = "cam",
   SingleChannelMode = "scm",
   SingleChannelIndex = "sci",
+  UseExactScaleLevel = "esl",
+  ScaleLevelIndex = "scl",
 }
 
 export enum CameraTransformKeys {
@@ -280,6 +282,10 @@ export class ViewerStateParams {
   [ViewerStateKeys.Time]?: string = undefined;
   /** Scene number, for multiscene images. 0 by default. */
   [ViewerStateKeys.Scene]?: string = undefined;
+  /** Whether to use an exact scale level index. 0 by default. */
+  [ViewerStateKeys.UseExactScaleLevel]?: string = undefined;
+  /** The exact scale level index to use, if `UseExactScaleLevel` is 1. 0 by default. */
+  [ViewerStateKeys.ScaleLevelIndex]?: string = undefined;
   /**
    * Camera transform settings, as a list of `key:value` pairs separated by commas.
    * Valid keys are defined in `CameraTransformKeys`:
@@ -879,6 +885,8 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
     renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
     singleChannelMode: parseStringBoolean(params[ViewerStateKeys.SingleChannelMode]),
     singleChannelIndex: parseStringInt(params[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
+    useExactScaleLevel: parseStringBoolean(params[ViewerStateKeys.UseExactScaleLevel]),
+    scaleLevelIndex: parseStringInt(params[ViewerStateKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
     cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
   };
 
@@ -913,6 +921,10 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
 export function serializeViewerState(state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateParams {
   if (removeDefaults) {
     state = removeMatchingProperties(state, getDefaultViewerState());
+    // special case: if there's an explicit scale level but it's not being used, no reason to include it
+    if (state.scaleLevelIndex !== undefined && state.useExactScaleLevel === undefined) {
+      delete state.scaleLevelIndex;
+    }
   }
   const result: ViewerStateParams = {
     [ViewerStateKeys.Mode]: state.renderMode,
@@ -933,6 +945,8 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.Scene]: state.scene?.toString(),
     [ViewerStateKeys.SingleChannelMode]: serializeBoolean(state.singleChannelMode),
     [ViewerStateKeys.SingleChannelIndex]: state.singleChannelIndex?.toString(),
+    [ViewerStateKeys.UseExactScaleLevel]: serializeBoolean(state.useExactScaleLevel),
+    [ViewerStateKeys.ScaleLevelIndex]: state.scaleLevelIndex?.toString(),
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };

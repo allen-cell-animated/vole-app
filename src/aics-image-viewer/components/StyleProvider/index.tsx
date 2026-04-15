@@ -201,7 +201,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-button-tertiary-active-text: ${$theme.colors.button.tertiary.hoverText};
 
       --color-button-icon-disabled-text: ${$theme.colors.button.tertiary.disabledText};
-      --color-button-icon-disabled-text: ${$theme.colors.button.tertiary.disabledText};
       --color-button-icon-activated-text: ${$theme.colors.button.tertiary.activatedText};
       --color-button-icon-activated-bg: ${$theme.colors.button.tertiary.activatedBg};
       --color-button-icon-activated-outline: ${$theme.colors.button.tertiary.activatedOutline};

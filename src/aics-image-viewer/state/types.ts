@@ -31,6 +31,8 @@ export type ViewerState = {
   cameraState: Partial<CameraState> | undefined;
   singleChannelMode: boolean;
   singleChannelIndex: number;
+  useExactScaleLevel: boolean;
+  scaleLevelIndex: number;
 };
 
 export type ChannelState = {

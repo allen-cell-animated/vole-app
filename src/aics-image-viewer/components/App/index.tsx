@@ -268,8 +268,9 @@ const App: React.FC<AppProps> = (props) => {
       changeViewerSetting("time", loadSpec.time);
       onImageTitleChange?.(image.imageInfo.imageInfo.name);
       setLoadedScene(sceneIndex);
+      changeViewerSetting("scaleLevelIndex", image.imageInfo.multiscaleLevel);
     },
-    [changeViewerSetting, onImageTitleChange]
+    [onImageTitleChange, changeViewerSetting]
   );
 
   const onChannelLoaded = useCallback(
@@ -582,6 +583,8 @@ const App: React.FC<AppProps> = (props) => {
               downloadScreenshot={saveScreenshot}
               resetToSavedViewerState={resetToSavedViewerState}
               visibleControls={visibleControls}
+              multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
+              multiscaleIndex={image?.imageInfo.multiscaleLevel}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}

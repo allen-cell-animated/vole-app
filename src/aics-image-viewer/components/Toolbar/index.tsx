@@ -1,3 +1,5 @@
+// TODO this really ought to be exported at the top level...
+import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
@@ -18,6 +20,8 @@ type ToolbarProps = {
   hasCellId: boolean;
   hasParentImage: boolean;
   canPathTrace: boolean;
+  multiscaleDims?: VolumeDims[];
+  multiscaleIndex?: number;
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
@@ -64,6 +68,8 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const autorotate = useViewerState(select("autorotate"));
   const showAxes = useViewerState(select("showAxes"));
   const showBoundingBox = useViewerState(select("showBoundingBox"));
+  const useExactScaleLevel = useViewerState(select("useExactScaleLevel"));
+  const scaleLevelIndex = useViewerState(select("scaleLevelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   // Scroll buttons are only visible when toolbar can be scrolled in that direction.
@@ -240,6 +246,35 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                   </Button>
                 </Tooltip>
               )}
+            </div>
+          )}
+
+          {props.multiscaleDims !== undefined && props.multiscaleDims.length > 1 && (
+            <div className="viewer-toolbar-group">
+              <span>Resolution</span>
+              <Radio.Group
+                value={useExactScaleLevel}
+                onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
+              >
+                <Radio.Button value={false}>Auto</Radio.Button>
+                <Radio.Button value={true}>Manual</Radio.Button>
+              </Radio.Group>
+              <Select
+                className="select-render-setting"
+                style={{ minWidth: 150 }}
+                value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
+                onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
+                disabled={!useExactScaleLevel}
+              >
+                {props.multiscaleDims.map((dims, idx) => {
+                  const [_t, _c, z, y, x] = dims.shape;
+                  return (
+                    <Select.Option key={idx} value={idx}>
+                      {x} x {y} x {z}
+                    </Select.Option>
+                  );
+                })}
+              </Select>
             </div>
           )}
         </div>
