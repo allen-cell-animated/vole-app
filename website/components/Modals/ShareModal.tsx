@@ -23,6 +23,7 @@ type ShareModalProps = {
   view3dRef?: React.RefObject<View3d | null>;
 };
 
+// https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers#answer-417184
 const MAX_URL_CHARACTERS = 2000;
 
 const ModalContainer = styled.div`
