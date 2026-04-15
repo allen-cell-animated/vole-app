@@ -5,7 +5,6 @@ import { Box3, Vector3 } from "three";
 import {
   AXIS_TO_LOADER_PRIORITY,
   CACHE_MAX_SIZE,
-  getDefaultChannelColor,
   getDefaultViewerChannelSettings,
   QUEUE_MAX_LOW_PRIORITY_SIZE,
   QUEUE_MAX_SIZE,
@@ -16,8 +15,7 @@ import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
 import SceneStore from "../shared/utils/sceneStore";
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
-import {  makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
-import { initializeOneChannelSetting } from "../shared/utils/viewerState";
+import { makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
 
@@ -26,7 +24,7 @@ export type UseVolumeOptions = {
   /** Callback called just once when the volume is created. */
   onCreateImage?: (image: Volume) => void;
   /** Callback called on any scene change, including the initial image load. */
-  onChangeScene?: (image: Volume, sceneIndex: number) => void;
+  onChangeScene?: (image: Volume, sceneIndex: number, loadSpec: LoadSpec) => void;
   /** Callback for when a single channel of the volume has loaded. */
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
@@ -80,14 +78,10 @@ export type ReactiveVolume = {
  *
  * See https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
  */
-const useEffectEventRef = <T extends undefined | ((...args: any[]) => void)>(
-  callback: T
-): React.MutableRefObject<T> => {
-  const callbackRef = useRef<T>(callback);
-  useEffect(() => {
-    callbackRef.current = callback;
-  }, [callback]);
-  return callbackRef;
+const useEffectEventRef = <T extends (...args: any[]) => void>(callback: T | undefined): T => {
+  const callbackRef = useRef<T | undefined>(callback);
+  callbackRef.current = callback;
+  return useCallback(((...args): void => callbackRef.current?.(...args)) as T, [callbackRef]);
 };
 
 /**
@@ -106,7 +100,7 @@ const useVolume = (
 ): ReactiveVolume => {
   const channelSettings = useViewerState(select("channelSettings"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
-  const replaceAllChannelSettings = useViewerState(select("replaceAllChannelSettings"));
+  const initChannelSettings = useViewerState(select("initChannelSettings"));
 
   const onErrorRef = useEffectEventRef(options?.onError);
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
@@ -188,7 +182,7 @@ const useVolume = (
   const onError = useCallback(
     (e: unknown): never => {
       setLoadThrewError(true);
-      onErrorRef.current?.(e);
+      onErrorRef(e);
       throw e;
     },
     [onErrorRef]
@@ -201,7 +195,7 @@ const useVolume = (
     (aimg: Volume, channelIndex: number): void => {
       // let the hook caller know that this channel has loaded
       const isInitialLoad = channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD;
-      onChannelLoadedRef.current?.(aimg, channelIndex, isInitialLoad);
+      onChannelLoadedRef(aimg, channelIndex, isInitialLoad);
 
       // set this channel as loaded
       const newVersions = channelVersionsRef.current.slice();
@@ -216,14 +210,8 @@ const useVolume = (
     [channelVersionsRef, onChannelLoadedRef, playControls, setChannelVersions]
   );
 
-  // effect to start the initial load of the image
-  useEffect(() => {
-    const channelSettings = useViewerState.getState().channelSettings;
-    setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
-    setLoadThrewError(false);
-    inInitialLoadRef.current = true;
-
-    const setChannelStateForNewImage = (channelNames: string[]): ChannelState[] | undefined => {
+  const setChannelStateForNewImage = useCallback(
+    (channelNames: string[]): ChannelState[] => {
       const { useDefaultViewerChannelSettings } = useViewerState.getState();
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
@@ -231,15 +219,16 @@ const useVolume = (
       const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
       setChannelGroupedByType(grouping);
 
-      const newChannelSettings = channelNames.map((name, index) => {
-        const color = getDefaultChannelColor(index);
-        const channelSetting =
-          channelSettings[index] ?? initializeOneChannelSetting(name, index, color, viewerChannelSettings);
-        return { ...channelSetting, name };
-      });
-      replaceAllChannelSettings(newChannelSettings);
-      return newChannelSettings;
-    };
+      return initChannelSettings(channelNames, viewerChannelSettings);
+    },
+    [initChannelSettings, options?.viewerChannelSettings]
+  );
+
+  // effect to start the initial load of the image
+  useEffect(() => {
+    setChannelVersions(new Array(channelVersionsRef.current.length).fill(CHANNEL_INITIAL_LOAD));
+    setLoadThrewError(false);
+    inInitialLoadRef.current = true;
 
     const openImage = async (): Promise<void> => {
       const scene = useViewerState.getState().scene;
@@ -256,7 +245,7 @@ const useVolume = (
       setChannelVersions(new Array(channelNames.length).fill(CHANNEL_INITIAL_LOAD));
       setImage(aimg);
 
-      onCreateImageRef.current?.(aimg);
+      onCreateImageRef(aimg);
 
       playControls.stepAxis = (axis: AxisName | "t") => {
         const time = useViewerState.getState().time;
@@ -310,8 +299,7 @@ const useVolume = (
 
       // initiate loading only after setting up new channel settings,
       // in case the loader callback fires before the state is set
-      const onCreateScene = onChangeSceneRef.current;
-      sceneLoader.loadScene(scene, aimg, requiredLoadSpec, { onCreateScene }).catch(onError);
+      sceneLoader.loadScene(scene, aimg, requiredLoadSpec, { onCreateScene: onChangeSceneRef }).catch(onError);
     };
 
     openImage();
@@ -327,7 +315,8 @@ const useVolume = (
     setIsLoading,
     onChannelDataLoaded,
     changeViewerSetting,
-    replaceAllChannelSettings,
+    initChannelSettings,
+    setChannelStateForNewImage,
     options?.viewerChannelSettings,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
@@ -345,12 +334,39 @@ const useVolume = (
   const setScene = useCallback(
     (scene: number): void => {
       if (image && !inInitialLoadRef.current) {
-        const onCreateScene = onChangeSceneRef.current;
+        const onCreateScene = (volume: Volume, sceneIndex: number, loadSpec: LoadSpec): void => {
+          setChannelStateForNewImage(volume.imageInfo.channelNames);
+          volume.updateChannelCount();
+
+          const prevChannelVersions = channelVersionsRef.current;
+          let newChannelVersions: number[];
+
+          const addedChannelCount = volume.imageInfo.numChannels - prevChannelVersions.length;
+          if (addedChannelCount > 0) {
+            newChannelVersions = prevChannelVersions.concat(Array(addedChannelCount).fill(CHANNEL_INITIAL_LOAD));
+          } else {
+            newChannelVersions = prevChannelVersions.slice(0, volume.imageInfo.numChannels);
+          }
+
+          setChannelVersions(newChannelVersions);
+
+          onChangeSceneRef(volume, sceneIndex, loadSpec);
+        };
+
         sceneLoader.loadScene(scene, image, undefined, { onCreateScene }).catch(onError);
         setIsLoading(LoadType.SCENE);
       }
     },
-    [image, onError, sceneLoader, setIsLoading, inInitialLoadRef, onChangeSceneRef]
+    [
+      image,
+      sceneLoader,
+      onError,
+      setIsLoading,
+      setChannelStateForNewImage,
+      channelVersionsRef,
+      setChannelVersions,
+      onChangeSceneRef,
+    ]
   );
 
   return useMemo(
