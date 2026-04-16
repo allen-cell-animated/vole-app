@@ -4,6 +4,7 @@ import { Alert, Button } from "antd";
 import React from "react";
 
 import { useConstructor } from "../../shared/utils/hooks";
+import { useViewerState } from "../../state/store";
 
 import "./styles.css";
 
@@ -29,7 +30,8 @@ const UNKNOWN_ERROR_DESCRIPTION: React.ReactNode = (
   </>
 );
 
-const ERROR_TYPE_DESCRIPTIONS: { [T in VolumeLoadErrorType]: React.ReactNode } = {
+type DescribedErrorTypes = Exclude<VolumeLoadErrorType, VolumeLoadErrorType.TOO_LARGE>;
+const ERROR_TYPE_DESCRIPTIONS: { [T in DescribedErrorTypes]: React.ReactNode } = {
   [VolumeLoadErrorType.UNKNOWN]: (
     <>
       An unknown error occurred while loading volume data. Check the browser console (F12) for more details. If this
@@ -40,13 +42,6 @@ const ERROR_TYPE_DESCRIPTIONS: { [T in VolumeLoadErrorType]: React.ReactNode } =
     <>
       The viewer was unable to find any volume data at the specified location. Check that the provided URL is correct
       and try again.
-    </>
-  ),
-  [VolumeLoadErrorType.TOO_LARGE]: (
-    <>
-      No scale level is available for this volume which fits within our maximum GPU memory footprint. This maximum is
-      tuned to ensure compatibility with the majority of browsers. If you&apos;re trying to load your own OME-Zarr
-      dataset, you may be able to open this volume by including a lower scale level.
     </>
   ),
   [VolumeLoadErrorType.LOAD_DATA_FAILED]: (
@@ -86,6 +81,23 @@ const getErrorDescription = (error: unknown): React.ReactNode => {
       (typeof error === "object" && error !== null && (error as ErrorAlertDescription).description) ||
       UNKNOWN_ERROR_DESCRIPTION
     );
+  }
+  if (type === VolumeLoadErrorType.TOO_LARGE) {
+    if (useViewerState.getState().useExactScaleLevel) {
+      return (
+        <>
+          The viewer cannot load this resolution level within memory limits. Try again with a smaller resolution level.
+        </>
+      );
+    } else {
+      return (
+        <>
+          No resolution level is available for this volume which fits within our maximum memory footprint. This maximum
+          is tuned to ensure compatibility with the majority of browsers. If you&apos;re trying to load your own
+          OME-Zarr dataset, you may be able to open this volume by including a lower resolution level.
+        </>
+      );
+    }
   }
   return ERROR_TYPE_DESCRIPTIONS[type] ?? UNKNOWN_ERROR_DESCRIPTION;
 };
