@@ -1214,7 +1214,7 @@
   .load-error-alert .ant-alert-message > div:first-child{
       font-weight:600;
     }
-  .load-error-alert .ant-alert-message > div:last-child{
+  .load-error-alert .ant-alert-message > div.error-cause{
       font-style:italic;
       color:var(--color-text-body);
     }
