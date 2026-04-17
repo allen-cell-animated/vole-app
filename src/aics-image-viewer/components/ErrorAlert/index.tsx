@@ -126,7 +126,11 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
         </Button>
       </div>
       <div style={infoStyle}>{getErrorDescription(error)}</div>
-      {error.cause !== undefined && <div style={infoStyle}>Caused by: {getErrorTitle(error.cause)}</div>}
+      {error.cause !== undefined && (
+        <div className="error-cause" style={infoStyle}>
+          Caused by: {getErrorTitle(error.cause)}
+        </div>
+      )}
     </>
   );
 

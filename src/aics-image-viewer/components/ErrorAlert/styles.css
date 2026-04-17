@@ -29,7 +29,7 @@
       font-weight: 600;
     }
 
-    &:last-child {
+    &.error-cause {
       font-style: italic;
       color: var(--color-text-body);
     }
