@@ -5,6 +5,7 @@ import type {
   RawArrayLoaderOptions,
   Volume,
   VolumeLoaderContext,
+  ZarrLoaderFetchOptions,
 } from "@aics/vole-core";
 import { createDefaultMetadata, VolumeFileFormat } from "@aics/vole-core";
 import type { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
@@ -94,6 +95,13 @@ export default class SceneStore {
     const currentLoader = this.loaders[this.currentScene];
     if (currentLoader) {
       currentLoader.setPrefetchPriority(priority);
+    }
+  }
+
+  public updateFetchOptions(fetchOptions: Partial<ZarrLoaderFetchOptions>): void {
+    const currentLoader = this.loaders[this.currentScene];
+    if (currentLoader) {
+      currentLoader.updateFetchOptions(fetchOptions);
     }
   }
 }
