@@ -7,11 +7,13 @@ const QUEUE_KEY = "GLOBAL_ENTRY_QUEUE";
 const enum StorageEntryType {
   Scenes = "scenes",
   Meta = "meta",
+  ScaleLevelIndex = "scale",
 }
 
 const MAX_ENTRIES: { [K in StorageEntryType]: number } = {
-  scenes: 25,
-  meta: 1000,
+  [StorageEntryType.Scenes]: 25,
+  [StorageEntryType.Meta]: 1000,
+  [StorageEntryType.ScaleLevelIndex]: 1000,
 };
 
 const sanitizeStorageKey = (key: string): string => (key.includes(",") ? encodeURIComponent(key) : key);
@@ -134,6 +136,31 @@ function writeStorage(entries: Record<string, string>, entryType?: StorageEntryT
   return allEntriesFit && queueFit && (firstKey === undefined || window.localStorage.getItem(firstKey) !== null);
 }
 
+function readOneStorageEntry(
+  key: string,
+  entryType: StorageEntryType,
+  skipCacheUpdate: boolean = false
+): string | undefined {
+  const globalKey = `${entryType}@${sanitizeStorageKey(key)}`;
+  const result = window.localStorage.getItem(globalKey);
+
+  if (result === null) {
+    return undefined;
+  }
+
+  if (!skipCacheUpdate) {
+    const queue = getStorageQueue();
+    const entryIndex = queue.indexOf(globalKey);
+    if (entryIndex !== -1) {
+      queue.splice(entryIndex, 1);
+    }
+    queue.push(globalKey);
+    setStorageQueue(queue);
+  }
+
+  return result;
+}
+
 /**
  * Writes a bundle of metadata records keyed by image URL to local storage.
  *
@@ -151,6 +178,15 @@ export function writeMetadata(meta: Record<string, MetadataRecord>): boolean {
  */
 export function writeScenes(key: string, url: string): boolean {
   return writeStorage({ [sanitizeStorageKey(key)]: url }, StorageEntryType.Scenes);
+}
+
+/**
+ * Writes a preferred scale level index to local storage at the given `key`.
+ *
+ * Returns `false` if the entry did not fit in local storage, or `true` if it did.
+ */
+export function writeScaleLevelIndex(key: string, index: number): boolean {
+  return writeStorage({ [sanitizeStorageKey(key)]: index.toString() }, StorageEntryType.ScaleLevelIndex);
 }
 
 export function readStoredMetadata(
@@ -186,21 +222,20 @@ export function readStoredMetadata(
 }
 
 export function readStoredScenes(key: string, skipCacheUpdate: boolean = false): string | undefined {
-  const globalKey = `${StorageEntryType.Scenes}@${sanitizeStorageKey(key)}`;
-  const result = window.localStorage.getItem(globalKey);
+  return readOneStorageEntry(key, StorageEntryType.Scenes, skipCacheUpdate);
+}
 
-  if (result === null) {
+export function readStoredScaleLevelIndex(key: string, skipCacheUpdate: boolean = false): number | undefined {
+  const entry = readOneStorageEntry(key, StorageEntryType.ScaleLevelIndex, skipCacheUpdate);
+
+  if (entry === undefined) {
     return undefined;
   }
 
-  if (!skipCacheUpdate) {
-    const queue = getStorageQueue();
-    const entryIndex = queue.indexOf(globalKey);
-    if (entryIndex !== -1) {
-      queue.splice(entryIndex, 1);
-    }
-    queue.push(globalKey);
-    setStorageQueue(queue);
+  const result = parseInt(entry, 10);
+
+  if (isNaN(result)) {
+    return undefined;
   }
 
   return result;
