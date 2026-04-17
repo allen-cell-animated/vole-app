@@ -115,6 +115,8 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
   const [errorsSeenCount, setErrorsSeenCount] = React.useState(0);
   const error = Array.isArray(errors) ? errors[0] : errors;
 
+  const infoStyle = { display: showDetails ? undefined : "none" } as const;
+
   const errorMessage = (
     <>
       <div>
@@ -123,7 +125,8 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
           {showDetails ? "Show less info" : "Show more info"}
         </Button>
       </div>
-      <div style={{ display: showDetails ? undefined : "none" }}>{getErrorDescription(error)}</div>
+      <div style={infoStyle}>{getErrorDescription(error)}</div>
+      {error.cause !== undefined && <div style={infoStyle}>Caused by: {getErrorTitle(error.cause)}</div>}
     </>
   );
 
