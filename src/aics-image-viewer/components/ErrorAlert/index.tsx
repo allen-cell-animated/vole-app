@@ -119,7 +119,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
 
   const errorMessage = (
     <>
-      <div>
+      <div className="error-title">
         {getErrorTitle(error) + (firstErrorCount > 1 ? ` (${firstErrorCount})` : "")}{" "}
         <Button type="text" onClick={() => setShowDetails(!showDetails)}>
           {showDetails ? "Show less info" : "Show more info"}
