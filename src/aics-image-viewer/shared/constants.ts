@@ -34,7 +34,7 @@ export const TFEDITOR_MAX_BIN = 255;
 
 export const CACHE_MAX_SIZE = 1_000_000_000;
 export const QUEUE_MAX_SIZE = 10;
-export const QUEUE_MAX_LOW_PRIORITY_SIZE = 4;
+export const QUEUE_MAX_LOW_PRIORITY_SIZE = 6;
 
 /** Maps an axis the user can "play" through to the direction to prefetch while playing that axis */
 export const AXIS_TO_LOADER_PRIORITY: Record<AxisName | "t", PrefetchDirection> = {
