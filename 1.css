@@ -1198,6 +1198,7 @@
   z-index:5000;
   border-color:#dc4446;
   padding:12px 30px;
+  color:var(--color-text-section);
 }
   .load-error-alert .ant-alert-icon,
   .load-error-alert .ant-alert-close-icon,
@@ -1210,10 +1211,13 @@
   .load-error-alert .ant-btn-text:hover{
       color:#25affe !important;
     }
-  .load-error-alert .ant-alert-message div:first-child{
-    color:var(--color-text-section);
-    font-weight:600;
-  }
+  .load-error-alert .ant-alert-message > div.error-title{
+      font-weight:600;
+    }
+  .load-error-alert .ant-alert-message > div.error-cause{
+      font-style:italic;
+      color:var(--color-text-body);
+    }
 
 .viewer-toolbar-container{
   position:absolute;
