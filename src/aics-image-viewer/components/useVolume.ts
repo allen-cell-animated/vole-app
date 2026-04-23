@@ -122,6 +122,7 @@ const useVolume = (
       setPlayingAxis(axis);
       // prioritize prefetching along the playing axis
       sceneLoader.setPrefetchPriority(axis ? [AXIS_TO_LOADER_PRIORITY[axis]] : []);
+      sceneLoader.updateFetchOptions({ onlyPriorityDirections: isPlaying });
       // sync multichannel loading so we don't show loaded channels one at a time
       sceneLoader.syncMultichannelLoading(isPlaying);
       if (image) {
