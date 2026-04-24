@@ -327,14 +327,13 @@ const App: React.FC<AppProps> = (props) => {
       // save the channel's new range for remapping next time
       channelRangesRef.current[channelIndex] = [thisChannel.rawMin, thisChannel.rawMax];
 
-      view3d.updateLuts(image);
+      // Note: updateLuts and updateActiveChannels are not called here because the
+      // channelVersion bump (via onChannelDataLoaded) will trigger ChannelUpdater
+      // effects that apply LUT/color settings and call updateLuts with the final state.
       view3d.onVolumeData(image, [channelIndex]);
 
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
-      }
-      if (image.isLoaded()) {
-        view3d.updateActiveChannels(image);
       }
     },
     [view3d, changeChannelSetting, maskChannelName, props.viewerChannelSettings]

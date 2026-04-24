@@ -9,6 +9,7 @@ export default class PlayControls {
   playWaitingForLoad = false;
   playHolding = false;
   playTimeoutId = 0;
+  private lastStepTime = 0;
 
   public getVolumeIsLoaded?: () => boolean;
   public stepAxis?: (axis: PlayAxisName) => void;
@@ -23,9 +24,16 @@ export default class PlayControls {
     if (!this.playingAxis || this.playHolding || !this.stepAxis) {
       return;
     }
-    // If the volume is not loaded, wait for it to load before continuing
     if (!this.getVolumeIsLoaded?.()) {
       this.playWaitingForLoad = true;
+      return;
+    }
+
+    // Enforce minimum interval between frame *presentations* (not requests).
+    // lastStepTime is set in onImageLoaded when a frame's data arrives.
+    const delay = PLAY_STEP_INTERVAL_MS - (performance.now() - this.lastStepTime);
+    if (delay > 0) {
+      this.playTimeoutId = window.setTimeout(this.playStep.bind(this), delay);
       return;
     }
 
@@ -35,6 +43,9 @@ export default class PlayControls {
 
   /** Call whenever new data is loaded to resume playback if it was paused for data loading. */
   onImageLoaded(): void {
+    // Record when the frame was presented, so scheduleNextStep enforces
+    // PLAY_STEP_INTERVAL_MS between presentations (not between requests).
+    this.lastStepTime = performance.now();
     if (this.playWaitingForLoad) {
       this.playWaitingForLoad = false;
       this.playStep();
