@@ -833,6 +833,27 @@ export function deserializeViewerChannelSetting(
   return result;
 }
 
+export function deserializeChannelState(params: Partial<ViewerChannelSettingParams>): Partial<ChannelState> {
+  const result: Partial<ChannelState> = {
+    color: parseHexColorAsColorArray(params[ViewerChannelSettingKeys.Color]),
+    colorizeEnabled: parseStringBoolean(params[ViewerChannelSettingKeys.Colorize]),
+    colorizeAlpha: parseStringFloat(params[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
+    opacity: parseStringFloat(params[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
+    controlPoints: parseControlPoints(params[ViewerChannelSettingKeys.ControlPoints]),
+    useControlPoints: parseStringBoolean(params[ViewerChannelSettingKeys.ControlPointsEnabled]),
+    volumeEnabled: parseStringBoolean(params[ViewerChannelSettingKeys.VolumeEnabled]),
+    isosurfaceEnabled: parseStringBoolean(params[ViewerChannelSettingKeys.SurfaceEnabled]),
+    isovalue: parseStringFloat(params[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(params[ViewerChannelSettingKeys.KeepRange]),
+  };
+
+  if (params[ViewerChannelSettingKeys.Ramp] !== undefined && RAMP_REGEX.test(params[ViewerChannelSettingKeys.Ramp])) {
+    const [min, max] = params[ViewerChannelSettingKeys.Ramp].split(":");
+    result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+  }
+  return removeUndefinedProperties(result);
+}
+
 /**
  * Serializes a single viewer channel setting into a dictionary of URL parameters
  * (`ViewerChannelSettingParams`).
@@ -840,7 +861,7 @@ export function deserializeViewerChannelSetting(
  * @param removeDefaults Whether to remove properties that match the output of `GET_DEFAULT_CHANNEL_STATE`.
  * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
  */
-export function serializeViewerChannelSetting(
+export function serializeChannelState(
   channelSetting: Partial<ChannelState>,
   removeDefaults: boolean
 ): Partial<ViewerChannelSettingParams> {
@@ -1253,9 +1274,7 @@ export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefa
   const channelParams = state.channelSettings?.reduce<Record<string, string>>(
     (acc, channelSetting, index): Record<string, string> => {
       const key = `c${index}`;
-      acc[key] = objectToKeyValueList(
-        serializeViewerChannelSetting(channelSetting, removeDefaults) as Record<string, string>
-      );
+      acc[key] = objectToKeyValueList(serializeChannelState(channelSetting, removeDefaults) as Record<string, string>);
       return acc;
     },
     {} as Record<string, string>
