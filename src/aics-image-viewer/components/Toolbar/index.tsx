@@ -262,6 +262,8 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               </Radio.Group>
               <Select
                 className="select-render-setting"
+                popupClassName="viewer-toolbar-dropdown"
+                getPopupContainer={getPopupContainer}
                 style={{ minWidth: 150 }}
                 value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
                 onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
