@@ -81,7 +81,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       return;
     }
     setScrollBtnLeft(barEl.scrollLeft > 0);
-    setScrollBtnRight(barEl.scrollLeft < barEl.scrollWidth - barEl.clientWidth);
+    setScrollBtnRight(Math.ceil(barEl.scrollLeft) < barEl.scrollWidth - barEl.clientWidth);
   }, []);
 
   // This is effectively a `useCallback` - it memoizes a function - but since we're feeding the whole function into
@@ -111,7 +111,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           return leftRect.right > centerRect.left || centerRect.right > rightRect.left;
         }
       });
-      checkScrollBtnVisible();
+      window.setTimeout(checkScrollBtnVisible, 0);
     }, RESIZE_DEBOUNCE_DELAY);
   }, [checkScrollBtnVisible]);
 
@@ -161,6 +161,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       >
         <ViewerIcon type="closePanel" style={{ fontSize: "12px", transform: "rotate(180deg)" }} />
       </div>
+
       <div className="viewer-toolbar" ref={barRef} onWheel={wheelHandler} onScroll={checkScrollBtnVisible}>
         <div className="viewer-toolbar-left" ref={leftRef}>
           <Tooltip placement="bottom" title="Reset to initial settings" trigger={["focus", "hover"]}>
@@ -170,6 +171,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             </Button>
           </Tooltip>
         </div>
+
         <div className="viewer-toolbar-center" ref={centerRef}>
           {renderGroup1 && (
             <div className="viewer-toolbar-group">
