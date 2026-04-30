@@ -58,6 +58,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const leftRef = React.useRef<HTMLDivElement>(null);
   const rightRef = React.useRef<HTMLDivElement>(null);
   const centerRef = React.useRef<HTMLDivElement>(null);
+  const resizeObserver = React.useRef<ResizeObserver>();
 
   const [scrollMode, setScrollMode] = React.useState(false);
   const [showScrollBtnLeft, setScrollBtnLeft] = React.useState(false);
@@ -118,6 +119,19 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   React.useEffect(() => {
     // Make sure `checkSize` is run once on mount
     checkSize();
+    if (resizeObserver.current !== undefined) {
+      resizeObserver.current.disconnect();
+    }
+    resizeObserver.current = new ResizeObserver(checkSize);
+    if (leftRef.current !== null) {
+      resizeObserver.current.observe(leftRef.current);
+    }
+    if (centerRef.current !== null) {
+      resizeObserver.current.observe(centerRef.current);
+    }
+    if (rightRef.current !== null) {
+      resizeObserver.current.observe(rightRef.current);
+    }
     window.addEventListener("resize", checkSize);
     return () => window.removeEventListener("resize", checkSize);
   }, [checkSize]);
