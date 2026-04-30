@@ -161,7 +161,7 @@
   }
 
   /* Dropdown */
-  && .ant-select.select-render-setting {
+  & .ant-select.select-render-setting {
     min-width: 120px;
 
     & .ant-select-selection-item,
@@ -201,8 +201,8 @@
   }
 
   /* Control response to hover + active menu */
-  & .ant-select.select-render-setting:hover:not(:disabled),
-  & .ant-select.select-render-setting:focus-visible:not(:disabled),
+  & .ant-select.select-render-setting:hover:not(.ant-select-disabled),
+  & .ant-select.select-render-setting:focus-visible:not(.ant-select-disabled),
   &&& .ant-select-open {
     & .ant-select-selector,
     & .ant-select-arrow,
