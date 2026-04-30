@@ -252,7 +252,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           {multiscaleDims !== undefined && multiscaleDims.length > 1 && visibleControls.scaleLevelControls && (
             <div className="viewer-toolbar-group">
-              <span>Resolution</span>
+              <span style={{ color: "var(--color-button-tertiary-text)" }}>Resolution</span>
               <Radio.Group
                 value={useExactScaleLevel}
                 onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
