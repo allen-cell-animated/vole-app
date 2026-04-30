@@ -261,7 +261,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
               <Select
-                className="select-render-setting"
+                className="select-render-setting select-resolution"
                 popupClassName="viewer-toolbar-dropdown"
                 getPopupContainer={getPopupContainer}
                 style={{ minWidth: 150 }}

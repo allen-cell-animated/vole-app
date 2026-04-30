@@ -161,11 +161,11 @@
   }
 
   /* Dropdown */
-  & .ant-select.select-render-setting {
+  .ant-select.select-render-setting {
     min-width: 120px;
 
-    & .ant-select-selection-item,
-    & .ant-select-arrow {
+    .ant-select-selection-item,
+    .ant-select-arrow {
       color: var(--color-button-tertiary-text);
       transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
     }
@@ -192,7 +192,7 @@
       }
     }
 
-    & .ant-select-selector {
+    .ant-select-selector {
       /* Override default button styling */
       border-color: $light-gray;
       box-shadow: none;
@@ -201,14 +201,20 @@
   }
 
   /* Control response to hover + active menu */
-  & .ant-select.select-render-setting:hover:not(.ant-select-disabled),
-  & .ant-select.select-render-setting:focus-visible:not(.ant-select-disabled),
-  &&& .ant-select-open {
+  .ant-select.select-render-setting:hover:not(.ant-select-disabled),
+  .ant-select.select-render-setting:focus-visible:not(.ant-select-disabled),
+  .ant-select.ant-select-open {
     & .ant-select-selector,
     & .ant-select-arrow,
     & .ant-select-selection-item {
       color: var(--color-button-tertiary-hover-text);
       outline-color: var(--color-button-tertiary-hover-outline);
+    }
+  }
+
+  .ant-select.select-resolution {
+    & > .ant-select-selector {
+      text-align: left;
     }
   }
 }
