@@ -34,6 +34,7 @@ type ToolbarProps = {
     resetCameraButton: boolean;
     showAxesButton: boolean;
     showBoundingBoxButton: boolean;
+    scaleLevelControls: boolean;
   };
 };
 
@@ -138,7 +139,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const classForToggleBtn = (active: boolean): string =>
     "ant-btn-icon-only btn-borderless" + (active ? " btn-active" : "");
 
-  const { visibleControls } = props;
+  const { visibleControls, multiscaleDims } = props;
   const twoDMode = viewMode !== ViewMode.threeD;
 
   const renderGroup1 =
@@ -249,7 +250,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             </div>
           )}
 
-          {props.multiscaleDims !== undefined && props.multiscaleDims.length > 1 && (
+          {multiscaleDims !== undefined && multiscaleDims.length > 1 && visibleControls.scaleLevelControls && (
             <div className="viewer-toolbar-group">
               <span>Resolution</span>
               <Radio.Group
@@ -266,7 +267,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
                 disabled={!useExactScaleLevel}
               >
-                {props.multiscaleDims.map((dims, idx) => {
+                {multiscaleDims.map((dims, idx) => {
                   const [_t, _c, z, y, x] = dims.shape;
                   return (
                     <Select.Option key={idx} value={idx}>
