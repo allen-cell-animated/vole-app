@@ -130,7 +130,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     window.setTimeout(() => setFlash(false), 100);
   }, [errors]);
 
-  const errorMessage = (
+  const msg = (
     <>
       <div className="error-title">
         {getErrorTitle(error.error) + (error.count > 1 ? ` (${error.count})` : "")}{" "}
@@ -147,17 +147,17 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     </>
   );
 
-  let errorPageButton: React.ReactNode = undefined;
+  let pageBtn: React.ReactNode = undefined;
 
   if (errors.length > 1) {
     if (errorIndex === errors.length - 1) {
-      errorPageButton = (
+      pageBtn = (
         <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
           <LeftOutlined /> {errors.length - 1} previous error{errors.length > 2 ? "s" : ""}
         </Button>
       );
     } else {
-      errorPageButton = (
+      pageBtn = (
         <>
           {errorIndex > 0 && (
             <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
@@ -173,16 +173,9 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     }
   }
 
+  const clsName = flash ? "load-error-alert error-flash" : "load-error-alert";
   return (
-    <Alert
-      showIcon
-      type="error"
-      className={flash ? "load-error-alert error-flash" : "load-error-alert"}
-      message={errorMessage}
-      closable
-      afterClose={afterClose}
-      action={errorPageButton}
-    />
+    <Alert showIcon closable type="error" className={clsName} message={msg} afterClose={afterClose} action={pageBtn} />
   );
 };
 
