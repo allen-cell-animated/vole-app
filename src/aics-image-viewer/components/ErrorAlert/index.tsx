@@ -81,7 +81,7 @@ const getErrorTitle = (error: unknown): string =>
   (typeof error === "object" && error !== null && (error as ErrorAlertDescription).title) ||
   "Unknown error";
 
-const getErrorDescription = (error: unknown): React.ReactNode => {
+const getErrorDescription = (error: unknown, multiscaleDims?: VolumeDims[]): React.ReactNode => {
   const type: VolumeLoadErrorType | undefined = (error as VolumeLoadError).type;
   if (!type) {
     return (
@@ -90,8 +90,17 @@ const getErrorDescription = (error: unknown): React.ReactNode => {
     );
   }
   if (type === VolumeLoadErrorType.TOO_LARGE && useViewerState.getState().useExactScaleLevel) {
+    let dimsDetail = "";
+    if (Array.isArray(multiscaleDims)) {
+      const [_t, _c, z, y, x] = multiscaleDims[useViewerState.getState().scaleLevelIndex].shape;
+      dimsDetail = ` (${x} x ${y} x ${z})`;
+    }
+
     return (
-      <>The viewer cannot load this resolution level within memory limits. Try again with a smaller resolution level.</>
+      <>
+        The viewer cannot load this resolution level{dimsDetail} within memory limits. Try again with a smaller
+        resolution level.
+      </>
     );
   }
   return ERROR_TYPE_DESCRIPTIONS[type] ?? UNKNOWN_ERROR_DESCRIPTION;
