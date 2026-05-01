@@ -147,17 +147,17 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     </>
   );
 
-  let skipErrorButton: React.ReactNode = undefined;
+  let errorPageButton: React.ReactNode = undefined;
 
   if (errors.length > 1) {
     if (errorIndex === errors.length - 1) {
-      skipErrorButton = (
+      errorPageButton = (
         <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
           <LeftOutlined /> {errors.length - 1} previous error{errors.length > 2 ? "s" : ""}
         </Button>
       );
     } else {
-      skipErrorButton = (
+      errorPageButton = (
         <>
           {errorIndex > 0 && (
             <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
@@ -181,7 +181,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
       message={errorMessage}
       closable
       afterClose={afterClose}
-      action={skipErrorButton}
+      action={errorPageButton}
     />
   );
 };
