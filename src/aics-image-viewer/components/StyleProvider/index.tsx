@@ -18,7 +18,7 @@ const palette = {
   darkPurple: "#7e46d4",
   veryDarkPurple: "#5f369f",
   veryLtPurple: "#e7e4f2",
-  brightRed: "#ff4d4d",
+  brightRed: "#dc4446",
   brightYellow: "#e39b0d",
   brightGreen: "#61d900",
   veryBrightGreen: "#61ff00",

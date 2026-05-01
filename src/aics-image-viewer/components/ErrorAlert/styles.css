@@ -5,12 +5,12 @@
   width: 40vw;
   align-items: start;
   z-index: 5000;
-  border-color: #dc4446;
+  border-color: var(--color-text-error);
   padding: 12px 30px;
   color: var(--color-text-section);
 
   &.error-flash {
-    background-color: #dc4446;
+    background-color: var(--color-text-error);
   }
 
   /* Keeps icons vertically aligned with the *first row* of text */
@@ -20,6 +20,21 @@
     min-height: 24px;
   }
 
+  .ant-alert-close-icon {
+    margin-inline-start: 14px;
+  }
+
+  .ant-alert-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    > button {
+      gap: 4px;
+      border: none !important;
+    }
+  }
+
   .ant-btn-text,
   .ant-alert-action {
     color: var(--color-text-link);
@@ -27,6 +42,10 @@
 
   .ant-btn-text:hover {
     color: #25affe !important;
+  }
+
+  .anticon {
+    font-size: 21px;
   }
 
   .ant-alert-message > div {

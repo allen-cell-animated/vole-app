@@ -1,5 +1,5 @@
 import { type Volume, type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { LeftOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button } from "antd";
 import React from "react";
 
@@ -175,7 +175,16 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
 
   const clsName = flash ? "load-error-alert error-flash" : "load-error-alert";
   return (
-    <Alert showIcon closable type="error" className={clsName} message={msg} afterClose={afterClose} action={pageBtn} />
+    <Alert
+      showIcon
+      closable
+      type="error"
+      icon={<WarningOutlined />}
+      className={clsName}
+      message={msg}
+      afterClose={afterClose}
+      action={pageBtn}
+    />
   );
 };
 
@@ -201,8 +210,8 @@ export const useErrorAlert = (): [React.ReactNode, (error: unknown, image?: Volu
 
   const afterClose = React.useCallback(() => setErrors([]), []);
 
-  const alertComponent = errors.length > 0 && <ErrorAlert errors={errors} afterClose={afterClose} />;
-  return [alertComponent, addError];
+  const alertNode = errors.length > 0 && <ErrorAlert errors={errors} afterClose={afterClose} />;
+  return [alertNode, addError];
 };
 
 export default ErrorAlert;
