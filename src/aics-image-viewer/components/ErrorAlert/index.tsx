@@ -147,25 +147,31 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     </>
   );
 
-  const skipErrorButton = errors.length > 1 && (
-    <>
-      {errorIndex > 0 && (
+  let skipErrorButton: React.ReactNode = undefined;
+
+  if (errors.length > 1) {
+    if (errorIndex === errors.length - 1) {
+      skipErrorButton = (
         <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
-          <LeftOutlined />
+          <LeftOutlined /> {errors.length - 1} previous error{errors.length > 2 ? "s" : ""}
         </Button>
-      )}
-
-      {errorIndex === errors.length - 1
-        ? `${errors.length} previous error${errors.length > 1 ? "s" : ""}`
-        : `Error ${errorIndex + 1} of ${errors.length}`}
-
-      {errorIndex < errors.length - 1 && (
-        <Button type="text" onClick={() => setErrorIndex((i) => i + 1)}>
-          <RightOutlined />
-        </Button>
-      )}
-    </>
-  );
+      );
+    } else {
+      skipErrorButton = (
+        <>
+          {errorIndex > 0 && (
+            <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
+              <LeftOutlined />
+            </Button>
+          )}
+          Error {errorIndex + 1} of {errors.length}
+          <Button type="text" onClick={() => setErrorIndex((i) => i + 1)}>
+            <RightOutlined />
+          </Button>
+        </>
+      );
+    }
+  }
 
   return (
     <Alert
