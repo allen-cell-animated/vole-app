@@ -16,12 +16,13 @@
     min-height: 24px;
   }
 
-  .ant-btn-text {
+  .ant-btn-text,
+  .ant-alert-action {
     color: var(--color-text-link);
+  }
 
-    &:hover {
-      color: #25affe !important;
-    }
+  .ant-btn-text:hover {
+    color: #25affe !important;
   }
 
   .ant-alert-message > div {
