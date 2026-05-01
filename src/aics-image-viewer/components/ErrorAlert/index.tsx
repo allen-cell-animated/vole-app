@@ -81,7 +81,13 @@ const getErrorTitle = (error: unknown): string =>
   (typeof error === "object" && error !== null && (error as ErrorAlertDescription).title) ||
   "Unknown error";
 
-const getErrorDescription = (error: unknown, multiscaleDims?: VolumeDims[]): React.ReactNode => {
+type ErrorInfo = {
+  error: unknown;
+  count: number;
+  dims?: [number, number, number, number, number];
+};
+
+const getErrorDescription = ({ error, dims }: ErrorInfo): React.ReactNode => {
   const type: VolumeLoadErrorType | undefined = (error as VolumeLoadError).type;
   if (!type) {
     return (
@@ -91,8 +97,8 @@ const getErrorDescription = (error: unknown, multiscaleDims?: VolumeDims[]): Rea
   }
   if (type === VolumeLoadErrorType.TOO_LARGE && useViewerState.getState().useExactScaleLevel) {
     let dimsDetail = "";
-    if (Array.isArray(multiscaleDims)) {
-      const [_t, _c, z, y, x] = multiscaleDims[useViewerState.getState().scaleLevelIndex].shape;
+    if (Array.isArray(dims)) {
+      const [_t, _c, z, y, x] = dims;
       dimsDetail = ` (${x} x ${y} x ${z})`;
     }
 
@@ -107,39 +113,32 @@ const getErrorDescription = (error: unknown, multiscaleDims?: VolumeDims[]): Rea
 };
 
 export type ErrorAlertProps = {
-  errors: unknown;
+  errors: ErrorInfo[];
   /** The number of times we've seen an error of the type that is currently being displayed before */
   firstErrorCount?: number;
-  multiscaleDims?: VolumeDims[];
   afterClose?: () => void;
   onSkipError?: () => void;
 };
 
-const ErrorAlert: React.FC<ErrorAlertProps> = ({
-  errors,
-  firstErrorCount = 0,
-  afterClose,
-  onSkipError,
-  multiscaleDims,
-}) => {
+const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, afterClose, onSkipError }) => {
   const [showDetails, setShowDetails] = React.useState(false);
   const [errorsSeenCount, setErrorsSeenCount] = React.useState(0);
-  const error = Array.isArray(errors) ? errors[0] : errors;
+  const error = errors[0];
 
   const infoStyle = { display: showDetails ? undefined : "none" } as const;
 
   const errorMessage = (
     <>
       <div className="error-title">
-        {getErrorTitle(error) + (firstErrorCount > 1 ? ` (${firstErrorCount})` : "")}{" "}
+        {getErrorTitle(error.error) + (firstErrorCount > 1 ? ` (${firstErrorCount})` : "")}{" "}
         <Button type="text" onClick={() => setShowDetails(!showDetails)}>
           {showDetails ? "Show less info" : "Show more info"}
         </Button>
       </div>
       <div style={infoStyle}>{getErrorDescription(error)}</div>
-      {error.cause !== undefined && (
+      {(error.error as any).cause !== undefined && (
         <div className="error-cause" style={infoStyle}>
-          Caused by {getErrorTitle(error.cause)}
+          Caused by {getErrorTitle((error.error as any).cause)}
         </div>
       )}
     </>
@@ -173,44 +172,37 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
   );
 };
 
-export const useErrorAlert = (image?: Volume): [React.ReactNode, (error: unknown) => void] => {
-  const [errorList, setErrorList] = React.useState<unknown[]>([]);
+export const useErrorAlert = (): [React.ReactNode, (error: unknown, image?: Volume) => void] => {
+  const [errors, setErrors] = React.useState<ErrorInfo[]>([]);
   // Keep track of which errors have been seen and how many times
   const seenErrors = useConstructor(() => new Map<string, number>());
-  const [errorCounts, setErrorCounts] = React.useState<number[]>([]);
 
   const addError = React.useCallback(
-    (error: unknown) => {
+    (error: unknown, image?: Volume) => {
       const errorTitle = getErrorTitle(error);
       console.error(error instanceof Error ? error : errorTitle);
-      const errorSeenCount = (seenErrors.get(errorTitle) ?? 0) + 1;
+      const count = (seenErrors.get(errorTitle) ?? 0) + 1;
 
-      setErrorList((prev) => [...prev, error]);
-      setErrorCounts((prev) => [...prev, errorSeenCount]);
-      seenErrors.set(errorTitle, errorSeenCount);
+      const imageInfo = image?.imageInfo.imageInfo;
+      const dims = imageInfo && imageInfo.multiscaleLevelDims[imageInfo.multiscaleLevel].shape;
+
+      setErrors((prev) => [...prev, { error, count, dims }]);
+      seenErrors.set(errorTitle, count);
     },
     [seenErrors]
   );
 
   const onSkipError = React.useCallback(() => {
-    setErrorList((prev) => prev.slice(1));
-    setErrorCounts((prev) => prev.slice(1));
+    setErrors((prev) => prev.slice(1));
   }, []);
 
   const afterClose = React.useCallback(() => {
-    setErrorList([]);
-    setErrorCounts([]);
+    setErrors([]);
   }, []);
 
-  const errCount = errorCounts[0];
-  const alertComponent = errorList.length > 0 && (
-    <ErrorAlert
-      errors={errorList}
-      firstErrorCount={errCount}
-      multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
-      onSkipError={onSkipError}
-      afterClose={afterClose}
-    />
+  const errCount = errors[0]?.count;
+  const alertComponent = errors.length > 0 && (
+    <ErrorAlert errors={errors} firstErrorCount={errCount} onSkipError={onSkipError} afterClose={afterClose} />
   );
   return [alertComponent, addError];
 };
