@@ -1,6 +1,6 @@
 import { type Volume, type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
 import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
-import { RightOutlined } from "@ant-design/icons";
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Alert, Button } from "antd";
 import React from "react";
 
@@ -114,23 +114,20 @@ const getErrorDescription = ({ error, dims }: ErrorInfo): React.ReactNode => {
 
 export type ErrorAlertProps = {
   errors: ErrorInfo[];
-  /** The number of times we've seen an error of the type that is currently being displayed before */
-  firstErrorCount?: number;
   afterClose?: () => void;
-  onSkipError?: () => void;
 };
 
-const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, afterClose, onSkipError }) => {
+const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
   const [showDetails, setShowDetails] = React.useState(false);
-  const [errorsSeenCount, setErrorsSeenCount] = React.useState(0);
-  const error = errors[0];
+  const [errorIndex, setErrorIndex] = React.useState(0);
+  const error = errors[errorIndex];
 
   const infoStyle = { display: showDetails ? undefined : "none" } as const;
 
   const errorMessage = (
     <>
       <div className="error-title">
-        {getErrorTitle(error.error) + (firstErrorCount > 1 ? ` (${firstErrorCount})` : "")}{" "}
+        {getErrorTitle(error.error) + (error.count > 1 ? ` (${error.count})` : "")}{" "}
         <Button type="text" onClick={() => setShowDetails(!showDetails)}>
           {showDetails ? "Show less info" : "Show more info"}
         </Button>
@@ -144,16 +141,24 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
     </>
   );
 
-  const skipErrorButton = Array.isArray(errors) && errors.length > 1 && (
-    <Button
-      type="text"
-      onClick={() => {
-        setErrorsSeenCount((count) => count + 1);
-        onSkipError?.();
-      }}
-    >
-      Error {errorsSeenCount + 1} of {errors.length + errorsSeenCount} <RightOutlined />
-    </Button>
+  const skipErrorButton = errors.length > 1 && (
+    <>
+      {errorIndex > 0 && (
+        <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
+          <LeftOutlined />
+        </Button>
+      )}
+
+      {errorIndex === errors.length - 1
+        ? `${errors.length} previous error${errors.length > 1 ? "s" : ""}`
+        : `Error ${errorIndex + 1} of ${errors.length}`}
+
+      {errorIndex < errors.length - 1 && (
+        <Button type="text" onClick={() => setErrorIndex((i) => i + 1)}>
+          <RightOutlined />
+        </Button>
+      )}
+    </>
   );
 
   return (
@@ -163,10 +168,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
       className="load-error-alert"
       message={errorMessage}
       closable
-      afterClose={() => {
-        setErrorsSeenCount(0);
-        afterClose?.();
-      }}
+      afterClose={afterClose}
       action={skipErrorButton}
     />
   );
@@ -192,18 +194,9 @@ export const useErrorAlert = (): [React.ReactNode, (error: unknown, image?: Volu
     [seenErrors]
   );
 
-  const onSkipError = React.useCallback(() => {
-    setErrors((prev) => prev.slice(1));
-  }, []);
+  const afterClose = React.useCallback(() => setErrors([]), []);
 
-  const afterClose = React.useCallback(() => {
-    setErrors([]);
-  }, []);
-
-  const errCount = errors[0]?.count;
-  const alertComponent = errors.length > 0 && (
-    <ErrorAlert errors={errors} firstErrorCount={errCount} onSkipError={onSkipError} afterClose={afterClose} />
-  );
+  const alertComponent = errors.length > 0 && <ErrorAlert errors={errors} afterClose={afterClose} />;
   return [alertComponent, addError];
 };
 
