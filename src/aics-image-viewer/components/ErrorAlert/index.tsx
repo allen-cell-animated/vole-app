@@ -130,6 +130,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     window.setTimeout(() => setFlash(false), 100);
   }, [errors]);
 
+  const cause = (error.error as any).cause;
   const msg = (
     <>
       <div className="error-title">
@@ -139,25 +140,25 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
         </Button>
       </div>
       <div style={infoStyle}>{getErrorDescription(error)}</div>
-      {(error.error as any).cause !== undefined && (
+      {cause !== undefined && (
         <div className="error-cause" style={infoStyle}>
-          Caused by {getErrorTitle((error.error as any).cause)}
+          Caused by {getErrorTitle(cause)}
         </div>
       )}
     </>
   );
 
-  let pageBtn: React.ReactNode = undefined;
+  let pageButton: React.ReactNode = undefined;
 
   if (errors.length > 1) {
     if (errorIndex === errors.length - 1) {
-      pageBtn = (
+      pageButton = (
         <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
           <LeftOutlined /> {errors.length - 1} previous error{errors.length > 2 ? "s" : ""}
         </Button>
       );
     } else {
-      pageBtn = (
+      pageButton = (
         <>
           {errorIndex > 0 && (
             <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
@@ -173,17 +174,17 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     }
   }
 
-  const clsName = flash ? "load-error-alert error-flash" : "load-error-alert";
+  const alertClass = flash ? "load-error-alert error-flash" : "load-error-alert";
   return (
     <Alert
       showIcon
       closable
       type="error"
       icon={<WarningOutlined />}
-      className={clsName}
+      className={alertClass}
       message={msg}
       afterClose={afterClose}
-      action={pageBtn}
+      action={pageButton}
     />
   );
 };
