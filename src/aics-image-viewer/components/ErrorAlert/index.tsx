@@ -1,4 +1,5 @@
-import { type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
+import { type Volume, type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
+import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
 import { RightOutlined } from "@ant-design/icons";
 import { Alert, Button } from "antd";
 import React from "react";
@@ -100,11 +101,18 @@ export type ErrorAlertProps = {
   errors: unknown;
   /** The number of times we've seen an error of the type that is currently being displayed before */
   firstErrorCount?: number;
+  multiscaleDims?: VolumeDims[];
   afterClose?: () => void;
   onSkipError?: () => void;
 };
 
-const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, afterClose, onSkipError }) => {
+const ErrorAlert: React.FC<ErrorAlertProps> = ({
+  errors,
+  firstErrorCount = 0,
+  afterClose,
+  onSkipError,
+  multiscaleDims,
+}) => {
   const [showDetails, setShowDetails] = React.useState(false);
   const [errorsSeenCount, setErrorsSeenCount] = React.useState(0);
   const error = Array.isArray(errors) ? errors[0] : errors;
@@ -156,7 +164,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, af
   );
 };
 
-export const useErrorAlert = (): [React.ReactNode, (error: unknown) => void] => {
+export const useErrorAlert = (image?: Volume): [React.ReactNode, (error: unknown) => void] => {
   const [errorList, setErrorList] = React.useState<unknown[]>([]);
   // Keep track of which errors have been seen and how many times
   const seenErrors = useConstructor(() => new Map<string, number>());
@@ -187,7 +195,13 @@ export const useErrorAlert = (): [React.ReactNode, (error: unknown) => void] => 
 
   const errCount = errorCounts[0];
   const alertComponent = errorList.length > 0 && (
-    <ErrorAlert errors={errorList} firstErrorCount={errCount} onSkipError={onSkipError} afterClose={afterClose} />
+    <ErrorAlert
+      errors={errorList}
+      firstErrorCount={errCount}
+      multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
+      onSkipError={onSkipError}
+      afterClose={afterClose}
+    />
   );
   return [alertComponent, addError];
 };
