@@ -119,9 +119,16 @@ export type ErrorAlertProps = {
 const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
   const [showDetails, setShowDetails] = React.useState(false);
   const [errorIndex, setErrorIndex] = React.useState(0);
+  const [flash, setFlash] = React.useState(false);
   const error = errors[errorIndex];
 
   const infoStyle = { display: showDetails ? undefined : "none" } as const;
+
+  React.useEffect(() => {
+    setErrorIndex(errors.length - 1);
+    setFlash(errors.length > 1);
+    window.setTimeout(() => setFlash(false), 100);
+  }, [errors]);
 
   const errorMessage = (
     <>
@@ -164,7 +171,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
     <Alert
       showIcon
       type="error"
-      className="load-error-alert"
+      className={flash ? "load-error-alert error-flash" : "load-error-alert"}
       message={errorMessage}
       closable
       afterClose={afterClose}

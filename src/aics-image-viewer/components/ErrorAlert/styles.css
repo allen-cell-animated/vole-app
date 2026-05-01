@@ -9,6 +9,10 @@
   padding: 12px 30px;
   color: var(--color-text-section);
 
+  &.error-flash {
+    background-color: #dc4446;
+  }
+
   /* Keeps icons vertically aligned with the *first row* of text */
   .ant-alert-icon,
   .ant-alert-close-icon,
