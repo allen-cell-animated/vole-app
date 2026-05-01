@@ -340,7 +340,7 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   const onError = useCallback(
-    (image: Volume | undefined, error: unknown) => {
+    (error: unknown, image?: Volume) => {
       showError(error, image);
       onImageTitleChange?.(undefined);
     },

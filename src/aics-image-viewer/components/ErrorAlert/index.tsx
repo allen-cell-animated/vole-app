@@ -1,5 +1,4 @@
 import { type Volume, type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
-import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Alert, Button } from "antd";
 import React from "react";
