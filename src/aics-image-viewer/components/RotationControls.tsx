@@ -12,12 +12,18 @@ export type RotationControlsProps = {
   view3d: View3d;
 };
 
+const PIPS = {
+  mode: "positions",
+  values: [0, 25, 50, 75, 100],
+  density: 25,
+};
+
 const RotationSlider: React.FC<RotationSliderProps> = ({ label, onChange }) => {
-  const [rotationDelta, setRotationDelta] = React.useState(0);
+  const [delta, setDelta] = React.useState(0);
 
   const onUpdate = React.useCallback(
     ([value]: number[]) => {
-      setRotationDelta((prev) => {
+      setDelta((prev) => {
         onChange(value - prev);
         return value;
       });
@@ -25,9 +31,11 @@ const RotationSlider: React.FC<RotationSliderProps> = ({ label, onChange }) => {
     [onChange]
   );
 
-  const onRelease = React.useCallback(() => setRotationDelta(0), []);
+  const onRelease = React.useCallback(() => setDelta(0), []);
 
-  return <SliderRow label={label} min={-90} max={90} start={rotationDelta} onUpdate={onUpdate} onChange={onRelease} />;
+  return (
+    <SliderRow label={label} min={-90} max={90} start={delta} onUpdate={onUpdate} onChange={onRelease} pips={PIPS} />
+  );
 };
 
 const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
