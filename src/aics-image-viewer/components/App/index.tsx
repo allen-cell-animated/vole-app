@@ -54,6 +54,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   showAxesButton: true,
   showBoundingBoxButton: true,
   metadataViewer: true,
+  preciseRotation: true,
 };
 
 const defaultProps: AppProps = {

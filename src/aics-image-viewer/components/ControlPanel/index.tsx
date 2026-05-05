@@ -10,6 +10,7 @@ import ChannelsWidget from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
+import RotationControls from "../RotationControls";
 import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
@@ -17,14 +18,13 @@ import "./styles.css";
 type PropsOf<T> = T extends React.ComponentType<infer P> ? P : never;
 
 interface ControlPanelProps
-  extends PropsOf<typeof ChannelsWidget>,
-    PropsOf<typeof GlobalVolumeControls>,
-    PropsOf<typeof CustomizeWidget> {
+  extends PropsOf<typeof ChannelsWidget>, PropsOf<typeof GlobalVolumeControls>, PropsOf<typeof CustomizeWidget> {
   hasImage: boolean;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
       colorPresetsDropdown: boolean;
       metadataViewer: boolean;
+      preciseRotation: boolean;
     };
   metadata: MetadataRecord;
   collapsed: boolean;
@@ -118,6 +118,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     </Tooltip>
   );
 
+  // TODO this can just be a component...?
   const renderAdvancedSettings = (): React.ReactNode => {
     const items: CollapseProps["items"] = [
       {
@@ -139,6 +140,14 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         key: 1,
         label: "Customize",
         children: <CustomizeWidget visibleControls={props.visibleControls} />,
+      });
+    }
+
+    if (visibleControls.preciseRotation) {
+      items.push({
+        key: 2,
+        label: "Rotation controls",
+        children: <RotationControls />,
       });
     }
 
