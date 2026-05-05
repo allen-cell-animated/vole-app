@@ -133,7 +133,10 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       resizeObserver.current.observe(rightRef.current);
     }
     window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
+    return () => {
+      resizeObserver.current?.disconnect();
+      window.removeEventListener("resize", checkSize);
+    };
   }, [checkSize]);
 
   const scrollX = (amount: number): number => (barRef.current!.scrollLeft += amount);
