@@ -6,19 +6,17 @@ import { PRESET_COLOR_MAP } from "../../shared/constants";
 import type { MetadataRecord } from "../../shared/types";
 import { select, useViewerState } from "../../state/store";
 
-import ChannelsWidget from "../ChannelsWidget";
+import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
-import RotationControls from "../RotationControls";
+import RotationControls, { type RotationControlsProps } from "../RotationControls";
 import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
 
-type PropsOf<T> = T extends React.ComponentType<infer P> ? P : never;
-
 interface ControlPanelProps
-  extends PropsOf<typeof ChannelsWidget>, PropsOf<typeof GlobalVolumeControls>, PropsOf<typeof CustomizeWidget> {
+  extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps, RotationControlsProps {
   hasImage: boolean;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
@@ -147,7 +145,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       items.push({
         key: 2,
         label: "Rotation controls",
-        children: <RotationControls />,
+        children: <RotationControls view3d={props.view3d} />,
       });
     }
 
