@@ -14,19 +14,15 @@ type Tuple3 = [number, number, number];
 
 const toRadians = (deg: number): number => deg * (Math.PI / 180);
 
-const length = ([x, y, z]: Tuple3): number => Math.sqrt(x * x + y * y + z * z);
-
 const add = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => [ax + bx, ay + by, az + bz];
 const sub = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => [ax - bx, ay - by, az - bz];
 const mulScalar = ([x, y, z]: Tuple3, n: number): Tuple3 => [x * n, y * n, z * n];
 
+const length = ([x, y, z]: Tuple3): number => Math.sqrt(x * x + y * y + z * z);
+const normalize = (vec: Tuple3): Tuple3 => mulScalar(vec, 1.0 / length(vec));
+
 const cross = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => {
   return [ay * bz - by * az, az * bx - bz * ax, ax * by - bx * ay];
-};
-
-const normalize = (vec: Tuple3): Tuple3 => {
-  const len = length(vec);
-  return mulScalar(vec, 1.0 / len);
 };
 
 const vecToTarget = (state: CameraState): Tuple3 => sub(state.target, state.position);
