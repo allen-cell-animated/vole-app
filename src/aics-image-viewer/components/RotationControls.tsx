@@ -4,10 +4,6 @@ import React from "react";
 
 import SliderRow from "./shared/SliderRow";
 
-export type RotationControlsProps = {
-  view3d: View3d;
-};
-
 // const PIPS = {
 //   mode: "positions",
 //   values: [0, 25, 50, 75, 100],
@@ -113,10 +109,12 @@ const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => voi
   return <SliderRow label={label} min={-90} max={90} start={delta} onUpdate={onUpdate} onChange={onRelease} />;
 };
 
+export type RotationControlsProps = { view3d: View3d };
+
 const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
-  const rotateHorizontalCallback = useCameraCallback(rotateHorizontal, view3d);
-  const rotateVerticalCallback = useCameraCallback(rotateVertical, view3d);
-  const rollCallback = useCameraCallback(roll, view3d);
+  const handleRotateHorizontal = useCameraCallback(rotateHorizontal, view3d);
+  const handleRotateVertical = useCameraCallback(rotateVertical, view3d);
+  const handleRoll = useCameraCallback(roll, view3d);
 
   const jumpXMinus = useCameraJumpCallback(X_MINUS, view3d, true);
   const jumpXPlus = useCameraJumpCallback(X_PLUS, view3d, true);
@@ -135,9 +133,9 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
         <Button onClick={jumpZMinus}>-Z</Button>
         <Button onClick={jumpZPlus}>+Z</Button>
       </SliderRow>
-      <RotationSlider label="horizontal" onChange={rotateHorizontalCallback} />
-      <RotationSlider label="vertical" onChange={rotateVerticalCallback} />
-      <RotationSlider label="roll" onChange={rollCallback} />
+      <RotationSlider label="horizontal" onChange={handleRotateHorizontal} />
+      <RotationSlider label="vertical" onChange={handleRotateVertical} />
+      <RotationSlider label="roll" onChange={handleRoll} />
     </div>
   );
 };
