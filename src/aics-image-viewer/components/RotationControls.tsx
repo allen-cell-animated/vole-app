@@ -8,11 +8,11 @@ export type RotationControlsProps = {
   view3d: View3d;
 };
 
-const PIPS = {
-  mode: "positions",
-  values: [0, 25, 50, 75, 100],
-  density: 25,
-};
+// const PIPS = {
+//   mode: "positions",
+//   values: [0, 25, 50, 75, 100],
+//   density: 25,
+// };
 
 type Tuple3 = [number, number, number];
 
@@ -44,6 +44,17 @@ const rotateHorizontal = (state: CameraState, deg: number): Partial<CameraState>
   const distance = length(toTarget);
   const position = sub(state.target, mulScalar(nextForward, distance));
   return { position };
+};
+
+const rotateVertical = (state: CameraState, deg: number): Partial<CameraState> => {
+  const rad = toRadians(deg);
+  const toTarget = vecToTarget(state);
+  const forward = normalize(toTarget);
+  const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(state.up, -Math.sin(rad)));
+  const up = add(mulScalar(state.up, Math.cos(rad)), mulScalar(forward, Math.sin(rad)));
+  const distance = length(toTarget);
+  const position = sub(state.target, mulScalar(nextForward, distance));
+  return { position, up };
 };
 
 const useCameraCallback = <T extends any[]>(
@@ -96,6 +107,7 @@ const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => voi
 
 const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   const rotateHorizontalCallback = useCameraCallback(rotateHorizontal, view3d);
+  const rotateVerticalCallback = useCameraCallback(rotateVertical, view3d);
 
   const jumpXMinus = useCameraJumpCallback(X_MINUS, view3d, true);
   const jumpXPlus = useCameraJumpCallback(X_PLUS, view3d, true);
@@ -115,6 +127,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
         <Button onClick={jumpZPlus}>+Z</Button>
       </SliderRow>
       <RotationSlider label="horizontal" onChange={rotateHorizontalCallback} />
+      <RotationSlider label="vertical" onChange={rotateVerticalCallback} />
     </div>
   );
 };
