@@ -2,6 +2,9 @@ import type { CameraState, View3d } from "@aics/vole-core";
 import { Button } from "antd";
 import React from "react";
 
+import { ViewMode } from "../shared/enums";
+import { select, useViewerState } from "../state/store";
+
 import SliderRow from "./shared/SliderRow";
 
 // const PIPS = {
@@ -87,7 +90,8 @@ const Y_PLUS: VectorFn = (len) => [0, len, 0];
 const Z_MINUS: VectorFn = (len) => [0, 0, -len];
 const Z_PLUS: VectorFn = (len) => [0, 0, len];
 
-const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => void }> = ({ label, onChange }) => {
+const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => void; disabled?: boolean }> = (props) => {
+  const { label, onChange, disabled } = props;
   const [delta, setDelta] = React.useState(0);
 
   const onUpdate = React.useCallback(
@@ -102,12 +106,25 @@ const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => voi
 
   const onRelease = React.useCallback(() => setDelta(0), []);
 
-  return <SliderRow label={label} min={-90} max={90} start={delta} onUpdate={onUpdate} onChange={onRelease} />;
+  return (
+    <SliderRow
+      label={label}
+      min={-90}
+      max={90}
+      start={delta}
+      onUpdate={onUpdate}
+      onChange={onRelease}
+      disabled={disabled}
+    />
+  );
 };
 
 export type RotationControlsProps = { view3d: View3d };
 
 const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
+  const viewMode = useViewerState(select("viewMode"));
+  const disable = viewMode !== ViewMode.threeD;
+
   const handleRotateHorizontal = useCameraCallback(rotateHorizontal, view3d);
   const handleRotateVertical = useCameraCallback(rotateVertical, view3d);
   const handleRoll = useCameraCallback(roll, view3d);
@@ -122,16 +139,28 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   return (
     <div style={{ padding: "18px 16px 22px" }}>
       <SliderRow label="jump to">
-        <Button onClick={jumpXMinus}>-X</Button>
-        <Button onClick={jumpXPlus}>+X</Button>
-        <Button onClick={jumpYMinus}>-Y</Button>
-        <Button onClick={jumpYPlus}>+Y</Button>
-        <Button onClick={jumpZMinus}>-Z</Button>
-        <Button onClick={jumpZPlus}>+Z</Button>
+        <Button onClick={jumpXMinus} disabled={disable}>
+          -X
+        </Button>
+        <Button onClick={jumpXPlus} disabled={disable}>
+          +X
+        </Button>
+        <Button onClick={jumpYMinus} disabled={disable}>
+          -Y
+        </Button>
+        <Button onClick={jumpYPlus} disabled={disable}>
+          +Y
+        </Button>
+        <Button onClick={jumpZMinus} disabled={disable}>
+          -Z
+        </Button>
+        <Button onClick={jumpZPlus} disabled={disable}>
+          +Z
+        </Button>
       </SliderRow>
-      <RotationSlider label="horizontal" onChange={handleRotateHorizontal} />
-      <RotationSlider label="vertical" onChange={handleRotateVertical} />
-      <RotationSlider label="roll" onChange={handleRoll} />
+      <RotationSlider label="horizontal" onChange={handleRotateHorizontal} disabled={disable} />
+      <RotationSlider label="vertical" onChange={handleRotateVertical} disabled={disable} />
+      <RotationSlider label="roll" onChange={handleRoll} disabled={disable} />
     </div>
   );
 };
