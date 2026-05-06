@@ -4,11 +4,6 @@ import React from "react";
 
 import SliderRow from "./shared/SliderRow";
 
-type RotationSliderProps = {
-  label: string;
-  onChange: (delta: number) => void;
-};
-
 export type RotationControlsProps = {
   view3d: View3d;
 };
@@ -19,23 +14,39 @@ const PIPS = {
   density: 25,
 };
 
-const distanceToTarget = (state: CameraState): number => {
-  const [xPos, yPos, zPos] = state.position;
-  const [xTarget, yTarget, zTarget] = state.target;
-  const xDist2 = Math.pow(xPos - xTarget, 2);
-  const yDist2 = Math.pow(yPos - yTarget, 2);
-  const zDist2 = Math.pow(zPos - zTarget, 2);
-  return Math.sqrt(xDist2 + yDist2 + zDist2);
+type Tuple3 = [number, number, number];
+
+const toRadians = (deg: number): number => deg * (Math.PI / 180);
+
+const length = ([x, y, z]: Tuple3): number => Math.sqrt(x * x + y * y + z * z);
+
+const cross = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => {
+  return [ay * bz - by * az, az * bx - bz * ax, ax * by - bx * ay];
 };
 
-const useCameraJumpCallback = (
-  getPosition: (dist: number) => [number, number, number],
-  view3d: View3d,
-  yUp = false
-): (() => void) => {
+const normalize = (vec: Tuple3): Tuple3 => {
+  const len = length(vec);
+  const [x, y, z] = vec;
+  return [x / len, y / len, z / len];
+};
+
+const vecToTarget = (state: CameraState): Tuple3 => {
+  const [xPos, yPos, zPos] = state.position;
+  const [xTarget, yTarget, zTarget] = state.target;
+  return [xTarget - xPos, yTarget - yPos, zTarget - zPos];
+};
+
+// const rotateX = (state: CameraState, deltaX: number): Partial<CameraState> => {
+//   const toTarget = vecToTarget(state);
+//   const forward = normalize(toTarget);
+//   const [xRight, yRight, zRight] = cross(forward, state.up);
+//   const [xForward, yForward, zForward] = forward;
+// };
+
+const useCameraJumpCallback = (getPosition: (dist: number) => Tuple3, view3d: View3d, yUp = false): (() => void) => {
   return React.useCallback(() => {
     const state = view3d.getCameraState();
-    const dist = distanceToTarget(state);
+    const dist = length(vecToTarget(state));
     const [xPos, yPos, zPos] = getPosition(dist);
     const [xTarget, yTarget, zTarget] = state.target;
     view3d.setCameraState({
@@ -45,7 +56,7 @@ const useCameraJumpCallback = (
   }, [view3d, yUp, getPosition]);
 };
 
-type VectorFn = (len: number) => [number, number, number];
+type VectorFn = (len: number) => Tuple3;
 const X_MINUS: VectorFn = (len) => [-len, 0, 0];
 const X_PLUS: VectorFn = (len) => [len, 0, 0];
 const Y_MINUS: VectorFn = (len) => [0, -len, 0];
@@ -53,7 +64,7 @@ const Y_PLUS: VectorFn = (len) => [0, len, 0];
 const Z_MINUS: VectorFn = (len) => [0, 0, -len];
 const Z_PLUS: VectorFn = (len) => [0, 0, len];
 
-const RotationSlider: React.FC<RotationSliderProps> = ({ label, onChange }) => {
+const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => void }> = ({ label, onChange }) => {
   const [delta, setDelta] = React.useState(0);
 
   const onUpdate = React.useCallback(
