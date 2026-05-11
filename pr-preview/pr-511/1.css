@@ -1409,55 +1409,63 @@
       content:none;
     }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting{
+.viewer-toolbar .ant-select.select-toolbar{
     min-width:120px;
   }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting .ant-select-selection-item,
-    .viewer-toolbar.viewer-toolbar .ant-select.select-render-setting .ant-select-arrow{
+.viewer-toolbar .ant-select.select-toolbar .ant-select-selection-item,
+    .viewer-toolbar .ant-select.select-toolbar .ant-select-arrow{
       color:var(--color-button-tertiary-text);
       transition:all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
     }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-item,
-      .viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-search{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-item,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-search{
         padding-inline-end:0;
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-item{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-item{
         color:var(--color-button-icon-disabled-text);
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-item:hover{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-item:hover{
           color:var(--color-button-icon-disabled-text);
         }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selector{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selector{
         border-color:var(--color-button-icon-disabled-text);
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-arrow{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-arrow{
         display:none;
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting .ant-select-selector{
+.viewer-toolbar .ant-select.select-toolbar .ant-select-selector{
       border-color:#aeacae;
       box-shadow:none;
       background-color:var(--color-toolbar-button-bg);
     }
 
-.viewer-toolbar .ant-select.select-render-setting:hover:not(:disabled) .ant-select-selector,
-    .viewer-toolbar .ant-select.select-render-setting:hover:not(:disabled) .ant-select-arrow,
-    .viewer-toolbar .ant-select.select-render-setting:hover:not(:disabled) .ant-select-selection-item,
-    .viewer-toolbar .ant-select.select-render-setting:focus-visible:not(:disabled) .ant-select-selector,
-    .viewer-toolbar .ant-select.select-render-setting:focus-visible:not(:disabled) .ant-select-arrow,
-    .viewer-toolbar .ant-select.select-render-setting:focus-visible:not(:disabled) .ant-select-selection-item,
-    .viewer-toolbar.viewer-toolbar.viewer-toolbar .ant-select-open .ant-select-selector,
-    .viewer-toolbar.viewer-toolbar.viewer-toolbar .ant-select-open .ant-select-arrow,
-    .viewer-toolbar.viewer-toolbar.viewer-toolbar .ant-select-open .ant-select-selection-item{
-      color:var(--color-button-tertiary-hover-text);
-      outline-color:var(--color-button-tertiary-hover-outline);
-    }
+.viewer-toolbar .ant-select.select-toolbar:hover:not(.ant-select-disabled) .ant-select-selector,
+      .viewer-toolbar .ant-select.select-toolbar:hover:not(.ant-select-disabled) .ant-select-arrow,
+      .viewer-toolbar .ant-select.select-toolbar:hover:not(.ant-select-disabled) .ant-select-selection-item,
+      .viewer-toolbar .ant-select.select-toolbar:focus-visible:not(.ant-select-disabled) .ant-select-selector,
+      .viewer-toolbar .ant-select.select-toolbar:focus-visible:not(.ant-select-disabled) .ant-select-arrow,
+      .viewer-toolbar .ant-select.select-toolbar:focus-visible:not(.ant-select-disabled) .ant-select-selection-item,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select.ant-select-open .ant-select-selector,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select.ant-select-open .ant-select-arrow,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select.ant-select-open .ant-select-selection-item{
+        color:var(--color-button-tertiary-hover-text);
+        outline-color:var(--color-button-tertiary-hover-outline);
+      }
+
+.viewer-toolbar .ant-select.select-toolbar.select-resolution > .ant-select-selector{
+        text-align:left;
+      }
+
+.viewer-toolbar .ant-select.select-toolbar.select-resolution.ant-select-disabled .ant-select-selection-item{
+        color:var(--color-button-tertiary-text);
+      }
 
 .viewer-toolbar-dropdown .ant-select-dropdown-menu-item-active{
     transition-property:background-color, color;
