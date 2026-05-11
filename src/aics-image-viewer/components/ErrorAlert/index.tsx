@@ -1,5 +1,5 @@
-import { type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
-import { RightOutlined } from "@ant-design/icons";
+import { type Volume, type VolumeLoadError, VolumeLoadErrorType } from "@aics/vole-core";
+import { LeftOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button } from "antd";
 import React from "react";
 
@@ -80,7 +80,13 @@ const getErrorTitle = (error: unknown): string =>
   (typeof error === "object" && error !== null && (error as ErrorAlertDescription).title) ||
   "Unknown error";
 
-const getErrorDescription = (error: unknown): React.ReactNode => {
+type ErrorInfo = {
+  error: unknown;
+  count: number;
+  dims?: [number, number, number, number, number];
+};
+
+const getErrorDescription = ({ error, dims }: ErrorInfo): React.ReactNode => {
   const type: VolumeLoadErrorType | undefined = (error as VolumeLoadError).type;
   if (!type) {
     return (
@@ -89,107 +95,124 @@ const getErrorDescription = (error: unknown): React.ReactNode => {
     );
   }
   if (type === VolumeLoadErrorType.TOO_LARGE && useViewerState.getState().useExactScaleLevel) {
+    let dimsDetail = "";
+    if (Array.isArray(dims)) {
+      const [_t, _c, z, y, x] = dims;
+      dimsDetail = ` (${x} x ${y} x ${z})`;
+    }
+
     return (
-      <>The viewer cannot load this resolution level within memory limits. Try again with a smaller resolution level.</>
+      <>
+        The viewer cannot load this resolution level{dimsDetail} within memory limits. Try again with a smaller
+        resolution level.
+      </>
     );
   }
   return ERROR_TYPE_DESCRIPTIONS[type] ?? UNKNOWN_ERROR_DESCRIPTION;
 };
 
 export type ErrorAlertProps = {
-  errors: unknown;
-  /** The number of times we've seen an error of the type that is currently being displayed before */
-  firstErrorCount?: number;
+  errors: ErrorInfo[];
   afterClose?: () => void;
-  onSkipError?: () => void;
 };
 
-const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, firstErrorCount = 0, afterClose, onSkipError }) => {
+const ErrorAlert: React.FC<ErrorAlertProps> = ({ errors, afterClose }) => {
   const [showDetails, setShowDetails] = React.useState(false);
-  const [errorsSeenCount, setErrorsSeenCount] = React.useState(0);
-  const error = Array.isArray(errors) ? errors[0] : errors;
+  const [errorIndex, setErrorIndex] = React.useState(0);
+  const [flash, setFlash] = React.useState(false);
+  const error = errors[errorIndex];
 
   const infoStyle = { display: showDetails ? undefined : "none" } as const;
 
-  const errorMessage = (
+  React.useEffect(() => {
+    setErrorIndex(errors.length - 1);
+    setFlash(errors.length > 1);
+    window.setTimeout(() => setFlash(false), 100);
+  }, [errors]);
+
+  const cause = (error.error as any).cause;
+  const msg = (
     <>
       <div className="error-title">
-        {getErrorTitle(error) + (firstErrorCount > 1 ? ` (${firstErrorCount})` : "")}{" "}
+        {getErrorTitle(error.error) + (error.count > 1 ? ` (${error.count})` : "")}{" "}
         <Button type="text" onClick={() => setShowDetails(!showDetails)}>
           {showDetails ? "Show less info" : "Show more info"}
         </Button>
       </div>
       <div style={infoStyle}>{getErrorDescription(error)}</div>
-      {error.cause !== undefined && (
+      {cause !== undefined && (
         <div className="error-cause" style={infoStyle}>
-          Caused by {getErrorTitle(error.cause)}
+          Caused by {getErrorTitle(cause)}
         </div>
       )}
     </>
   );
 
-  const skipErrorButton = Array.isArray(errors) && errors.length > 1 && (
-    <Button
-      type="text"
-      onClick={() => {
-        setErrorsSeenCount((count) => count + 1);
-        onSkipError?.();
-      }}
-    >
-      Error {errorsSeenCount + 1} of {errors.length + errorsSeenCount} <RightOutlined />
-    </Button>
-  );
+  let pageButton: React.ReactNode = undefined;
 
+  if (errors.length > 1) {
+    if (errorIndex === errors.length - 1) {
+      pageButton = (
+        <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
+          <LeftOutlined /> {errors.length - 1} previous error{errors.length > 2 ? "s" : ""}
+        </Button>
+      );
+    } else {
+      pageButton = (
+        <>
+          {errorIndex > 0 && (
+            <Button type="text" onClick={() => setErrorIndex((i) => i - 1)}>
+              <LeftOutlined />
+            </Button>
+          )}
+          Error {errorIndex + 1} of {errors.length}
+          <Button type="text" onClick={() => setErrorIndex((i) => i + 1)}>
+            <RightOutlined />
+          </Button>
+        </>
+      );
+    }
+  }
+
+  const alertClass = flash ? "load-error-alert error-flash" : "load-error-alert";
   return (
     <Alert
       showIcon
-      type="error"
-      className="load-error-alert"
-      message={errorMessage}
       closable
-      afterClose={() => {
-        setErrorsSeenCount(0);
-        afterClose?.();
-      }}
-      action={skipErrorButton}
+      type="error"
+      icon={<WarningOutlined />}
+      className={alertClass}
+      message={msg}
+      afterClose={afterClose}
+      action={pageButton}
     />
   );
 };
 
-export const useErrorAlert = (): [React.ReactNode, (error: unknown) => void] => {
-  const [errorList, setErrorList] = React.useState<unknown[]>([]);
+export const useErrorAlert = (): [React.ReactNode, (error: unknown, image?: Volume) => void] => {
+  const [errors, setErrors] = React.useState<ErrorInfo[]>([]);
   // Keep track of which errors have been seen and how many times
   const seenErrors = useConstructor(() => new Map<string, number>());
-  const [errorCounts, setErrorCounts] = React.useState<number[]>([]);
 
   const addError = React.useCallback(
-    (error: unknown) => {
+    (error: unknown, image?: Volume) => {
       const errorTitle = getErrorTitle(error);
       console.error(error instanceof Error ? error : errorTitle);
-      const errorSeenCount = (seenErrors.get(errorTitle) ?? 0) + 1;
+      const count = (seenErrors.get(errorTitle) ?? 0) + 1;
 
-      setErrorList((prev) => [...prev, error]);
-      setErrorCounts((prev) => [...prev, errorSeenCount]);
-      seenErrors.set(errorTitle, errorSeenCount);
+      const imageInfo = image?.imageInfo.imageInfo;
+      const dims = imageInfo && imageInfo.multiscaleLevelDims[imageInfo.multiscaleLevel].shape;
+
+      setErrors((prev) => [...prev, { error, count, dims }]);
+      seenErrors.set(errorTitle, count);
     },
     [seenErrors]
   );
 
-  const onSkipError = React.useCallback(() => {
-    setErrorList((prev) => prev.slice(1));
-    setErrorCounts((prev) => prev.slice(1));
-  }, []);
+  const afterClose = React.useCallback(() => setErrors([]), []);
 
-  const afterClose = React.useCallback(() => {
-    setErrorList([]);
-    setErrorCounts([]);
-  }, []);
-
-  const errCount = errorCounts[0];
-  const alertComponent = errorList.length > 0 && (
-    <ErrorAlert errors={errorList} firstErrorCount={errCount} onSkipError={onSkipError} afterClose={afterClose} />
-  );
-  return [alertComponent, addError];
+  const alertNode = errors.length > 0 && <ErrorAlert errors={errors} afterClose={afterClose} />;
+  return [alertNode, addError];
 };
 
 export default ErrorAlert;
