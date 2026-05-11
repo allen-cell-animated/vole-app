@@ -137,7 +137,7 @@ const theme = {
       },
     },
     tooltip: {
-      bg: palette.black,
+      bg: palette.veryDarkGrey,
     },
     modal: {
       maskBg: "#000000cc",

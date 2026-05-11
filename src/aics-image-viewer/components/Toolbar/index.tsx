@@ -34,6 +34,7 @@ type ToolbarProps = {
     resetCameraButton: boolean;
     showAxesButton: boolean;
     showBoundingBoxButton: boolean;
+    scaleLevelControls: boolean;
   };
 };
 
@@ -57,6 +58,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const leftRef = React.useRef<HTMLDivElement>(null);
   const rightRef = React.useRef<HTMLDivElement>(null);
   const centerRef = React.useRef<HTMLDivElement>(null);
+  const resizeObserver = React.useRef<ResizeObserver>();
 
   const [scrollMode, setScrollMode] = React.useState(false);
   const [showScrollBtnLeft, setScrollBtnLeft] = React.useState(false);
@@ -80,7 +82,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       return;
     }
     setScrollBtnLeft(barEl.scrollLeft > 0);
-    setScrollBtnRight(barEl.scrollLeft < barEl.scrollWidth - barEl.clientWidth);
+    setScrollBtnRight(Math.ceil(barEl.scrollLeft) < barEl.scrollWidth - barEl.clientWidth);
   }, []);
 
   // This is effectively a `useCallback` - it memoizes a function - but since we're feeding the whole function into
@@ -110,15 +112,31 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           return leftRect.right > centerRect.left || centerRect.right > rightRect.left;
         }
       });
-      checkScrollBtnVisible();
+      window.setTimeout(checkScrollBtnVisible, 0);
     }, RESIZE_DEBOUNCE_DELAY);
   }, [checkScrollBtnVisible]);
 
   React.useEffect(() => {
     // Make sure `checkSize` is run once on mount
     checkSize();
+    if (resizeObserver.current !== undefined) {
+      resizeObserver.current.disconnect();
+    }
+    resizeObserver.current = new ResizeObserver(checkSize);
+    if (leftRef.current !== null) {
+      resizeObserver.current.observe(leftRef.current);
+    }
+    if (centerRef.current !== null) {
+      resizeObserver.current.observe(centerRef.current);
+    }
+    if (rightRef.current !== null) {
+      resizeObserver.current.observe(rightRef.current);
+    }
     window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
+    return () => {
+      resizeObserver.current?.disconnect();
+      window.removeEventListener("resize", checkSize);
+    };
   }, [checkSize]);
 
   const scrollX = (amount: number): number => (barRef.current!.scrollLeft += amount);
@@ -138,7 +156,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const classForToggleBtn = (active: boolean): string =>
     "ant-btn-icon-only btn-borderless" + (active ? " btn-active" : "");
 
-  const { visibleControls } = props;
+  const { visibleControls, multiscaleDims } = props;
   const twoDMode = viewMode !== ViewMode.threeD;
 
   const renderGroup1 =
@@ -160,6 +178,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       >
         <ViewerIcon type="closePanel" style={{ fontSize: "12px", transform: "rotate(180deg)" }} />
       </div>
+
       <div className="viewer-toolbar" ref={barRef} onWheel={wheelHandler} onScroll={checkScrollBtnVisible}>
         <div className="viewer-toolbar-left" ref={leftRef}>
           <Tooltip placement="bottom" title="Reset to initial settings" trigger={["focus", "hover"]}>
@@ -169,6 +188,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             </Button>
           </Tooltip>
         </div>
+
         <div className="viewer-toolbar-center" ref={centerRef}>
           {renderGroup1 && (
             <div className="viewer-toolbar-group">
@@ -210,7 +230,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           <div className="viewer-toolbar-group">
             <Select
-              className="select-render-setting"
+              className="select-toolbar"
               popupClassName="viewer-toolbar-dropdown"
               value={renderMode}
               onChange={(value) => changeViewerSetting("renderMode", value)}
@@ -249,9 +269,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             </div>
           )}
 
-          {props.multiscaleDims !== undefined && props.multiscaleDims.length > 1 && (
+          {multiscaleDims !== undefined && multiscaleDims.length > 1 && visibleControls.scaleLevelControls && (
             <div className="viewer-toolbar-group">
-              <span>Resolution</span>
+              <span style={{ color: "var(--color-button-tertiary-text)" }}>Resolution</span>
               <Radio.Group
                 value={useExactScaleLevel}
                 onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
@@ -260,13 +280,15 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
               <Select
-                className="select-render-setting"
+                className="select-toolbar select-resolution"
+                popupClassName="viewer-toolbar-dropdown"
+                getPopupContainer={getPopupContainer}
                 style={{ minWidth: 150 }}
                 value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
                 onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
                 disabled={!useExactScaleLevel}
               >
-                {props.multiscaleDims.map((dims, idx) => {
+                {multiscaleDims.map((dims, idx) => {
                   const [_t, _c, z, y, x] = dims.shape;
                   return (
                     <Select.Option key={idx} value={idx}>
