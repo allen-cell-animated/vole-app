@@ -60,6 +60,7 @@ const roll = (state: CameraState, deg: number): Partial<CameraState> => {
   return { up };
 };
 
+/** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
 const useCameraCallback = <T extends any[]>(
   transform: (state: CameraState, ...args: T) => Partial<CameraState>,
   view3d: View3d
