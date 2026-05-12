@@ -1,5 +1,4 @@
-// TODO this really ought to be exported at the top level...
-import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
+import type { VolumeDims } from "@aics/vole-core";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
