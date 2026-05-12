@@ -140,24 +140,26 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   return (
     <div style={{ padding: "18px 16px 22px" }}>
       <SliderRow label="jump to">
-        <Button onClick={jumpXMinus} disabled={disable}>
-          -X
-        </Button>
-        <Button onClick={jumpXPlus} disabled={disable}>
-          +X
-        </Button>
-        <Button onClick={jumpYMinus} disabled={disable}>
-          -Y
-        </Button>
-        <Button onClick={jumpYPlus} disabled={disable}>
-          +Y
-        </Button>
-        <Button onClick={jumpZMinus} disabled={disable}>
-          -Z
-        </Button>
-        <Button onClick={jumpZPlus} disabled={disable}>
-          +Z
-        </Button>
+        <Button.Group style={{ width: "100%", justifyContent: "center" }}>
+          <Button onClick={jumpXMinus} disabled={disable}>
+            -X
+          </Button>
+          <Button onClick={jumpXPlus} disabled={disable}>
+            +X
+          </Button>
+          <Button onClick={jumpYMinus} disabled={disable}>
+            -Y
+          </Button>
+          <Button onClick={jumpYPlus} disabled={disable}>
+            +Y
+          </Button>
+          <Button onClick={jumpZMinus} disabled={disable}>
+            -Z
+          </Button>
+          <Button onClick={jumpZPlus} disabled={disable}>
+            +Z
+          </Button>
+        </Button.Group>
       </SliderRow>
       <RotationSlider label="horizontal" onChange={handleRotateHorizontal} disabled={disable} />
       <RotationSlider label="vertical" onChange={handleRotateVertical} disabled={disable} />
