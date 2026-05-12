@@ -6,7 +6,7 @@ import { PRESET_COLOR_MAP } from "../../shared/constants";
 import type { MetadataRecord } from "../../shared/types";
 import { select, useViewerState } from "../../state/store";
 
-import ChannelsWidget from "../ChannelsWidget";
+import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
@@ -14,12 +14,7 @@ import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
 
-type PropsOf<T> = T extends React.ComponentType<infer P> ? P : never;
-
-interface ControlPanelProps
-  extends PropsOf<typeof ChannelsWidget>,
-    PropsOf<typeof GlobalVolumeControls>,
-    PropsOf<typeof CustomizeWidget> {
+interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps {
   hasImage: boolean;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
