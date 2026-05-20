@@ -107,13 +107,18 @@
 
   /* Icon-only buttons */
 
+  .btn-borderless,
+  .ant-select.ant-select-outlined .ant-select-selector,
+  .ant-radio-button-wrapper {
+    background-color: var(--color-toolbar-btn-bg);
+  }
+
   & .ant-btn-icon-only {
     padding-bottom: 4px;
     padding-left: 1px;
   }
 
   & .btn-borderless {
-    background-color: var(--color-toolbar-button-bg);
     border-color: transparent;
     color: var(--color-text-body);
   }
@@ -127,7 +132,6 @@
   /* Radio buttons */
 
   & .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled) {
-    background-color: black;
     box-shadow: -1px 0px 0px 0px transparent;
     transition-property: color, background-color, border-color, box-shadow;
 
@@ -164,39 +168,12 @@
   .ant-select.select-toolbar {
     min-width: 120px;
 
-    .ant-select-selection-item,
+    &.ant-select-disabled .ant-select-selector {
+      border-color: var(--color-button-icon-disabled-text);
+    }
+
     .ant-select-arrow {
-      color: var(--color-button-tertiary-text);
       transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-    }
-
-    &.ant-select-disabled {
-      .ant-select-selection-item,
-      .ant-select-selection-search {
-        padding-inline-end: 0;
-      }
-
-      .ant-select-selection-item {
-        color: var(--color-button-icon-disabled-text);
-        &:hover {
-          color: var(--color-button-icon-disabled-text);
-        }
-      }
-
-      .ant-select-selector {
-        border-color: var(--color-button-icon-disabled-text);
-      }
-
-      .ant-select-arrow {
-        display: none;
-      }
-    }
-
-    .ant-select-selector {
-      /* Override default button styling */
-      border-color: $light-gray;
-      box-shadow: none;
-      background-color: var(--color-toolbar-button-bg);
     }
 
     /* Control response to hover + active menu */
@@ -210,14 +187,20 @@
         outline-color: var(--color-button-tertiary-hover-outline);
       }
     }
+  }
 
-    &.select-resolution {
-      > .ant-select-selector {
-        text-align: left;
-      }
+  .ant-select.select-resolution {
+    > .ant-select-selector {
+      text-align: left;
+    }
 
-      &.ant-select-disabled .ant-select-selection-item {
-        color: var(--color-button-tertiary-text);
+    .ant-select-selection-item {
+      color: var(--color-button-tertiary-text);
+    }
+
+    &.ant-select-disabled {
+      .ant-select-arrow {
+        display: none;
       }
     }
   }

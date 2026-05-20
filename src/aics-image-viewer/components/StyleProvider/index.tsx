@@ -461,6 +461,14 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             footerBg: theme.colors.modal.bg,
             titleFontSize: 19,
           },
+          Select: {
+            colorText: theme.colors.button.tertiary.text,
+            colorBorder: theme.colors.button.tertiary.outline,
+            // arrow color
+            colorTextQuaternary: theme.colors.button.tertiary.text,
+            colorTextDisabled: theme.colors.button.tertiary.disabledText,
+            colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
+          },
         },
       }}
     >
