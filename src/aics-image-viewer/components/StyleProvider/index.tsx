@@ -280,7 +280,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     color: var(--color-text-link);
   }
 
-  & *::selection {
+  *::selection {
     background-color: var(--color-text-selection-bg);
     color: var(--color-text-selection-text);
   }
@@ -352,14 +352,14 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   // Overrides for checkbox styling
-  & .ant-checkbox-input {
+  .ant-checkbox-input {
     &:hover,
     &:focus-visible {
       border: 1px solid white;
     }
   }
 
-  & .ant-checkbox.ant-checkbox-checked {
+  .ant-checkbox.ant-checkbox-checked {
     background-color: var(--color-checkbox-bg);
   }
 
@@ -368,26 +368,27 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   // Add outlines to modals and dropdowns
-  & .ant-select-dropdown,
-  & .ant-dropdown-menu,
-  & .ant-modal-content {
+  .ant-select-dropdown,
+  .ant-dropdown-menu,
+  .ant-modal-content {
     border: 1px solid var(--color-modal-border);
   }
 
   // Force active/hovered text to be white instead of grey for better contrast
-  & .ant-dropdown-menu-item-active {
+  .ant-dropdown-menu-item-active {
     color: var(--color-menu-hover-text);
   }
 
   // Remove padding in dropdown menus and make items reactangular + flush with the edge
-  & .ant-dropdown-menu,
-  & .ant-select-dropdown {
+  .ant-dropdown-menu,
+  .ant-select-dropdown {
     padding: 0;
     overflow: hidden;
 
-    & .ant-dropdown-menu-item,
-    & .ant-select-item {
+    .ant-dropdown-menu-item,
+    .ant-select-item:not(.ant-select-item-option-disabled) {
       border-radius: 0;
+      color: var(--color-button-icon-activated-text);
     }
   }
 
