@@ -563,6 +563,8 @@ const App: React.FC<AppProps> = (props) => {
             pixelSize={pixelSize}
             channelDataChannels={image?.channels}
             channelGroupedByType={volume.channelGroupedByType}
+            multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
+            multiscaleIndex={image?.imageInfo.multiscaleLevel}
             // functions
             setCollapsed={setControlPanelClosed}
             saveIsosurface={saveIsosurface}

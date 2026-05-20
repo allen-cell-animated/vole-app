@@ -1,3 +1,4 @@
+import type { VolumeDims } from "@aics/vole-core";
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
@@ -10,6 +11,7 @@ import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
+import ResolutionControls from "../ResolutionControls";
 import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
@@ -20,8 +22,11 @@ interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsPro
     CustomizeWidgetProps["visibleControls"] & {
       colorPresetsDropdown: boolean;
       metadataViewer: boolean;
+      scaleLevelControls: boolean;
     };
   metadata: MetadataRecord;
+  multiscaleDims?: VolumeDims[];
+  multiscaleIndex?: number;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
 }
@@ -51,7 +56,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = (): HTMLElement => containerRef.current ?? document.body;
 
-  const { viewerChannelSettings, visibleControls, hasImage } = props;
+  const { viewerChannelSettings, visibleControls, hasImage, multiscaleDims, multiscaleIndex } = props;
 
   // TODO key is a number, but MenuInfo assumes keys will always be strings
   //   if future versions of antd make this type more permissive, remove ugly double-cast
@@ -127,13 +132,33 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         ),
       },
     ];
-    const showCustomize = visibleControls.backgroundColorPicker || visibleControls.boundingBoxColorPicker;
 
+    const showCustomize = visibleControls.backgroundColorPicker || visibleControls.boundingBoxColorPicker;
     if (showCustomize) {
       items.push({
         key: 1,
         label: "Customize",
         children: <CustomizeWidget visibleControls={props.visibleControls} />,
+      });
+    }
+
+    const showResolution =
+      multiscaleDims !== undefined && multiscaleDims.length > 1 && visibleControls.scaleLevelControls;
+    if (showResolution) {
+      items.push({
+        key: 2,
+        label: "OME-Zarr Settings",
+        children: (
+          <div style={{ padding: "18px 16px 22px" }}>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <ResolutionControls
+                multiscaleDims={multiscaleDims}
+                multiscaleIndex={multiscaleIndex}
+                getPopupContainer={getDropdownContainer}
+              />
+            </div>
+          </div>
+        ),
       });
     }
 
