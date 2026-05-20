@@ -1,0 +1,13 @@
+.ant-select.select-resolution {
+  > .ant-select-selector {
+    text-align: left;
+  }
+
+  .ant-select-selection-item {
+    color: var(--color-button-tertiary-text);
+  }
+
+  &.ant-select-disabled .ant-select-arrow {
+    display: none;
+  }
+}
