@@ -230,7 +230,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           <div className="viewer-toolbar-group">
             <Select
               style={{ minWidth: 120 }}
-              popupClassName="viewer-toolbar-dropdown"
               value={renderMode}
               onChange={(value) => changeViewerSetting("renderMode", value)}
               getPopupContainer={getPopupContainer}
@@ -279,8 +278,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
               <Select
-                className="select-toolbar select-resolution"
-                popupClassName="viewer-toolbar-dropdown"
+                className="select-resolution"
                 getPopupContainer={getPopupContainer}
                 style={{ minWidth: 150 }}
                 value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
