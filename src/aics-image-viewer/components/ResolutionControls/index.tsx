@@ -21,6 +21,7 @@ const ResolutionControls: React.FC<ResolutionControlsProps> = (props) => {
     <>
       <span style={{ color: "var(--color-button-tertiary-text)" }}>Resolution</span>
       <Radio.Group
+        className="resolution-control"
         value={useExactScaleLevel}
         onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
       >
@@ -28,7 +29,7 @@ const ResolutionControls: React.FC<ResolutionControlsProps> = (props) => {
         <Radio.Button value={true}>Manual</Radio.Button>
       </Radio.Group>
       <Select
-        className="select-resolution"
+        className="resolution-control"
         getPopupContainer={props.getPopupContainer}
         style={{ minWidth: 150 }}
         value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
