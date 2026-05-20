@@ -28,8 +28,7 @@ const ResolutionControls: React.FC<ResolutionControlsProps> = (props) => {
         <Radio.Button value={true}>Manual</Radio.Button>
       </Radio.Group>
       <Select
-        className="select-toolbar select-resolution"
-        popupClassName="viewer-toolbar-dropdown"
+        className="select-resolution"
         getPopupContainer={props.getPopupContainer}
         style={{ minWidth: 150 }}
         value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
