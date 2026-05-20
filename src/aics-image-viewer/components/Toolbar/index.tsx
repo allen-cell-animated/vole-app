@@ -7,6 +7,7 @@ import React from "react";
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { select, useViewerState } from "../../state/store";
 
+import ResolutionControls from "../ResolutionControls";
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
@@ -69,8 +70,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const autorotate = useViewerState(select("autorotate"));
   const showAxes = useViewerState(select("showAxes"));
   const showBoundingBox = useViewerState(select("showBoundingBox"));
-  const useExactScaleLevel = useViewerState(select("useExactScaleLevel"));
-  const scaleLevelIndex = useViewerState(select("scaleLevelIndex"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   // Scroll buttons are only visible when toolbar can be scrolled in that direction.
@@ -270,32 +269,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           {multiscaleDims !== undefined && multiscaleDims.length > 1 && visibleControls.scaleLevelControls && (
             <div className="viewer-toolbar-group">
-              <span style={{ color: "var(--color-button-tertiary-text)" }}>Resolution</span>
-              <Radio.Group
-                value={useExactScaleLevel}
-                onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
-              >
-                <Radio.Button value={false}>Auto</Radio.Button>
-                <Radio.Button value={true}>Manual</Radio.Button>
-              </Radio.Group>
-              <Select
-                className="select-toolbar select-resolution"
-                popupClassName="viewer-toolbar-dropdown"
+              <ResolutionControls
+                multiscaleDims={multiscaleDims}
+                multiscaleIndex={props.multiscaleIndex}
                 getPopupContainer={getPopupContainer}
-                style={{ minWidth: 150 }}
-                value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
-                onChange={(value) => changeViewerSetting("scaleLevelIndex", value)}
-                disabled={!useExactScaleLevel}
-              >
-                {multiscaleDims.map((dims, idx) => {
-                  const [_t, _c, z, y, x] = dims.shape;
-                  return (
-                    <Select.Option key={idx} value={idx}>
-                      {x} x {y} x {z}
-                    </Select.Option>
-                  );
-                })}
-              </Select>
+              />
             </div>
           )}
         </div>
