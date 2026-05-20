@@ -286,6 +286,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [colorPickerPosition, setColorPickerPosition] = useState<[number, number] | null>(null);
   const lastColorRef = useRef<ColorArray>(TFEDITOR_DEFAULT_COLOR);
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
   const { histogram } = props.channelData;
@@ -585,7 +586,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const { rawMin, rawMax } = props.channelData;
 
   return (
-    <div className="aics-tf-editor">
+    <div className="aics-tf-editor" ref={containerRef}>
       {/* ----- PLOT RANGE ----- */}
       <div className="tf-editor-control-row">
         <div>
@@ -730,6 +731,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   ],
                   onClick: ({ key }) => applyTFGenerator(key),
                 }}
+                getPopupContainer={() => containerRef.current ?? document.body}
               >
                 <Button size="small">
                   <span style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>

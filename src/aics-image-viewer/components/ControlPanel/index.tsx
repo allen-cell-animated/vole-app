@@ -48,8 +48,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
-  const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
-  const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const getDropdownContainer = (): HTMLElement => containerRef.current ?? document.body;
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
 
@@ -155,7 +155,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
 
   return (
-    <div className="control-panel-col-container" ref={controlPanelContainerRef}>
+    <div className="control-panel-col-container" ref={containerRef}>
       <div className="control-panel-tab-col" style={{ flex: "0 0 50px" }}>
         <Button
           className={"ant-btn-icon-only btn-collapse" + (props.collapsed ? " btn-collapse-collapsed" : "")}
