@@ -165,30 +165,6 @@
   }
 
   /* Dropdown */
-  .ant-select.select-toolbar {
-    min-width: 120px;
-
-    &.ant-select-disabled .ant-select-selector {
-      border-color: var(--color-button-icon-disabled-text);
-    }
-
-    .ant-select-arrow {
-      transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-    }
-
-    /* Control response to hover + active menu */
-    &:hover:not(.ant-select-disabled),
-    &:focus-visible:not(.ant-select-disabled),
-    &.ant-select.ant-select-open {
-      .ant-select-selector,
-      .ant-select-arrow,
-      .ant-select-selection-item {
-        color: var(--color-button-tertiary-hover-text);
-        outline-color: var(--color-button-tertiary-hover-outline);
-      }
-    }
-  }
-
   .ant-select.select-resolution {
     > .ant-select-selector {
       text-align: left;
@@ -203,32 +179,6 @@
         display: none;
       }
     }
-  }
-}
-
-/* Dropdown menu contents aren't children of .viewer-toolbar in the DOM */
-.viewer-toolbar-dropdown {
-  .ant-select-dropdown-menu-item-active {
-    transition-property: background-color, color;
-  }
-
-  .ant-select-dropdown-menu-item-disabled,
-  .ant-select-dropdown-menu-item-disabled:hover {
-    color: #6e6e6e;
-  }
-
-  .ant-select-dropdown-menu-item-active:not(.ant-select-dropdown-menu-item-disabled) {
-    background-color: transparent;
-    color: white;
-
-    &.ant-select-dropdown-menu-item-selected {
-      background-color: #4b4b4b;
-    }
-  }
-
-  .ant-select-dropdown-menu-item:hover:not(.ant-select-dropdown-menu-item-disabled) {
-    background-color: #f6f0ff;
-    color: #4b4b4b;
   }
 }
 

@@ -390,6 +390,28 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       border-radius: 0;
     }
   }
+
+  .ant-select {
+    &.ant-select-disabled .ant-select-selector {
+      border-color: var(--color-button-icon-disabled-text);
+    }
+
+    .ant-select-arrow {
+      transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    /* Control response to hover + active menu */
+    &:hover:not(.ant-select-disabled),
+    &:focus-visible:not(.ant-select-disabled),
+    &.ant-select.ant-select-open {
+      .ant-select-selector,
+      .ant-select-arrow,
+      .ant-select-selection-item {
+        color: var(--color-button-tertiary-hover-text);
+        outline-color: var(--color-button-tertiary-hover-outline);
+      }
+    }
+  }
 `;
 
 /**
