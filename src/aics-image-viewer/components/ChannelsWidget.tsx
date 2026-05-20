@@ -144,7 +144,7 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
 
   const renderChannelRow = (channelIndex: number): React.ReactNode => {
     const channelName = channelNames[channelIndex];
-    return channelName ? (
+    return (
       <ChannelsWidgetRow
         key={channelIndex}
         index={channelIndex}
@@ -153,7 +153,7 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
         onColorChangeComplete={props.onColorChangeComplete}
         saveIsosurface={props.saveIsosurface}
       />
-    ) : null;
+    );
   };
 
   const rows: CollapseProps["items"] =
