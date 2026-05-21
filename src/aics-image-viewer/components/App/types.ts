@@ -26,6 +26,7 @@ type ControlNames =
   | "showAxesButton"
   | "showBoundingBoxButton"
   | "metadataViewer"
+  | "scaleLevelControls"
   | "preciseRotation";
 /** Show/hide different elements of the UI */
 export type ControlVisibilityFlags = { [K in ControlNames]: boolean };
@@ -70,6 +71,6 @@ export interface AppProps {
   view3dRef?: MutableRefObject<View3d | null>;
   metadataFormatter?: (metadata: MetadataRecord) => MetadataRecord;
   onControlPanelToggle?: (collapsed: boolean) => void;
-  showError?: (error: any) => void;
+  showError?: (error: unknown, image?: Volume) => void;
   onImageTitleChange?: (title: string | undefined) => void;
 }

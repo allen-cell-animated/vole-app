@@ -54,6 +54,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   showAxesButton: true,
   showBoundingBoxButton: true,
   metadataViewer: true,
+  scaleLevelControls: true,
   preciseRotation: true,
 };
 
@@ -159,7 +160,7 @@ const App: React.FC<AppProps> = (props) => {
 
   useEffect(() => {
     // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
-    view3d.setLoadErrorHandler((_vol, e) => showError(e));
+    view3d.setLoadErrorHandler((vol, e) => showError(e, vol));
     return () => view3d.setLoadErrorHandler(undefined);
   }, [view3d, showError]);
 
@@ -341,8 +342,8 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   const onError = useCallback(
-    (error: unknown) => {
-      showError(error);
+    (error: unknown, image?: Volume) => {
+      showError(error, image);
       onImageTitleChange?.(undefined);
     },
     [showError, onImageTitleChange]

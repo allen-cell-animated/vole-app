@@ -28,7 +28,7 @@ export type UseVolumeOptions = {
   /** Callback for when a single channel of the volume has loaded. */
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
-  onError?: (error: unknown) => void;
+  onError?: (error: unknown, image?: Volume) => void;
   /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
 };
