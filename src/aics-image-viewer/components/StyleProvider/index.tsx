@@ -408,8 +408,8 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   // Toolbar has special colors for radio buttons and will use these variables to apply them
-  --color-button-radio-hover-outline: var(--color-button-tertiary-active-outline);
-  --color-button-radio-hover-text: var(--color-button-tertiary-active-outline);
+  --color-button-radio-hover-outline: var(--color-button-tertiary-hover-outline);
+  --color-button-radio-hover-text: var(--color-button-tertiary-hover-outline);
 
   .ant-radio-button-wrapper {
     &::before {
@@ -429,10 +429,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       color: var(--color-button-radio-hover-text);
       border-color: var(--color-button-radio-hover-outline);
       outline: none;
+      z-index: 2;
 
       &:not(:first-child) {
         box-shadow: -1px 0px 0px 0px var(--color-button-radio-hover-outline);
-        z-index: 2;
       }
     }
   }
