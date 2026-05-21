@@ -483,6 +483,7 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           },
           Radio: {
             buttonCheckedBg: theme.colors.button.tertiary.activatedBg,
+            buttonColor: theme.colors.button.tertiary.text,
             // can't style borders and text of activated buttons independently within ant's system, so we set border
             //   colors here and text/bg colors in custom css
             colorPrimary: theme.colors.button.tertiary.activatedOutline,

@@ -109,7 +109,7 @@
 
   .btn-borderless,
   .ant-select.ant-select-outlined .ant-select-selector,
-  .ant-radio-button-wrapper {
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-checked) {
     background-color: var(--color-toolbar-button-bg);
   }
 
@@ -143,10 +143,6 @@
       }
     }
 
-    &.ant-radio-button-wrapper-checked {
-      background-color: #4b4b4b;
-    }
-
     &:hover {
       background-color: $highlight-purple;
       color: white;
@@ -160,28 +156,15 @@
       content: none;
     }
   }
-}
 
-/* :focus-visible is our ideal focus behavior, but support for the required selectors (namely :has) is spotty. */
-
-@supports selector(:has(:focus-visible)) {
-  .viewer-toolbar {
-    .ant-select-selection:focus-visible,
-    .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible),
-    .btn-borderless:focus-visible {
-      background-color: $highlight-purple !important;
-      color: white !important;
-    }
-
-    .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible) {
-      outline: none;
-    }
+  .ant-select-selection:focus-visible,
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible),
+  .btn-borderless:focus-visible {
+    background-color: $highlight-purple !important;
+    color: white !important;
   }
-}
 
-@supports not (selector(:has(:focus-visible))) {
-  .viewer-toolbar .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):focus-within {
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible) {
     outline: none;
-    border-color: $light-gray;
   }
 }
