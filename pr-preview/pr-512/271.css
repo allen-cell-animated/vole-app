@@ -800,7 +800,8 @@
     align-items:center;
   }
 
-  .viewer-control-row .control .control-slider{
+  .viewer-control-row .control .control-slider,
+    .viewer-control-row .control .control-extra:first-child{
       flex-grow:1;
     }
 
@@ -1196,24 +1197,53 @@
   width:40vw;
   align-items:start;
   z-index:5000;
-  border-color:#dc4446;
+  border-color:var(--color-text-error);
   padding:12px 30px;
   color:var(--color-text-section);
 }
+
+  .load-error-alert.error-flash{
+    background-color:var(--color-text-error);
+  }
+
   .load-error-alert .ant-alert-icon,
   .load-error-alert .ant-alert-close-icon,
   .load-error-alert .ant-alert-message div{
     min-height:24px;
   }
-  .load-error-alert .ant-btn-text{
+
+  .load-error-alert .ant-alert-close-icon{
+    margin-inline-start:14px;
+  }
+
+  .load-error-alert .ant-alert-action{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+
+  .load-error-alert .ant-alert-action > button{
+      gap:4px;
+      border:none !important;
+    }
+
+  .load-error-alert .ant-btn-text,
+  .load-error-alert .ant-alert-action{
     color:var(--color-text-link);
   }
+
   .load-error-alert .ant-btn-text:hover{
-      color:#25affe !important;
-    }
+    color:#25affe !important;
+  }
+
+  .load-error-alert .anticon{
+    font-size:21px;
+  }
+
   .load-error-alert .ant-alert-message > div.error-title{
       font-weight:600;
     }
+
   .load-error-alert .ant-alert-message > div.error-cause{
       font-style:italic;
       color:var(--color-text-body);
@@ -1380,55 +1410,63 @@
       content:none;
     }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting{
+.viewer-toolbar .ant-select.select-toolbar{
     min-width:120px;
   }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting .ant-select-selection-item,
-    .viewer-toolbar.viewer-toolbar .ant-select.select-render-setting .ant-select-arrow{
+.viewer-toolbar .ant-select.select-toolbar .ant-select-selection-item,
+    .viewer-toolbar .ant-select.select-toolbar .ant-select-arrow{
       color:var(--color-button-tertiary-text);
       transition:all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
     }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-item,
-      .viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-search{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-item,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-search{
         padding-inline-end:0;
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-item{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-item{
         color:var(--color-button-icon-disabled-text);
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selection-item:hover{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selection-item:hover{
           color:var(--color-button-icon-disabled-text);
         }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-selector{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-selector{
         border-color:var(--color-button-icon-disabled-text);
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting.ant-select-disabled .ant-select-arrow{
+.viewer-toolbar .ant-select.select-toolbar.ant-select-disabled .ant-select-arrow{
         display:none;
       }
 
-.viewer-toolbar.viewer-toolbar .ant-select.select-render-setting .ant-select-selector{
+.viewer-toolbar .ant-select.select-toolbar .ant-select-selector{
       border-color:#aeacae;
       box-shadow:none;
       background-color:var(--color-toolbar-button-bg);
     }
 
-.viewer-toolbar .ant-select.select-render-setting:hover:not(:disabled) .ant-select-selector,
-    .viewer-toolbar .ant-select.select-render-setting:hover:not(:disabled) .ant-select-arrow,
-    .viewer-toolbar .ant-select.select-render-setting:hover:not(:disabled) .ant-select-selection-item,
-    .viewer-toolbar .ant-select.select-render-setting:focus-visible:not(:disabled) .ant-select-selector,
-    .viewer-toolbar .ant-select.select-render-setting:focus-visible:not(:disabled) .ant-select-arrow,
-    .viewer-toolbar .ant-select.select-render-setting:focus-visible:not(:disabled) .ant-select-selection-item,
-    .viewer-toolbar.viewer-toolbar.viewer-toolbar .ant-select-open .ant-select-selector,
-    .viewer-toolbar.viewer-toolbar.viewer-toolbar .ant-select-open .ant-select-arrow,
-    .viewer-toolbar.viewer-toolbar.viewer-toolbar .ant-select-open .ant-select-selection-item{
-      color:var(--color-button-tertiary-hover-text);
-      outline-color:var(--color-button-tertiary-hover-outline);
-    }
+.viewer-toolbar .ant-select.select-toolbar:hover:not(.ant-select-disabled) .ant-select-selector,
+      .viewer-toolbar .ant-select.select-toolbar:hover:not(.ant-select-disabled) .ant-select-arrow,
+      .viewer-toolbar .ant-select.select-toolbar:hover:not(.ant-select-disabled) .ant-select-selection-item,
+      .viewer-toolbar .ant-select.select-toolbar:focus-visible:not(.ant-select-disabled) .ant-select-selector,
+      .viewer-toolbar .ant-select.select-toolbar:focus-visible:not(.ant-select-disabled) .ant-select-arrow,
+      .viewer-toolbar .ant-select.select-toolbar:focus-visible:not(.ant-select-disabled) .ant-select-selection-item,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select.ant-select-open .ant-select-selector,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select.ant-select-open .ant-select-arrow,
+      .viewer-toolbar .ant-select.select-toolbar.ant-select.ant-select-open .ant-select-selection-item{
+        color:var(--color-button-tertiary-hover-text);
+        outline-color:var(--color-button-tertiary-hover-outline);
+      }
+
+.viewer-toolbar .ant-select.select-toolbar.select-resolution > .ant-select-selector{
+        text-align:left;
+      }
+
+.viewer-toolbar .ant-select.select-toolbar.select-resolution.ant-select-disabled .ant-select-selection-item{
+        color:var(--color-button-tertiary-text);
+      }
 
 .viewer-toolbar-dropdown .ant-select-dropdown-menu-item-active{
     transition-property:background-color, color;
