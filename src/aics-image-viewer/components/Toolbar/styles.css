@@ -70,38 +70,38 @@
   flex-direction: row;
   justify-content: space-around;
 
-  & > div {
+  > div {
     display: flex;
     flex-direction: row;
     align-items: center;
     vertical-align: middle;
   }
 
-  & .viewer-toolbar-left,
-  & .viewer-toolbar-right {
+  .viewer-toolbar-left,
+  .viewer-toolbar-right {
     position: absolute;
     &:not(:empty) {
       padding: 0 12px;
     }
   }
-  & .viewer-toolbar-left {
+  .viewer-toolbar-left {
     left: 0;
   }
-  & .viewer-toolbar-right {
+  .viewer-toolbar-right {
     right: 0;
   }
 
-  & .viewer-toolbar-group {
+  .viewer-toolbar-group {
     display: flex;
     flex-direction: row;
     align-items: center;
     vertical-align: middle;
   }
 
-  & .viewer-toolbar-group:not(:last-child) {
+  .viewer-toolbar-group:not(:last-child) {
     margin-right: 14px;
   }
-  & .viewer-toolbar-group > :not(:last-child) {
+  .viewer-toolbar-group > :not(:last-child) {
     margin-right: 6px;
   }
 
@@ -113,17 +113,17 @@
     background-color: var(--color-toolbar-button-bg);
   }
 
-  & .ant-btn-icon-only {
+  .ant-btn-icon-only {
     padding-bottom: 4px;
     padding-left: 1px;
   }
 
-  & .btn-borderless {
+  .btn-borderless {
     border-color: transparent;
     color: var(--color-text-body);
   }
 
-  & .btn-active {
+  .btn-active {
     color: var(--color-button-icon-activated-text);
     background-color: var(--color-button-icon-activated-bg);
     border: 1px solid var(--color-button-icon-activated-outline);
@@ -131,10 +131,7 @@
 
   /* Radio buttons */
 
-  & .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled) {
-    box-shadow: -1px 0px 0px 0px transparent;
-    transition-property: color, background-color, border-color, box-shadow;
-
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled) {
     &.ant-radio-button-wrapper-checked,
     &:hover {
       outline: none;
@@ -178,24 +175,13 @@
 
     .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible) {
       outline: none;
-      border-color: $light-gray;
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px $light-gray;
-      }
     }
   }
 }
 
 @supports not (selector(:has(:focus-visible))) {
-  .viewer-toolbar {
-    .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):focus-within {
-      outline: none;
-      border-color: $light-gray;
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px $light-gray;
-      }
-    }
+  .viewer-toolbar .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):focus-within {
+    outline: none;
+    border-color: $light-gray;
   }
 }

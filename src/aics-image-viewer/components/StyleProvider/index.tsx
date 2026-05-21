@@ -456,6 +456,13 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             defaultActiveBg: theme.colors.button.secondary.bg,
             defaultActiveBorderColor: theme.colors.button.tertiary.activeOutline,
           },
+          Checkbox: {
+            borderRadiusSM: 2,
+            colorBgContainer: theme.colors.checkbox.bg,
+            colorPrimary: theme.colors.checkbox.bg,
+            colorPrimaryHover: theme.colors.checkbox.hoverBg,
+            colorText: theme.colors.checkbox.text,
+          },
           Collapse: {
             borderRadiusLG: 0,
             colorTextHeading: theme.colors.text.section,
@@ -467,22 +474,19 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           Layout: {
             siderBg: theme.colors.controlPanel.bg,
           },
-          Checkbox: {
-            borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
-            colorPrimary: theme.colors.checkbox.bg,
-            colorPrimaryHover: theme.colors.checkbox.hoverBg,
-            colorText: theme.colors.checkbox.text,
-          },
-          Tooltip: {
-            colorBgSpotlight: theme.colors.tooltip.bg,
-          },
           Modal: {
             colorBgMask: theme.colors.modal.maskBg,
             contentBg: theme.colors.modal.bg,
             headerBg: theme.colors.modal.bg,
             footerBg: theme.colors.modal.bg,
             titleFontSize: 19,
+          },
+          Radio: {
+            buttonCheckedBg: theme.colors.button.tertiary.activatedBg,
+            // can't style borders and text of activated buttons independently within ant's system, so we set border
+            //   colors here and text/bg colors in custom css
+            colorPrimary: theme.colors.button.tertiary.activatedOutline,
+            colorPrimaryHover: theme.colors.button.tertiary.activatedOutline,
           },
           Select: {
             colorText: theme.colors.button.tertiary.text,
@@ -492,6 +496,9 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             colorTextDisabled: theme.colors.button.tertiary.disabledText,
             colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
             colorBgContainerDisabled: "transparent",
+          },
+          Tooltip: {
+            colorBgSpotlight: theme.colors.tooltip.bg,
           },
         },
       }}
