@@ -481,6 +481,12 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             footerBg: theme.colors.modal.bg,
             titleFontSize: 19,
           },
+          Radio: {
+            buttonCheckedBg: theme.colors.button.tertiary.activatedBg,
+            // Keep the border color consistent; style in custom text & background color that breaks ant's system
+            colorPrimary: theme.colors.button.tertiary.activatedOutline,
+            colorPrimaryHover: theme.colors.button.tertiary.activatedOutline,
+          },
           Select: {
             colorText: theme.colors.button.tertiary.text,
             colorBorder: theme.colors.button.tertiary.outline,
