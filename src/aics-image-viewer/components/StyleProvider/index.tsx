@@ -420,7 +420,8 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       }
     }
 
-    &:hover {
+    &:hover,
+    &:has(:focus-visible) {
       color: var(--color-button-tertiary-hover-text);
       border-color: var(--color-button-tertiary-hover-outline);
 
