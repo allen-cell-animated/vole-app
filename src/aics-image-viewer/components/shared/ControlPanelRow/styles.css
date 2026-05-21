@@ -26,7 +26,7 @@
 
   /* Channel settings open/close button */
   .ant-btn-text {
-    color: var(--color-button-icon-activated-text);
+    color: var(--color-button-icon-active-text);
     transition: color 0.3s;
 
     &:hover,
