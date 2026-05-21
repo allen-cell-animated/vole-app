@@ -131,40 +131,17 @@
 
   /* Radio buttons */
 
-  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled) {
-    &.ant-radio-button-wrapper-checked,
-    &:hover {
-      outline: none;
-      color: white;
-      border-color: $light-gray;
+  --color-button-radio-hover-outline: $light-gray;
+  --color-button-radio-hover-text: var(--color-button-icon-active-text);
 
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px $light-gray;
-      }
-    }
-
-    &:hover {
-      background-color: $highlight-purple;
-      color: white;
-    }
-
-    &:focus-within {
-      outline: none;
-    }
-
-    &::before {
-      content: none;
-    }
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):hover {
+    background-color: $highlight-purple;
   }
 
-  .ant-select-selection:focus-visible,
   .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible),
   .btn-borderless:focus-visible {
-    background-color: $highlight-purple !important;
-    color: white !important;
-  }
-
-  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible) {
+    background-color: $highlight-purple;
+    color: white;
     outline: none;
   }
 
