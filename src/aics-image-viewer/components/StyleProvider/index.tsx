@@ -296,6 +296,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       background-color: var(--color-button-primary-hover-bg);
       border-color: var(--color-button-primary-hover-bg);
       color: var(--color-button-primary-text);
+      outline: none;
     }
 
     &:active:not(:disabled) {
