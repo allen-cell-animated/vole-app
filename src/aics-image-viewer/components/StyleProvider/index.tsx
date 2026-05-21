@@ -491,6 +491,7 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             colorTextQuaternary: theme.colors.button.tertiary.text,
             colorTextDisabled: theme.colors.button.tertiary.disabledText,
             colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
+            colorBgContainerDisabled: "transparent",
           },
         },
       }}
