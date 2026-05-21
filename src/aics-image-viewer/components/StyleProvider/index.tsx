@@ -407,6 +407,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     }
   }
 
+  // Toolbar has special colors for radio buttons and will use these variables to apply them
+  --color-button-radio-hover-outline: var(--color-button-tertiary-active-outline);
+  --color-button-radio-hover-text: var(--color-button-tertiary-active-outline);
+
   .ant-radio-button-wrapper {
     &::before {
       content: none;
@@ -420,12 +424,14 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       }
     }
 
-    &:hover {
-      color: var(--color-button-tertiary-hover-text);
-      border-color: var(--color-button-tertiary-hover-outline);
+    &:hover,
+    &:has(:focus-visible) {
+      color: var(--color-button-radio-hover-text);
+      border-color: var(--color-button-radio-hover-outline);
+      outline: none;
 
       &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-hover-outline);
+        box-shadow: -1px 0px 0px 0px var(--color-button-radio-hover-outline);
         z-index: 2;
       }
     }
@@ -504,7 +510,6 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             // can't style borders and text of activated buttons independently within ant's system, so we set border
             //   colors here and text/bg colors in custom css
             colorPrimary: theme.colors.button.tertiary.activeOutline,
-            colorPrimaryHover: theme.colors.button.tertiary.activeOutline,
           },
           Select: {
             colorText: theme.colors.button.tertiary.text,
