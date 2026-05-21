@@ -110,7 +110,7 @@
   .btn-borderless,
   .ant-select.ant-select-outlined .ant-select-selector,
   .ant-radio-button-wrapper {
-    background-color: var(--color-toolbar-btn-bg);
+    background-color: var(--color-toolbar-button-bg);
   }
 
   & .ant-btn-icon-only {
