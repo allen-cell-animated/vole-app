@@ -456,6 +456,13 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             defaultActiveBg: theme.colors.button.secondary.bg,
             defaultActiveBorderColor: theme.colors.button.tertiary.activeOutline,
           },
+          Checkbox: {
+            borderRadiusSM: 2,
+            colorBgContainer: theme.colors.checkbox.bg,
+            colorPrimary: theme.colors.checkbox.bg,
+            colorPrimaryHover: theme.colors.checkbox.hoverBg,
+            colorText: theme.colors.checkbox.text,
+          },
           Collapse: {
             borderRadiusLG: 0,
             colorTextHeading: theme.colors.text.section,
@@ -466,16 +473,6 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           },
           Layout: {
             siderBg: theme.colors.controlPanel.bg,
-          },
-          Checkbox: {
-            borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
-            colorPrimary: theme.colors.checkbox.bg,
-            colorPrimaryHover: theme.colors.checkbox.hoverBg,
-            colorText: theme.colors.checkbox.text,
-          },
-          Tooltip: {
-            colorBgSpotlight: theme.colors.tooltip.bg,
           },
           Modal: {
             colorBgMask: theme.colors.modal.maskBg,
@@ -492,6 +489,9 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             colorTextDisabled: theme.colors.button.tertiary.disabledText,
             colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
             colorBgContainerDisabled: "transparent",
+          },
+          Tooltip: {
+            colorBgSpotlight: theme.colors.tooltip.bg,
           },
         },
       }}
