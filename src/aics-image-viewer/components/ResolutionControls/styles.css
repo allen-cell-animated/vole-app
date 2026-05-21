@@ -1,15 +1,6 @@
 .resolution-control {
   flex-grow: 1;
 
-  &.ant-radio-group {
-    display: flex;
-
-    .ant-radio-button-wrapper {
-      flex-grow: 1;
-      text-align: center;
-    }
-  }
-
   &.ant-select {
     > .ant-select-selector {
       text-align: left;

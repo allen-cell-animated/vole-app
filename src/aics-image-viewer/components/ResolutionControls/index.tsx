@@ -21,6 +21,7 @@ const ResolutionControls: React.FC<ResolutionControlsProps> = (props) => {
     <>
       <span style={{ color: "var(--color-button-tertiary-text)" }}>Resolution</span>
       <Radio.Group
+        block
         className="resolution-control"
         value={useExactScaleLevel}
         onChange={(e) => changeViewerSetting("useExactScaleLevel", e.target.value)}
