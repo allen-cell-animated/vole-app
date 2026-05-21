@@ -135,15 +135,9 @@
   --color-button-radio-hover-outline: var(--color-button-tertiary-active-outline);
   --color-button-radio-hover-text: var(--color-button-icon-active-text);
 
-  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):hover {
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):hover,
+  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible) {
     background-color: var(--color-button-tertiary-hover-text);
-  }
-
-  .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible),
-  .btn-borderless:focus-visible {
-    background-color: var(--color-button-tertiary-hover-text);
-    color: white;
-    outline: none;
   }
 
   /* Dropdown */
