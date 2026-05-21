@@ -131,21 +131,23 @@
 
   /* Radio buttons */
 
-  --color-button-radio-hover-outline: $light-gray;
+  /* Override some default colors from `StyleProvider` */
+  --color-button-radio-hover-outline: var(--color-button-tertiary-active-outline);
   --color-button-radio-hover-text: var(--color-button-icon-active-text);
 
   .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):hover {
-    background-color: $highlight-purple;
+    background-color: var(--color-button-tertiary-hover-text);
   }
 
   .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible),
   .btn-borderless:focus-visible {
-    background-color: $highlight-purple;
+    background-color: var(--color-button-tertiary-hover-text);
     color: white;
     outline: none;
   }
 
   /* Dropdown */
+
   .ant-select.select-resolution {
     > .ant-select-selector {
       text-align: left;
