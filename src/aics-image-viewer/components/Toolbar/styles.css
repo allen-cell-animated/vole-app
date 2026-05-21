@@ -192,24 +192,13 @@
 
     .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):has(:focus-visible) {
       outline: none;
-      border-color: $light-gray;
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px $light-gray;
-      }
     }
   }
 }
 
 @supports not (selector(:has(:focus-visible))) {
-  .viewer-toolbar {
-    .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):focus-within {
-      outline: none;
-      border-color: $light-gray;
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px $light-gray;
-      }
-    }
+  .viewer-toolbar .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):focus-within {
+    outline: none;
+    border-color: $light-gray;
   }
 }
