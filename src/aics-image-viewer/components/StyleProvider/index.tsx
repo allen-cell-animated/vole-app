@@ -424,6 +424,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:has(:focus-visible) {
       color: var(--color-button-tertiary-hover-text);
       border-color: var(--color-button-tertiary-hover-outline);
+      outline: none;
 
       &:not(:first-child) {
         box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-hover-outline);
