@@ -1,5 +1,5 @@
 import type { VolumeDims } from "@aics/vole-core";
-import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
+import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Select, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
@@ -150,13 +150,19 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         label: "OME-Zarr Settings",
         children: (
           <div style={{ padding: "18px 16px 22px" }}>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 15 }}>
               <ResolutionControls
                 multiscaleDims={multiscaleDims}
                 multiscaleIndex={multiscaleIndex}
                 getPopupContainer={getDropdownContainer}
               />
             </div>
+            {multiscaleIndex !== undefined && multiscaleDims[multiscaleIndex].shape[0] > 1 && (
+              <div style={{ marginLeft: 76, color: "var(--color-controlpanel-text)" }}>
+                <Checkbox style={{ marginRight: 8 }}></Checkbox>
+                During playback, reduce by <Select size="small" options={[{ value: 1, label: 1 }]}></Select> level(s)
+              </div>
+            )}
           </div>
         ),
       });

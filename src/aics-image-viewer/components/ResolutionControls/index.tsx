@@ -19,7 +19,7 @@ const ResolutionControls: React.FC<ResolutionControlsProps> = (props) => {
 
   return (
     <>
-      <span style={{ color: "var(--color-button-tertiary-text)" }}>Resolution</span>
+      <span style={{ color: "var(--color-button-tertiary-text)", width: 70 }}>Resolution</span>
       <Radio.Group
         block
         className="resolution-control"
