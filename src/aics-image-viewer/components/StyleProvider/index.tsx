@@ -83,6 +83,7 @@ const theme = {
         activeText: palette.white,
         activeBg: palette.medDarkGrey,
         activeOutline: palette.purpleGrey,
+        disabledOutline: palette.medGrey,
         disabledText: palette.medGrey,
       },
     },
@@ -199,6 +200,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-button-tertiary-active-outline: ${$theme.colors.button.tertiary.activeOutline};
       --color-button-tertiary-active-text: ${$theme.colors.button.tertiary.hoverText};
 
+      --color-button-icon-disabled-outline: ${$theme.colors.button.tertiary.disabledOutline};
       --color-button-icon-disabled-text: ${$theme.colors.button.tertiary.disabledText};
       --color-button-icon-active-text: ${$theme.colors.button.tertiary.activeText};
       --color-button-icon-active-bg: ${$theme.colors.button.tertiary.activeBg};
@@ -340,7 +342,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
       background-color: transparent;
-      border-color: var(--color-button-tertiary-hover-bg);
+      border-color: var(--color-button-tertiary-hover-outline);
       color: var(--color-button-tertiary-hover-text);
     }
   }
@@ -388,7 +390,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
   .ant-select {
     &.ant-select-disabled .ant-select-selector {
-      border-color: var(--color-button-icon-disabled-text);
+      border-color: var(--color-button-icon-disabled-outline);
     }
 
     .ant-select-arrow {
