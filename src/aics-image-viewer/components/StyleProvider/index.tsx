@@ -80,10 +80,10 @@ const theme = {
         outline: palette.ltGrey,
         hoverOutline: palette.ltPurple,
         hoverText: palette.ltPurple,
-        activeOutline: palette.medPurple,
-        activatedText: palette.white,
-        activatedBg: palette.medDarkGrey,
-        activatedOutline: palette.purpleGrey,
+        activeText: palette.white,
+        activeBg: palette.medDarkGrey,
+        activeOutline: palette.purpleGrey,
+        disabledOutline: palette.medGrey,
         disabledText: palette.medGrey,
       },
     },
@@ -200,10 +200,11 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-button-tertiary-active-outline: ${$theme.colors.button.tertiary.activeOutline};
       --color-button-tertiary-active-text: ${$theme.colors.button.tertiary.hoverText};
 
+      --color-button-icon-disabled-outline: ${$theme.colors.button.tertiary.disabledOutline};
       --color-button-icon-disabled-text: ${$theme.colors.button.tertiary.disabledText};
-      --color-button-icon-activated-text: ${$theme.colors.button.tertiary.activatedText};
-      --color-button-icon-activated-bg: ${$theme.colors.button.tertiary.activatedBg};
-      --color-button-icon-activated-outline: ${$theme.colors.button.tertiary.activatedOutline};
+      --color-button-icon-active-text: ${$theme.colors.button.tertiary.activeText};
+      --color-button-icon-active-bg: ${$theme.colors.button.tertiary.activeBg};
+      --color-button-icon-active-outline: ${$theme.colors.button.tertiary.activeOutline};
 
       --color-toolbar-button-bg: ${$theme.colors.toolbar.buttonBg};
 
@@ -280,7 +281,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     color: var(--color-text-link);
   }
 
-  & *::selection {
+  *::selection {
     background-color: var(--color-text-selection-bg);
     color: var(--color-text-selection-text);
   }
@@ -297,6 +298,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       background-color: var(--color-button-primary-hover-bg);
       border-color: var(--color-button-primary-hover-bg);
       color: var(--color-button-primary-text);
+      outline: none;
     }
 
     &:active:not(:disabled) {
@@ -340,26 +342,20 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
       background-color: transparent;
-      border-color: var(--color-button-tertiary-hover-bg);
+      border-color: var(--color-button-tertiary-hover-outline);
       color: var(--color-button-tertiary-hover-text);
-    }
-
-    &:active:not(:disabled) {
-      background-color: transparent;
-      border-color: var(--color-button-tertiary-active-outline);
-      color: var(--color-button-tertiary-active-text);
     }
   }
 
   // Overrides for checkbox styling
-  & .ant-checkbox-input {
+  .ant-checkbox-input {
     &:hover,
     &:focus-visible {
       border: 1px solid white;
     }
   }
 
-  & .ant-checkbox.ant-checkbox-checked {
+  .ant-checkbox.ant-checkbox-checked {
     background-color: var(--color-checkbox-bg);
   }
 
@@ -368,26 +364,79 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   // Add outlines to modals and dropdowns
-  & .ant-select-dropdown,
-  & .ant-dropdown-menu,
-  & .ant-modal-content {
+  .ant-select-dropdown,
+  .ant-dropdown-menu,
+  .ant-modal-content {
     border: 1px solid var(--color-modal-border);
   }
 
   // Force active/hovered text to be white instead of grey for better contrast
-  & .ant-dropdown-menu-item-active {
+  .ant-dropdown-menu-item-active {
     color: var(--color-menu-hover-text);
   }
 
   // Remove padding in dropdown menus and make items reactangular + flush with the edge
-  & .ant-dropdown-menu,
-  & .ant-select-dropdown {
+  .ant-dropdown-menu,
+  .ant-select-dropdown {
     padding: 0;
     overflow: hidden;
 
-    & .ant-dropdown-menu-item,
-    & .ant-select-item {
+    .ant-dropdown-menu-item,
+    .ant-select-item:not(.ant-select-item-option-disabled) {
       border-radius: 0;
+      color: var(--color-button-icon-active-text);
+    }
+  }
+
+  .ant-select {
+    &.ant-select-disabled .ant-select-selector {
+      border-color: var(--color-button-icon-disabled-outline);
+    }
+
+    .ant-select-arrow {
+      transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    /* Control response to hover + active menu */
+    &:hover:not(.ant-select-disabled),
+    &:focus-visible:not(.ant-select-disabled),
+    &.ant-select.ant-select-open {
+      .ant-select-selector,
+      .ant-select-arrow,
+      .ant-select-selection-item {
+        color: var(--color-button-tertiary-hover-text);
+        outline-color: var(--color-button-tertiary-hover-outline);
+      }
+    }
+  }
+
+  // Toolbar has special colors for radio buttons and will use these variables to apply them
+  --color-button-radio-hover-outline: var(--color-button-tertiary-hover-outline);
+  --color-button-radio-hover-text: var(--color-button-tertiary-hover-text);
+
+  .ant-radio-button-wrapper {
+    &::before {
+      content: none;
+    }
+
+    &.ant-radio-button-wrapper-checked {
+      color: var(--color-button-icon-active-text);
+
+      &:not(:first-child) {
+        box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-active-outline);
+      }
+    }
+
+    &:hover,
+    &:has(:focus-visible) {
+      color: var(--color-button-radio-hover-text);
+      border-color: var(--color-button-radio-hover-outline);
+      outline: none;
+      z-index: 2;
+
+      &:not(:first-child) {
+        box-shadow: -1px 0px 0px 0px var(--color-button-radio-hover-outline);
+      }
     }
   }
 `;
@@ -431,7 +480,14 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             primaryColor: theme.colors.button.primary.text,
             defaultHoverBg: theme.colors.button.secondary.bg,
             defaultActiveBg: theme.colors.button.secondary.bg,
-            defaultActiveBorderColor: theme.colors.button.tertiary.activeOutline,
+            defaultActiveBorderColor: theme.colors.button.primary.activeOutline,
+          },
+          Checkbox: {
+            borderRadiusSM: 2,
+            colorBgContainer: theme.colors.checkbox.bg,
+            colorPrimary: theme.colors.checkbox.bg,
+            colorPrimaryHover: theme.colors.checkbox.hoverBg,
+            colorText: theme.colors.checkbox.text,
           },
           Collapse: {
             borderRadiusLG: 0,
@@ -444,22 +500,31 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           Layout: {
             siderBg: theme.colors.controlPanel.bg,
           },
-          Checkbox: {
-            borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
-            colorPrimary: theme.colors.checkbox.bg,
-            colorPrimaryHover: theme.colors.checkbox.hoverBg,
-            colorText: theme.colors.checkbox.text,
-          },
-          Tooltip: {
-            colorBgSpotlight: theme.colors.tooltip.bg,
-          },
           Modal: {
             colorBgMask: theme.colors.modal.maskBg,
             contentBg: theme.colors.modal.bg,
             headerBg: theme.colors.modal.bg,
             footerBg: theme.colors.modal.bg,
             titleFontSize: 19,
+          },
+          Radio: {
+            buttonCheckedBg: theme.colors.button.tertiary.activeBg,
+            buttonColor: theme.colors.button.tertiary.text,
+            // can't style borders and text of activated buttons independently within ant's system, so we set border
+            //   colors here and text/bg colors in custom css
+            colorPrimary: theme.colors.button.tertiary.activeOutline,
+          },
+          Select: {
+            colorText: theme.colors.button.tertiary.text,
+            colorBorder: theme.colors.button.tertiary.outline,
+            // arrow color
+            colorTextQuaternary: theme.colors.button.tertiary.text,
+            colorTextDisabled: theme.colors.button.tertiary.disabledText,
+            colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
+            colorBgContainerDisabled: "transparent",
+          },
+          Tooltip: {
+            colorBgSpotlight: theme.colors.tooltip.bg,
           },
         },
       }}

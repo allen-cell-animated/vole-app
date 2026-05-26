@@ -6,7 +6,7 @@ import { PRESET_COLOR_MAP } from "../../shared/constants";
 import type { MetadataRecord } from "../../shared/types";
 import { select, useViewerState } from "../../state/store";
 
-import ChannelsWidget from "../ChannelsWidget";
+import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
@@ -14,12 +14,7 @@ import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
 
-type PropsOf<T> = T extends React.ComponentType<infer P> ? P : never;
-
-interface ControlPanelProps
-  extends PropsOf<typeof ChannelsWidget>,
-    PropsOf<typeof GlobalVolumeControls>,
-    PropsOf<typeof CustomizeWidget> {
+interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps {
   hasImage: boolean;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
@@ -53,8 +48,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
-  const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
-  const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const getDropdownContainer = (): HTMLElement => containerRef.current ?? document.body;
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
 
@@ -160,7 +155,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
 
   return (
-    <div className="control-panel-col-container" ref={controlPanelContainerRef}>
+    <div className="control-panel-col-container" ref={containerRef}>
       <div className="control-panel-tab-col" style={{ flex: "0 0 50px" }}>
         <Button
           className={"ant-btn-icon-only btn-collapse" + (props.collapsed ? " btn-collapse-collapsed" : "")}

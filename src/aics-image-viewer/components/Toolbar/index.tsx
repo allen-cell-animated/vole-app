@@ -1,5 +1,4 @@
-// TODO this really ought to be exported at the top level...
-import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
+import type { VolumeDims } from "@aics/vole-core";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
@@ -230,8 +229,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           <div className="viewer-toolbar-group">
             <Select
-              className="select-toolbar"
-              popupClassName="viewer-toolbar-dropdown"
+              style={{ minWidth: 120 }}
               value={renderMode}
               onChange={(value) => changeViewerSetting("renderMode", value)}
               getPopupContainer={getPopupContainer}
@@ -280,8 +278,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 <Radio.Button value={true}>Manual</Radio.Button>
               </Radio.Group>
               <Select
-                className="select-toolbar select-resolution"
-                popupClassName="viewer-toolbar-dropdown"
+                className="select-resolution"
                 getPopupContainer={getPopupContainer}
                 style={{ minWidth: 150 }}
                 value={useExactScaleLevel ? scaleLevelIndex : (props.multiscaleIndex ?? scaleLevelIndex)}
