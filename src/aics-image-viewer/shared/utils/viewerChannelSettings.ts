@@ -161,11 +161,9 @@ export function findFirstChannelMatch(
 export function getDisplayName(name: string, index: number, settings?: ViewerChannelSettings): string {
   if (settings) {
     const c = findFirstChannelMatch(name, index, settings);
-    if (c) {
-      return c.name || name;
-    }
+    return c?.name ?? name;
   }
-  return name;
+  return name ?? index.toString();
 }
 
 export function makeChannelIndexGrouping(channels: string[], settings?: ViewerChannelSettings): ChannelGrouping {
