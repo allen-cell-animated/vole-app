@@ -51,6 +51,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
   const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
   const singleChannelMode = useViewerState(select("singleChannelMode"));
+  const dropResolutionForPlayback = useViewerState(select("dropResolutionForPlayback"));
+  const playbackResolutionDrop = useViewerState(select("playbackResolutionDrop"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -159,8 +161,20 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
             </div>
             {multiscaleIndex !== undefined && multiscaleDims[multiscaleIndex].shape[0] > 1 && (
               <div style={{ marginLeft: 76, color: "var(--color-controlpanel-text)" }}>
-                <Checkbox style={{ marginRight: 8 }}></Checkbox>
-                During playback, reduce by <Select size="small" options={[{ value: 1, label: 1 }]}></Select> level(s)
+                <Checkbox
+                  style={{ marginRight: 8 }}
+                  checked={dropResolutionForPlayback}
+                  onChange={({ target }) => changeViewerSetting("dropResolutionForPlayback", target.checked)}
+                />
+                During playback, reduce by{" "}
+                <Select
+                  size="small"
+                  options={Array.from({ length: multiscaleDims.length - 1 }, (_, i) => ({ value: i, label: i }))}
+                  value={playbackResolutionDrop}
+                  disabled={!dropResolutionForPlayback}
+                  onChange={(value) => changeViewerSetting("playbackResolutionDrop", value)}
+                />{" "}
+                level(s)
               </div>
             )}
           </div>
