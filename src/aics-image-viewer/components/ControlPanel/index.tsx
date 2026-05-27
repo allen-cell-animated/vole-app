@@ -173,6 +173,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                   value={playbackResolutionDrop}
                   disabled={!dropResolutionForPlayback}
                   onChange={(value) => changeViewerSetting("playbackResolutionDrop", value)}
+                  getPopupContainer={getDropdownContainer}
                 />{" "}
                 level(s)
               </div>
