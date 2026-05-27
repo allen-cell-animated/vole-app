@@ -169,7 +169,10 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 During playback, reduce by{" "}
                 <Select
                   size="small"
-                  options={Array.from({ length: multiscaleDims.length - 1 }, (_, i) => ({ value: i, label: i }))}
+                  options={Array.from({ length: multiscaleDims.length - 1 }, (_, i) => ({
+                    value: i + 1,
+                    label: i + 1,
+                  }))}
                   value={playbackResolutionDrop}
                   disabled={!dropResolutionForPlayback}
                   onChange={(value) => changeViewerSetting("playbackResolutionDrop", value)}
