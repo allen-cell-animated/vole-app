@@ -94,8 +94,8 @@ export const selectViewerSettings = (store: ViewerStore): ViewerState => ({
   singleChannelIndex: store.singleChannelIndex,
   useExactScaleLevel: store.useExactScaleLevel,
   scaleLevelIndex: store.scaleLevelIndex,
-  dropResolutionForPlayback: store.dropResolutionForPlayback,
-  playbackResolutionDrop: store.playbackResolutionDrop,
+  offsetScaleLevelForPlayback: store.offsetScaleLevelForPlayback,
+  playbackScaleLevelOffset: store.playbackScaleLevelOffset,
 });
 
 /**

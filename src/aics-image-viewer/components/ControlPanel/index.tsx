@@ -51,8 +51,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
   const resetToDefaultViewerState = useViewerState(select("resetToDefaultViewerState"));
   const singleChannelMode = useViewerState(select("singleChannelMode"));
-  const dropResolutionForPlayback = useViewerState(select("dropResolutionForPlayback"));
-  const playbackResolutionDrop = useViewerState(select("playbackResolutionDrop"));
+  const offsetScaleLevelForPlayback = useViewerState(select("offsetScaleLevelForPlayback"));
+  const playbackScaleLevelOffset = useViewerState(select("playbackScaleLevelOffset"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -163,8 +163,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
               <div style={{ marginLeft: 76, color: "var(--color-controlpanel-text)" }}>
                 <Checkbox
                   style={{ marginRight: 8 }}
-                  checked={dropResolutionForPlayback}
-                  onChange={({ target }) => changeViewerSetting("dropResolutionForPlayback", target.checked)}
+                  checked={offsetScaleLevelForPlayback}
+                  onChange={({ target }) => changeViewerSetting("offsetScaleLevelForPlayback", target.checked)}
                 />
                 During playback, reduce by{" "}
                 <Select
@@ -173,9 +173,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                     value: i + 1,
                     label: i + 1,
                   }))}
-                  value={playbackResolutionDrop}
-                  disabled={!dropResolutionForPlayback}
-                  onChange={(value) => changeViewerSetting("playbackResolutionDrop", value)}
+                  value={playbackScaleLevelOffset}
+                  disabled={!offsetScaleLevelForPlayback}
+                  onChange={(value) => changeViewerSetting("playbackScaleLevelOffset", value)}
                   getPopupContainer={getDropdownContainer}
                 />{" "}
                 level(s)

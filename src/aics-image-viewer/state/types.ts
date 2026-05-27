@@ -33,8 +33,8 @@ export type ViewerState = {
   singleChannelIndex: number;
   useExactScaleLevel: boolean;
   scaleLevelIndex: number;
-  dropResolutionForPlayback: boolean;
-  playbackResolutionDrop: number;
+  offsetScaleLevelForPlayback: boolean;
+  playbackScaleLevelOffset: number;
 };
 
 export type ChannelState = {
