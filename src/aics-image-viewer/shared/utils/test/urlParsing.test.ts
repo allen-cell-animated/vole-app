@@ -426,6 +426,8 @@ describe("Viewer state", () => {
     singleChannelIndex: 0,
     useExactScaleLevel: false,
     scaleLevelIndex: 0,
+    offsetScaleLevelForPlayback: true,
+    playbackScaleLevelOffset: 1,
   };
   const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
     mode: "volumetric",
@@ -473,6 +475,8 @@ describe("Viewer state", () => {
     singleChannelIndex: 3,
     useExactScaleLevel: true,
     scaleLevelIndex: 3,
+    offsetScaleLevelForPlayback: false,
+    playbackScaleLevelOffset: 3,
     cameraState: {
       position: [-1.05, -4, 45],
       target: [0, 0, 0],
