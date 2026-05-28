@@ -124,6 +124,8 @@ const App: React.FC<AppProps> = (props) => {
   const time = useViewerState(select("time"));
   const showAxes = useViewerState(select("showAxes"));
   const channelSettings = useViewerState(select("channelSettings"));
+  const offsetScaleLevelForPlayback = useViewerState(select("offsetScaleLevelForPlayback"));
+  const playbackScaleLevelOffset = useViewerState(select("playbackScaleLevelOffset"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const changeChannelSetting = useViewerState(select("changeChannelSetting"));
   const applyColorPresets = useViewerState(select("applyColorPresets"));
@@ -355,6 +357,7 @@ const App: React.FC<AppProps> = (props) => {
     onChangeScene,
     onError,
     maskChannelName,
+    playbackScaleLevelOffset: offsetScaleLevelForPlayback ? playbackScaleLevelOffset : 0,
   });
   const { image, setTime, setScene } = volume;
 

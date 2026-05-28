@@ -1,4 +1,5 @@
-import { LoadSpec, type RawArrayLoaderOptions, type View3d, type Volume, VolumeLoaderContext } from "@aics/vole-core";
+import type { RawArrayLoaderOptions, View3d, Volume } from "@aics/vole-core";
+import { LoadSpec, VolumeLoaderContext } from "@aics/vole-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
@@ -31,6 +32,13 @@ export type UseVolumeOptions = {
   onError?: (error: unknown, image?: Volume) => void;
   /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
+  /**
+   * The index of the scale level to load. If absent, vole-core will pick the largest scale level it guesses will
+   * definitely fit in GPU memory.
+   */
+  scaleLevelIndex?: number;
+  /** How many scale levels, if any, to drop during time series playback. */
+  playbackScaleLevelOffset?: number;
 };
 
 export const enum ImageLoadStatus {
@@ -85,6 +93,16 @@ const useEffectEventRef = <T extends (...args: any[]) => void>(callback: T | und
 };
 
 /**
+ * Determines whether we should drop to a lower scale level for speed, based on image properties and playback state.
+ *
+ * If we're playing and entire axis is not in memory (T always, Z likely), downleveling will speed up playback.
+ */
+const shouldDropScaleLevel = (image: Volume, axis: AxisName | "t" | null): boolean => {
+  const { volumeSize, subregionSize } = image.imageInfo;
+  return axis === "t" || (axis !== null && volumeSize[axis] !== subregionSize[axis]);
+};
+
+/**
  * Hook to open a volume from one or more sources (URLs or raw data) and provide controls for (re)loading and playback.
  *
  * @param scenePaths An array of volume data sources, one per scene. These can be:
@@ -117,22 +135,29 @@ const useVolume = (
   const playControls = useConstructor(() => new PlayControls());
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
   useEffect(() => {
-    playControls.onPlayingAxisChanged = (axis) => {
-      const isPlaying = axis !== null;
-      setPlayingAxis(axis);
+    playControls.onPlayingAxisChanged = (nextAxis) => {
+      const isPlaying = nextAxis !== null;
       // prioritize prefetching along the playing axis
-      sceneLoader.setPrefetchPriority(axis ? [AXIS_TO_LOADER_PRIORITY[axis]] : []);
+      sceneLoader.setPrefetchPriority(nextAxis ? [AXIS_TO_LOADER_PRIORITY[nextAxis]] : []);
       sceneLoader.updateFetchOptions({ onlyPriorityDirections: isPlaying });
       // sync multichannel loading so we don't show loaded channels one at a time
       sceneLoader.syncMultichannelLoading(isPlaying);
       if (image) {
         // If we're playing and entire axis is not in memory (T always, Z likely), downlevel to speed things up
-        const { volumeSize, subregionSize } = image.imageInfo;
-        const shouldDownlevel = isPlaying && (axis === "t" || volumeSize[axis] !== subregionSize[axis]);
-        image.updateRequiredData({ scaleLevelBias: shouldDownlevel ? 1 : 0 });
+        const isDownleveled = shouldDropScaleLevel(image, playingAxis);
+        const shouldDownlevel = shouldDropScaleLevel(image, nextAxis);
+        const offset = options?.playbackScaleLevelOffset;
+        if (!isDownleveled && shouldDownlevel && offset !== undefined && offset > 0) {
+          const currentLevel = options?.scaleLevelIndex ?? image.imageInfo.multiscaleLevel;
+          const maxLevel = image.imageInfo.numMultiscaleLevels - 1;
+          image.updateRequiredData({ multiscaleLevel: Math.min(currentLevel + offset, maxLevel) });
+        } else if (isDownleveled && !shouldDownlevel) {
+          image.updateRequiredData({ multiscaleLevel: options?.scaleLevelIndex });
+        }
       }
+      setPlayingAxis(nextAxis);
     };
-  }, [sceneLoader, playControls, image]);
+  }, [sceneLoader, playControls, playingAxis, image, options?.playbackScaleLevelOffset, options?.scaleLevelIndex]);
 
   // track which channels have been loaded
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
@@ -237,6 +262,7 @@ const useVolume = (
 
       const loadSpec = new LoadSpec();
       loadSpec.time = time;
+      loadSpec.multiscaleLevel = options?.scaleLevelIndex;
 
       const aimg = await sceneLoader.createVolume(scene, loadSpec, onChannelDataLoaded).catch(onError);
 
