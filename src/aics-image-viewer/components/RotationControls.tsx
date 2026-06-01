@@ -14,6 +14,7 @@ import SliderRow from "./shared/SliderRow";
 // };
 
 type Tuple3 = [number, number, number];
+type Matrix3x3 = [number, number, number, number, number, number, number, number, number];
 
 const toRadians = (deg: number): number => deg * (Math.PI / 180);
 
@@ -29,6 +30,17 @@ const cross = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => {
 };
 
 const vecToTarget = (state: CameraState): Tuple3 => sub(state.target, state.position);
+
+const mulMatrix = ([a11, a12, a13, a21, a22, a23, a31, a32, a33]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
+  return [x * a11 + y * a21 + z * a31, x * a12 + y * a22 + z * a32, x * a13 + y * a23 + z * a33];
+};
+
+const applyMatrix = (state: CameraState, matrix: Matrix3x3): Partial<CameraState> => {
+  const position = mulMatrix(matrix, state.position);
+  const up = mulMatrix(matrix, state.up);
+  const target = mulMatrix(matrix, state.target);
+  return { position, up, target };
+};
 
 const rotateHorizontal = (state: CameraState, deg: number): Partial<CameraState> => {
   const rad = toRadians(deg);
@@ -58,6 +70,21 @@ const roll = (state: CameraState, deg: number): Partial<CameraState> => {
   const right = cross(forward, state.up);
   const up = add(mulScalar(state.up, Math.cos(rad)), mulScalar(right, Math.sin(rad)));
   return { up };
+};
+
+const rotateMatX = (deg: number): Matrix3x3 => {
+  const rad = toRadians(deg);
+  return [1, 0, 0, 0, Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad)];
+};
+
+const rotateMatY = (deg: number): Matrix3x3 => {
+  const rad = toRadians(deg);
+  return [Math.cos(rad), 0, Math.sin(rad), 0, 1, 0, -Math.sin(rad), 0, Math.cos(rad)];
+};
+
+const rotateMatZ = (deg: number): Matrix3x3 => {
+  const rad = toRadians(deg);
+  return [Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad), 0, 0, 0, 1];
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
@@ -129,6 +156,9 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   const handleRotateHorizontal = useCameraCallback(rotateHorizontal, view3d);
   const handleRotateVertical = useCameraCallback(rotateVertical, view3d);
   const handleRoll = useCameraCallback(roll, view3d);
+  const handleRotateX = useCameraCallback((state, deg: number) => applyMatrix(state, rotateMatX(deg)), view3d);
+  const handleRotateY = useCameraCallback((state, deg: number) => applyMatrix(state, rotateMatY(deg)), view3d);
+  const handleRotateZ = useCameraCallback((state, deg: number) => applyMatrix(state, rotateMatZ(deg)), view3d);
 
   const jumpXMinus = useCameraJumpCallback(X_MINUS, view3d, true);
   const jumpXPlus = useCameraJumpCallback(X_PLUS, view3d, true);
@@ -164,6 +194,9 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
       <RotationSlider label="horizontal" onChange={handleRotateHorizontal} disabled={disable} />
       <RotationSlider label="vertical" onChange={handleRotateVertical} disabled={disable} />
       <RotationSlider label="roll" onChange={handleRoll} disabled={disable} />
+      <RotationSlider label="X" onChange={handleRotateX} disabled={disable} />
+      <RotationSlider label="Y" onChange={handleRotateY} disabled={disable} />
+      <RotationSlider label="Z" onChange={handleRotateZ} disabled={disable} />
     </div>
   );
 };
