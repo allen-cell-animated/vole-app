@@ -1,7 +1,7 @@
 import { theme as AntTheme, ConfigProvider } from "antd";
 import React from "react";
 import type { PropsWithChildren, ReactElement } from "react";
-import styled, { css } from "styled-components";
+import styled, { createGlobalStyle, css } from "styled-components";
 
 const palette = {
   black: "#000000",
@@ -137,7 +137,7 @@ const theme = {
       },
     },
     tooltip: {
-      bg: palette.veryDarkGrey,
+      bg: palette.medDarkGrey,
     },
     modal: {
       maskBg: "#000000cc",
@@ -439,6 +439,22 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       }
     }
   }
+
+`;
+
+const GlobalTooltipStyle = createGlobalStyle`
+  .ant-tooltip-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    line-height: 1.4;
+    font-weight: 300;
+    /* !important needed: antd's CSS-in-JS injects tooltip styles into portals at higher specificity than global stylesheets */
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.30), 0 3px 6px -4px rgba(0, 0, 0, 0.40), 0 9px 28px 8px rgba(0, 0, 0, 0.20) !important;
+  }
+
 `;
 
 /**
@@ -523,12 +539,16 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
             colorBgContainerDisabled: "transparent",
           },
+          // Additional tooltip overrides (font-weight, box-shadow, layout) are in GlobalTooltipStyle below,
+          // which is required because antd renders tooltips in portals outside the scoped CssProvider.
           Tooltip: {
             colorBgSpotlight: theme.colors.tooltip.bg,
+            fontSize: 12,
           },
         },
       }}
     >
+      <GlobalTooltipStyle />
       <CssProvider $theme={theme}>{props.children}</CssProvider>
     </ConfigProvider>
   );
