@@ -17,6 +17,7 @@ type Tuple3 = [number, number, number];
 type Matrix3x3 = [number, number, number, number, number, number, number, number, number];
 
 const toRadians = (deg: number): number => deg * (Math.PI / 180);
+const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 
 const add = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => [ax + bx, ay + by, az + bz];
 const sub = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => [ax - bx, ay - by, az - bz];
@@ -42,34 +43,37 @@ const applyMatrix = (state: CameraState, matrix: Matrix3x3): Partial<CameraState
   return { position, up, target };
 };
 
+type CameraBasis = { forward: Tuple3; right: Tuple3; up: Tuple3; distance: number };
+
+/** Orthonormal camera basis derived from `state`. */
+const getBasis = (state: CameraState): CameraBasis => {
+  const toTarget = vecToTarget(state);
+  const distance = length(toTarget);
+  const forward = mulScalar(toTarget, 1 / distance);
+  const right = normalize(cross(forward, state.up));
+  const up = cross(right, forward);
+  return { forward, right, up, distance };
+};
+
 const rotateHorizontal = (state: CameraState, deg: number): Partial<CameraState> => {
   const rad = toRadians(deg);
-  const toTarget = vecToTarget(state);
-  const forward = normalize(toTarget);
-  const right = cross(forward, state.up);
+  const { forward, right, up, distance } = getBasis(state);
   const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(right, -Math.sin(rad)));
-  const distance = length(toTarget);
-  const position = sub(state.target, mulScalar(nextForward, distance));
-  return { position };
+  return { position: sub(state.target, mulScalar(nextForward, distance)), up };
 };
 
 const rotateVertical = (state: CameraState, deg: number): Partial<CameraState> => {
   const rad = toRadians(deg);
-  const toTarget = vecToTarget(state);
-  const forward = normalize(toTarget);
-  const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(state.up, -Math.sin(rad)));
-  const up = add(mulScalar(state.up, Math.cos(rad)), mulScalar(forward, Math.sin(rad)));
-  const distance = length(toTarget);
-  const position = sub(state.target, mulScalar(nextForward, distance));
-  return { position, up };
+  const { forward, up, distance } = getBasis(state);
+  const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(up, -Math.sin(rad)));
+  const nextUp = add(mulScalar(up, Math.cos(rad)), mulScalar(forward, Math.sin(rad)));
+  return { position: sub(state.target, mulScalar(nextForward, distance)), up: nextUp };
 };
 
 const roll = (state: CameraState, deg: number): Partial<CameraState> => {
   const rad = toRadians(deg);
-  const forward = normalize(vecToTarget(state));
-  const right = cross(forward, state.up);
-  const up = add(mulScalar(state.up, Math.cos(rad)), mulScalar(right, Math.sin(rad)));
-  return { up };
+  const { right, up } = getBasis(state);
+  return { up: add(mulScalar(up, Math.cos(rad)), mulScalar(right, Math.sin(rad))) };
 };
 
 const rotateMatX = (deg: number): Matrix3x3 => {
@@ -85,6 +89,58 @@ const rotateMatY = (deg: number): Matrix3x3 => {
 const rotateMatZ = (deg: number): Matrix3x3 => {
   const rad = toRadians(deg);
   return [Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad), 0, 0, 0, 1];
+};
+
+/**
+ * Returns the X, Y, and Z rotation angles (in degrees) that, when applied in order
+ * via `applyMatrix(state, rotateMatX/Y/Z(deg))` to `defaultState`, reorient the camera
+ * to match the orientation of `state`. Inverse of the X/Y/Z rotation handlers.
+ *
+ * Decomposition uses intrinsic Tait-Bryan XYZ ordering. In the gimbal-lock case
+ * (|y| = 90°), Z is set to 0 and the remaining rotation is folded into X.
+ */
+export const getRotationAngles = (
+  state: CameraState,
+  defaultState: CameraState
+): { x: number; y: number; z: number } => {
+  // Build an orthonormal basis (right, up, -forward) and store its vectors as columns.
+  // Layout matches the row-major [a11..a33] convention used by `mulMatrix`.
+  const basisMatrix = (s: CameraState): Matrix3x3 => {
+    const { forward, right, up } = getBasis(s);
+    return [right[0], up[0], -forward[0], right[1], up[1], -forward[1], right[2], up[2], -forward[2]];
+  };
+
+  const Bc = basisMatrix(state);
+  const Bd = basisMatrix(defaultState);
+  const at = (M: Matrix3x3, row: number, col: number): number => M[row * 3 + col];
+
+  // Each handler applies `M^T` (per `mulMatrix`'s convention) to the basis vectors.
+  // Applying X then Y then Z to defaultState produces basis vectors
+  //   Bc = Rz(z)^T * Ry(y)^T * Rx(x)^T * Bd
+  // so the rotation that takes Bd to Bc (as column matrices) is
+  //   R = Bc * Bd^T = (Rx(x) * Ry(y) * Rz(z))^T.
+  // We want to decompose Q = R^T = Rx(x) * Ry(y) * Rz(z), so transpose while reading.
+  const q = (i: number, j: number): number =>
+    at(Bc, 0, j) * at(Bd, 0, i) + at(Bc, 1, j) * at(Bd, 1, i) + at(Bc, 2, j) * at(Bd, 2, i);
+
+  // For Q = Rx(x) * Ry(y) * Rz(z):
+  //   Q[0][0] =  cy*cz       Q[0][1] = -cy*sz       Q[0][2] = sy
+  //   Q[1][2] = -sx*cy       Q[2][2] =  cx*cy
+  const sy = Math.max(-1, Math.min(1, q(0, 2)));
+  const yRad = Math.asin(sy);
+
+  let xRad: number;
+  let zRad: number;
+  if (Math.abs(sy) < 1 - 1e-6) {
+    xRad = Math.atan2(-q(1, 2), q(2, 2));
+    zRad = Math.atan2(-q(0, 1), q(0, 0));
+  } else {
+    // Gimbal lock: x and z share an axis. Fold the combined rotation into x.
+    xRad = Math.atan2(q(2, 1), q(1, 1));
+    zRad = 0;
+  }
+
+  return { x: toDegrees(xRad), y: toDegrees(yRad), z: toDegrees(zRad) };
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
