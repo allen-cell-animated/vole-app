@@ -447,10 +447,10 @@ const GlobalTooltipStyle = createGlobalStyle`
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    text-align: center;
+    /* !important needed: antd hardcodes text-align: start on tooltip inner */
+    text-align: center !important;
     line-height: 1.4;
-    font-weight: 300;
+    font-weight: 400;
     /* !important needed: antd's CSS-in-JS injects tooltip styles into portals at higher specificity than global stylesheets */
     box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.30), 0 3px 6px -4px rgba(0, 0, 0, 0.40), 0 9px 28px 8px rgba(0, 0, 0, 0.20) !important;
   }
