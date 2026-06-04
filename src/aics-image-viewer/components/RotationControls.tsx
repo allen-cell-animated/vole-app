@@ -14,6 +14,7 @@ import SliderRow from "./shared/SliderRow";
 // };
 
 type Tuple3 = [number, number, number];
+/** 3x3 matrix packed into a 9-tuple in *column-major order* */
 type Matrix3x3 = [number, number, number, number, number, number, number, number, number];
 
 const toRadians = (deg: number): number => deg * (Math.PI / 180);
@@ -32,8 +33,13 @@ const cross = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => {
 
 const vecToTarget = (state: CameraState): Tuple3 => sub(state.target, state.position);
 
-const mulMatrix = ([a11, a12, a13, a21, a22, a23, a31, a32, a33]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
-  return [x * a11 + y * a21 + z * a31, x * a12 + y * a22 + z * a32, x * a13 + y * a23 + z * a33];
+const mulMatrix = ([xx, yx, zx, xy, yy, zy, xz, yz, zz]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
+  // prettier-ignore
+  return [
+    x * xx + y * yx + z * zx,
+    x * xy + y * yy + z * zy,
+    x * xz + y * yz + z * zz,
+  ];
 };
 
 const applyMatrix = (state: CameraState, matrix: Matrix3x3): CameraState => {
@@ -55,44 +61,29 @@ const getBasis = (state: CameraState): CameraBasis => {
   return { forward, right, up, distance };
 };
 
-// const rotateHorizontal = (state: CameraState, deg: number): Partial<CameraState> => {
-//   const rad = toRadians(deg);
-//   const { forward, right, up, distance } = getBasis(state);
-//   const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(right, -Math.sin(rad)));
-//   return { position: sub(state.target, mulScalar(nextForward, distance)), up };
-// };
-
-// const rotateVertical = (state: CameraState, deg: number): Partial<CameraState> => {
-//   const rad = toRadians(deg);
-//   const { forward, up, distance } = getBasis(state);
-//   const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(up, -Math.sin(rad)));
-//   const nextUp = add(mulScalar(up, Math.cos(rad)), mulScalar(forward, Math.sin(rad)));
-//   return { position: sub(state.target, mulScalar(nextForward, distance)), up: nextUp };
-// };
-
-// const roll = (state: CameraState, deg: number): Partial<CameraState> => {
-//   const rad = toRadians(deg);
-//   const { right, up } = getBasis(state);
-//   return { up: add(mulScalar(up, Math.cos(rad)), mulScalar(right, Math.sin(rad))) };
-// };
-
-const rotateMatX = (rad: number): Matrix3x3 => {
-  return [1, 0, 0, 0, Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad)];
-};
-
-const rotateMatY = (rad: number): Matrix3x3 => {
-  return [Math.cos(rad), 0, Math.sin(rad), 0, 1, 0, -Math.sin(rad), 0, Math.cos(rad)];
-};
-
-const rotateMatZ = (rad: number): Matrix3x3 => {
-  return [Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad), 0, 0, 0, 1];
+const rotationMatrix = (x: number, y: number, z: number): Matrix3x3 => {
+  const sinX = Math.sin(x);
+  const cosX = Math.cos(x);
+  const sinY = Math.sin(y);
+  const cosY = Math.cos(y);
+  const sinZ = Math.sin(z);
+  const cosZ = Math.cos(z);
+  // prettier-ignore
+  return [
+    (cosY * cosZ), (cosX * sinZ) + (sinX * sinY * cosZ), (sinX * sinZ) - (cosX * sinY * cosZ),
+    (-cosY * sinZ), (cosX * cosZ) - (sinX * sinY * sinZ), (sinX * cosZ) + (cosX * sinY * sinZ),
+    sinY, -sinX * cosY, cosX * cosY
+  ];
 };
 
 const applyRotation = (state: CameraState, rotation: { x: number; y: number; z: number }): CameraState => {
   const currentRotation = getRotationAngles(state, DEFAULT_CAMERA_STATE);
-  const rotatedX = applyMatrix(state, rotateMatX(rotation.x + currentRotation.x));
-  const rotatedY = applyMatrix(rotatedX, rotateMatY(rotation.y + currentRotation.y));
-  return applyMatrix(rotatedY, rotateMatZ(rotation.z + currentRotation.z));
+  const matrix = rotationMatrix(
+    rotation.x + currentRotation.x,
+    rotation.y + currentRotation.y,
+    rotation.z + currentRotation.z
+  );
+  return applyMatrix(state, matrix);
 };
 
 /**
@@ -186,7 +177,18 @@ const RotationSliderNew: React.FC<{
 
   const onUpdate = React.useCallback(([value]: number[]) => onChange(value), [onChange]);
 
-  return <SliderRow label={label} min={-180} max={180} start={angle} onSlide={onUpdate} disabled={disabled} />;
+  return (
+    <SliderRow
+      label={label}
+      min={-180}
+      max={180}
+      start={angle}
+      step={10}
+      onSlide={onUpdate}
+      disabled={disabled}
+      formatInteger={true}
+    />
+  );
 };
 
 const DEFAULT_CAMERA_STATE: CameraState = {
