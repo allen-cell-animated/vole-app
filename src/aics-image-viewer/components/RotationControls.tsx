@@ -76,63 +76,34 @@ const rotationMatrix = (x: number, y: number, z: number): Matrix3x3 => {
   ];
 };
 
-const applyRotation = (state: CameraState, rotation: { x: number; y: number; z: number }): CameraState => {
-  const currentRotation = getRotationAngles(state, DEFAULT_CAMERA_STATE);
-  const matrix = rotationMatrix(
-    rotation.x + currentRotation.x,
-    rotation.y + currentRotation.y,
-    rotation.z + currentRotation.z
-  );
-  return applyMatrix(state, matrix);
+const defaultOrientedCamera = (state: CameraState): CameraState => {
+  const distance = length(vecToTarget(state));
+  return {
+    target: state.target,
+    position: add(state.target, [0, 0, distance]),
+    up: [0, 1, 0],
+  };
 };
 
-/**
- * Returns the X, Y, and Z rotation angles (in degrees) that, when applied in order
- * via `applyMatrix(state, rotateMatX/Y/Z(deg))` to `defaultState`, reorient the camera
- * to match the orientation of `state`. Inverse of the X/Y/Z rotation handlers.
- *
- * Decomposition uses intrinsic Tait-Bryan XYZ ordering. In the gimbal-lock case
- * (|y| = 90°), Z is set to 0 and the remaining rotation is folded into X.
- */
-const getRotationAngles = (state: CameraState, defaultState: CameraState): { x: number; y: number; z: number } => {
-  // Build an orthonormal basis (right, up, -forward) and store its vectors as columns.
-  // Layout matches the row-major [a11..a33] convention used by `mulMatrix`.
-  const basisMatrix = (s: CameraState): Matrix3x3 => {
-    const { forward, right, up } = getBasis(s);
-    return [right[0], up[0], -forward[0], right[1], up[1], -forward[1], right[2], up[2], -forward[2]];
-  };
+const applyRotation = (state: CameraState, rotation: { x: number; y: number; z: number }): CameraState => {
+  const matrix = rotationMatrix(rotation.x, rotation.y, rotation.z);
+  return applyMatrix(defaultOrientedCamera(state), matrix);
+};
 
-  const Bc = basisMatrix(state);
-  const Bd = basisMatrix(defaultState);
-  const at = (M: Matrix3x3, row: number, col: number): number => M[row * 3 + col];
-
-  // Each handler applies `M^T` (per `mulMatrix`'s convention) to the basis vectors.
-  // Applying X then Y then Z to defaultState produces basis vectors
-  //   Bc = Rz(z)^T * Ry(y)^T * Rx(x)^T * Bd
-  // so the rotation that takes Bd to Bc (as column matrices) is
-  //   R = Bc * Bd^T = (Rx(x) * Ry(y) * Rz(z))^T.
-  // We want to decompose Q = R^T = Rx(x) * Ry(y) * Rz(z), so transpose while reading.
-  const q = (i: number, j: number): number =>
-    at(Bc, 0, j) * at(Bd, 0, i) + at(Bc, 1, j) * at(Bd, 1, i) + at(Bc, 2, j) * at(Bd, 2, i);
-
-  // For Q = Rx(x) * Ry(y) * Rz(z):
-  //   Q[0][0] =  cy*cz       Q[0][1] = -cy*sz       Q[0][2] = sy
-  //   Q[1][2] = -sx*cy       Q[2][2] =  cx*cy
-  const sy = Math.max(-1, Math.min(1, q(0, 2)));
+const getRotationAngles2 = (state: CameraState): { x: number; y: number; z: number } => {
+  const { forward, right, up } = getBasis(state);
+  const sy = Math.max(-1, Math.min(1, right[2]));
   const y = Math.asin(sy);
 
-  let x: number;
-  let z: number;
   if (Math.abs(sy) < 1 - 1e-6) {
-    x = Math.atan2(-q(1, 2), q(2, 2));
-    z = Math.atan2(-q(0, 1), q(0, 0));
-  } else {
-    // Gimbal lock: x and z share an axis. Fold the combined rotation into x.
-    x = Math.atan2(q(2, 1), q(1, 1));
-    z = 0;
+    return {
+      x: Math.atan2(-up[2], -forward[2]),
+      y,
+      z: Math.atan2(-right[1], right[0]),
+    };
   }
-
-  return { x, y, z };
+  // Gimbal lock: y = ±90°, fold combined rotation into x.
+  return { x: Math.atan2(-forward[1], up[1]), y, z: 0 };
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
@@ -183,18 +154,12 @@ const RotationSliderNew: React.FC<{
       min={-180}
       max={180}
       start={angle}
-      step={10}
+      step={1}
       onSlide={onUpdate}
       disabled={disabled}
       formatInteger={true}
     />
   );
-};
-
-const DEFAULT_CAMERA_STATE: CameraState = {
-  position: [0, 0, 5],
-  up: [0, 1, 0],
-  target: [0, 0, 0],
 };
 
 export type RotationControlsProps = { view3d: View3d };
@@ -203,9 +168,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   const viewMode = useViewerState(select("viewMode"));
   const disable = viewMode !== ViewMode.threeD;
 
-  const [rotation, setRotation] = React.useState(() =>
-    getRotationAngles(view3d.getCameraState(), DEFAULT_CAMERA_STATE)
-  );
+  const [rotation, setRotation] = React.useState(() => getRotationAngles2(view3d.getCameraState()));
 
   const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }): CameraState => {
     return applyRotation(state, rotation);
@@ -213,7 +176,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
 
   const handleRotate = React.useCallback(
     (axis: "x" | "y" | "z", deg: number) => {
-      const rotation = getRotationAngles(view3d.getCameraState(), DEFAULT_CAMERA_STATE);
+      const rotation = getRotationAngles2(view3d.getCameraState());
       rotation[axis] = toRadians(deg);
       console.log(rotation, axis, toRadians(deg));
       setRotation(rotation);
@@ -271,7 +234,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
         onChange={(deg) => handleRotate("z", deg)}
         disabled={disable}
       />
-      <Button onClick={() => console.log(getRotationAngles(view3d.getCameraState(), DEFAULT_CAMERA_STATE))} />
+      <Button onClick={() => console.log(getRotationAngles2(view3d.getCameraState()))} />
     </div>
   );
 };
