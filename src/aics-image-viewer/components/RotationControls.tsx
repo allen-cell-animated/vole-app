@@ -90,7 +90,7 @@ const applyRotation = (state: CameraState, rotation: { x: number; y: number; z: 
   return applyMatrix(defaultOrientedCamera(state), matrix);
 };
 
-const getRotationAngles2 = (state: CameraState): { x: number; y: number; z: number } => {
+const getRotationAngles = (state: CameraState): { x: number; y: number; z: number } => {
   const { forward, right, up } = getBasis(state);
   const sy = Math.max(-1, Math.min(1, right[2]));
   const y = Math.asin(sy);
@@ -168,7 +168,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   const viewMode = useViewerState(select("viewMode"));
   const disable = viewMode !== ViewMode.threeD;
 
-  const [rotation, setRotation] = React.useState(() => getRotationAngles2(view3d.getCameraState()));
+  const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
 
   const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }): CameraState => {
     return applyRotation(state, rotation);
@@ -176,7 +176,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
 
   const handleRotate = React.useCallback(
     (axis: "x" | "y" | "z", deg: number) => {
-      const rotation = getRotationAngles2(view3d.getCameraState());
+      const rotation = getRotationAngles(view3d.getCameraState());
       rotation[axis] = toRadians(deg);
       console.log(rotation, axis, toRadians(deg));
       setRotation(rotation);
@@ -234,7 +234,7 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
         onChange={(deg) => handleRotate("z", deg)}
         disabled={disable}
       />
-      <Button onClick={() => console.log(getRotationAngles2(view3d.getCameraState()))} />
+      <Button onClick={() => console.log(getRotationAngles(view3d.getCameraState()))} />
     </div>
   );
 };
