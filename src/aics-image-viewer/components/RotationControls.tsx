@@ -36,7 +36,7 @@ const mulMatrix = ([a11, a12, a13, a21, a22, a23, a31, a32, a33]: Matrix3x3, [x,
   return [x * a11 + y * a21 + z * a31, x * a12 + y * a22 + z * a32, x * a13 + y * a23 + z * a33];
 };
 
-const applyMatrix = (state: CameraState, matrix: Matrix3x3): Partial<CameraState> => {
+const applyMatrix = (state: CameraState, matrix: Matrix3x3): CameraState => {
   const position = mulMatrix(matrix, state.position);
   const up = mulMatrix(matrix, state.up);
   const target = mulMatrix(matrix, state.target);
@@ -55,40 +55,44 @@ const getBasis = (state: CameraState): CameraBasis => {
   return { forward, right, up, distance };
 };
 
-const rotateHorizontal = (state: CameraState, deg: number): Partial<CameraState> => {
-  const rad = toRadians(deg);
-  const { forward, right, up, distance } = getBasis(state);
-  const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(right, -Math.sin(rad)));
-  return { position: sub(state.target, mulScalar(nextForward, distance)), up };
-};
+// const rotateHorizontal = (state: CameraState, deg: number): Partial<CameraState> => {
+//   const rad = toRadians(deg);
+//   const { forward, right, up, distance } = getBasis(state);
+//   const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(right, -Math.sin(rad)));
+//   return { position: sub(state.target, mulScalar(nextForward, distance)), up };
+// };
 
-const rotateVertical = (state: CameraState, deg: number): Partial<CameraState> => {
-  const rad = toRadians(deg);
-  const { forward, up, distance } = getBasis(state);
-  const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(up, -Math.sin(rad)));
-  const nextUp = add(mulScalar(up, Math.cos(rad)), mulScalar(forward, Math.sin(rad)));
-  return { position: sub(state.target, mulScalar(nextForward, distance)), up: nextUp };
-};
+// const rotateVertical = (state: CameraState, deg: number): Partial<CameraState> => {
+//   const rad = toRadians(deg);
+//   const { forward, up, distance } = getBasis(state);
+//   const nextForward = add(mulScalar(forward, Math.cos(rad)), mulScalar(up, -Math.sin(rad)));
+//   const nextUp = add(mulScalar(up, Math.cos(rad)), mulScalar(forward, Math.sin(rad)));
+//   return { position: sub(state.target, mulScalar(nextForward, distance)), up: nextUp };
+// };
 
-const roll = (state: CameraState, deg: number): Partial<CameraState> => {
-  const rad = toRadians(deg);
-  const { right, up } = getBasis(state);
-  return { up: add(mulScalar(up, Math.cos(rad)), mulScalar(right, Math.sin(rad))) };
-};
+// const roll = (state: CameraState, deg: number): Partial<CameraState> => {
+//   const rad = toRadians(deg);
+//   const { right, up } = getBasis(state);
+//   return { up: add(mulScalar(up, Math.cos(rad)), mulScalar(right, Math.sin(rad))) };
+// };
 
-const rotateMatX = (deg: number): Matrix3x3 => {
-  const rad = toRadians(deg);
+const rotateMatX = (rad: number): Matrix3x3 => {
   return [1, 0, 0, 0, Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad)];
 };
 
-const rotateMatY = (deg: number): Matrix3x3 => {
-  const rad = toRadians(deg);
+const rotateMatY = (rad: number): Matrix3x3 => {
   return [Math.cos(rad), 0, Math.sin(rad), 0, 1, 0, -Math.sin(rad), 0, Math.cos(rad)];
 };
 
-const rotateMatZ = (deg: number): Matrix3x3 => {
-  const rad = toRadians(deg);
+const rotateMatZ = (rad: number): Matrix3x3 => {
   return [Math.cos(rad), -Math.sin(rad), 0, Math.sin(rad), Math.cos(rad), 0, 0, 0, 1];
+};
+
+const applyRotation = (state: CameraState, rotation: { x: number; y: number; z: number }): CameraState => {
+  const currentRotation = getRotationAngles(state, DEFAULT_CAMERA_STATE);
+  const rotatedX = applyMatrix(state, rotateMatX(rotation.x + currentRotation.x));
+  const rotatedY = applyMatrix(rotatedX, rotateMatY(rotation.y + currentRotation.y));
+  return applyMatrix(rotatedY, rotateMatZ(rotation.z + currentRotation.z));
 };
 
 /**
@@ -99,10 +103,7 @@ const rotateMatZ = (deg: number): Matrix3x3 => {
  * Decomposition uses intrinsic Tait-Bryan XYZ ordering. In the gimbal-lock case
  * (|y| = 90°), Z is set to 0 and the remaining rotation is folded into X.
  */
-export const getRotationAngles = (
-  state: CameraState,
-  defaultState: CameraState
-): { x: number; y: number; z: number } => {
+const getRotationAngles = (state: CameraState, defaultState: CameraState): { x: number; y: number; z: number } => {
   // Build an orthonormal basis (right, up, -forward) and store its vectors as columns.
   // Layout matches the row-major [a11..a33] convention used by `mulMatrix`.
   const basisMatrix = (s: CameraState): Matrix3x3 => {
@@ -127,32 +128,33 @@ export const getRotationAngles = (
   //   Q[0][0] =  cy*cz       Q[0][1] = -cy*sz       Q[0][2] = sy
   //   Q[1][2] = -sx*cy       Q[2][2] =  cx*cy
   const sy = Math.max(-1, Math.min(1, q(0, 2)));
-  const yRad = Math.asin(sy);
+  const y = Math.asin(sy);
 
-  let xRad: number;
-  let zRad: number;
+  let x: number;
+  let z: number;
   if (Math.abs(sy) < 1 - 1e-6) {
-    xRad = Math.atan2(-q(1, 2), q(2, 2));
-    zRad = Math.atan2(-q(0, 1), q(0, 0));
+    x = Math.atan2(-q(1, 2), q(2, 2));
+    z = Math.atan2(-q(0, 1), q(0, 0));
   } else {
     // Gimbal lock: x and z share an axis. Fold the combined rotation into x.
-    xRad = Math.atan2(q(2, 1), q(1, 1));
-    zRad = 0;
+    x = Math.atan2(q(2, 1), q(1, 1));
+    z = 0;
   }
 
-  return { x: toDegrees(xRad), y: toDegrees(yRad), z: toDegrees(zRad) };
+  return { x, y, z };
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
 const useCameraCallback = <T extends any[]>(
   transform: (state: CameraState, ...args: T) => Partial<CameraState>,
   view3d: View3d
-): ((...args: T) => void) => {
+): ((...args: T) => CameraState) => {
   return React.useCallback(
     (...args: T) => {
       const state = view3d.getCameraState();
       const nextState = transform(state, ...args);
       view3d.setCameraState(nextState);
+      return { ...state, ...nextState };
     },
     [view3d, transform]
   );
@@ -174,33 +176,23 @@ const Y_PLUS: VectorFn = (len) => [0, len, 0];
 const Z_MINUS: VectorFn = (len) => [0, 0, -len];
 const Z_PLUS: VectorFn = (len) => [0, 0, len];
 
-const RotationSlider: React.FC<{ label: string; onChange: (delta: number) => void; disabled?: boolean }> = (props) => {
-  const { label, onChange, disabled } = props;
-  const [delta, setDelta] = React.useState(0);
+const RotationSliderNew: React.FC<{
+  label: string;
+  angle: number;
+  onChange: (delta: number) => void;
+  disabled?: boolean;
+}> = (props) => {
+  const { label, angle, onChange, disabled } = props;
 
-  const onUpdate = React.useCallback(
-    ([value]: number[]) => {
-      setDelta((prev) => {
-        onChange(value - prev);
-        return value;
-      });
-    },
-    [onChange]
-  );
+  const onUpdate = React.useCallback(([value]: number[]) => onChange(value), [onChange]);
 
-  const onRelease = React.useCallback(() => setDelta(0), []);
+  return <SliderRow label={label} min={-180} max={180} start={angle} onUpdate={onUpdate} disabled={disabled} />;
+};
 
-  return (
-    <SliderRow
-      label={label}
-      min={-90}
-      max={90}
-      start={delta}
-      onUpdate={onUpdate}
-      onChange={onRelease}
-      disabled={disabled}
-    />
-  );
+const DEFAULT_CAMERA_STATE: CameraState = {
+  position: [0, 0, 5],
+  up: [0, 1, 0],
+  target: [0, 0, 0],
 };
 
 export type RotationControlsProps = { view3d: View3d };
@@ -209,12 +201,24 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
   const viewMode = useViewerState(select("viewMode"));
   const disable = viewMode !== ViewMode.threeD;
 
-  const handleRotateHorizontal = useCameraCallback(rotateHorizontal, view3d);
-  const handleRotateVertical = useCameraCallback(rotateVertical, view3d);
-  const handleRoll = useCameraCallback(roll, view3d);
-  const handleRotateX = useCameraCallback((state, deg: number) => applyMatrix(state, rotateMatX(deg)), view3d);
-  const handleRotateY = useCameraCallback((state, deg: number) => applyMatrix(state, rotateMatY(deg)), view3d);
-  const handleRotateZ = useCameraCallback((state, deg: number) => applyMatrix(state, rotateMatZ(deg)), view3d);
+  const [rotation, setRotation] = React.useState(() =>
+    getRotationAngles(view3d.getCameraState(), DEFAULT_CAMERA_STATE)
+  );
+
+  const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }): CameraState => {
+    return applyRotation(state, rotation);
+  }, view3d);
+
+  const handleRotate = React.useCallback(
+    (axis: "x" | "y" | "z", deg: number) => {
+      const rotation = getRotationAngles(view3d.getCameraState(), DEFAULT_CAMERA_STATE);
+      rotation[axis] = toRadians(deg);
+      console.log(rotation, axis, toRadians(deg));
+      setRotation(rotation);
+      rotateCameraTo(rotation);
+    },
+    [rotateCameraTo, view3d]
+  );
 
   const jumpXMinus = useCameraJumpCallback(X_MINUS, view3d, true);
   const jumpXPlus = useCameraJumpCallback(X_PLUS, view3d, true);
@@ -247,12 +251,25 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
           </Button>
         </Button.Group>
       </SliderRow>
-      <RotationSlider label="horizontal" onChange={handleRotateHorizontal} disabled={disable} />
-      <RotationSlider label="vertical" onChange={handleRotateVertical} disabled={disable} />
-      <RotationSlider label="roll" onChange={handleRoll} disabled={disable} />
-      <RotationSlider label="X" onChange={handleRotateX} disabled={disable} />
-      <RotationSlider label="Y" onChange={handleRotateY} disabled={disable} />
-      <RotationSlider label="Z" onChange={handleRotateZ} disabled={disable} />
+      <RotationSliderNew
+        label="X"
+        angle={toDegrees(rotation.x)}
+        onChange={(deg) => handleRotate("x", deg)}
+        disabled={disable}
+      />
+      <RotationSliderNew
+        label="Y"
+        angle={toDegrees(rotation.y)}
+        onChange={(deg) => handleRotate("y", deg)}
+        disabled={disable}
+      />
+      <RotationSliderNew
+        label="Z"
+        angle={toDegrees(rotation.z)}
+        onChange={(deg) => handleRotate("z", deg)}
+        disabled={disable}
+      />
+      <Button onClick={() => console.log(getRotationAngles(view3d.getCameraState(), DEFAULT_CAMERA_STATE))} />
     </div>
   );
 };
