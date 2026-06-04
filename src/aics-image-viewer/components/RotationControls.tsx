@@ -186,7 +186,7 @@ const RotationSliderNew: React.FC<{
 
   const onUpdate = React.useCallback(([value]: number[]) => onChange(value), [onChange]);
 
-  return <SliderRow label={label} min={-180} max={180} start={angle} onUpdate={onUpdate} disabled={disabled} />;
+  return <SliderRow label={label} min={-180} max={180} start={angle} onSlide={onUpdate} disabled={disabled} />;
 };
 
 const DEFAULT_CAMERA_STATE: CameraState = {

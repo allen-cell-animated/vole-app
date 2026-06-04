@@ -15,6 +15,7 @@ type SliderRowProps = {
   hideSlider?: boolean;
   pips?: object;
   disabled?: boolean;
+  onSlide?: NouisliderProps["onSlide"];
   onUpdate?: NouisliderProps["onUpdate"];
   onChange?: NouisliderProps["onChange"];
 
@@ -39,6 +40,7 @@ const SliderRow: React.FC<SliderRowProps> = (props) => (
             tooltips={true}
             behaviour="drag"
             format={props.formatInteger ? INTEGER_FORMATTER : undefined}
+            onSlide={props.onSlide}
             onUpdate={props.onUpdate}
             onChange={props.onChange}
           />
