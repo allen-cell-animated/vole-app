@@ -43,7 +43,7 @@
     "checks": "npm run lint && npm run typeCheck && npm run test"
   },
   "author": "Megan Riel-Mehan",
-  "license": "ISC",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "@aics/vole-core": "^4.9.1",
     "@ant-design/icons": "^5.2.5",
