@@ -170,19 +170,15 @@ const RotationControls: React.FC<RotationControlsProps> = ({ view3d }) => {
 
   const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
 
-  const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }): CameraState => {
-    return applyRotation(state, rotation);
-  }, view3d);
+  const rotateCameraTo = useCameraCallback(applyRotation, view3d);
 
   const handleRotate = React.useCallback(
     (axis: "x" | "y" | "z", deg: number) => {
-      const rotation = getRotationAngles(view3d.getCameraState());
       rotation[axis] = toRadians(deg);
-      console.log(rotation, axis, toRadians(deg));
       setRotation(rotation);
       rotateCameraTo(rotation);
     },
-    [rotateCameraTo, view3d]
+    [rotation, rotateCameraTo]
   );
 
   const jumpXMinus = useCameraJumpCallback(X_MINUS, view3d, true);
