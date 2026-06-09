@@ -1,10 +1,17 @@
-import type { Volume } from "@aics/vole-core";
+import type { View3d, Volume } from "@aics/vole-core";
 import { CaretRightOutlined, PauseOutlined } from "@ant-design/icons";
 import { Button, Tooltip } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 
 import type { ViewMode } from "../../shared/enums";
 import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
+import {
+  applyMatrix,
+  defaultOrientedCamera,
+  getRotationAngles,
+  rotationMatrix,
+  useCameraCallback,
+} from "../../shared/utils/camera";
 import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
 
@@ -19,7 +26,9 @@ type SliderRowProps = {
   label: string;
   vals: number[];
   valsReadout?: number[];
+  min?: number;
   max: number;
+  hideSpinbox?: boolean;
   // These event handlers attach to the events of the same names provided by noUiSlider.
   // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
   onSlide?: (values: number[]) => void;
@@ -34,7 +43,9 @@ const SliderRow: React.FC<SliderRowProps> = ({
   label,
   vals,
   valsReadout = vals,
+  min: rawMin,
   max,
+  hideSpinbox,
   onSlide,
   onChange = onSlide,
   onStart,
@@ -44,7 +55,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   // If slider is a range, handles represent slice *edges*: the range around only the 1st slice is [0, 1]; the range
   // around only the last is [max-1, max].
   // If slider is not a range, just work with slices, but don't 0-index: 1st slice is 1, last is max
-  const min = isRange ? 0 : 1;
+  const min = rawMin ?? (isRange ? 0 : 1);
   const wrappedOnSlide = isRange ? onSlide : (values: number[]) => onSlide?.([values[0] - 1]);
   const wrappedOnChange = isRange ? onChange : (values: number[]) => onChange?.([values[0] - 1]);
 
@@ -81,7 +92,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
           />
         </span>
       )}
-      {max > min && (
+      {max > min && !hideSpinbox && (
         <span className="slider-values">
           <NumericInput
             min={min}
@@ -188,7 +199,7 @@ type AxisClipSlidersProps = {
   playControls: PlayControls;
 };
 
-const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
+export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   const activeAxis = activeAxisMap[props.mode];
 
   const pauseOnInput = (axis: AxisName | "t"): void => {
@@ -323,4 +334,51 @@ const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   );
 };
 
-export default AxisClipSliders;
+/** Convert an angle from degrees to radians */
+const toRadians = (deg: number): number => deg * (Math.PI / 180);
+/** Convert an angle from radians to degrees */
+const toDegrees = (rad: number): number => rad * (180 / Math.PI);
+
+export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
+  const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
+
+  const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }) => {
+    const matrix = rotationMatrix(rotation.x, rotation.y, rotation.z);
+    return applyMatrix(defaultOrientedCamera(state), matrix);
+  }, view3d);
+
+  const handleRotate = React.useCallback(
+    (axis: "x" | "y" | "z", deg: number) => {
+      rotation[axis] = toRadians(deg);
+      setRotation(rotation);
+      rotateCameraTo(rotation);
+    },
+    [rotation, rotateCameraTo]
+  );
+
+  const createRotateSlider = (axis: AxisName): React.ReactNode => (
+    <div key={`${axis}-rotate`} className={`slider-row slider-${axis}`}>
+      <SliderRow
+        label={axis.toUpperCase()}
+        vals={[toDegrees(rotation[axis])]}
+        min={-180}
+        max={180}
+        hideSpinbox={true}
+        onSlide={([deg]) => handleRotate(axis, deg)}
+      />
+    </div>
+  );
+
+  return (
+    <div className="clip-sliders">
+      <span className="slider-group">
+        <h4 className="slider-group-title">Rotate</h4>
+        <span className="slider-group-rows">
+          {createRotateSlider("x")}
+          {createRotateSlider("y")}
+          {createRotateSlider("z")}
+        </span>
+      </span>
+    </div>
+  );
+};

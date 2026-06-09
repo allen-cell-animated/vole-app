@@ -8,7 +8,7 @@ import type { AxisName, PerAxis, Styles } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState } from "../../state/store";
 
-import AxisClipSliders from "../AxisClipSliders";
+import { AxisClipSliders, RotationSliders } from "../AxisClipSliders";
 import BottomPanel from "../BottomPanel";
 
 import "./styles.css";
@@ -92,6 +92,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
             playingAxis={props.playingAxis}
           />
         )}
+        <RotationSliders view3d={props.view3d} disable={false} />
       </BottomPanel>
       {renderOverlay()}
     </div>
