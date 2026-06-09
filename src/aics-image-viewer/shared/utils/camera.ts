@@ -29,6 +29,11 @@ const mulMatrix = ([xx, yx, zx, xy, yy, zy, xz, yz, zz]: Matrix3x3, [x, y, z]: T
   ];
 };
 
+/** Transpose a 3x3 matrix */
+const transpose = ([m00, m10, m20, m01, m11, m21, m02, m12, m22]: Matrix3x3): Matrix3x3 => {
+  return [m00, m01, m02, m10, m11, m12, m20, m21, m22];
+};
+
 /** Multiply every vector in `state` by `matrix` */
 export const applyMatrix = (state: CameraState, matrix: Matrix3x3): CameraState => {
   const position = mulMatrix(matrix, state.position);
@@ -70,12 +75,19 @@ export const rotationMatrix = (x: number, y: number, z: number): Matrix3x3 => {
   ];
 };
 
-/** Creates a new `CameraState` from `state` which represents rotating `state` to the default camera orientation */
+/**
+ * Constructs a new `CameraState` equivalent to rotating `state` about the origin such that the camera returns to its
+ * default *orientation* (looking towards -Z, +Y up), though not necessarily its default *position*.
+ */
 export const defaultOrientedCamera = (state: CameraState): CameraState => {
   const distance = length(vecToTarget(state));
+  // Rotate `target` about the origin, then derive `position` from `target`
+  const { x, y, z } = getRotationAngles(state);
+  const matrix = transpose(rotationMatrix(x, y, z));
+  const target = mulMatrix(matrix, state.target);
   return {
-    target: state.target,
-    position: add(state.target, [0, 0, distance]),
+    target: target,
+    position: add(target, [0, 0, distance]),
     up: [0, 1, 0],
   };
 };
