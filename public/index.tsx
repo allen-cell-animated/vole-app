@@ -19,7 +19,6 @@ import "./App.css";
 // vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
-console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
 const basename = resolveBasename(VOLEAPP_BASENAME);
 if (basename !== VOLEAPP_BASENAME) {
@@ -27,6 +26,8 @@ if (basename !== VOLEAPP_BASENAME) {
 } else {
   console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
 }
+
+console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
 // Decode URL path if it was encoded for GitHub pages or uses hash routing.
 const locationUrl = new URL(window.location.toString());
