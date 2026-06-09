@@ -123,14 +123,11 @@ export function tryRemoveHashRouting(url: URL): URL {
  * Resolves a basename for the app at runtime.
  * @param basename A basename to resolve. If undefined, defaults to the relative
  * basename ('./').
- * @param excludedPaths An array of paths as subpages to exclude from the
- * basename resolution. If the basename ends in any of these, that portion of
- * the path will be removed.
  * @param pathname Pathname to use, `window.location.pathname` by default. Used
  * for testing.
  * @returns The resolved basename.
  *   - If basename is `./` or `undefined`, the function will resolve the basename
- *     using the pathname. Any excluded paths will be removed and the leading
+ *     using the pathname. Removes any trailing subpages so only the leading
  *     path segment will be taken.
  *   - Otherwise, the provided basename is returned as-is, with a trailing slash
  *     added if not present.
@@ -138,12 +135,11 @@ export function tryRemoveHashRouting(url: URL): URL {
  * @example
  * ```ts
  * // Open at https://www.example.com/viewer/vole-app/main/viewer
- * const excludedPaths = ["viewer", "write_storage"];
- * resolveBasename("/viewer/vole-app/", excludedPaths) // => "/vole-app/"
- * resolveBasename("./", excludedPaths); // => "/viewer/vole-app/main/"
+ * resolveBasename("/viewer/vole-app/") // => "/viewer/vole-app/"
+ * resolveBasename("./"); // => "/viewer/vole-app/main/"
  * ```
  */
-export function resolveBasename(basename: string | undefined, excludedPaths: string[] = [], pathname?: string): string {
+export function resolveBasename(basename: string | undefined, pathname?: string): string {
   // Default to the relative basename and current pathname if not provided.
   basename = basename ?? RELATIVE_BASENAME;
   pathname = pathname ?? window.location.pathname;
@@ -154,12 +150,11 @@ export function resolveBasename(basename: string | undefined, excludedPaths: str
   }
 
   // Resolve the basename at runtime.
-  for (const subpage of excludedPaths) {
-    if (pathname.endsWith(`${subpage}/`)) {
-      pathname = pathname.slice(0, -subpage.length - 1);
-      break;
-    }
-  }
+
+  // Removes any non-directory trailing path segments to get the basename e.g.
+  // "/viewer/vole-app/subpage" becomes "/viewer/vole-app/". See
+  // https://developer.mozilla.org/en-US/docs/Web/API/Location/pathname.
   basename = pathname.replace(/(\/[^/]+)$/, "");
+  basename = basename.endsWith("/") ? basename : `${basename}/`;
   return basename;
 }

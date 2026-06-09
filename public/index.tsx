@@ -16,22 +16,16 @@ import LocalStorageReceiver from "./LocalStorageReceiver";
 
 import "./App.css";
 
-const enum Subpages {
-  VIEWER = "viewer",
-  WRITE_STORAGE = "write_storage",
-}
-const subpagesList = [Subpages.VIEWER, Subpages.WRITE_STORAGE];
-
 // vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
-console.log(`vole-app Version: ${VOLEAPP_VERSION}`);
-console.log(`vole-core Version: ${VOLECORE_VERSION}`);
+console.log(`vole-app Version ${VOLEAPP_VERSION}`);
+console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
-const basename = resolveBasename(VOLEAPP_BASENAME, subpagesList);
+const basename = resolveBasename(VOLEAPP_BASENAME);
 if (basename !== VOLEAPP_BASENAME) {
-  console.log(`vole-app Basename: ${VOLEAPP_BASENAME} (resolved to "${basename}")`);
+  console.log(`vole-app Basename ${VOLEAPP_BASENAME} (resolved to "${basename}")`);
 } else {
-  console.log(`vole-app Basename: ${VOLEAPP_BASENAME}`);
+  console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
 }
 
 // Decode URL path if it was encoded for GitHub pages or uses hash routing.
@@ -58,7 +52,7 @@ const routes: RouteObject[] = [
     errorElement: <ErrorPage />,
   },
   {
-    path: Subpages.VIEWER,
+    path: "viewer",
     lazy: async () => {
       const AppWrapper = (await import("../website/components/AppWrapper")).default;
       return {
@@ -68,7 +62,7 @@ const routes: RouteObject[] = [
     errorElement: <ErrorPage />,
   },
   {
-    path: Subpages.WRITE_STORAGE,
+    path: "write_storage",
     element: <LocalStorageReceiver />,
     errorElement: <ErrorPage />,
   },
