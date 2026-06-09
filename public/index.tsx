@@ -2,7 +2,12 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
-import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
+import {
+  decodeGitHubPagesUrl,
+  isEncodedPathUrl,
+  resolveBasename,
+  tryRemoveHashRouting,
+} from "../website/utils/gh_route_utils";
 import firestore from "./firebase/configure_firebase";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
@@ -11,13 +16,23 @@ import LocalStorageReceiver from "./LocalStorageReceiver";
 
 import "./App.css";
 
+const enum Subpages {
+  VIEWER = "viewer",
+  WRITE_STORAGE = "write_storage",
+}
+const subpagesList = [Subpages.VIEWER, Subpages.WRITE_STORAGE];
+
 // vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
-console.log(`vole-app Version ${VOLEAPP_VERSION}`);
-console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
-console.log(`vole-core Version ${VOLECORE_VERSION}`);
+console.log(`vole-app Version: ${VOLEAPP_VERSION}`);
+console.log(`vole-core Version: ${VOLECORE_VERSION}`);
 
-const basename = VOLEAPP_BASENAME;
+const basename = resolveBasename(VOLEAPP_BASENAME, subpagesList);
+if (basename !== VOLEAPP_BASENAME) {
+  console.log(`vole-app Basename: ${VOLEAPP_BASENAME} (resolved to "${basename}")`);
+} else {
+  console.log(`vole-app Basename: ${VOLEAPP_BASENAME}`);
+}
 
 // Decode URL path if it was encoded for GitHub pages or uses hash routing.
 const locationUrl = new URL(window.location.toString());
@@ -43,7 +58,7 @@ const routes: RouteObject[] = [
     errorElement: <ErrorPage />,
   },
   {
-    path: "viewer",
+    path: Subpages.VIEWER,
     lazy: async () => {
       const AppWrapper = (await import("../website/components/AppWrapper")).default;
       return {
@@ -53,7 +68,7 @@ const routes: RouteObject[] = [
     errorElement: <ErrorPage />,
   },
   {
-    path: "write_storage",
+    path: Subpages.WRITE_STORAGE,
     element: <LocalStorageReceiver />,
     errorElement: <ErrorPage />,
   },

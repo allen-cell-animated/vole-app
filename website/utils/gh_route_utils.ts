@@ -1,3 +1,13 @@
+/**
+ * When the vole-app basename is set to './', resolve it to the current path at
+ * runtime. This allows the app to be deployed to a subdirectory without needing
+ * to rebuild with a specified basename.
+ *
+ * Subdirectories cannot have names matching subpages of Vol-E (e.g. "viewer" or
+ * "write_storage").
+ */
+export const RELATIVE_BASENAME = "./";
+
 const ESCAPED_AMPERSAND = "~and~";
 
 /**
@@ -107,4 +117,49 @@ export function tryRemoveHashRouting(url: URL): URL {
     url.hash = "";
   }
   return url;
+}
+
+/**
+ * Resolves a basename for the app at runtime.
+ * @param basename A basename to resolve. If undefined, defaults to the relative
+ * basename ('./').
+ * @param excludedPaths An array of paths as subpages to exclude from the
+ * basename resolution. If the basename ends in any of these, that portion of
+ * the path will be removed.
+ * @param pathname Pathname to use, `window.location.pathname` by default. Used
+ * for testing.
+ * @returns The resolved basename.
+ *   - If basename is `./` or `undefined`, the function will resolve the basename
+ *     using the pathname. Any excluded paths will be removed and the leading
+ *     path segment will be taken.
+ *   - Otherwise, the provided basename is returned as-is, with a trailing slash
+ *     added if not present.
+ *
+ * @example
+ * ```ts
+ * // Open at https://www.example.com/viewer/vole-app/main/viewer
+ * const excludedPaths = ["viewer", "write_storage"];
+ * resolveBasename("/viewer/vole-app/", excludedPaths) // => "/vole-app/"
+ * resolveBasename("./", excludedPaths); // => "/viewer/vole-app/main/"
+ * ```
+ */
+export function resolveBasename(basename: string | undefined, excludedPaths: string[] = [], pathname?: string): string {
+  // Default to the relative basename and current pathname if not provided.
+  basename = basename ?? RELATIVE_BASENAME;
+  pathname = pathname ?? window.location.pathname;
+
+  basename = basename.endsWith("/") ? basename : `${basename}/`;
+  if (basename !== RELATIVE_BASENAME) {
+    return basename;
+  }
+
+  // Resolve the basename at runtime.
+  for (const subpage of excludedPaths) {
+    if (pathname.endsWith(`${subpage}/`)) {
+      pathname = pathname.slice(0, -subpage.length - 1);
+      break;
+    }
+  }
+  basename = pathname.replace(/(\/[^/]+)$/, "");
+  return basename;
 }
