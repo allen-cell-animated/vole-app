@@ -2,9 +2,6 @@
  * When the vole-app basename is set to './', resolve it to the current path at
  * runtime. This allows the app to be deployed to a subdirectory without needing
  * to rebuild with a specified basename.
- *
- * Subdirectories cannot have names matching subpages of Vol-E (e.g. "viewer" or
- * "write_storage").
  */
 export const RELATIVE_BASENAME = "./";
 
@@ -123,12 +120,12 @@ export function tryRemoveHashRouting(url: URL): URL {
  * Resolves a basename for the app at runtime.
  * @param basename A basename to resolve. If undefined, defaults to the relative
  * basename ('./').
- * @param pathname Pathname to use, `window.location.pathname` by default. Used
- * for testing.
+ * @param pathname Pathname to use, `window.location.pathname` by default.
+ * Override for testing.
  * @returns The resolved basename.
- *   - If basename is `./` or `undefined`, the function will resolve the basename
- *     using the pathname. Removes any trailing subpages so only the leading
- *     path segment will be taken.
+ *   - If basename is `"./"` or `undefined`, the function will resolve the
+ *     basename using the pathname. Removes any trailing subpages so only the
+ *     leading path segment will be taken.
  *   - Otherwise, the provided basename is returned as-is, with a trailing slash
  *     added if not present.
  *
@@ -149,11 +146,10 @@ export function resolveBasename(basename: string | undefined, pathname?: string)
     return basename;
   }
 
-  // Resolve the basename at runtime.
-
-  // Removes any non-directory trailing path segments to get the basename e.g.
-  // "/viewer/vole-app/subpage" becomes "/viewer/vole-app/". See
+  // Removes any non-directory trailing path segments from the pathname to get
+  // the basename. See
   // https://developer.mozilla.org/en-US/docs/Web/API/Location/pathname.
+  // ex: "/viewer/vole-app/subpage" becomes "/viewer/vole-app/".
   basename = pathname.replace(/(\/[^/]+)$/, "");
   basename = basename.endsWith("/") ? basename : `${basename}/`;
   return basename;

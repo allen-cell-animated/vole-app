@@ -178,18 +178,22 @@ describe("Route utils", () => {
 
   describe("resolveBasename", () => {
     it("returns the provided basename if it's not the relative basename", () => {
+      expect(resolveBasename("/")).toEqual("/");
       expect(resolveBasename("/myapp/")).toEqual("/myapp/");
       expect(resolveBasename("/vole-app/")).toEqual("/vole-app/");
       expect(resolveBasename("/website-3d-cell-viewer-release/")).toEqual("/website-3d-cell-viewer-release/");
     });
 
     it("appends trailing slash to the basename if missing", () => {
+      expect(resolveBasename("")).toEqual("/");
       expect(resolveBasename("/myapp")).toEqual("/myapp/");
       expect(resolveBasename("/vole-app")).toEqual("/vole-app/");
       expect(resolveBasename("/website-3d-cell-viewer-release")).toEqual("/website-3d-cell-viewer-release/");
     });
 
     it("resolves relative basenames", () => {
+      expect(resolveBasename(RELATIVE_BASENAME, "")).toEqual("/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/")).toEqual("/");
       expect(resolveBasename(RELATIVE_BASENAME, "/myapp/")).toEqual("/myapp/");
       expect(resolveBasename(RELATIVE_BASENAME, "/myapp/subfolder/")).toEqual("/myapp/subfolder/");
       expect(resolveBasename(RELATIVE_BASENAME, "/viewers/vole-app/")).toEqual("/viewers/vole-app/");
