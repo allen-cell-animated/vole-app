@@ -45,7 +45,12 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
     <div className="options-button-container">
       {contents
         .map(({ title }, index) => (
-          <Button key={index} className="options-button" size="small" onClick={() => setPage(index)}>
+          <Button
+            key={index}
+            className={open && page === index ? "options-button button-open" : "options-button"}
+            size="small"
+            onClick={() => setPage(index)}
+          >
             {title || "Options"}
             <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
           </Button>

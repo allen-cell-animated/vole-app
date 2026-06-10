@@ -47,12 +47,14 @@
     }
   }
 
-  & .options-button-container {
+  .options-button-container {
     position: absolute;
     right: 0;
   }
 
-  & .options-button {
+  .options-button {
+    bottom: 0;
+    transition: bottom 0.1s linear;
     border: none;
     box-shadow: none;
     margin-right: 0.8em;
@@ -61,7 +63,11 @@
 
   .button-arrow {
     transform: rotate(270deg);
-    transition: transform 0.2s linear !important;
+    transition: transform 0.1s linear !important;
+  }
+
+  .options-button.button-open .button-arrow {
+    transform: rotate(90deg);
   }
 
   .drawer-body-wrapper {
@@ -70,6 +76,10 @@
   }
 
   .ant-drawer.ant-drawer-open {
+    .options-button:not(.button-open) {
+      bottom: 0.8em;
+    }
+
     .ant-drawer-content-wrapper {
       transform: none;
       box-shadow: none;
@@ -83,10 +93,6 @@
     .ant-drawer-body,
     .ant-drawer-title .ant-btn.ant-btn-default {
       background-color: var(--color-controlpanel-drawer-bg);
-    }
-
-    .button-arrow {
-      transform: rotate(90deg);
     }
   }
 }
