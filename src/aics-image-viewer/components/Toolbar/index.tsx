@@ -1,3 +1,4 @@
+import type { View3d } from "@aics/vole-core";
 // TODO this really ought to be exported at the top level...
 import type { VolumeDims } from "@aics/vole-core/es/types/VolumeDims";
 import { ReloadOutlined } from "@ant-design/icons";
@@ -16,6 +17,7 @@ import ViewModeRadioButtons from "./ViewModeRadioButtons";
 import "./styles.css";
 
 type ToolbarProps = {
+  view3d: View3d;
   cellDownloadHref: string;
   fovDownloadHref: string;
   hasCellId: boolean;
@@ -199,7 +201,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                   onViewModeChange={(newMode) => changeViewerSetting("viewMode", newMode)}
                 />
               )}
-              {visibleControls.resetCameraButton && <ResetCameraButton resetCamera={props.resetCamera} />}
+              {visibleControls.resetCameraButton && (
+                <ResetCameraButton resetCamera={props.resetCamera} view3d={props.view3d} viewMode={viewMode} />
+              )}
               {visibleControls.autoRotateButton && (
                 <Tooltip placement="bottom" title={turntableToggleTitle}>
                   <Button
