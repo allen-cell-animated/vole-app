@@ -6,30 +6,52 @@ import ViewerIcon from "../shared/ViewerIcon";
 import "./styles.css";
 
 type BottomPanelProps = {
-  title?: string;
+  contents: { title: string; children: React.ReactNode }[];
+  // title?: string;
   open?: boolean;
-  onOpenChange?: (visible: boolean) => void;
-  children?: React.ReactNode;
+  pageIndex?: number;
+  onPageChange?: (page: number | null) => void;
+  // children?: React.ReactNode;
   height?: number;
 };
 
-const BottomPanel: React.FC<BottomPanelProps> = ({ children, open: openProp, title, height, onOpenChange }) => {
+const BottomPanel: React.FC<BottomPanelProps> = ({
+  contents,
+  open: openProp,
+  pageIndex: pageProp,
+  height,
+  onPageChange,
+}) => {
   const [openState, setOpenState] = useState(true);
+  const [pageState, setPageState] = useState(0);
   const open = openProp ?? openState;
+  const page = pageProp ?? pageState;
 
-  const toggleDrawer = useCallback((): void => {
-    if (openProp === undefined) {
-      setOpenState(!open);
-    }
+  const setPage = useCallback(
+    (index: number): void => {
+      const nextOpen = !open || index !== page;
 
-    onOpenChange?.(!open);
-  }, [open, openProp, onOpenChange]);
+      if (openProp === undefined) {
+        setOpenState(nextOpen);
+      }
+      if (pageProp === undefined) {
+        setPageState(index);
+      }
+
+      onPageChange?.(nextOpen ? index : null);
+    },
+    [open, openProp, page, pageProp, onPageChange]
+  );
 
   const optionsButton = (
-    <Button className="options-button" size="small" onClick={toggleDrawer}>
-      {title || "Options"}
-      <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
-    </Button>
+    <div className="options-button-container">
+      {contents.map(({ title }, index) => (
+        <Button key={index} className="options-button" size="small" onClick={() => setPage(index)}>
+          {title || "Options"}
+          <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
+        </Button>
+      ))}
+    </div>
   );
 
   return (
@@ -44,7 +66,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ children, open: openProp, tit
         title={optionsButton}
         height={height ?? 190}
       >
-        <div className="drawer-body-wrapper">{children}</div>
+        <div className="drawer-body-wrapper">{open !== null && page < contents.length && contents[page].children}</div>
       </Drawer>
     </div>
   );

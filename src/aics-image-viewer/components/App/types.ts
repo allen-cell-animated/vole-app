@@ -12,6 +12,7 @@ type ControlNames =
   | "alphaMaskSlider"
   | "autoRotateButton"
   | "axisClipSliders"
+  | "rotationSliders"
   | "brightnessSlider"
   | "backgroundColorPicker"
   | "boundingBoxColorPicker"
