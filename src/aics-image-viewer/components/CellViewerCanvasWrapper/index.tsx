@@ -95,7 +95,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
   if (visibleControls.rotationSliders) {
     bottomPanelContents.push({
       title: "Rotation",
-      children: <RotationSliders view3d={props.view3d} disable={false} />,
+      children: <RotationSliders view3d={props.view3d} disable={viewMode !== ViewMode.threeD} />,
     });
   }
 
