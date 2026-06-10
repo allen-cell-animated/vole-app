@@ -44,14 +44,13 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
   const optionsButton = (
     <div className="options-button-container">
       {contents
-        .slice(0)
-        .reverse()
         .map(({ title }, index) => (
           <Button key={index} className="options-button" size="small" onClick={() => setPage(index)}>
             {title || "Options"}
             <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
           </Button>
-        ))}
+        ))
+        .reverse()}
     </div>
   );
 
