@@ -380,25 +380,33 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
     <div className="clip-sliders">
       <span className="slider-group">
         <h4 className="slider-group-title">Rotate</h4>
-        <span className="slider-group-rows">
-          {createRotateSlider("x")}
-          {createRotateSlider("y")}
-          {createRotateSlider("z")}
-        </span>
+        {disable ? (
+          <span className="axis-slider-container">
+            <i>Unavailable in 2d mode</i>
+          </span>
+        ) : (
+          <span className="slider-group-rows">
+            {createRotateSlider("x")}
+            {createRotateSlider("y")}
+            {createRotateSlider("z")}
+          </span>
+        )}
       </span>
-      <span className="slider-group">
-        <h4 className="slider-group-title">Jump</h4>
-        <span className="slider-group-rows">
-          <Button.Group>
-            <Button onClick={jumpXMinus}>-X</Button>
-            <Button onClick={jumpXPlus}>+X</Button>
-            <Button onClick={jumpYMinus}>-Y</Button>
-            <Button onClick={jumpYPlus}>+Y</Button>
-            <Button onClick={jumpZMinus}>-Z</Button>
-            <Button onClick={jumpZPlus}>+Z</Button>
-          </Button.Group>
+      {!disable && (
+        <span className="slider-group">
+          <h4 className="slider-group-title">Jump</h4>
+          <span className="slider-group-rows">
+            <Button.Group>
+              <Button onClick={jumpXMinus}>-X</Button>
+              <Button onClick={jumpXPlus}>+X</Button>
+              <Button onClick={jumpYMinus}>-Y</Button>
+              <Button onClick={jumpYPlus}>+Y</Button>
+              <Button onClick={jumpZMinus}>-Z</Button>
+              <Button onClick={jumpZPlus}>+Z</Button>
+            </Button.Group>
+          </span>
         </span>
-      </span>
+      )}
     </div>
   );
 };
