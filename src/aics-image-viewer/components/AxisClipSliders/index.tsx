@@ -11,6 +11,7 @@ import {
   getRotationAngles,
   rotationMatrix,
   useCameraCallback,
+  useCameraJumpCallback,
 } from "../../shared/utils/camera";
 import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
@@ -341,6 +342,12 @@ const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 
 export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
   const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
+  const jumpXMinus = useCameraJumpCallback(view3d, "x", true, true);
+  const jumpXPlus = useCameraJumpCallback(view3d, "x", false, true);
+  const jumpYMinus = useCameraJumpCallback(view3d, "y", true);
+  const jumpYPlus = useCameraJumpCallback(view3d, "y", false);
+  const jumpZMinus = useCameraJumpCallback(view3d, "z", true, true);
+  const jumpZPlus = useCameraJumpCallback(view3d, "z", false, true);
 
   const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }) => {
     const matrix = rotationMatrix(rotation.x, rotation.y, rotation.z);
@@ -377,6 +384,19 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
           {createRotateSlider("x")}
           {createRotateSlider("y")}
           {createRotateSlider("z")}
+        </span>
+      </span>
+      <span className="slider-group">
+        <h4 className="slider-group-title">Jump to</h4>
+        <span className="slider-group-rows">
+          <Button.Group>
+            <Button onClick={jumpXMinus}>-X</Button>
+            <Button onClick={jumpXPlus}>+X</Button>
+            <Button onClick={jumpYMinus}>-Y</Button>
+            <Button onClick={jumpYPlus}>+Y</Button>
+            <Button onClick={jumpZMinus}>-Z</Button>
+            <Button onClick={jumpZPlus}>+Z</Button>
+          </Button.Group>
         </span>
       </span>
     </div>
