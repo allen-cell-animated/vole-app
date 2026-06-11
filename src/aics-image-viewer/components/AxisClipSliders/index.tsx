@@ -29,7 +29,7 @@ type SliderRowProps = {
   valsReadout?: number[];
   min?: number;
   max: number;
-  hideSpinbox?: boolean;
+  hideMax?: boolean;
   // These event handlers attach to the events of the same names provided by noUiSlider.
   // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
   onSlide?: (values: number[]) => void;
@@ -46,7 +46,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   valsReadout = vals,
   min: rawMin,
   max,
-  hideSpinbox,
+  hideMax,
   onSlide,
   onChange = onSlide,
   onStart,
@@ -93,7 +93,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
           />
         </span>
       )}
-      {max > min && !hideSpinbox && (
+      {max > min && (
         <span className="slider-values">
           <NumericInput
             min={min}
@@ -112,8 +112,12 @@ const SliderRow: React.FC<SliderRowProps> = ({
               />
             </>
           )}
-          {" / "}
-          {max}
+          {!hideMax && (
+            <>
+              {" / "}
+              {max}
+            </>
+          )}
         </span>
       )}
     </span>
@@ -342,26 +346,23 @@ const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 
 export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
   const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
-  const jumpXMinus = useCameraJumpCallback(view3d, "x", true, true);
-  const jumpXPlus = useCameraJumpCallback(view3d, "x", false, true);
-  const jumpYMinus = useCameraJumpCallback(view3d, "y", true);
-  const jumpYPlus = useCameraJumpCallback(view3d, "y", false);
-  const jumpZMinus = useCameraJumpCallback(view3d, "z", true, true);
-  const jumpZPlus = useCameraJumpCallback(view3d, "z", false, true);
+
+  const isInteractingRef = React.useRef(false);
+  const onStart = React.useCallback(() => (isInteractingRef.current = true), []);
+  const onEnd = React.useCallback(() => (isInteractingRef.current = false), []);
 
   const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }) => {
     const matrix = rotationMatrix(rotation.x, rotation.y, rotation.z);
     return applyMatrix(defaultOrientedCamera(state), matrix);
   }, view3d);
 
-  const handleRotate = React.useCallback(
-    (axis: "x" | "y" | "z", deg: number) => {
-      rotation[axis] = toRadians(deg);
-      setRotation(rotation);
-      rotateCameraTo(rotation);
-    },
-    [rotation, rotateCameraTo]
-  );
+  React.useEffect(() => {
+    rotateCameraTo(rotation);
+  }, [rotateCameraTo, rotation]);
+
+  const handleRotate = React.useCallback((axis: "x" | "y" | "z", deg: number) => {
+    setRotation((current) => ({ ...current, [axis]: toRadians(deg) }));
+  }, []);
 
   const createRotateSlider = (axis: AxisName): React.ReactNode => (
     <div key={`${axis}-rotate`} className={`slider-row slider-${axis}`}>
@@ -370,11 +371,20 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
         vals={[toDegrees(rotation[axis])]}
         min={-180}
         max={180}
-        hideSpinbox={true}
+        hideMax={true}
         onSlide={([deg]) => handleRotate(axis, deg)}
+        onStart={onStart}
+        onEnd={onEnd}
       />
     </div>
   );
+
+  const jumpXMinus = useCameraJumpCallback(view3d, "x", true, true);
+  const jumpXPlus = useCameraJumpCallback(view3d, "x", false, true);
+  const jumpYMinus = useCameraJumpCallback(view3d, "y", true);
+  const jumpYPlus = useCameraJumpCallback(view3d, "y", false);
+  const jumpZMinus = useCameraJumpCallback(view3d, "z", true, true);
+  const jumpZPlus = useCameraJumpCallback(view3d, "z", false, true);
 
   return (
     <div className="clip-sliders">
