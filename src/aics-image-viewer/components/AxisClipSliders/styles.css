@@ -2,7 +2,7 @@
 @import "../../assets/styles/variables";
 
 .clip-sliders {
-  --w-group-title: 50px;
+  --w-group-title: 60px;
   --w-axis-slider: 480px;
   --w-name: 10px;
   --w-values-3d: 160px;
