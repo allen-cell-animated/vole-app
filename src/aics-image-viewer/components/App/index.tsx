@@ -577,7 +577,6 @@ const App: React.FC<AppProps> = (props) => {
         <Layout className="cell-viewer-wrapper" style={{ margin: props.canvasMargin }}>
           <Content>
             <Toolbar
-              view3d={view3d}
               fovDownloadHref={props.parentImageDownloadHref}
               cellDownloadHref={props.imageDownloadHref}
               hasParentImage={!!props.parentImageUrl}
