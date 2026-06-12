@@ -30,6 +30,7 @@ type SliderRowProps = {
   min?: number;
   max: number;
   hideMax?: boolean;
+  unitSymbol?: string;
   // These event handlers attach to the events of the same names provided by noUiSlider.
   // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
   onSlide?: (values: number[]) => void;
@@ -47,6 +48,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   min: rawMin,
   max,
   hideMax,
+  unitSymbol,
   onSlide,
   onChange = onSlide,
   onStart,
@@ -100,6 +102,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
             max={max}
             value={valsReadout[0] + (isRange ? 0 : 1)}
             onChange={(value) => onChange?.(isRange ? [value, vals[1]] : [value - 1])}
+            unitSymbol={unitSymbol}
           />
           {isRange && (
             <>
@@ -109,6 +112,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
                 max={max}
                 value={valsReadout[1]}
                 onChange={(value) => onChange?.([vals[0], value])}
+                unitSymbol={unitSymbol}
               />
             </>
           )}
@@ -412,6 +416,7 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
         max={180}
         hideMax={true}
         onSlide={([deg]) => handleRotate(axis, deg)}
+        unitSymbol="°"
       />
     </div>
   );
