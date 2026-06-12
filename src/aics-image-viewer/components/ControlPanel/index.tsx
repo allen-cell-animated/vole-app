@@ -10,13 +10,11 @@ import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
-import RotationControls, { type RotationControlsProps } from "../RotationControls";
 import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
 
-interface ControlPanelProps
-  extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps, RotationControlsProps {
+interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps {
   hasImage: boolean;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
@@ -138,14 +136,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         key: 1,
         label: "Customize",
         children: <CustomizeWidget visibleControls={props.visibleControls} />,
-      });
-    }
-
-    if (visibleControls.preciseRotation) {
-      items.push({
-        key: 2,
-        label: "Rotation controls",
-        children: <RotationControls view3d={props.view3d} />,
       });
     }
 
