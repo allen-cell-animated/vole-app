@@ -32,6 +32,10 @@
     .slider-group-title {
       flex: 0 0 var(--w-group-title);
       margin: 0;
+
+      &.group-title-extra {
+        flex-basis: calc(var(--w-group-title) + var(--w-name) + 14px);
+      }
     }
 
     .slider-group-rows {

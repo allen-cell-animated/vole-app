@@ -441,7 +441,7 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
       </span>
       {!disable && (
         <span className="slider-group">
-          <h4 className="slider-group-title">Jump</h4>
+          <h4 className="slider-group-title group-title-extra">Jump to</h4>
           <span className="slider-group-rows">
             <Button.Group>
               <Button onClick={jumpXMinus}>-X</Button>
