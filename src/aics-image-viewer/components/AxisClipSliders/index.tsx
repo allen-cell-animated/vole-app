@@ -14,7 +14,7 @@ import {
   useCameraJumpCallback,
 } from "../../shared/utils/camera";
 import type PlayControls from "../../shared/utils/playControls";
-import type { ViewerStateActions } from "../../state/store";
+import { select, useViewerState, type ViewerStateActions } from "../../state/store";
 
 import NumericInput from "../shared/NumericInput";
 import SmarterSlider from "../shared/SmarterSlider";
@@ -346,6 +346,8 @@ const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 
 export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
   const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
+  const autorotate = useViewerState(select("autorotate"));
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   // Set to `true` when user interacts with this component, `false` when they click on the canvas or start autorotate.
   // While `hasControlRef.current === true`, this component's state propagates *down* to `view3d`
@@ -354,34 +356,52 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
   //   that `View3d` would let us track directly.
   const hasControlRef = React.useRef(false);
 
+  const handleRotate = React.useCallback(
+    (axis: "x" | "y" | "z", deg: number) => {
+      hasControlRef.current = true;
+      if (autorotate) {
+        changeViewerSetting("autorotate", false);
+      }
+      setRotation((current) => ({ ...current, [axis]: toRadians(deg) }));
+    },
+    [autorotate, changeViewerSetting]
+  );
+
+  // Take away control when autorotate is enabled
+  useEffect(() => {
+    if (autorotate) {
+      hasControlRef.current = false;
+    }
+  }, [autorotate]);
+
   const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }) => {
     const matrix = rotationMatrix(rotation.x, rotation.y, rotation.z);
     return applyMatrix(defaultOrientedCamera(state), matrix);
   }, view3d);
 
+  // Sync down rotation state while this component is "in control."
   React.useEffect(() => {
     if (hasControlRef.current) {
       rotateCameraTo(rotation);
     }
   }, [rotateCameraTo, rotation]);
 
+  // Set up event listeners on mount.
   React.useEffect(() => {
     // TODO this is *extremely brittle*: setting this clears away any other listener for render events.
+    //   At time of writing, `setOnRenderCallback` appears not to be used anywhere else in either this package or
+    //   vole-core, but that could change at any time.
     //   Ideally `View3d` would have an `addEventListener`/`removeEventListener` model.
     view3d.setOnRenderCallback(() => {
       if (!hasControlRef.current) {
         setRotation(getRotationAngles(view3d.getCameraState()));
       }
     });
-    const clickListener = (): void => void (hasControlRef.current = false);
+
+    const clickListener = (): boolean => (hasControlRef.current = false);
     view3d.getDOMElement().addEventListener("mousedown", clickListener);
     return () => view3d.getDOMElement().removeEventListener("mousedown", clickListener);
   }, [view3d]);
-
-  const handleRotate = React.useCallback((axis: "x" | "y" | "z", deg: number) => {
-    hasControlRef.current = true;
-    setRotation((current) => ({ ...current, [axis]: toRadians(deg) }));
-  }, []);
 
   const createRotateSlider = (axis: AxisName): React.ReactNode => (
     <div key={`${axis}-rotate`} className={`slider-row slider-${axis}`}>
