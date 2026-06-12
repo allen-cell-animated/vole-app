@@ -286,6 +286,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   const [colorPickerPosition, setColorPickerPosition] = useState<[number, number] | null>(null);
   const lastColorRef = useRef<ColorArray>(TFEDITOR_DEFAULT_COLOR);
 
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null); // need access to SVG element to measure mouse position
 
   const { histogram } = props.channelData;
@@ -718,7 +719,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
 
           {/* preset buttons */}
           <div className="tf-editor-control-row">
-            <div>
+            <div ref={dropdownContainerRef}>
               <Dropdown
                 trigger={["click"]}
                 menu={{
@@ -730,6 +731,7 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
                   ],
                   onClick: ({ key }) => applyTFGenerator(key),
                 }}
+                getPopupContainer={() => dropdownContainerRef.current ?? document.body}
               >
                 <Button size="small">
                   <span style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>

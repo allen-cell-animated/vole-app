@@ -48,8 +48,8 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
-  const controlPanelContainerRef = React.useRef<HTMLDivElement>(null);
-  const getDropdownContainer = controlPanelContainerRef.current ? () => controlPanelContainerRef.current! : undefined;
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const getDropdownContainer = (): HTMLElement => containerRef.current ?? document.body;
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
 
@@ -102,8 +102,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
 
   const renderTab = (thisTab: ControlTab, icon: React.ReactNode): React.ReactNode => (
-    <Tooltip title={ControlTabNames[thisTab]} placement="right" {...(!props.collapsed && { open: false })}>
+    <Tooltip title={ControlTabNames[thisTab]} placement="right">
       <Button
+        aria-label={ControlTabNames[thisTab]}
         className={tab === thisTab ? "ant-btn-icon-only btn-tabactive" : "ant-btn-icon-only"}
         onClick={() => setTab(thisTab)}
         icon={typeof icon === "string" ? icon : undefined}
@@ -155,15 +156,20 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     );
   };
 
+  const collapseLabel = props.collapsed ? "Show panel" : "Hide panel";
+
   return (
-    <div className="control-panel-col-container" ref={controlPanelContainerRef}>
+    <div className="control-panel-col-container" ref={containerRef}>
       <div className="control-panel-tab-col" style={{ flex: "0 0 50px" }}>
-        <Button
-          className={"ant-btn-icon-only btn-collapse" + (props.collapsed ? " btn-collapse-collapsed" : "")}
-          onClick={() => props.setCollapsed(!props.collapsed)}
-        >
-          <ViewerIcon type="closePanel" />
-        </Button>
+        <Tooltip title={collapseLabel} placement="right">
+          <Button
+            aria-label={collapseLabel}
+            className={"ant-btn-icon-only btn-collapse" + (props.collapsed ? " btn-collapse-collapsed" : "")}
+            onClick={() => props.setCollapsed(!props.collapsed)}
+          >
+            <ViewerIcon type="closePanel" />
+          </Button>
+        </Tooltip>
 
         <div className="tab-divider" />
 

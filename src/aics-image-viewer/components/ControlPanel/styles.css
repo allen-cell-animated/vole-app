@@ -22,16 +22,16 @@
 
       &:not([disabled]) {
         &.btn-tabactive {
-          color: var(--color-button-icon-activated-text);
-          background-color: var(--color-button-icon-activated-bg);
-          border-color: var(--color-button-icon-activated-outline);
+          color: var(--color-button-icon-active-text);
+          background-color: var(--color-button-icon-active-bg);
+          border-color: var(--color-button-icon-active-outline);
         }
 
         &:hover,
         &:focus-visible {
-          color: var(--color-button-icon-activated-text);
+          color: var(--color-button-icon-active-text);
           background-color: var(--color-button-primary-hover-bg);
-          border-color: var(--color-button-icon-activated-outline);
+          border-color: var(--color-button-icon-active-outline);
         }
       }
     }

@@ -43,9 +43,9 @@
     "checks": "npm run lint && npm run typeCheck && npm run test"
   },
   "author": "Megan Riel-Mehan",
-  "license": "ISC",
+  "license": "BSD-3-Clause",
   "dependencies": {
-    "@aics/vole-core": "^4.8.2",
+    "@aics/vole-core": "^4.9.1",
     "@ant-design/icons": "^5.2.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
@@ -65,8 +65,7 @@
   "peerDependencies": {
     "antd": "^5.16.2",
     "react": "18.x",
-    "react-dom": "18.x",
-    "three": "^0.171.0"
+    "react-dom": "18.x"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",
