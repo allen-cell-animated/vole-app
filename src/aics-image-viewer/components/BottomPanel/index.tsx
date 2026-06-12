@@ -64,7 +64,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             size="small"
             onClick={() => setPage(index)}
           >
-            {title || "Options"}
+            {title}
             <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
           </Button>
         ))
