@@ -45,7 +45,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   label,
   vals,
   valsReadout = vals,
-  min: rawMin,
+  min: propMin,
   max,
   hideMax,
   unitSymbol,
@@ -58,7 +58,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   // If slider is a range, handles represent slice *edges*: the range around only the 1st slice is [0, 1]; the range
   // around only the last is [max-1, max].
   // If slider is not a range, just work with slices, but don't 0-index: 1st slice is 1, last is max
-  const min = rawMin ?? (isRange ? 0 : 1);
+  const min = propMin ?? (isRange ? 0 : 1);
   const wrappedOnSlide = isRange ? onSlide : (values: number[]) => onSlide?.([values[0] - 1]);
   const wrappedOnChange = isRange ? onChange : (values: number[]) => onChange?.([values[0] - 1]);
 
