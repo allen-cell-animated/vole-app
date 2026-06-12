@@ -128,7 +128,7 @@ export const useCameraCallback = <T extends any[]>(
 /** Specialization of `useCameraCallback` to create a callback that jumps the camera to looking down the given axis */
 export const useCameraJumpCallback = (
   view3d: View3d,
-  axis: number | "x" | "y" | "z",
+  axis: "x" | "y" | "z" | number,
   negative: boolean,
   yUp = false
 ): (() => void) => {
