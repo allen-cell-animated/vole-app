@@ -347,9 +347,12 @@ const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
   const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
 
-  const isInteractingRef = React.useRef(false);
-  const onStart = React.useCallback(() => (isInteractingRef.current = true), []);
-  const onEnd = React.useCallback(() => (isInteractingRef.current = false), []);
+  // Set to `true` when user interacts with this component, `false` when they click on the canvas or start autorotate.
+  // While `hasControlRef.current === true`, this component's state propagates *down* to `view3d`
+  // While `hasControlRef.current === false`, `view3d`'s camera state is synced *up* to this component.
+  // TODO are there any other events besides the above that cause the volume to rotate? Ideally this would be an event
+  //   that `View3d` would let us track directly.
+  const hasControlRef = React.useRef(false);
 
   const rotateCameraTo = useCameraCallback((state, rotation: { x: number; y: number; z: number }) => {
     const matrix = rotationMatrix(rotation.x, rotation.y, rotation.z);
@@ -357,10 +360,26 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
   }, view3d);
 
   React.useEffect(() => {
-    rotateCameraTo(rotation);
+    if (hasControlRef.current) {
+      rotateCameraTo(rotation);
+    }
   }, [rotateCameraTo, rotation]);
 
+  React.useEffect(() => {
+    // TODO this is *extremely brittle*: setting this clears away any other listener for render events.
+    //   Ideally `View3d` would have an `addEventListener`/`removeEventListener` model.
+    view3d.setOnRenderCallback(() => {
+      if (!hasControlRef.current) {
+        setRotation(getRotationAngles(view3d.getCameraState()));
+      }
+    });
+    const clickListener = (): void => void (hasControlRef.current = false);
+    view3d.getDOMElement().addEventListener("mousedown", clickListener);
+    return () => view3d.getDOMElement().removeEventListener("mousedown", clickListener);
+  }, [view3d]);
+
   const handleRotate = React.useCallback((axis: "x" | "y" | "z", deg: number) => {
+    hasControlRef.current = true;
     setRotation((current) => ({ ...current, [axis]: toRadians(deg) }));
   }, []);
 
@@ -373,8 +392,6 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
         max={180}
         hideMax={true}
         onSlide={([deg]) => handleRotate(axis, deg)}
-        onStart={onStart}
-        onEnd={onEnd}
       />
     </div>
   );
