@@ -1,5 +1,5 @@
 import { Button, Drawer } from "antd";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import ViewerIcon from "../shared/ViewerIcon";
 
@@ -40,6 +40,19 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
     },
     [open, openProp, page, pageProp, onPageChange]
   );
+
+  // If length of `contents` decreases, ensure we're still on a valid page
+  useEffect(() => {
+    if (page >= contents.length && contents.length > 0) {
+      const nextPage = contents.length - 1;
+
+      if (pageProp === undefined) {
+        setPageState(nextPage);
+      }
+
+      onPageChange?.(open ? nextPage : null);
+    }
+  }, [contents.length, onPageChange, open, page, pageProp]);
 
   const optionsButton = (
     <div className="options-button-container">
