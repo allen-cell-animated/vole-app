@@ -84,7 +84,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
         title={optionsButton}
         height={height ?? 190}
       >
-        <div className="drawer-body-wrapper">{open !== null && page < contents.length && contents[page].children}</div>
+        <div className="drawer-body-wrapper">{open !== null && contents[page]?.children}</div>
       </Drawer>
     </div>
   );
