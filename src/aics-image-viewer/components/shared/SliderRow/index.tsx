@@ -13,7 +13,6 @@ type SliderRowProps = {
   min?: number;
   max?: number;
   hideSlider?: boolean;
-  pips?: object;
   disabled?: boolean;
   onSlide?: NouisliderProps["onSlide"];
   onUpdate?: NouisliderProps["onUpdate"];
@@ -34,7 +33,6 @@ const SliderRow: React.FC<SliderRowProps> = (props) => (
           <SmarterSlider
             range={{ min: props.min ?? 0, max: props.max }}
             start={props.start}
-            pips={props.pips}
             disabled={props.disabled}
             connect={true}
             tooltips={true}
