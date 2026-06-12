@@ -559,7 +559,6 @@ const App: React.FC<AppProps> = (props) => {
             visibleControls={visibleControls}
             collapsed={controlPanelClosed}
             // image state
-            view3d={view3d}
             imageName={image?.name}
             hasImage={!!image}
             pixelSize={pixelSize}
