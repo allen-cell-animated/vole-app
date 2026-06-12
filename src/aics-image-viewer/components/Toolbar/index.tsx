@@ -10,7 +10,6 @@ import { select, useViewerState } from "../../state/store";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
-import ResetCameraButton from "./ResetCameraButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
 import "./styles.css";
@@ -199,7 +198,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                   onViewModeChange={(newMode) => changeViewerSetting("viewMode", newMode)}
                 />
               )}
-              {visibleControls.resetCameraButton && <ResetCameraButton resetCamera={props.resetCamera} />}
+              {visibleControls.resetCameraButton && (
+                <Tooltip placement="bottom" title="Reset camera">
+                  <Button className="ant-btn-icon-only btn-borderless" onClick={props.resetCamera}>
+                    <ViewerIcon type="resetView" />
+                  </Button>
+                </Tooltip>
+              )}
               {visibleControls.autoRotateButton && (
                 <Tooltip placement="bottom" title={turntableToggleTitle}>
                   <Button
