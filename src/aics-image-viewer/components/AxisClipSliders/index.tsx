@@ -424,7 +424,7 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
   const jumpZPlus = useCameraJumpCallback(view3d, "z", false, true);
 
   return (
-    <div className="clip-sliders">
+    <div className="clip-sliders clip-sliders-2d">
       <span className="slider-group">
         <h4 className="slider-group-title">Rotate</h4>
         {disable ? (
