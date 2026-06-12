@@ -27,8 +27,7 @@ type ControlNames =
   | "showAxesButton"
   | "showBoundingBoxButton"
   | "metadataViewer"
-  | "scaleLevelControls"
-  | "preciseRotation";
+  | "scaleLevelControls";
 /** Show/hide different elements of the UI */
 export type ControlVisibilityFlags = { [K in ControlNames]: boolean };
 

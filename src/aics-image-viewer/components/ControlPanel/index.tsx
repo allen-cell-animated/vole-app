@@ -20,7 +20,6 @@ interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsPro
     CustomizeWidgetProps["visibleControls"] & {
       colorPresetsDropdown: boolean;
       metadataViewer: boolean;
-      preciseRotation: boolean;
     };
   metadata: MetadataRecord;
   collapsed: boolean;
