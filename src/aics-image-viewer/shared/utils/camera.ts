@@ -20,7 +20,7 @@ const cross = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => {
 const vecToTarget = (state: CameraState): Tuple3 => sub(state.target, state.position);
 
 /** Multiply a matrix by a vector */
-const mulMatrix = ([xx, yx, zx, xy, yy, zy, xz, yz, zz]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
+const mulMatrix = ([xx, xy, xz, yx, yy, yz, zx, zy, zz]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
   // prettier-ignore
   return [
     x * xx + y * yx + z * zx,
@@ -95,18 +95,18 @@ export const defaultOrientedCamera = (state: CameraState): CameraState => {
 /** Extract Tait-Bryan angles from a `CameraState` */
 export const getRotationAngles = (state: CameraState): { x: number; y: number; z: number } => {
   const { forward, right, up } = getBasis(state);
-  const sy = Math.max(-1, Math.min(1, right[2]));
+  const sy = Math.max(-1, Math.min(1, -forward[0]));
   const y = Math.asin(sy);
 
   if (Math.abs(sy) < 1 - 1e-6) {
     return {
-      x: Math.atan2(-up[2], -forward[2]),
+      x: Math.atan2(forward[1], -forward[2]),
       y,
-      z: Math.atan2(-right[1], right[0]),
+      z: Math.atan2(-up[0], right[0]),
     };
   }
   // Gimbal lock: y = ±90°, fold combined rotation into x.
-  return { x: Math.atan2(-forward[1], up[1]), y, z: 0 };
+  return { x: Math.atan2(up[2], up[1]), y, z: 0 };
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
