@@ -1,3 +1,4 @@
+import { EllipsisOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
@@ -36,6 +37,23 @@ const ControlTabNames = {
   [ControlTab.Channels]: "Channel settings",
   [ControlTab.Advanced]: "Advanced settings",
   [ControlTab.Metadata]: "Metadata",
+};
+
+const ChannelOptionsButton: React.FC = () => {
+  const items = [
+    { key: 0, label: "Copy" },
+    { key: 1, label: "Export" },
+    { key: 2, label: "Paste" },
+    { key: 3, label: "Import" },
+  ];
+
+  return (
+    <Dropdown menu={{ items }} trigger={["click"]}>
+      <Button type="text" size="large">
+        <EllipsisOutlined />
+      </Button>
+    </Dropdown>
+  );
 };
 
 function ControlPanel(props: ControlPanelProps): React.ReactElement {
@@ -177,7 +195,10 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         {props.visibleControls.metadataViewer && renderTab(ControlTab.Metadata, <ViewerIcon type="metadata" />)}
       </div>
       <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
-        <h2 className="control-panel-title">{ControlTabNames[tab]}</h2>
+        <div className="control-panel-title-container">
+          <h2>{ControlTabNames[tab]}</h2>
+          {tab === ControlTab.Channels && <ChannelOptionsButton />}
+        </div>
         {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
         {hasImage && (
           <div className="control-panel-content">
