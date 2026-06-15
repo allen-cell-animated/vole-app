@@ -21,6 +21,10 @@ const vecToTarget = (state: CameraState): Tuple3 => sub(state.target, state.posi
 
 /** Multiply a matrix by a vector */
 const mulMatrix = ([xx, xy, xz, yx, yy, yz, zx, zy, zz]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
+  // Destructured elements above are named by column then row, like so:
+  // ┌ xx yx zx ┐
+  // │ xy yy zy │
+  // └ xz yz zz ┘
   // prettier-ignore
   return [
     x * xx + y * yx + z * zx,
