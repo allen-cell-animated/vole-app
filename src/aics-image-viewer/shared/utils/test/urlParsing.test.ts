@@ -4,7 +4,7 @@ import { describe, expect, it } from "@jest/globals";
 import type { ChannelState, ViewerState } from "../../../state/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../constants";
 import { ImageType, RenderMode, ViewMode } from "../../enums";
-import type { ViewerChannelSettingParams, ViewerStateParams } from "../urlParsing";
+import type { ViewerChannelStateParams, ViewerStateParams } from "../urlParsing";
 import {
   CONTROL_POINTS_REGEX,
   deserializeViewerChannelSetting,
@@ -245,7 +245,7 @@ describe("Channel state serialization", () => {
     plotMax: 255,
     keepIntensityRange: false,
   };
-  const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelSettingParams = {
+  const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelStateParams = {
     col: "ff0000",
     ven: "1",
     sen: "1",
@@ -275,7 +275,7 @@ describe("Channel state serialization", () => {
     });
 
     it("ignores unexpected keys", () => {
-      const data = { badKey: "badValue", ven: "1", sen: "1" } as ViewerChannelSettingParams;
+      const data = { badKey: "badValue", ven: "1", sen: "1" } as ViewerChannelStateParams;
       const result = deserializeViewerChannelSetting(0, data);
       expect(result).toEqual({ ...defaultSettings, enabled: true, surfaceEnabled: true });
     });
@@ -290,7 +290,7 @@ describe("Channel state serialization", () => {
         sen: "1",
         isv: "128",
         lut: "0:255",
-      } as ViewerChannelSettingParams;
+      } as ViewerChannelStateParams;
       expect(deserializeViewerChannelSetting(0, data)).toEqual({
         match: 0,
         color: "FF0000",
@@ -318,7 +318,7 @@ describe("Channel state serialization", () => {
         ["p10: p90", ["p10", "p90"]], // handle spaces
       ];
       for (const [encodedLut, decodedLut] of luts) {
-        const data = { lut: encodedLut } as ViewerChannelSettingParams;
+        const data = { lut: encodedLut } as ViewerChannelStateParams;
         const result = deserializeViewerChannelSetting(0, data);
         expect(result.intensity?.lut).toEqual(decodedLut);
       }
@@ -327,7 +327,7 @@ describe("Channel state serialization", () => {
     it("ignores unexpected lut formats", () => {
       const luts = ["!:0", "0:9:93", "255", ""];
       for (const lut of luts) {
-        const data = { lut } as ViewerChannelSettingParams;
+        const data = { lut } as ViewerChannelStateParams;
         const result = deserializeViewerChannelSetting(0, data);
         expect(result.lut).toBeUndefined();
       }
@@ -336,7 +336,7 @@ describe("Channel state serialization", () => {
     it("handles hex color formats", () => {
       const colors = ["000000", "FFFFFF", "ffffff", "012345", "6789AB", "CDEF01", "abcdef"];
       for (const color of colors) {
-        const data = { col: color } as ViewerChannelSettingParams;
+        const data = { col: color } as ViewerChannelStateParams;
         const result = deserializeViewerChannelSetting(0, data);
         expect(result.color).toEqual(color);
       }
@@ -345,14 +345,14 @@ describe("Channel state serialization", () => {
     it("ignores bad color formats", () => {
       const badColors = ["f", "ff00", "red", "rgb(255,0,0)"];
       for (const color of badColors) {
-        const data = { col: color } as ViewerChannelSettingParams;
+        const data = { col: color } as ViewerChannelStateParams;
         const result = deserializeViewerChannelSetting(0, data);
         expect(result.color).toBeUndefined();
       }
     });
 
     it("ignores bad float data", () => {
-      const data = { cza: "NaN", isa: "bad", isv: "f8" } as ViewerChannelSettingParams;
+      const data = { cza: "NaN", isa: "bad", isv: "f8" } as ViewerChannelStateParams;
       const result = deserializeViewerChannelSetting(0, data);
       expect(result.colorizeAlpha).toBeUndefined();
       expect(result.surfaceOpacity).toBeUndefined();
@@ -384,7 +384,7 @@ describe("Channel state serialization", () => {
         plotMax: 255,
         keepIntensityRange: false,
       };
-      const serializedCustomChannelState: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
+      const serializedCustomChannelState: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
         col: "03ff9d",
         ven: "0",
         sen: "0",
@@ -947,7 +947,7 @@ describe("serializeViewerUrlParams", () => {
     // Format should look like "ven:1,col:ff0000,clz:1,cza:0.75,isa:0.5,sen:1,isv:128", but ordering
     // is not guaranteed. Parse the string and check that the values match the expected values.
     // Note that `lut` is not included when serializing from existing viewer state.
-    const expectedChannel0: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
+    const expectedChannel0: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
       ven: "1",
       col: "ff0000",
       clz: "1",
@@ -960,7 +960,7 @@ describe("serializeViewerUrlParams", () => {
       cpe: "0",
       pin: "1",
     };
-    const expectedChannel1: Required<Omit<ViewerChannelSettingParams, "lut" | "rmp" | "cps">> = {
+    const expectedChannel1: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
       ven: "0",
       col: "808080",
       clz: "0",

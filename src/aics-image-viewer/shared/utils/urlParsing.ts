@@ -139,7 +139,7 @@ export enum ViewerChannelSettingKeys {
 /**
  * The serialized form of a ViewerChannelSetting, as a dictionary object.
  */
-export class ViewerChannelSettingParams {
+export class ViewerChannelStateParams {
   /** Color, as a 6-digit hex color.  */
   [ViewerChannelSettingKeys.Color]?: string = undefined;
   /** Colorize. "1" is enabled. Disabled by default. */
@@ -785,7 +785,7 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
  */
 export function deserializeViewerChannelSetting(
   channelIndex: number,
-  jsonState: ViewerChannelSettingParams
+  jsonState: ViewerChannelStateParams
 ): ViewerChannelSetting {
   // Missing/undefined fields should be handled downstream.
   const result: ViewerChannelSetting = {
@@ -843,7 +843,7 @@ export function deserializeViewerChannelSetting(
 export function serializeViewerChannelSetting(
   channelSetting: Partial<ChannelState>,
   removeDefaults: boolean
-): Partial<ViewerChannelSettingParams> {
+): Partial<ViewerChannelStateParams> {
   if (removeDefaults) {
     channelSetting = removeMatchingProperties(channelSetting, getDefaultChannelState());
   }
@@ -1011,7 +1011,7 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
       const channelIndex = Number.parseInt(key.slice(1), 10);
       try {
         const channelData = parseKeyValueList(params[key]!);
-        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ViewerChannelSettingParams);
+        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ViewerChannelStateParams);
         channelIndexToSettings.set(channelIndex, channelSetting);
       } catch (e) {
         console.warn(
