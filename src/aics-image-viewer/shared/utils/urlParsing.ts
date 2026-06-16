@@ -449,16 +449,10 @@ export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" |
 export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefaults: boolean = true): AppParams {
   const params = serializeViewerState(state, removeDefaults);
 
-  const channelParams = state.channelSettings?.reduce<Record<string, string>>(
-    (acc, channelSetting, index): Record<string, string> => {
-      const key = `c${index}`;
-      acc[key] = objectToKeyValueList(
-        serializeViewerChannelSetting(channelSetting, removeDefaults) as Record<string, string>
-      );
-      return acc;
-    },
-    {} as Record<string, string>
-  );
+  const channelParams = state.channelSettings?.reduce((acc, channelSetting, index): Record<`c${number}`, string> => {
+    acc[`c${index}`] = objectToKeyValueList(serializeViewerChannelSetting(channelSetting, removeDefaults));
+    return acc;
+  }, {});
 
   return { ...params, ...channelParams };
 }
