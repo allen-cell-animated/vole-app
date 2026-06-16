@@ -3,25 +3,25 @@ import { Button, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
 
 // TODO dummy function for now -- implement
-const validateSettings = (_settings: string): boolean => false;
+const validateSettings = (_settings: string): boolean => true;
 
-const enum PasteState {
+const enum ClipboardState {
   /** Pasting is enabled: we either know the clipboard contains paste-able settings or we can't be sure it doesn't */
   Enabled,
   /** Pasting is disabled because the clipboard doesn't contain paste-able settings */
   Invalid,
-  /** Pasting is disabled because the browser is denying us access to the clipboard */
+  /** Copying and pasting are both disabled because the browser is denying us access to the clipboard */
   Denied,
 }
 
-const pasteStatePrompts = {
-  [PasteState.Enabled]: undefined,
-  [PasteState.Invalid]: "Can't paste: clipboard does not contain channel settings.",
-  [PasteState.Denied]: "Can't paste: you must grant permission to access the clipboard.",
+const clipboardStatePrompts = {
+  [ClipboardState.Enabled]: undefined,
+  [ClipboardState.Invalid]: "Can't paste: clipboard does not contain channel settings.",
+  [ClipboardState.Denied]: "Can't paste: you must grant permission to access the clipboard.",
 };
 
 const CopySettingsButton: React.FC = () => {
-  const [pasteState, setPasteState] = React.useState(PasteState.Enabled);
+  const [clipboardState, setClipboardState] = React.useState(ClipboardState.Enabled);
 
   /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
   const queryPasteState = React.useCallback(async (): Promise<void> => {
@@ -32,12 +32,12 @@ const CopySettingsButton: React.FC = () => {
       // If we didn't error, the browser supports the `clipboard-read` permission. Its state may be `denied` (disable
       // paste), `granted` (silently validate clipboard), or `prompt` (wait until asked to read the clipboard).
       if (permission.state === "denied") {
-        setPasteState(PasteState.Denied);
+        setClipboardState(ClipboardState.Denied);
       } else if (permission.state === "granted") {
         const clipboard = await navigator.clipboard.readText();
         console.log(clipboard);
         if (!validateSettings(clipboard)) {
-          setPasteState(PasteState.Invalid);
+          setClipboardState(ClipboardState.Invalid);
         }
       }
     } catch {
@@ -45,16 +45,16 @@ const CopySettingsButton: React.FC = () => {
     }
   }, []);
 
-  /** Update our guess about whether pasting will succeed on mount and whenever the clipboard changes. */
+  // Update our guess about whether pasting will succeed on mount and whenever the clipboard changes.
   React.useEffect(() => {
     queryPasteState();
-    // This event only exists in Chromium-based browsers, but `queryPasteState` only works in Chromium-based browsers
+    // This event only exists in Chromium browsers, but `queryPasteState` only works in Chromium-based browsers anyways
     navigator.clipboard.addEventListener("clipboardchange", queryPasteState);
     return () => navigator.clipboard.removeEventListener("clipboardchange", queryPasteState);
   }, [queryPasteState]);
 
-  const pastePrompt = pasteStatePrompts[pasteState] && (
-    <Tooltip title={pasteStatePrompts[pasteState]} placement="right">
+  const pastePrompt = clipboardStatePrompts[clipboardState] && (
+    <Tooltip title={clipboardStatePrompts[clipboardState]} placement="right">
       <ExclamationCircleOutlined />
     </Tooltip>
   );
@@ -76,10 +76,14 @@ const CopySettingsButton: React.FC = () => {
           {pastePrompt}
         </div>
       ),
-      disabled: pasteState !== PasteState.Enabled,
+      disabled: clipboardState !== ClipboardState.Enabled,
       onClick: async () => {
-        console.log(await navigator.clipboard.readText());
-        queryPasteState();
+        try {
+          console.log(await navigator.clipboard.readText());
+        } catch {
+          // If paste failed, check if it was because the user was asked to grant clipboard access and said no
+          queryPasteState();
+        }
       },
     },
     { key: 3, label: "Import" },
