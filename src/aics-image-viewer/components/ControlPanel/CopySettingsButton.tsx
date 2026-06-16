@@ -17,13 +17,14 @@ const enum PasteState {
 const pasteStatePrompts = {
   [PasteState.Enabled]: undefined,
   [PasteState.Invalid]: "Can't paste: clipboard does not contain channel settings.",
-  [PasteState.Denied]: "Can't paste: Vol-E doesn't have permission to access the clipboard.",
+  [PasteState.Denied]: "Can't paste: you must grant permission to access the clipboard.",
 };
 
 const CopySettingsButton: React.FC = () => {
   const [pasteState, setPasteState] = React.useState(PasteState.Enabled);
 
-  const queryClipboard = React.useCallback(async (): Promise<void> => {
+  /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
+  const queryPasteState = React.useCallback(async (): Promise<void> => {
     try {
       // Chromium browsers: we can query permissions to learn whether a clipboard read will succeed
       const permission = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
@@ -44,11 +45,13 @@ const CopySettingsButton: React.FC = () => {
     }
   }, []);
 
+  /** Update our guess about whether pasting will succeed on mount and whenever the clipboard changes. */
   React.useEffect(() => {
-    queryClipboard();
-    navigator.clipboard.addEventListener("clipboardchange", queryClipboard);
-    return () => navigator.clipboard.removeEventListener("clipboardchange", queryClipboard);
-  }, [queryClipboard]);
+    queryPasteState();
+    // This event only exists in Chromium-based browsers, but `queryPasteState` only works in Chromium-based browsers
+    navigator.clipboard.addEventListener("clipboardchange", queryPasteState);
+    return () => navigator.clipboard.removeEventListener("clipboardchange", queryPasteState);
+  }, [queryPasteState]);
 
   const pastePrompt = pasteStatePrompts[pasteState] && (
     <Tooltip title={pasteStatePrompts[pasteState]} placement="right">
@@ -61,7 +64,6 @@ const CopySettingsButton: React.FC = () => {
       key: 0,
       label: "Copy",
       onClick: async () => {
-        // console.log(await navigator.permissions.query({ name: "foo" as PermissionName }));
         console.log(await navigator.clipboard.readText());
       },
     },
@@ -77,7 +79,7 @@ const CopySettingsButton: React.FC = () => {
       disabled: pasteState !== PasteState.Enabled,
       onClick: async () => {
         console.log(await navigator.clipboard.readText());
-        queryClipboard();
+        queryPasteState();
       },
     },
     { key: 3, label: "Import" },
