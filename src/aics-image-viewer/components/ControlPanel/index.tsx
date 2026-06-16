@@ -1,4 +1,3 @@
-import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
@@ -12,6 +11,7 @@ import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
+import CopySettingsButton from "./CopySettingsButton";
 
 import "./styles.css";
 
@@ -37,96 +37,6 @@ const ControlTabNames = {
   [ControlTab.Channels]: "Channel settings",
   [ControlTab.Advanced]: "Advanced settings",
   [ControlTab.Metadata]: "Metadata",
-};
-
-// TODO dummy function for now -- implement
-const validateSettings = (_settings: string): boolean => false;
-
-const enum PasteState {
-  /** Pasting is enabled: we either know the clipboard contains paste-able settings or we can't be sure it doesn't */
-  Enabled,
-  /** Pasting is disabled because the clipboard doesn't contain paste-able settings */
-  Invalid,
-  /** Pasting is disabled because the browser is denying us access to the clipboard */
-  Denied,
-}
-
-const pasteStatePrompts = {
-  [PasteState.Enabled]: undefined,
-  [PasteState.Invalid]: "Can't paste: clipboard does not contain channel settings.",
-  [PasteState.Denied]: "Can't paste: Vol-E doesn't have permission to access the clipboard.",
-};
-
-const ChannelOptionsButton: React.FC = () => {
-  const [pasteState, setPasteState] = React.useState(PasteState.Enabled);
-
-  const queryClipboard = React.useCallback(async (): Promise<void> => {
-    try {
-      // Chromium browsers: we can query permissions to learn whether a clipboard read will succeed
-      const permission = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
-
-      // If we didn't error, the browser supports the `clipboard-read` permission. Its state may be `denied` (disable
-      // paste), `granted` (silently validate clipboard), or `prompt` (wait until asked to read the clipboard).
-      if (permission.state === "denied") {
-        setPasteState(PasteState.Denied);
-      } else if (permission.state === "granted") {
-        const clipboard = await navigator.clipboard.readText();
-        console.log(clipboard);
-        if (!validateSettings(clipboard)) {
-          setPasteState(PasteState.Invalid);
-        }
-      }
-    } catch {
-      // Non-Chromium browsers: clipboard reads don't have stateful permissions and will always require a prompt
-    }
-  }, []);
-
-  React.useEffect(() => {
-    queryClipboard();
-    navigator.clipboard.addEventListener("clipboardchange", queryClipboard);
-    return () => navigator.clipboard.removeEventListener("clipboardchange", queryClipboard);
-  }, [queryClipboard]);
-
-  const pastePrompt = pasteStatePrompts[pasteState] && (
-    <Tooltip title={pasteStatePrompts[pasteState]} placement="right">
-      <ExclamationCircleOutlined />
-    </Tooltip>
-  );
-
-  const items: MenuProps["items"] = [
-    {
-      key: 0,
-      label: "Copy",
-      onClick: async () => {
-        // console.log(await navigator.permissions.query({ name: "foo" as PermissionName }));
-        console.log(await navigator.clipboard.readText());
-      },
-    },
-    { key: 1, label: "Export" },
-    {
-      key: 2,
-      label: (
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span>Paste</span>
-          {pastePrompt}
-        </div>
-      ),
-      disabled: pasteState !== PasteState.Enabled,
-      onClick: async () => {
-        console.log(await navigator.clipboard.readText());
-        queryClipboard();
-      },
-    },
-    { key: 3, label: "Import" },
-  ];
-
-  return (
-    <Dropdown menu={{ items }} trigger={["click"]} overlayStyle={{ minWidth: 100 }}>
-      <Button type="text" size="large">
-        <EllipsisOutlined />
-      </Button>
-    </Dropdown>
-  );
 };
 
 function ControlPanel(props: ControlPanelProps): React.ReactElement {
@@ -270,7 +180,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
         <div className="control-panel-title-container">
           <h2>{ControlTabNames[tab]}</h2>
-          {tab === ControlTab.Channels && <ChannelOptionsButton />}
+          {tab === ControlTab.Channels && <CopySettingsButton />}
         </div>
         {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
         {hasImage && (
