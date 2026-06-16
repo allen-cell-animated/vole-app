@@ -3,15 +3,22 @@ import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { isEqual } from "lodash";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
+import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueList } from "../../state/deserialize";
 import type { ViewerStore } from "../../state/store";
-import type { ChannelState, ViewerState } from "../../state/types";
+import {
+  CameraTransformKeys,
+  type ChannelState,
+  ViewerChannelSettingKeys,
+  type ViewerChannelStateParams,
+  type ViewerState,
+  ViewerStateParams,
+} from "../../state/types";
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../constants";
-import { ImageType, RenderMode, ViewMode } from "../enums";
+import { ViewMode } from "../enums";
 import type { ManifestJson, MetadataRecord, PerAxis } from "../types";
 import type { ColorArray } from "./colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
-import { clamp } from "./math";
 import { readStoredMetadata, readStoredScenes } from "./storage";
 import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
@@ -20,59 +27,7 @@ export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
-const FLOAT_REGEX = /-?[0-9]*.?[0-9]+/;
-
 const CHANNEL_STATE_KEY_REGEX = /^c[0-9]+$/;
-
-/** Match colon-separated pairs of alphanumeric strings */
-const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
-
-/**
- * Match colon-separated pairs of numeric strings, representing histogram bin
- * indices or intensity values.
- */
-const RAMP_REGEX = new RegExp(`^${FLOAT_REGEX.source}:${FLOAT_REGEX.source}$`);
-
-/**
- * Match comma-separated triplet of numeric strings.
- */
-const SLICE_REGEX = new RegExp(`^${FLOAT_REGEX.source},${FLOAT_REGEX.source},${FLOAT_REGEX.source}$`);
-
-/**
- * Matches a sequence of three comma-separated min:max number pairs, representing
- * the x, y, and z axes.
- */
-const REGION_REGEX = new RegExp(
-  `^(${FLOAT_REGEX.source}:${FLOAT_REGEX.source})(,${FLOAT_REGEX.source}:${FLOAT_REGEX.source}){2}$`
-);
-
-const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${DEFAULT_CONTROL_POINT_COLOR_CODE})`);
-
-/** Represents control points specified by bin indices. */
-const CONTROL_POINT_REGEX = new RegExp(`(${FLOAT_REGEX.source}:${FLOAT_REGEX.source}:${HEX_COLOR_REGEX.source})`);
-
-const HEX_COLOR_STR_REGEX = new RegExp(`^${HEX_COLOR_REGEX.source}$`);
-
-/**
- * LEGACY: Matches a COMMA-separated list of control points, where each control point is represented
- * by a triplet of `{x}:{opacity}:{hex color}`.
- * The hex color can be replaced with `1` to represent white (`ffffff`).
- */
-export const LEGACY_CONTROL_POINTS_REGEX = new RegExp(
-  `^${CONTROL_POINT_REGEX.source}(,${CONTROL_POINT_REGEX.source})*$`
-);
-
-/**
- * Matches a COLON-separated list of control points, where each control point is
- * represented by a triplet of `{x}:{opacity}:{hex color}`.
- * - `x` is a value that will either be parsed as a histogram bin index (legacy,
- *   for `ControlPointsLegacy`) or intensity value (for `ControlPoints`),
- *   depending on on which field is being parsed.
- * - Opacity is a float in the [0, 1] range.
- * - The hex color is a 6-digit hex color (e.g. `ffeecc`), and can be replaced
- *   with `1` to represent white (`ffffff`).
- */
-export const CONTROL_POINTS_REGEX = new RegExp(`^${CONTROL_POINT_REGEX.source}(:${CONTROL_POINT_REGEX.source})*$`);
 
 /**
  * Enum keys for URL parameters. These are stored as enums for better readability,
@@ -103,203 +58,12 @@ export enum ViewerStateKeys {
   ScaleLevelIndex = "scl",
 }
 
-export enum CameraTransformKeys {
-  /** Camera position in 3D coordinates. */
-  Position = "pos",
-  /** Target position of the trackball controls in 3D coordinates. */
-  Target = "tar",
-  /** The up vector of the camera. Will be normalized to magnitude of 1. */
-  Up = "up",
-  /** Scale factor for orthographic cameras. */
-  OrthoScale = "ort",
-  /** Vertical FOV of the camera view frustum, from top to bottom, in degrees. */
-  Fov = "fov",
-}
-
-/**
- * Mapped to types in `ViewerChannelSettingParams`
- */
-export enum ViewerChannelSettingKeys {
-  Color = "col",
-  Colorize = "clz",
-  ColorizeAlpha = "cza",
-  IsosurfaceAlpha = "isa",
-  Lut = "lut",
-  ControlPoints = "cpt",
-  ControlPointsLegacy = "cps",
-  Ramp = "ram",
-  RampLegacy = "rmp",
-  ControlPointsEnabled = "cpe",
-  VolumeEnabled = "ven",
-  SurfaceEnabled = "sen",
-  IsosurfaceValue = "isv",
-  KeepRange = "pin",
-}
-
-/**
- * The serialized form of a ViewerChannelSetting, as a dictionary object.
- */
-export class ViewerChannelStateParams {
-  /** Color, as a 6-digit hex color.  */
-  [ViewerChannelSettingKeys.Color]?: string = undefined;
-  /** Colorize. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.Colorize]?: "1" | "0" = undefined;
-  /** Colorize alpha, in the [0, 1] range. Set to `1.0` by default. */
-  [ViewerChannelSettingKeys.ColorizeAlpha]?: string = undefined;
-  /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
-  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string = undefined;
-  /**
-   * Lookup table (LUT) to map from volume intensity to opacity. Should be two
-   * alphanumeric values separated by a colon, where the first value is the
-   * minimum and the second is the maximum. Defaults to [0, 255].
-   *
-   * Min and max values are determined as following:
-   * - Plain numbers are indices of histogram bins, typically in the range [0,
-   *   255].
-   * - `v{n}` represents a raw intensity value, where `n` is a number.
-   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
-   *   range.
-   * - `m{n}` represents the median multiplied by `n / 100`.
-   * - `autoij` in either the min or max fields will use the "auto" algorithm
-   *   from ImageJ to select the min and max.
-   *
-   * Values will be used to determine the initial control points and ramp if
-   * those fields are not provided.
-   *
-   * @example
-   * ```
-   * "0:255"    // min: intensity 0, max: intensity 255.
-   * "p50:p90"  // min: 50th percentile, max: 90th percentile.
-   * "m1:p75"   // min: median, max: 75th percentile.
-   * "autoij:0" // use Auto-IJ to calculate min and max.
-   * ```
-   */
-  [ViewerChannelSettingKeys.Lut]?: string = undefined;
-  /**
-   * Legacy specifier for control points for the transfer function as a list of
-   * `x:opacity:color` triplets, separated by colon. Uses histogram bin indices
-   * instead of intensity values.
-   * - `x` is a histogram bin index in the [0, 255] range.
-   * - `opacity` is a float in the [0, 1] range.
-   * - `color` is a 6-digit hex color, e.g. `ff0000`.
-   *
-   * Will be overridden by the ControlPoints field (`cpt`) if provided.
-   */
-  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string = undefined;
-  /**
-   * Control points for the transfer function, formatted as a list of
-   * `x:opacity:color` triplets, separated by colons.
-   * - `x` is a numeric intensity value.
-   * - `opacity` is a float in the [0, 1] range.
-   * - `color` is a 6-digit hex color, e.g. `ff0000`.
-   *
-   * If provided, overrides the `lut` field when calculating the control points.
-   */
-  [ViewerChannelSettingKeys.ControlPoints]?: string = undefined;
-  /**
-   * Whether to show advanced mode, which will show control points instead of
-   * ramp values defined by the LUT. "1" is enabled, disabled by default.
-   */
-  [ViewerChannelSettingKeys.ControlPointsEnabled]?: "1" | "0" = undefined;
-  /**
-   * Legacy specifier for the transfer function ramp which uses histogram bin
-   * indices instead of intensity values, formatted as `min:max`. Will be
-   * overridden by the Ramp field (`ram`) if provided.
-   */
-  [ViewerChannelSettingKeys.RampLegacy]?: string = undefined;
-  /**
-   * Ramp min and max intensity values (`min:max`). If provided, overrides the
-   * `lut` field when calculating the ramp.
-   */
-  [ViewerChannelSettingKeys.Ramp]?: string = undefined;
-  /** Volume enabled. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.VolumeEnabled]?: "1" | "0" = undefined;
-  /** Isosurface enabled. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.SurfaceEnabled]?: "1" | "0" = undefined;
-  /** Isosurface value, in the [0, 255] range. Set to `128` by default. */
-  [ViewerChannelSettingKeys.IsosurfaceValue]?: string = undefined;
-  /**
-   * Whether to keep the current contrast settings when loading a new volume.
-   * "1" is enabled. Disabled by default.
-   */
-  [ViewerChannelSettingKeys.KeepRange]?: "1" | "0" = undefined;
-}
 /**
  * Channels, matching the pattern `c0`, `c1`, etc. corresponding to the index of the channel being configured.
  * The channel parameter should have a value that is a comma-separated list of `key:value` pairs, with keys
  * defined in `ViewerChannelSettingJson`.
  */
 type ChannelParams = { [_ in `c${number}`]?: string };
-
-/** Serialized version of `ViewerState`. */
-export class ViewerStateParams {
-  /** Axis to view. Valid values are "3D", "X", "Y", and "Z". Defaults to "3D". */
-  [ViewerStateKeys.View]?: string = undefined;
-  /**
-   * Render mode. Valid values are "volumetric", "maxproject", and "pathtrace".
-   * Defaults to "volumetric".
-   */
-  [ViewerStateKeys.Mode]?: string = undefined;
-  /** The opacity of the mask channel, an integer in the range [0, 100]. Defaults to 50. */
-  [ViewerStateKeys.Mask]?: string = undefined;
-  /** The type of image to display. Valid values are "cell" and "fov". Defaults to "cell". */
-  [ViewerStateKeys.Image]?: string = undefined;
-  /** Whether to show the axes helper. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.Axes]?: string = undefined;
-  /** Whether to show the bounding box. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.BoundingBox]?: string = undefined;
-  /** Whether single-channel mode is active. "1" is active. Inactive by default. */
-  [ViewerStateKeys.SingleChannelMode]?: string = undefined;
-  /** If single-channel mode is active, which channel index is shown. Defaults to 0. */
-  [ViewerStateKeys.SingleChannelIndex]?: string = undefined;
-  /** The color of the bounding box, as a 6-digit hex color. */
-  [ViewerStateKeys.BoundingBoxColor]?: string = undefined;
-  /** The background color, as a 6-digit hex color. */
-  [ViewerStateKeys.BackgroundColor]?: string = undefined;
-  /** Whether to autorotate the view. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.Autorotate]?: string = undefined;
-  /** The brightness of the image, an float in the range [0, 100]. Defaults to 70. */
-  [ViewerStateKeys.Brightness]?: string = undefined;
-  /** Density, a float in the range [0, 100]. Defaults to 50. */
-  [ViewerStateKeys.Density]?: string = undefined;
-  /**
-   * Levels for image intensity adjustment. Should be three numeric values separated
-   * by commas, representing the low, middle, and high values in a [0, 255] range.
-   * Values will be sorted in ascending order; empty values will be parsed as 0.
-   */
-  [ViewerStateKeys.Levels]?: string = undefined;
-  /** Whether to enable interpolation. "1" is enabled. Enabled by default. */
-  [ViewerStateKeys.Interpolation]?: string = undefined;
-  /** Subregions per axis, as min:max pairs separated by commas.
-   * Defaults to full range (`0:1`) for each axis.
-   */
-  [ViewerStateKeys.Region]?: string = undefined;
-  /** Slice position per X, Y, and Z axes, as a list of comma-separated floats.
-   * 0.5 for all axes by default (e.g. `0.5,0.5,0.5`)
-   */
-  [ViewerStateKeys.Slice]?: string = undefined;
-  /** Frame number, for time-series volumes. 0 by default. */
-  [ViewerStateKeys.Time]?: string = undefined;
-  /** Scene number, for multiscene images. 0 by default. */
-  [ViewerStateKeys.Scene]?: string = undefined;
-  /** Whether to use an exact scale level index. 0 by default. */
-  [ViewerStateKeys.UseExactScaleLevel]?: string = undefined;
-  /** The exact scale level index to use, if `UseExactScaleLevel` is 1. 0 by default. */
-  [ViewerStateKeys.ScaleLevelIndex]?: string = undefined;
-  /**
-   * Camera transform settings, as a list of `key:value` pairs separated by commas.
-   * Valid keys are defined in `CameraTransformKeys`:
-   * - `pos`: position
-   * - `tar`: target
-   * - `up`: up
-   * - `rot`: rotation
-   * - `ort`: orthographic scales
-   *
-   * All values are an array of three floats, separated by commas and
-   * encoded using `encodeURIComponent`.
-   */
-  [ViewerStateKeys.CameraState]?: string = undefined;
-}
 
 /** URL parameters that define data sources when loading volumes. */
 class DataParams {
@@ -441,31 +205,6 @@ export const parseImageURLParam = (urlParam: string): string[][] => {
 
 //// DATA PARSING //////////////////////
 
-/**
- * Parse a string list of comma-separated key:value pairs into
- * a key-value object.
- *
- * @param data The string to parse. Expected to be in the format
- * "key1:value1,key2:value2,...". Commas in keys or values
- * must be encoded using `encodeURIComponent`.
- * @returns An object with the parsed key-value pairs. Key and value strings
- *  will be decoded using `decodeURIComponent`.
- */
-export function parseKeyValueList(data: string): Record<string, string> {
-  if (data === "") {
-    return {};
-  }
-  const result: Record<string, string> = {};
-  const keyValuePairs = data.split(",");
-  for (const pair of keyValuePairs) {
-    const splitIndex = pair.indexOf(":");
-    const key = pair.slice(0, splitIndex);
-    const value = pair.slice(splitIndex + 1);
-    result[decodeURIComponent(key).trim()] = decodeURIComponent(value).trim();
-  }
-  return result;
-}
-
 function decodeColons(str: string): string {
   return str.replace(ENCODED_COLON_REGEX, ":");
 }
@@ -484,155 +223,11 @@ export function objectToKeyValueList(obj: Record<string, string | undefined>): s
   return keyValuePairs.join(",");
 }
 
-/**
- * Parses a string to a float and clamps the result to the [min, max] range.
- * Returns `undefined` if the string is undefined or NaN.
- * @param value String to parse as a float. Will be parsed with `Number.parseFloat`.
- * @param min Minimum value, inclusive.
- * @param max Maximum value, inclusive.
- * @returns
- * - The parsed number, clamped to the [min, max] range.
- * - `undefined` if the string is undefined or NaN.
- */
-export function parseStringFloat(value: string | undefined, min: number, max: number): number | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  const number = Number.parseFloat(value);
-  return Number.isNaN(number) ? undefined : clamp(number, min, max);
-}
-
-/**
- * Parses a string to an integer and clamps the result to the [min, max] range.
- * @param value String to parse as a float. Assumes base 10, parses with `Number.parseInt(value, 10)`.
- * @param min Minimum value, inclusive.
- * @param max Maximum value, inclusive.
- * @returns
- * - The parsed number, clamped to the [min, max] range.
- * - `undefined` if the string is undefined or NaN.
- */
-export function parseStringInt(value: string | undefined, min: number, max: number): number | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  const number = Number.parseInt(value, 10);
-  if (Number.isNaN(number)) {
-    return undefined;
-  }
-  return clamp(number, min, max);
-}
-
-/**
- * Parses a string to an enum value; if the string is not in the enum, returns the default value.
- * @param value String to parse.
- * @param enumValues Enum. Cannot be a `const enum`, as these are removed at compile time.
- * @param defaultValue Default value to return if the string is not in the enum.
- * @returns A value from the enum or the default value. Note that the return type includes `undefined`
- * if the `defaultValue` is `undefined`.
- */
-export function parseStringEnum<E extends string, T extends E | undefined>(
-  value: string | undefined,
-  enumValues: Record<string | number | symbol, E>,
-  defaultValue: T = undefined as T
-): T {
-  if (value === undefined || !Object.values(enumValues).includes(value as E)) {
-    return defaultValue;
-  }
-  return value as T;
-}
-
-/**
- * Parses a string boolean value ("1" as true, "0" as false), and returns `undefined` if the value is `undefined`.
- */
-function parseStringBoolean(value: string | undefined): boolean | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  return value === "1";
-}
-
-export function parseHexColorAsColorArray(hexColor: string | undefined): ColorArray | undefined {
-  if (!hexColor || !HEX_COLOR_STR_REGEX.test(hexColor)) {
-    return undefined;
-  }
-  // if (hexColor in COLOR_CODES) {
-  //   return COLOR_CODES[hexColor];
-  // }
-  if (hexColor === DEFAULT_CONTROL_POINT_COLOR_CODE) {
-    return DEFAULT_CONTROL_POINT_COLOR;
-  }
-  const r = Number.parseInt(hexColor.slice(0, 2), 16);
-  const g = Number.parseInt(hexColor.slice(2, 4), 16);
-  const b = Number.parseInt(hexColor.slice(4, 6), 16);
-  return [r, g, b];
-}
-
 function colorArrayToHex(color: ColorArray): string {
   return color
     .map((c) => c.toString(16).padStart(2, "0"))
     .join("")
     .toLowerCase();
-}
-
-function parseStringSlice(region: string | undefined): PerAxis<number> | undefined {
-  if (!region || !SLICE_REGEX.test(region)) {
-    return undefined;
-  }
-  const [x, y, z] = region.split(",").map((val) => parseStringFloat(val, 0, 1));
-  if (x === undefined || y === undefined || z === undefined) {
-    return undefined;
-  }
-  return { x, y, z };
-}
-
-/**
- * Parses an array of three numbers from a string.
- * @param stringArr The string to parse. Should be three numbers separated by a separator.
- * @param options Optional parameters for parsing:
- * - `min`: Minimum value for each number. Default is negative infinity.
- * - `max`: Maximum value for each number. Default is positive infinity.
- * - `separator`: Separator between numbers. Default is `,`.
- * @returns
- * - undefined if the string is undefined or could not be parsed.
- * - An array of three numbers, clamped to the [min, max] range.
- */
-function parseThreeNumberArray(
-  stringArr: string | undefined,
-  options?: { min?: number; max?: number; separator?: string }
-): [number, number, number] | undefined {
-  if (!stringArr) {
-    return undefined;
-  }
-
-  const min = options?.min ?? Number.NEGATIVE_INFINITY;
-  const max = options?.max ?? Number.POSITIVE_INFINITY;
-  const separator = options?.separator ?? ",";
-
-  const [x, y, z] = stringArr.split(separator).map((val) => parseStringFloat(val, min, max));
-  if (x === undefined || y === undefined || z === undefined) {
-    return undefined;
-  }
-  return [x, y, z];
-}
-
-function parseStringRegion(region: string | undefined): PerAxis<[number, number]> | undefined {
-  if (!region || !REGION_REGEX.test(region)) {
-    return undefined;
-  }
-  const [x, y, z] = region.split(",").map((axis): [number, number] | undefined => {
-    // each is a min/max pair
-    const [min, max] = axis.split(":").map((val) => parseStringFloat(val, 0, 1));
-    if (min === undefined || max === undefined) {
-      return undefined;
-    }
-    // Ensure sorted order
-    return min < max ? [min, max] : [max, min];
-  });
-  // Check for undefined values
-  if (x === undefined || y === undefined || z === undefined) {
-    return undefined;
-  }
-  return { x, y, z };
 }
 
 /**
@@ -684,22 +279,6 @@ function serializeBoolean(value: boolean | undefined): "1" | "0" | undefined {
   return value ? "1" : "0";
 }
 
-function parseCameraState(cameraSettings: string | undefined): Partial<CameraState> | undefined {
-  if (!cameraSettings) {
-    return undefined;
-  }
-  const parsedCameraSettings = parseKeyValueList(cameraSettings);
-  const result: Partial<CameraState> = {
-    position: parseThreeNumberArray(parsedCameraSettings[CameraTransformKeys.Position], { separator: ":" }),
-    target: parseThreeNumberArray(parsedCameraSettings[CameraTransformKeys.Target], { separator: ":" }),
-    up: parseThreeNumberArray(parsedCameraSettings[CameraTransformKeys.Up], { separator: ":" }),
-    // Orthographic scales cannot be negative
-    orthoScale: parseStringFloat(parsedCameraSettings[CameraTransformKeys.OrthoScale], 0, Infinity),
-    fov: parseStringFloat(parsedCameraSettings[CameraTransformKeys.Fov], 0, 180),
-  };
-  return removeUndefinedProperties(result);
-}
-
 export function serializeCameraState(
   cameraState: Partial<CameraState>,
   removeDefaults: boolean,
@@ -741,97 +320,7 @@ function serializeControlPoints(controlPoints: ControlPoint[]): string {
     .join(":");
 }
 
-function parseControlPoints(controlPoints: string | undefined): ControlPoint[] | undefined {
-  if (
-    !(controlPoints && (CONTROL_POINTS_REGEX.test(controlPoints) || LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)))
-  ) {
-    return undefined;
-  }
-
-  // Parse raw control point data from the string into an array of [x, opacity, color] triplets.
-  let controlPointStrings: string[][];
-  if (LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)) {
-    // Legacy format uses commas to separate control points.
-    controlPointStrings = controlPoints.split(",").map((cp) => cp.split(":"));
-  } else {
-    // New format is all colon-separated, where every three elements represent a control point.
-    controlPointStrings = controlPoints.split(":").reduce((acc, _val, i, array) => {
-      if ((i + 1) % 3 === 0) {
-        acc.push([array[i - 2], array[i - 1], array[i]]);
-      }
-      return acc;
-    }, [] as string[][]);
-  }
-
-  const newControlPoints = controlPointStrings.map((cp) => {
-    const [x, opacity, color] = cp;
-    return {
-      x: parseStringFloat(x, -Infinity, Infinity) ?? 0,
-      opacity: parseStringFloat(opacity, 0, 1) ?? 1.0,
-      color: parseHexColorAsColorArray(color) ?? DEFAULT_CONTROL_POINT_COLOR,
-    };
-  });
-  // Sort control points by x value
-  return newControlPoints.sort((a, b) => a.x - b.x);
-}
-
 //// DATA SERIALIZATION //////////////////////
-
-/**
- * Parses a ViewerChannelSetting from a JSON object.
- * @param channelIndex Index of the channel, to be turned into a `match` value.
- * @param jsonState The serialized ViewerChannelSetting to parse, as an object.
- * @returns A ViewerChannelSetting object.
- */
-export function deserializeViewerChannelSetting(
-  channelIndex: number,
-  jsonState: ViewerChannelStateParams
-): ViewerChannelSetting {
-  // Missing/undefined fields should be handled downstream.
-  const result: ViewerChannelSetting = {
-    match: channelIndex,
-    enabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
-    surfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
-    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
-    keepIntensityRange: parseStringBoolean(jsonState[ViewerChannelSettingKeys.KeepRange]),
-    surfaceOpacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
-    colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
-    colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
-    controlPointsEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
-  };
-  if (jsonState[ViewerChannelSettingKeys.Color] && HEX_COLOR_REGEX.test(jsonState.col)) {
-    result.color = jsonState[ViewerChannelSettingKeys.Color];
-  }
-  if (jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
-    const [min, max] = jsonState[ViewerChannelSettingKeys.Lut].split(":");
-    result.intensity = { ...result.intensity, lut: [min.trim(), max.trim()] };
-  }
-
-  if (jsonState[ViewerChannelSettingKeys.Ramp]) {
-    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
-      const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
-      result.intensity = { ...result.intensity, ramp: [Number.parseFloat(min), Number.parseFloat(max)] };
-    }
-  } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
-    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
-      const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
-      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
-    }
-  }
-
-  if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
-    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
-    if (parsedResult) {
-      result.intensity = { ...result.intensity, controlPoints: parsedResult };
-    }
-  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
-    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
-    if (parsedResult) {
-      result.controlPoints = parsedResult;
-    }
-  }
-  return result;
-}
 
 /**
  * Serializes a single viewer channel setting into a dictionary of URL parameters
@@ -863,53 +352,6 @@ export function serializeViewerChannelSetting(
     // Note that Lut is not saved here, as it is expected as user input and is redundant with
     // the control points and ramp.
   });
-}
-
-export function deserializeViewerState(params: ViewerStateParams): Partial<ViewerState> {
-  const result: Partial<ViewerState> = {
-    maskAlpha: parseStringInt(params[ViewerStateKeys.Mask], 0, 100),
-    imageType: parseStringEnum(params[ViewerStateKeys.Image], ImageType),
-    showAxes: parseStringBoolean(params[ViewerStateKeys.Axes]),
-    showBoundingBox: parseStringBoolean(params[ViewerStateKeys.BoundingBox]),
-    boundingBoxColor: parseHexColorAsColorArray(params[ViewerStateKeys.BoundingBoxColor]),
-    backgroundColor: parseHexColorAsColorArray(params[ViewerStateKeys.BackgroundColor]),
-    autorotate: parseStringBoolean(params[ViewerStateKeys.Autorotate]),
-    brightness: parseStringFloat(params[ViewerStateKeys.Brightness], 0, 100),
-    density: parseStringFloat(params[ViewerStateKeys.Density], 0, 100),
-    levels: parseThreeNumberArray(params[ViewerStateKeys.Levels], { min: 0, max: 255 }),
-    interpolationEnabled: parseStringBoolean(params[ViewerStateKeys.Interpolation]),
-    region: parseStringRegion(params[ViewerStateKeys.Region]),
-    slice: parseStringSlice(params[ViewerStateKeys.Slice]),
-    time: parseStringInt(params[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
-    scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
-    renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
-    singleChannelMode: parseStringBoolean(params[ViewerStateKeys.SingleChannelMode]),
-    singleChannelIndex: parseStringInt(params[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
-    useExactScaleLevel: parseStringBoolean(params[ViewerStateKeys.UseExactScaleLevel]),
-    scaleLevelIndex: parseStringInt(params[ViewerStateKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
-    cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
-  };
-
-  // Handle viewmode, since they use different mappings
-  // TODO: Allow lowercase
-  if (params.view) {
-    const viewParamToViewMode = {
-      "3D": ViewMode.threeD,
-      Z: ViewMode.xy,
-      Y: ViewMode.xz,
-      X: ViewMode.yz,
-    };
-    const allowedViews = Object.keys(viewParamToViewMode);
-    let view: "3D" | "X" | "Y" | "Z";
-    if (allowedViews.includes(params.view.toUpperCase())) {
-      view = params.view.toUpperCase() as "3D" | "X" | "Y" | "Z";
-    } else {
-      view = "3D";
-    }
-    result.viewMode = viewParamToViewMode[view];
-  }
-
-  return removeUndefinedProperties(result);
 }
 
 /**
