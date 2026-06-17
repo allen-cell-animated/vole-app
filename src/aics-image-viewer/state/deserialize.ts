@@ -361,7 +361,7 @@ export function deserializeViewerChannelSetting(
     colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
     controlPointsEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
   };
-  if (jsonState[ViewerChannelSettingKeys.Color] && HEX_COLOR_REGEX.test(jsonState.col)) {
+  if (jsonState[ViewerChannelSettingKeys.Color] && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
     result.color = jsonState[ViewerChannelSettingKeys.Color];
   }
   if (jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
