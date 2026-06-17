@@ -20,7 +20,7 @@ export function objectToKeyValueList(obj: Record<string, string | undefined>): s
       continue;
     }
     // Allow colon separators to remain unencoded to save URL character length.
-    const escapedValue = encodeURIComponent(value.trim()).replace("%3A", ":");
+    const escapedValue = encodeURIComponent(value.trim()).replace(/%3A/g, ":");
     keyValuePairs.push(`${encodeURIComponent(key.trim())}:${escapedValue}`);
   }
   return keyValuePairs.join(",");

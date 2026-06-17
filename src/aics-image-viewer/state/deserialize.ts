@@ -15,8 +15,6 @@ import {
   type ViewerStateParams,
 } from "./types";
 
-export const ENCODED_COMMA_REGEX = /%2C/g;
-export const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
