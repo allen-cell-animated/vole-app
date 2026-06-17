@@ -88,6 +88,9 @@ export function parseKeyValueList(data: string): Record<string, string> {
   const keyValuePairs = data.split(",");
   for (const pair of keyValuePairs) {
     const splitIndex = pair.indexOf(":");
+    if (splitIndex === -1) {
+      continue;
+    }
     const key = pair.slice(0, splitIndex);
     const value = pair.slice(splitIndex + 1);
     result[decodeURIComponent(key).trim()] = decodeURIComponent(value).trim();
