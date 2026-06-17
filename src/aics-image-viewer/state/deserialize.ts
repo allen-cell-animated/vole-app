@@ -18,7 +18,7 @@ import {
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
-const FLOAT_REGEX = /-?[0-9]*.?[0-9]+/;
+const FLOAT_REGEX = /-?[0-9]*\.?[0-9]+/;
 
 /** Match colon-separated pairs of alphanumeric strings */
 const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
