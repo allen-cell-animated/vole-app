@@ -6,15 +6,15 @@ import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../typ
 import {
   CUSTOM_VIEWER_STATE,
   DEFAULT_CHANNEL_STATE,
-  DEFAULT_SERIALIZED_CHANNEL_STATE,
   DEFAULT_VIEWER_STATE,
   SERIALIZED_CUSTOM_VIEWER_STATE,
+  SERIALIZED_DEFAULT_CHANNEL_STATE,
   SERIALIZED_DEFAULT_VIEWER_STATE,
 } from "./test_data";
 
 describe("serializeViewerChannelSetting", () => {
   it("serializes channel settings", () => {
-    expect(serializeViewerChannelSetting(DEFAULT_CHANNEL_STATE, false)).toEqual(DEFAULT_SERIALIZED_CHANNEL_STATE);
+    expect(serializeViewerChannelSetting(DEFAULT_CHANNEL_STATE, false)).toEqual(SERIALIZED_DEFAULT_CHANNEL_STATE);
   });
 
   it("serializes custom channel settings", () => {

@@ -127,7 +127,7 @@ export const DEFAULT_CHANNEL_STATE: ChannelState = {
   keepIntensityRange: false,
 };
 
-export const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelStateParams = {
+export const SERIALIZED_DEFAULT_CHANNEL_STATE: ViewerChannelStateParams = {
   col: "ff0000",
   ven: "1",
   sen: "1",
