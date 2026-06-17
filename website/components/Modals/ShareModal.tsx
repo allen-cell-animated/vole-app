@@ -81,7 +81,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
     // Decode specifically colons and commas for better readability + decreased char count
-    let viewerParamString = serializedViewerParams.toString().replace(/%2C/g, ":").replace(/%3A/g, ",");
+    let viewerParamString = serializedViewerParams.toString().replace(/%3A/g, ":").replace(/%2C/g, ",");
     urlParams.push(viewerParamString);
   }
 
