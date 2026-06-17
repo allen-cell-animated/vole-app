@@ -170,7 +170,7 @@ export class ViewerStateParams {
 }
 
 /**
- * Mapped to types in `ViewerChannelSettingParams`
+ * Mapped to types in `ViewerChannelStateParams`.
  */
 export enum ViewerChannelSettingKeys {
   Color = "col",
