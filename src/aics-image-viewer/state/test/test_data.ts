@@ -1,5 +1,5 @@
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
-import type { ViewerState, ViewerStateParams } from "../types";
+import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../types";
 
 export const DEFAULT_VIEWER_STATE: ViewerState = {
   viewMode: ViewMode.threeD, // "XY", "XZ", "YZ"
@@ -104,4 +104,39 @@ export const SERIALIZED_CUSTOM_VIEWER_STATE: ViewerStateParams = {
   esl: "1",
   scl: "3",
   cam: "pos:-1.05:-4:45,tar:0:0:0,up:0:1:0,ort:3.534,fov:43.5",
+};
+
+export const DEFAULT_CHANNEL_STATE: ChannelState = {
+  name: "",
+  displayName: "",
+  color: [255, 0, 0],
+  volumeEnabled: true,
+  isosurfaceEnabled: true,
+  isovalue: 128,
+  opacity: 0.75,
+  colorizeEnabled: true,
+  colorizeAlpha: 0.5,
+  useControlPoints: false,
+  controlPoints: [
+    { x: 0, opacity: 0.5, color: [255, 255, 255] },
+    { x: 255, opacity: 1.0, color: [255, 255, 255] },
+  ],
+  ramp: [0, 255],
+  plotMin: 0,
+  plotMax: 255,
+  keepIntensityRange: false,
+};
+
+export const DEFAULT_SERIALIZED_CHANNEL_STATE: ViewerChannelStateParams = {
+  col: "ff0000",
+  ven: "1",
+  sen: "1",
+  isv: "128",
+  isa: "0.75",
+  clz: "1",
+  cza: "0.5",
+  cpe: "0",
+  cpt: "0:0.5:1:255:1:1",
+  ram: "0:255",
+  pin: "0",
 };
