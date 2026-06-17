@@ -1,4 +1,5 @@
 import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
+import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
 import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../types";
 
 export const DEFAULT_VIEWER_STATE: ViewerState = {
@@ -139,4 +140,15 @@ export const SERIALIZED_DEFAULT_CHANNEL_STATE: ViewerChannelStateParams = {
   cpt: "0:0.5:1:255:1:1",
   ram: "0:255",
   pin: "0",
+};
+
+export const DEFAULT_VIEWER_CHANNEL_SETTING: ViewerChannelSetting = {
+  match: 0,
+  color: undefined,
+  enabled: undefined,
+  surfaceEnabled: undefined,
+  isovalue: undefined,
+  surfaceOpacity: undefined,
+  colorizeEnabled: undefined,
+  colorizeAlpha: undefined,
 };

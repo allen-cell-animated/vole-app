@@ -1,7 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { RenderMode, ViewMode } from "../../shared/enums";
-import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
 import {
   CONTROL_POINTS_REGEX,
   deserializeViewerChannelSetting,
@@ -17,21 +16,11 @@ import { serializeViewerState } from "../serialize";
 import type { ViewerChannelStateParams, ViewerState } from "../types";
 import {
   CUSTOM_VIEWER_STATE,
+  DEFAULT_VIEWER_CHANNEL_SETTING,
   DEFAULT_VIEWER_STATE,
   SERIALIZED_CUSTOM_VIEWER_STATE,
   SERIALIZED_DEFAULT_VIEWER_STATE,
 } from "./test_data";
-
-const defaultSettings: ViewerChannelSetting = {
-  match: 0,
-  color: undefined,
-  enabled: undefined,
-  surfaceEnabled: undefined,
-  isovalue: undefined,
-  surfaceOpacity: undefined,
-  colorizeEnabled: undefined,
-  colorizeAlpha: undefined,
-};
 
 //// VALUE PARSING ////////////////////////////////////////
 
@@ -235,13 +224,13 @@ describe("deserializeViewerChannelSetting", () => {
   it("returns default settings for empty objects", () => {
     const data = {};
     const result = deserializeViewerChannelSetting(0, data);
-    expect(result).toEqual(defaultSettings);
+    expect(result).toEqual(DEFAULT_VIEWER_CHANNEL_SETTING);
   });
 
   it("ignores unexpected keys", () => {
     const data = { badKey: "badValue", ven: "1", sen: "1" } as ViewerChannelStateParams;
     const result = deserializeViewerChannelSetting(0, data);
-    expect(result).toEqual({ ...defaultSettings, enabled: true, surfaceEnabled: true });
+    expect(result).toEqual({ ...DEFAULT_VIEWER_CHANNEL_SETTING, enabled: true, surfaceEnabled: true });
   });
 
   it("parses settings correctly", () => {
