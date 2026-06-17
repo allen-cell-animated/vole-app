@@ -1,7 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { RenderMode, ViewMode } from "../../shared/enums";
-import { serializeViewerState } from "../../shared/utils/urlParsing";
 import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
 import {
   CONTROL_POINTS_REGEX,
@@ -14,6 +13,7 @@ import {
   parseStringFloat,
   parseStringInt,
 } from "../deserialize";
+import { serializeViewerState } from "../serialize";
 import type { ViewerChannelStateParams, ViewerState } from "../types";
 import {
   CUSTOM_VIEWER_STATE,
@@ -339,7 +339,6 @@ describe("deserializeViewerState", () => {
     expect(deserializeViewerState(params)).toEqual(CUSTOM_VIEWER_STATE);
   });
 
-  // TODO should remove `serializeViewerState` here?
   it("handles all ViewMode values", () => {
     const viewModes = Object.values(ViewMode);
     for (const viewMode of viewModes) {
