@@ -7,11 +7,7 @@ import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
-import {
-  ENCODED_COLON_REGEX,
-  ENCODED_COMMA_REGEX,
-  serializeViewerUrlParams,
-} from "../../../src/aics-image-viewer/shared/utils/urlParsing";
+import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
