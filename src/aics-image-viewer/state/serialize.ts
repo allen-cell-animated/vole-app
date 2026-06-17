@@ -113,8 +113,7 @@ function serializeControlPoints(controlPoints: ControlPoint[]): string {
     .map((cp) => {
       const x = formatFloat(cp.x);
       const opacity = formatFloat(cp.opacity);
-      // Default color is empty string
-      // TODO: Substitute
+      // Default control-point color is encoded as DEFAULT_CONTROL_POINT_COLOR_CODE ("1").
       const color = isEqual(cp.color, DEFAULT_CONTROL_POINT_COLOR)
         ? DEFAULT_CONTROL_POINT_COLOR_CODE
         : colorArrayToHex(cp.color);
