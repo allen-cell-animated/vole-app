@@ -39,6 +39,24 @@ type SliderRowProps<Value = number[]> = {
   onEnd?: () => void;
 };
 
+type PlaySliderRowProps = {
+  label: string;
+  val: number;
+  max: number;
+  playing: boolean;
+  updateWhileSliding?: boolean;
+  onTogglePlayback: (play: boolean) => void;
+  // These event handlers attach to the events of the same names provided by noUiSlider.
+  // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
+  /**
+   * `onChange`'s behavior depends on `updateWhileSliding`: if true, it's called on slide and on release;
+   * if false, it's called only on slide.
+   */
+  onChange?: (value: number) => void;
+  onStart?: () => void;
+  onEnd?: () => void;
+};
+
 /** A single slider row, with a slider, one or two spinbox inputs, and a max value */
 const SliderRow: React.FC<SliderRowProps> = ({
   label,
@@ -131,24 +149,6 @@ const IndexSliderRow: React.FC<Omit<SliderRowProps<number>, "min" | "unitSymbol"
     onEnd={props.onEnd}
   />
 );
-
-type PlaySliderRowProps = {
-  label: string;
-  val: number;
-  max: number;
-  playing: boolean;
-  updateWhileSliding?: boolean;
-  onTogglePlayback: (play: boolean) => void;
-  // These event handlers attach to the events of the same names provided by noUiSlider.
-  // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
-  /**
-   * `onChange`'s behavior depends on `updateWhileSliding`: if true, it's called on slide and on release;
-   * if false, it's called only on slide.
-   */
-  onChange?: (value: number) => void;
-  onStart?: () => void;
-  onEnd?: () => void;
-};
 
 /** Wrapper around `SliderRow` that adds a play button and accounts for the case where not all of an axis is loaded */
 const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
