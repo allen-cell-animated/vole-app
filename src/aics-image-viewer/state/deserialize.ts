@@ -18,7 +18,7 @@ import {
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
-const FLOAT_REGEX = /-?[0-9]*.?[0-9]+/;
+const FLOAT_REGEX = /-?[0-9]*\.?[0-9]+/;
 
 /** Match colon-separated pairs of alphanumeric strings */
 const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
@@ -88,6 +88,9 @@ export function parseKeyValueList(data: string): Record<string, string> {
   const keyValuePairs = data.split(",");
   for (const pair of keyValuePairs) {
     const splitIndex = pair.indexOf(":");
+    if (splitIndex === -1) {
+      continue;
+    }
     const key = pair.slice(0, splitIndex);
     const value = pair.slice(splitIndex + 1);
     result[decodeURIComponent(key).trim()] = decodeURIComponent(value).trim();
@@ -358,7 +361,7 @@ export function deserializeViewerChannelSetting(
     colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
     controlPointsEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
   };
-  if (jsonState[ViewerChannelSettingKeys.Color] && HEX_COLOR_REGEX.test(jsonState.col)) {
+  if (jsonState[ViewerChannelSettingKeys.Color] && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
     result.color = jsonState[ViewerChannelSettingKeys.Color];
   }
   if (jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {

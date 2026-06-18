@@ -160,17 +160,17 @@ export class ViewerStateParams {
    * - `pos`: position
    * - `tar`: target
    * - `up`: up
-   * - `rot`: rotation
-   * - `ort`: orthographic scales
+   * - `ort`: orthographic scale
+   * - `fov`: field of view
    *
-   * All values are an array of three floats, separated by commas and
+   * Vector values are encoded as three floats separated by colons (e.g. `1:2:3`) and
    * encoded using `encodeURIComponent`.
    */
   [ViewerStateKeys.CameraState]?: string = undefined;
 }
 
 /**
- * Mapped to types in `ViewerChannelSettingParams`
+ * Mapped to types in `ViewerChannelStateParams`.
  */
 export enum ViewerChannelSettingKeys {
   Color = "col",
