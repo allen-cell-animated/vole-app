@@ -8,8 +8,8 @@ import type { AxisName, PerAxis, Styles } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState } from "../../state/store";
 
-import { AxisClipSliders, RotationSliders } from "../AxisClipSliders";
 import BottomPanel from "../BottomPanel";
+import { AxisClipSliders, RotationSliders } from "../BottomPanelSliders";
 
 import "./styles.css";
 
