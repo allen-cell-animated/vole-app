@@ -1,24 +1,25 @@
 import type { CameraState } from "@aics/vole-core";
 import { describe, expect, it } from "@jest/globals";
 
-import { applyMatrix, defaultOrientedCamera } from "../camera";
+import { applyMatrix, defaultOrientedCamera, getRotationAngles, rotationMatrix } from "../camera";
 
-const expectCameraStateToBe = (actual: CameraState, expected: CameraState): void => {
+const expectCameraStateToBe = (actual: CameraState, expected: CameraState, precision?: number): void => {
+  console.log(actual.up, expected.up);
   const [apx, apy, apz] = actual.position;
   const [epx, epy, epz] = expected.position;
-  expect(apx).toBeCloseTo(epx);
-  expect(apy).toBeCloseTo(epy);
-  expect(apz).toBeCloseTo(epz);
+  expect(apx).toBeCloseTo(epx, precision);
+  expect(apy).toBeCloseTo(epy, precision);
+  expect(apz).toBeCloseTo(epz, precision);
   const [atx, aty, atz] = actual.target;
   const [etx, ety, etz] = expected.target;
-  expect(atx).toBeCloseTo(etx);
-  expect(aty).toBeCloseTo(ety);
-  expect(atz).toBeCloseTo(etz);
+  expect(atx).toBeCloseTo(etx, precision);
+  expect(aty).toBeCloseTo(ety, precision);
+  expect(atz).toBeCloseTo(etz, precision);
   const [aux, auy, auz] = actual.up;
   const [eux, euy, euz] = expected.up;
-  expect(aux).toBeCloseTo(eux);
-  expect(auy).toBeCloseTo(euy);
-  expect(auz).toBeCloseTo(euz);
+  expect(aux).toBeCloseTo(eux, precision);
+  expect(auy).toBeCloseTo(euy, precision);
+  expect(auz).toBeCloseTo(euz, precision);
 };
 
 describe("applyMatrix", () => {
@@ -49,7 +50,6 @@ describe("applyMatrix", () => {
       target: [23, 17, 20],
     };
     const actual = applyMatrix(INPUT, [1, 2, 3, 2, 1, 3, 3, 2, 1]);
-    console.log(actual);
     expectCameraStateToBe(actual, EXPECTED);
   });
 });
@@ -94,5 +94,20 @@ describe("defaultOrientedCamera", () => {
 });
 
 describe("getRotationAngles", () => {
-  it("is the inverse of applying a rotation matrix whenever -90° < Y < 90°", () => {});
+  it("is the inverse of applying a rotation matrix to a default-oriented camera when -PI/2 < Y < PI/2", () => {
+    const testRotationAnglesInverse = (x: number, y: number, z: number, target: [number, number, number]): void => {
+      const state: CameraState = { position: [target[0], target[1], target[2] - 1], target, up: [0, 1, 0] };
+      const rotated = applyMatrix(defaultOrientedCamera(state), rotationMatrix(x, y, z));
+      const result = getRotationAngles(rotated);
+      expect(result.x).toBeCloseTo(x);
+      expect(result.y).toBeCloseTo(y);
+      expect(result.z).toBeCloseTo(z);
+    };
+
+    testRotationAnglesInverse(Math.PI / 2, 0, 0, [0, 0, 0]);
+    testRotationAnglesInverse(Math.PI / 2, 0, 0, [1, 2, 3]);
+    testRotationAnglesInverse(Math.PI / 3, Math.PI / 3, Math.PI / 3, [3, 3, 3]);
+    testRotationAnglesInverse(Math.PI, Math.PI / 4, -Math.PI, [3, 3, 3]);
+    testRotationAnglesInverse(1, -0.8, 3, [0.5, 0.8, 1.2]);
+  });
 });
