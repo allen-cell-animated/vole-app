@@ -125,9 +125,9 @@ function serializeControlPoints(controlPoints: ControlPoint[]): string {
 
 /**
  * Serializes a single viewer channel setting into a dictionary of URL parameters
- * (`ViewerChannelSettingParams`).
+ * (`ViewerChannelStateParams`).
  * @param channelSetting The channel state object to serialize.
- * @param removeDefaults Whether to remove properties that match the output of `GET_DEFAULT_CHANNEL_STATE`.
+ * @param removeDefaults Whether to remove properties that match the output of `getDefaultChannelState`.
  * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
  */
 export function serializeViewerChannelSetting(
