@@ -128,20 +128,3 @@ export const useCameraCallback = <T extends any[]>(
     [view3d, transform]
   );
 };
-
-/** Specialization of `useCameraCallback` to create a callback that jumps the camera to looking down the given axis */
-export const useCameraJumpCallback = (
-  view3d: View3d,
-  axis: "x" | "y" | "z" | number,
-  negative: boolean,
-  yUp = false
-): (() => void) => {
-  return useCameraCallback((state) => {
-    const axisIndex = axis === "x" ? 0 : axis === "y" ? 1 : axis === "z" ? 2 : axis;
-    const v: Tuple3 = [0, 0, 0];
-    const dist = length(vecToTarget(state));
-    v[axisIndex] = negative ? -dist : dist;
-    const position = add(v, state.target);
-    return { position, up: yUp ? [0, 1, 0] : [1, 0, 0] };
-  }, view3d);
-};

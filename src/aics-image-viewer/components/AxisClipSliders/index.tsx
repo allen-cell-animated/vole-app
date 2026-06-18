@@ -1,7 +1,7 @@
 import type { View3d, Volume } from "@aics/vole-core";
 import { CaretRightOutlined, PauseOutlined } from "@ant-design/icons";
 import { Button, Tooltip } from "antd";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ViewMode } from "../../shared/enums";
 import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
@@ -11,7 +11,6 @@ import {
   getRotationAngles,
   rotationMatrix,
   useCameraCallback,
-  useCameraJumpCallback,
 } from "../../shared/utils/camera";
 import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState, type ViewerStateActions } from "../../state/store";
@@ -349,7 +348,7 @@ const toRadians = (deg: number): number => deg * (Math.PI / 180);
 const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 
 export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
-  const [rotation, setRotation] = React.useState(() => getRotationAngles(view3d.getCameraState()));
+  const [rotation, setRotation] = useState(() => getRotationAngles(view3d.getCameraState()));
   const autorotate = useViewerState(select("autorotate"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
@@ -358,9 +357,9 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
   // While `hasControlRef.current === false`, `view3d`'s camera state is synced *up* to this component.
   // TODO are there any other events besides the above that cause the volume to rotate? Ideally this would be an event
   //   that `View3d` would let us track directly.
-  const hasControlRef = React.useRef(false);
+  const hasControlRef = useRef(false);
 
-  const handleRotate = React.useCallback(
+  const handleRotate = useCallback(
     (axis: "x" | "y" | "z", deg: number) => {
       hasControlRef.current = true;
       if (autorotate) {
@@ -370,6 +369,11 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
     },
     [autorotate, changeViewerSetting]
   );
+
+  const handleJump = useCallback((x: number, y: number, z: number) => {
+    hasControlRef.current = true;
+    setRotation({ x, y, z });
+  }, []);
 
   // Take away control when autorotate is enabled
   useEffect(() => {
@@ -384,14 +388,14 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
   }, view3d);
 
   // Sync down rotation state while this component is "in control."
-  React.useEffect(() => {
+  useEffect(() => {
     if (hasControlRef.current) {
       rotateCameraTo(rotation);
     }
   }, [rotateCameraTo, rotation]);
 
   // Set up event listeners on mount.
-  React.useEffect(() => {
+  useEffect(() => {
     // TODO this is *extremely brittle*: setting this clears away any other listener for render events.
     //   At time of writing, `setOnRenderCallback` appears not to be used anywhere else in either this package or
     //   vole-core, but that could change at any time.
@@ -421,12 +425,12 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
     </div>
   );
 
-  const jumpXMinus = useCameraJumpCallback(view3d, "x", true, true);
-  const jumpXPlus = useCameraJumpCallback(view3d, "x", false, true);
-  const jumpYMinus = useCameraJumpCallback(view3d, "y", true);
-  const jumpYPlus = useCameraJumpCallback(view3d, "y", false);
-  const jumpZMinus = useCameraJumpCallback(view3d, "z", true, true);
-  const jumpZPlus = useCameraJumpCallback(view3d, "z", false, true);
+  const jumpXMinus = useCallback(() => handleJump(0, -Math.PI / 2, 0), [handleJump]);
+  const jumpXPlus = useCallback(() => handleJump(0, Math.PI / 2, 0), [handleJump]);
+  const jumpYMinus = useCallback(() => handleJump(Math.PI / 2, 0, -Math.PI / 2), [handleJump]);
+  const jumpYPlus = useCallback(() => handleJump(-Math.PI / 2, 0, -Math.PI / 2), [handleJump]);
+  const jumpZMinus = useCallback(() => handleJump(Math.PI, 0, -Math.PI), [handleJump]);
+  const jumpZPlus = useCallback(() => handleJump(0, 0, 0), [handleJump]);
 
   return (
     <div className="clip-sliders clip-sliders-2d">
