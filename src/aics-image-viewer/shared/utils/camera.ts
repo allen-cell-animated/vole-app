@@ -79,23 +79,6 @@ export const rotationMatrix = (x: number, y: number, z: number): Matrix3x3 => {
   ];
 };
 
-/**
- * Constructs a new `CameraState` equivalent to rotating `state` about the origin such that the camera returns to its
- * default *orientation* (looking towards -Z, +Y up), though not necessarily its default *position*.
- */
-export const defaultOrientedCamera = (state: CameraState): CameraState => {
-  const distance = length(vecToTarget(state));
-  // Rotate `target` about the origin, then derive `position` from `target`
-  const { x, y, z } = getRotationAngles(state);
-  const matrix = transpose(rotationMatrix(x, y, z));
-  const target = mulMatrix(matrix, state.target);
-  return {
-    target: target,
-    position: add(target, [0, 0, distance]),
-    up: [0, 1, 0],
-  };
-};
-
 /** Extract Tait-Bryan angles from a `CameraState` */
 export const getRotationAngles = (state: CameraState): { x: number; y: number; z: number } => {
   const { forward, right, up } = getBasis(state);
@@ -111,6 +94,23 @@ export const getRotationAngles = (state: CameraState): { x: number; y: number; z
   }
   // Gimbal lock: y = ±90°, fold combined rotation into x.
   return { x: Math.atan2(up[2], up[1]), y, z: 0 };
+};
+
+/**
+ * Constructs a new `CameraState` equivalent to rotating `state` about the origin such that the camera returns to its
+ * default *orientation* (looking towards -Z, +Y up), though not necessarily its default *position*.
+ */
+export const defaultOrientedCamera = (state: CameraState): CameraState => {
+  const distance = length(vecToTarget(state));
+  // Rotate `target` about the origin, then derive `position` from `target`
+  const { x, y, z } = getRotationAngles(state);
+  const matrix = transpose(rotationMatrix(x, y, z));
+  const target = mulMatrix(matrix, state.target);
+  return {
+    target: target,
+    position: add(target, [0, 0, distance]),
+    up: [0, 1, 0],
+  };
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
