@@ -22,14 +22,12 @@ import "./styles.css";
 
 const AXES: AxisName[] = ["x", "y", "z"];
 
-type SliderRowProps<Value = number[]> = {
+type SharedSliderRowProps<Value = number> = {
   label: string;
   val: Value;
   valReadout?: Value;
   min: number;
   max: number;
-  hideMax?: boolean;
-  unitSymbol?: string;
   // These event handlers attach to the events of the same names provided by noUiSlider.
   // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
   onSlide?: (value: Value) => void;
@@ -39,25 +37,20 @@ type SliderRowProps<Value = number[]> = {
   onEnd?: () => void;
 };
 
-type PlaySliderRowProps = {
-  label: string;
-  val: number;
-  max: number;
+type SliderRowProps = SharedSliderRowProps<number[]> & {
+  hideMax?: boolean;
+  unitSymbol?: string;
+};
+
+type IndexSliderRowProps = Omit<SharedSliderRowProps, "min">;
+
+type PlaySliderRowProps = Omit<SharedSliderRowProps, "valReadout" | "min" | "onSlide"> & {
   playing: boolean;
   updateWhileSliding?: boolean;
   onTogglePlayback: (play: boolean) => void;
-  // These event handlers attach to the events of the same names provided by noUiSlider.
-  // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
-  /**
-   * `onChange`'s behavior depends on `updateWhileSliding`: if true, it's called on slide and on release;
-   * if false, it's called only on slide.
-   */
-  onChange?: (value: number) => void;
-  onStart?: () => void;
-  onEnd?: () => void;
 };
 
-/** A single slider row, with a slider, one or two spinbox inputs, and a max value */
+/** A single slider row, with a slider, one or two spinbox inputs, and a max value. */
 const SliderRow: React.FC<SliderRowProps> = ({
   label,
   val,
@@ -119,7 +112,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
               min={min}
               max={max}
               value={valReadout[1]}
-              onChange={(value) => onChange?.([val[0], value])}
+              onChange={(value) => onChange?.([val[0], value, ...val.slice(2)])}
               unitSymbol={unitSymbol}
             />
           </>
@@ -136,7 +129,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
 );
 
 /** Extremely thin wraper around `SliderRow` for adjusting 0-indexed values that the user should see as 1-indexed. */
-const IndexSliderRow: React.FC<Omit<SliderRowProps<number>, "min" | "unitSymbol">> = (props) => (
+const IndexSliderRow: React.FC<IndexSliderRowProps> = (props) => (
   <SliderRow
     label={props.label}
     val={[props.val + 1]}
@@ -150,7 +143,7 @@ const IndexSliderRow: React.FC<Omit<SliderRowProps<number>, "min" | "unitSymbol"
   />
 );
 
-/** Wrapper around `SliderRow` that adds a play button and accounts for the case where not all of an axis is loaded */
+/** Wrapper around `SliderRow` that adds a play button and accounts for the case where not all of an axis is loaded. */
 const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
   const { onChange, onStart, onEnd } = props;
   // In partially-loaded axes, stores the displayed value of the slider while the user is sliding it
