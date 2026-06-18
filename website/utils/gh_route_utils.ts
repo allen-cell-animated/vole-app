@@ -136,11 +136,10 @@ export function tryRemoveHashRouting(url: URL): URL {
  * resolveBasename("./"); // => "/viewer/vole-app/main/"
  * ```
  */
-export function resolveBasename(basename: string | undefined, pathname?: string): string {
-  // Default to the relative basename and current pathname if not provided.
-  basename = basename ?? RELATIVE_BASENAME;
-  pathname = pathname ?? window.location.pathname;
-
+export function resolveBasename(
+  basename: string = RELATIVE_BASENAME,
+  pathname: string = window.location.pathname
+): string {
   basename = basename.endsWith("/") ? basename : `${basename}/`;
   if (basename !== RELATIVE_BASENAME) {
     return basename;
