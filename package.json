@@ -25,6 +25,7 @@
     "gh-build-nightly": "webpack --config webpack.dev.js --env env=production basename=/vole-app/",
     "gh-build-release": "webpack --config webpack.dev.js --env env=production basename=/website-3d-cell-viewer-release/",
     "s3-build": "webpack --config webpack.dev.js --env env=production",
+    "release-build": "webpack --config webpack.dev.js --env env=production",
     "docker-build": "webpack --config webpack.common.js --env env=production",
     "dev": "webpack --config webpack.dev.js --env env=dev",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
