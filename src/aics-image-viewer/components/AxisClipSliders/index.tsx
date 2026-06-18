@@ -22,19 +22,19 @@ import "./styles.css";
 
 const AXES: AxisName[] = ["x", "y", "z"];
 
-type SliderRowProps = {
+type SliderRowProps<Value = number[]> = {
   label: string;
-  vals: number[];
-  valsReadout?: number[];
-  min?: number;
+  vals: Value;
+  valsReadout?: Value;
+  min: number;
   max: number;
   hideMax?: boolean;
   unitSymbol?: string;
   // These event handlers attach to the events of the same names provided by noUiSlider.
   // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
-  onSlide?: (values: number[]) => void;
+  onSlide?: (values: Value) => void;
   /** `onChange` is called on the corresponding noUiSlider event AND on interaction with a spinbox. */
-  onChange?: (values: number[]) => void;
+  onChange?: (values: Value) => void;
   onStart?: () => void;
   onEnd?: () => void;
 };
@@ -44,7 +44,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   label,
   vals,
   valsReadout = vals,
-  min: propMin,
+  min,
   max,
   hideMax,
   unitSymbol,
@@ -52,80 +52,85 @@ const SliderRow: React.FC<SliderRowProps> = ({
   onChange = onSlide,
   onStart,
   onEnd,
-}) => {
-  const isRange = vals.length > 1;
-  // If slider is a range, handles represent slice *edges*: the range around only the 1st slice is [0, 1]; the range
-  // around only the last is [max-1, max].
-  // If slider is not a range, just work with slices, but don't 0-index: 1st slice is 1, last is max
-  const min = propMin ?? (isRange ? 0 : 1);
-  const wrappedOnSlide = isRange ? onSlide : (values: number[]) => onSlide?.([values[0] - 1]);
-  const wrappedOnChange = isRange ? onChange : (values: number[]) => onChange?.([values[0] - 1]);
+}) => (
+  <span className="axis-slider-container">
+    <span className="slider-name">{label}</span>
+    {max <= min ? (
+      <i>No values to adjust</i>
+    ) : (
+      <span className="axis-slider">
+        <SmarterSlider
+          className={vals.length <= 1 ? "slider-single-handle" : ""}
+          connect={true}
+          range={{ min, max }}
+          start={vals}
+          step={1}
+          margin={1}
+          behaviour="drag"
+          pips={{
+            mode: "positions",
+            values: [25, 50, 75],
+            density: 25,
+            format: {
+              // remove labels from pips
+              to: () => "",
+            },
+          }}
+          // round slider output to nearest slice; assume any string inputs represent ints
+          format={{ to: Math.round, from: parseInt }}
+          onSlide={onSlide}
+          onChange={onChange}
+          onStart={onStart}
+          onEnd={onEnd}
+        />
+      </span>
+    )}
+    {max > min && (
+      <span className="slider-values">
+        <NumericInput
+          min={min}
+          max={max}
+          value={valsReadout[0]}
+          onChange={(value) => onChange?.([value, ...vals.slice(1)])}
+          unitSymbol={unitSymbol}
+        />
+        {vals.length > 1 && (
+          <>
+            {" , "}
+            <NumericInput
+              min={min}
+              max={max}
+              value={valsReadout[1]}
+              onChange={(value) => onChange?.([vals[0], value])}
+              unitSymbol={unitSymbol}
+            />
+          </>
+        )}
+        {!hideMax && (
+          <>
+            {" / "}
+            {max}
+          </>
+        )}
+      </span>
+    )}
+  </span>
+);
 
-  return (
-    <span className="axis-slider-container">
-      <span className="slider-name">{label}</span>
-      {max <= min ? (
-        <i>No values to adjust</i>
-      ) : (
-        <span className="axis-slider">
-          <SmarterSlider
-            className={isRange ? "" : "slider-single-handle"}
-            connect={true}
-            range={{ min, max }}
-            start={isRange ? vals : [vals[0] + 1]}
-            step={1}
-            margin={1}
-            behaviour="drag"
-            pips={{
-              mode: "positions",
-              values: [25, 50, 75],
-              density: 25,
-              format: {
-                // remove labels from pips
-                to: () => "",
-              },
-            }}
-            // round slider output to nearest slice; assume any string inputs represent ints
-            format={{ to: Math.round, from: parseInt }}
-            onSlide={wrappedOnSlide}
-            onChange={wrappedOnChange}
-            onStart={onStart}
-            onEnd={onEnd}
-          />
-        </span>
-      )}
-      {max > min && (
-        <span className="slider-values">
-          <NumericInput
-            min={min}
-            max={max}
-            value={valsReadout[0] + (isRange ? 0 : 1)}
-            onChange={(value) => onChange?.(isRange ? [value, vals[1]] : [value - 1])}
-            unitSymbol={unitSymbol}
-          />
-          {isRange && (
-            <>
-              {" , "}
-              <NumericInput
-                min={min}
-                max={max}
-                value={valsReadout[1]}
-                onChange={(value) => onChange?.([vals[0], value])}
-                unitSymbol={unitSymbol}
-              />
-            </>
-          )}
-          {!hideMax && (
-            <>
-              {" / "}
-              {max}
-            </>
-          )}
-        </span>
-      )}
-    </span>
-  );
-};
+/** A single slider row, with a slider, one or two spinbox inputs, and a max value */
+const IndexSliderRow: React.FC<Omit<SliderRowProps<number>, "min" | "unitSymbol">> = (props) => (
+  <SliderRow
+    label={props.label}
+    vals={[props.vals + 1]}
+    valsReadout={props.valsReadout === undefined ? undefined : [props.valsReadout + 1]}
+    min={1}
+    max={props.max}
+    onSlide={([value]) => props.onSlide?.(value - 1)}
+    onChange={([value]) => props.onSlide?.(value - 1)}
+    onStart={props.onStart}
+    onEnd={props.onEnd}
+  />
+);
 
 type PlaySliderRowProps = {
   label: string;
@@ -153,8 +158,8 @@ const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
   // Tracks when the user is sliding the slider and `valReadout` may have to sub in for props
   const [sliderHeld, setSliderHeld] = useState(false);
 
-  const wrappedOnChange = useCallback(([val]: number[]) => onChange?.(val), [onChange]);
-  const wrappedSetValReadout = useCallback(([val]: number[]) => setValReadout(val), []);
+  const wrappedOnChange = useCallback((val: number) => onChange?.(val), [onChange]);
+  const wrappedSetValReadout = useCallback((val: number) => setValReadout(val), []);
   const wrappedOnStart = useCallback((): void => {
     setValReadout(props.val);
     setSliderHeld(true);
@@ -167,10 +172,10 @@ const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
 
   return (
     <>
-      <SliderRow
+      <IndexSliderRow
         label={props.label}
-        vals={[props.val]}
-        valsReadout={props.updateWhileSliding || !sliderHeld ? undefined : [valReadout]}
+        vals={props.val}
+        valsReadout={props.updateWhileSliding || !sliderHeld ? undefined : valReadout}
         max={props.max}
         onSlide={props.updateWhileSliding ? wrappedOnChange : wrappedSetValReadout}
         onChange={props.updateWhileSliding ? undefined : wrappedOnChange}
@@ -282,6 +287,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
         <SliderRow
           label={axis.toUpperCase()}
           vals={[Math.round(region[0] * numSlices), Math.round(region[1] * numSlices)]}
+          min={0}
           max={numSlices}
           onSlide={(values) => updateRegion(axis, values[0], values[1])}
           onStart={() => props.playControls.startHold(axis)}
@@ -325,11 +331,11 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
           <h4 className="slider-group-title">Scene</h4>
           <span className="slider-group-rows">
             <div className="slider-row slider-scene">
-              <SliderRow
-                label={""}
-                vals={[props.scene]}
+              <IndexSliderRow
+                label=""
+                vals={props.scene}
                 max={props.numScenes}
-                onChange={([scene]) => {
+                onChange={(scene) => {
                   props.changeViewerSetting("scene", scene);
                   props.changeViewerSetting("useExactScaleLevel", false);
                 }}
