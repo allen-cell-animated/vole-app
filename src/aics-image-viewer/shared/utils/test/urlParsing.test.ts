@@ -17,7 +17,7 @@ import {
   parseStringInt,
   parseViewerUrlParams,
   serializeCameraState,
-  serializeViewerChannelSetting,
+  serializeChannelState,
   serializeViewerState,
   serializeViewerUrlParams,
 } from "../urlParsing";
@@ -362,7 +362,7 @@ describe("Channel state serialization", () => {
 
   describe("serializeViewerChannelSetting", () => {
     it("serializes channel settings", () => {
-      expect(serializeViewerChannelSetting(DEFAULT_CHANNEL_STATE, false)).toEqual(DEFAULT_SERIALIZED_CHANNEL_STATE);
+      expect(serializeChannelState(DEFAULT_CHANNEL_STATE, false)).toEqual(DEFAULT_SERIALIZED_CHANNEL_STATE);
     });
 
     it("serializes custom channel settings", () => {
@@ -397,7 +397,7 @@ describe("Channel state serialization", () => {
         ram: "0:255",
         pin: "0",
       };
-      expect(serializeViewerChannelSetting(customChannelState, false)).toEqual(serializedCustomChannelState);
+      expect(serializeChannelState(customChannelState, false)).toEqual(serializedCustomChannelState);
     });
   });
 });
