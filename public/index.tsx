@@ -21,11 +21,9 @@ console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
 
 const basename = resolveBasename(VOLEAPP_BASENAME);
-if (basename !== VOLEAPP_BASENAME) {
-  console.log(`vole-app Basename ${VOLEAPP_BASENAME} (resolved to "${basename}")`);
-} else {
-  console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
-}
+console.log(`vole-app Basename ${VOLEAPP_BASENAME}` +
+  ((VOLEAPP_BASENAME !== basename) ? ` (resolved to "${basename}")` : "")
+);
 
 console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
