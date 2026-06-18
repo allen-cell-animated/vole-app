@@ -24,17 +24,17 @@ const AXES: AxisName[] = ["x", "y", "z"];
 
 type SliderRowProps<Value = number[]> = {
   label: string;
-  vals: Value;
-  valsReadout?: Value;
+  val: Value;
+  valReadout?: Value;
   min: number;
   max: number;
   hideMax?: boolean;
   unitSymbol?: string;
   // These event handlers attach to the events of the same names provided by noUiSlider.
   // Their behavior is documented at https://refreshless.com/nouislider/events-callbacks/
-  onSlide?: (values: Value) => void;
+  onSlide?: (value: Value) => void;
   /** `onChange` is called on the corresponding noUiSlider event AND on interaction with a spinbox. */
-  onChange?: (values: Value) => void;
+  onChange?: (value: Value) => void;
   onStart?: () => void;
   onEnd?: () => void;
 };
@@ -42,8 +42,8 @@ type SliderRowProps<Value = number[]> = {
 /** A single slider row, with a slider, one or two spinbox inputs, and a max value */
 const SliderRow: React.FC<SliderRowProps> = ({
   label,
-  vals,
-  valsReadout = vals,
+  val,
+  valReadout = val,
   min,
   max,
   hideMax,
@@ -60,10 +60,10 @@ const SliderRow: React.FC<SliderRowProps> = ({
     ) : (
       <span className="axis-slider">
         <SmarterSlider
-          className={vals.length <= 1 ? "slider-single-handle" : ""}
+          className={val.length <= 1 ? "slider-single-handle" : ""}
           connect={true}
           range={{ min, max }}
-          start={vals}
+          start={val}
           step={1}
           margin={1}
           behaviour="drag"
@@ -90,18 +90,18 @@ const SliderRow: React.FC<SliderRowProps> = ({
         <NumericInput
           min={min}
           max={max}
-          value={valsReadout[0]}
-          onChange={(value) => onChange?.([value, ...vals.slice(1)])}
+          value={valReadout[0]}
+          onChange={(value) => onChange?.([value, ...val.slice(1)])}
           unitSymbol={unitSymbol}
         />
-        {vals.length > 1 && (
+        {val.length > 1 && (
           <>
             {" , "}
             <NumericInput
               min={min}
               max={max}
-              value={valsReadout[1]}
-              onChange={(value) => onChange?.([vals[0], value])}
+              value={valReadout[1]}
+              onChange={(value) => onChange?.([val[0], value])}
               unitSymbol={unitSymbol}
             />
           </>
@@ -117,12 +117,12 @@ const SliderRow: React.FC<SliderRowProps> = ({
   </span>
 );
 
-/** A single slider row, with a slider, one or two spinbox inputs, and a max value */
+/** Extremely thin wraper around `SliderRow` for adjusting 0-indexed values that the user should see as 1-indexed. */
 const IndexSliderRow: React.FC<Omit<SliderRowProps<number>, "min" | "unitSymbol">> = (props) => (
   <SliderRow
     label={props.label}
-    vals={[props.vals + 1]}
-    valsReadout={props.valsReadout === undefined ? undefined : [props.valsReadout + 1]}
+    val={[props.val + 1]}
+    valReadout={props.valReadout === undefined ? undefined : [props.valReadout + 1]}
     min={1}
     max={props.max}
     onSlide={([value]) => props.onSlide?.(value - 1)}
@@ -174,8 +174,8 @@ const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
     <>
       <IndexSliderRow
         label={props.label}
-        vals={props.val}
-        valsReadout={props.updateWhileSliding || !sliderHeld ? undefined : valReadout}
+        val={props.val}
+        valReadout={props.updateWhileSliding || !sliderHeld ? undefined : valReadout}
         max={props.max}
         onSlide={props.updateWhileSliding ? wrappedOnChange : wrappedSetValReadout}
         onChange={props.updateWhileSliding ? undefined : wrappedOnChange}
@@ -286,7 +286,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
       <div key={axis + numSlices + "3d"} className={`slider-row slider-${axis}`}>
         <SliderRow
           label={axis.toUpperCase()}
-          vals={[Math.round(region[0] * numSlices), Math.round(region[1] * numSlices)]}
+          val={[Math.round(region[0] * numSlices), Math.round(region[1] * numSlices)]}
           min={0}
           max={numSlices}
           onSlide={(values) => updateRegion(axis, values[0], values[1])}
@@ -333,7 +333,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
             <div className="slider-row slider-scene">
               <IndexSliderRow
                 label=""
-                vals={props.scene}
+                val={props.scene}
                 max={props.numScenes}
                 onChange={(scene) => {
                   props.changeViewerSetting("scene", scene);
@@ -421,7 +421,7 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
     <div key={`${axis}-rotate`} className={`slider-row slider-${axis}`}>
       <SliderRow
         label={axis.toUpperCase()}
-        vals={[toDegrees(rotation[axis])]}
+        val={[toDegrees(rotation[axis])]}
         min={-180}
         max={180}
         hideMax={true}
