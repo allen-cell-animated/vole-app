@@ -126,7 +126,7 @@ const IndexSliderRow: React.FC<Omit<SliderRowProps<number>, "min" | "unitSymbol"
     min={1}
     max={props.max}
     onSlide={([value]) => props.onSlide?.(value - 1)}
-    onChange={([value]) => props.onSlide?.(value - 1)}
+    onChange={([value]) => props.onChange?.(value - 1)}
     onStart={props.onStart}
     onEnd={props.onEnd}
   />
@@ -145,7 +145,7 @@ type PlaySliderRowProps = {
    * `onChange`'s behavior depends on `updateWhileSliding`: if true, it's called on slide and on release;
    * if false, it's called only on slide.
    */
-  onChange?: (values: number) => void;
+  onChange?: (value: number) => void;
   onStart?: () => void;
   onEnd?: () => void;
 };
