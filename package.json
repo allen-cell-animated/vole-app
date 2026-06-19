@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "web view of cell volume images",
   "main": "es/index.js",
   "module": "es/index.js",
@@ -25,6 +25,7 @@
     "gh-build-nightly": "webpack --config webpack.dev.js --env env=production basename=/vole-app/",
     "gh-build-release": "webpack --config webpack.dev.js --env env=production basename=/website-3d-cell-viewer-release/",
     "s3-build": "webpack --config webpack.dev.js --env env=production",
+    "release-build": "webpack --config webpack.dev.js --env env=production",
     "docker-build": "webpack --config webpack.common.js --env env=production",
     "dev": "webpack --config webpack.dev.js --env env=dev",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
