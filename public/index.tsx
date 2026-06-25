@@ -2,7 +2,12 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
-import { decodeGitHubPagesUrl, isEncodedPathUrl, tryRemoveHashRouting } from "../website/utils/gh_route_utils";
+import {
+  decodeGitHubPagesUrl,
+  isEncodedPathUrl,
+  resolveBasename,
+  tryRemoveHashRouting,
+} from "../website/utils/gh_route_utils";
 import firestore from "./firebase/configure_firebase";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
@@ -14,10 +19,13 @@ import "./App.css";
 // vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
-console.log(`vole-app Basename ${VOLEAPP_BASENAME}`);
-console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
-const basename = VOLEAPP_BASENAME;
+const basename = resolveBasename(VOLEAPP_BASENAME);
+console.log(`vole-app Basename ${VOLEAPP_BASENAME}` +
+  ((VOLEAPP_BASENAME !== basename) ? ` (resolved to "${basename}")` : "")
+);
+
+console.log(`vole-core Version ${VOLECORE_VERSION}`);
 
 // Decode URL path if it was encoded for GitHub pages or uses hash routing.
 const locationUrl = new URL(window.location.toString());

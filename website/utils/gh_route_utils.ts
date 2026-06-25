@@ -1,3 +1,10 @@
+/**
+ * When the vole-app basename is set to './', resolve it to the current path at
+ * runtime. This allows the app to be deployed to a subdirectory without needing
+ * to rebuild with a specified basename.
+ */
+export const RELATIVE_BASENAME = "./";
+
 const ESCAPED_AMPERSAND = "~and~";
 
 /**
@@ -107,4 +114,42 @@ export function tryRemoveHashRouting(url: URL): URL {
     url.hash = "";
   }
   return url;
+}
+
+/**
+ * Resolves a basename for the app at runtime.
+ * @param basename A basename to resolve. If undefined, defaults to the relative
+ * basename ('./').
+ * @param pathname Pathname to use, `window.location.pathname` by default.
+ * Override for testing.
+ * @returns The resolved basename.
+ *   - If basename is `"./"` or `undefined`, the function will resolve the
+ *     basename using the pathname. Removes any trailing subpages so only the
+ *     leading path segment will be taken.
+ *   - Otherwise, the provided basename is returned as-is, with a trailing slash
+ *     added if not present.
+ *
+ * @example
+ * ```ts
+ * // Open at https://www.example.com/viewer/vole-app/main/viewer
+ * resolveBasename("/viewer/vole-app/") // => "/viewer/vole-app/"
+ * resolveBasename("./"); // => "/viewer/vole-app/main/"
+ * ```
+ */
+export function resolveBasename(
+  basename: string = RELATIVE_BASENAME,
+  pathname: string = window.location.pathname
+): string {
+  basename = basename.endsWith("/") ? basename : `${basename}/`;
+  if (basename !== RELATIVE_BASENAME) {
+    return basename;
+  }
+
+  // Removes any non-directory trailing path segments from the pathname to get
+  // the basename. See
+  // https://developer.mozilla.org/en-US/docs/Web/API/Location/pathname.
+  // ex: "/viewer/vole-app/subpage" becomes "/viewer/vole-app/".
+  basename = pathname.replace(/(\/[^/]+)$/, "");
+  basename = basename.endsWith("/") ? basename : `${basename}/`;
+  return basename;
 }

@@ -1,0 +1,61 @@
+# This workflow creates a draft release on GitHub when a new version tag is
+# pushed, and uploads a zipped build of Vol-E as an artifact.
+
+name: Create release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create release and upload artifacts
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org/
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
+
+      # Adapted from AGAVE.
+      # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
+      # create it by ourselves. It is then made available to other steps in this job as a step.outputs
+      # variable.
+      - name: Get the version (git tag)
+        id: get_version
+        run: |
+          echo ${GITHUB_REF/refs\/tags\/v/}
+          echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run release-build
+
+      - name: Rename build folder
+        run: mv imageviewer vole-app
+
+      - name: Zip build artifact
+        run: zip -r vole-app-${VERSION_TAG}.zip vole-app/*
+        env:
+          # Version tag without the `v` prefix, e.g. `1.0.0`
+          VERSION_TAG: ${{ steps.get_version.outputs.VERSION }}
+
+      - name: Create release
+        run: gh release create v${VERSION_TAG} --draft --generate-notes vole-app-${VERSION_TAG}.zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ steps.get_version.outputs.VERSION }}
