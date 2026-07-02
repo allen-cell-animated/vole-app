@@ -60,6 +60,7 @@
     "react-color": "^2.19.3",
     "react-router-dom": "^6.26.2",
     "styled-components": "^6.1.13",
+    "three": "0.184.0",
     "usehooks-ts": "^3.1.0",
     "uuid": "^13.0.0",
     "zustand": "^5.0.6"
@@ -85,7 +86,7 @@
     "@types/react": "^18.x",
     "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.x",
-    "@types/three": "^0.171.0",
+    "@types/three": "0.184.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "antd": "^5.16.2",
