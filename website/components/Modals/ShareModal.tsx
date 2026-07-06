@@ -7,11 +7,7 @@ import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
-import {
-  ENCODED_COLON_REGEX,
-  ENCODED_COMMA_REGEX,
-  serializeViewerUrlParams,
-} from "../../../src/aics-image-viewer/shared/utils/urlParsing";
+import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
@@ -85,10 +81,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
     // Decode specifically colons and commas for better readability + decreased char count
-    let viewerParamString = serializedViewerParams
-      .toString()
-      .replace(ENCODED_COLON_REGEX, ":")
-      .replace(ENCODED_COMMA_REGEX, ",");
+    let viewerParamString = serializedViewerParams.toString().replace(/%3A/g, ":").replace(/%2C/g, ",");
     urlParams.push(viewerParamString);
   }
 
