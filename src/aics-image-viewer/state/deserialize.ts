@@ -1,8 +1,9 @@
-import type { CameraState, ControlPoint } from "@aics/vole-core";
+import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
 
 import { ImageType, RenderMode, ViewMode } from "../shared/enums";
 import type { PerAxis } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
+import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
 import { removeUndefinedProperties } from "../shared/utils/datatypes";
 import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
@@ -401,8 +402,17 @@ export function deserializeViewerChannelSetting(
  *
  * This is used to convert raw URL params into internal channel state fields,
  * leaving absent or invalid values undefined.
+ *
+ * This function optionally accepts the target channel's `Histogram`. This
+ * argument is required to parse the `lut` param correctly, since that param
+ * contains instructions for how to set the channel's intensities *relative to
+ * its intensity distribution*. If `histogram` is left undefined, e.g. because
+ * the channel has not yet been loaded, the `lut` param is ignored.
  */
-export function deserializeChannelState(jsonState: ViewerChannelStateParams): Partial<ChannelState> {
+export function deserializeChannelState(
+  jsonState: ViewerChannelStateParams,
+  histogram?: Histogram
+): Partial<ChannelState> {
   const result: Partial<ChannelState> = {
     volumeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
     isosurfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
@@ -415,6 +425,18 @@ export function deserializeChannelState(jsonState: ViewerChannelStateParams): Pa
     color: parseHexColorAsColorArray(jsonState[ViewerChannelSettingKeys.Color]),
   };
 
+  let pointsFromLut: ControlPoint[] | undefined = undefined;
+  if (histogram !== undefined && jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
+    const [min, max] = jsonState[ViewerChannelSettingKeys.Lut].split(":");
+    if (max !== undefined) {
+      const lut = parseLutSetting(histogram, [min.trim(), max.trim()]);
+      pointsFromLut = lut?.controlPoints.map((point) => ({
+        ...point,
+        x: histogram.getValueFromBinIndex(point.x),
+      }));
+    }
+  }
+
   if (jsonState[ViewerChannelSettingKeys.Ramp]) {
     if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
       const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
@@ -425,6 +447,8 @@ export function deserializeChannelState(jsonState: ViewerChannelStateParams): Pa
       const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
       result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
     }
+  } else if (pointsFromLut !== undefined) {
+    result.ramp = controlPointsToRamp(pointsFromLut);
   }
 
   if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
@@ -437,6 +461,8 @@ export function deserializeChannelState(jsonState: ViewerChannelStateParams): Pa
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
+  } else if (pointsFromLut !== undefined) {
+    result.controlPoints = pointsFromLut;
   }
 
   return removeUndefinedProperties(result);
