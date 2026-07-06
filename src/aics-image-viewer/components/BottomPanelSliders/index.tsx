@@ -128,7 +128,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
   </span>
 );
 
-/** Extremely thin wraper around `SliderRow` for adjusting 0-indexed values that the user should see as 1-indexed. */
+/** Extremely thin wrapper around `SliderRow` for adjusting 0-indexed values that the user should see as 1-indexed. */
 const IndexSliderRow: React.FC<IndexSliderRowProps> = (props) => (
   <SliderRow
     label={props.label}
