@@ -8,6 +8,7 @@ import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import {
   CameraTransformKeys,
+  type ChannelState,
   ViewerChannelSettingKeys,
   type ViewerChannelStateParams,
   type ViewerState,
@@ -393,4 +394,50 @@ export function deserializeViewerChannelSetting(
     }
   }
   return result;
+}
+
+/**
+ * Parses a `ViewerChannelStateParams` object into a partial `ChannelState`.
+ *
+ * This is used to convert raw URL params into internal channel state fields,
+ * leaving absent or invalid values undefined.
+ */
+export function deserializeViewerChannelState(jsonState: ViewerChannelStateParams): Partial<ChannelState> {
+  const result: Partial<ChannelState> = {
+    volumeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
+    isosurfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
+    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(jsonState[ViewerChannelSettingKeys.KeepRange]),
+    opacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
+    colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
+    colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
+    useControlPoints: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
+    color: parseHexColorAsColorArray(jsonState[ViewerChannelSettingKeys.Color]),
+  };
+
+  if (jsonState[ViewerChannelSettingKeys.Ramp]) {
+    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
+      const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
+      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
+    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
+      const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
+      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+    }
+  }
+
+  if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+    if (parsedResult) {
+      result.controlPoints = parsedResult;
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
+    if (parsedResult) {
+      result.controlPoints = parsedResult;
+    }
+  }
+
+  return removeUndefinedProperties(result);
 }
