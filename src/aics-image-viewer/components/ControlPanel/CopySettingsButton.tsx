@@ -2,8 +2,19 @@ import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Button, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
 
-// TODO dummy function for now -- implement
-const validateSettings = (_settings: string): boolean => true;
+type SerializedChannelSettings = {
+  version: string;
+  channels: Record<string, string>;
+};
+
+const validateSettings = (settings: unknown): settings is SerializedChannelSettings => {
+  return (
+    settings !== null &&
+    settings !== undefined &&
+    typeof (settings as SerializedChannelSettings).version === "string" &&
+    typeof (settings as SerializedChannelSettings).channels === "object"
+  );
+};
 
 const enum ClipboardState {
   /** Pasting is enabled: we either know the clipboard contains paste-able settings or we can't be sure it doesn't */
@@ -35,8 +46,7 @@ const CopySettingsButton: React.FC = () => {
         setClipboardState(ClipboardState.Denied);
       } else if (permission.state === "granted") {
         const clipboard = await navigator.clipboard.readText();
-        console.log(clipboard);
-        if (!validateSettings(clipboard)) {
+        if (!validateSettings(JSON.parse(clipboard))) {
           setClipboardState(ClipboardState.Invalid);
         }
       }
