@@ -402,7 +402,7 @@ export function deserializeViewerChannelSetting(
  * This is used to convert raw URL params into internal channel state fields,
  * leaving absent or invalid values undefined.
  */
-export function deserializeViewerChannelState(jsonState: ViewerChannelStateParams): Partial<ChannelState> {
+export function deserializeChannelState(jsonState: ViewerChannelStateParams): Partial<ChannelState> {
   const result: Partial<ChannelState> = {
     volumeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
     isosurfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
