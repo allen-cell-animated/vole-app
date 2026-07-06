@@ -1,7 +1,7 @@
 import { type ControlPoint, type Histogram, Lut, type Volume } from "@aics/vole-core";
 
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
-import { findFirstChannelMatch, type ViewerChannelSetting, type ViewerChannelSettings } from "./viewerChannelSettings";
+import { findFirstChannelMatch, type ViewerChannelSettings } from "./viewerChannelSettings";
 
 /**
  * @param {Object[]} controlPoints - array of `{x:number, opacity:number,
@@ -71,26 +71,16 @@ function parseLutValue(value: string, histogram: Histogram): number {
  * "autoij:0" // use Auto-IJ to calculate min and max.
  * ```
  */
-export function parseLutFromSettings(histogram: Histogram, initSettings: ViewerChannelSetting): Lut | undefined {
-  // TODO: Consider minimizing the types/classes this function is interacting
-  // with, since it is only using `initSettings.lut` and the returned Lut is a
-  // wrapper around the control point array, e.g.
-  // `parseControlPointsFromLutParam(histogram: Histogram, lutParam: [string,
-  // string] | undefined): ControlPoint[] | undefined`
-
-  // There are two possible locations for the LUT settings, due to legacy
-  // reasons. `initSettings.lut` is deprecated in favor of
-  // `initSettings.intensity.lut`.
-  const settingsLut = initSettings.intensity?.lut ?? initSettings.lut;
-  if (settingsLut === undefined || settingsLut.length !== 2) {
+export function parseLutSetting(histogram: Histogram, lutSetting: [string, string] | undefined): Lut | undefined {
+  if (lutSetting === undefined || lutSetting.length !== 2) {
     return undefined;
   }
 
   let lutValues: [number, number];
-  if (settingsLut[0] === "autoij" || settingsLut[1] === "autoij") {
+  if (lutSetting[0] === "autoij" || lutSetting[1] === "autoij") {
     lutValues = histogram.findAutoIJBins();
   } else {
-    lutValues = [parseLutValue(settingsLut[0], histogram), parseLutValue(settingsLut[1], histogram)];
+    lutValues = [parseLutValue(lutSetting[0], histogram), parseLutValue(lutSetting[1], histogram)];
   }
   if (!Number.isFinite(lutValues[0]) || !Number.isFinite(lutValues[1])) {
     return undefined;
@@ -149,7 +139,11 @@ export function initializeLut(
   // Attempt to load a LUT from the settings, which will be used as a fallback
   // to initialize the control points and ramp.
   if (initSettings) {
-    lut = parseLutFromSettings(histogram, initSettings) ?? defaultLut;
+    // There are two possible locations for the LUT settings, due to legacy
+    // reasons. `initSettings.lut` is deprecated in favor of
+    // `initSettings.intensity.lut`.
+    const lutSetting = initSettings.intensity?.lut ?? initSettings.lut;
+    lut = parseLutSetting(histogram, lutSetting) ?? defaultLut;
   }
 
   // Use raw intensity values for control points or ramp if provided in the
