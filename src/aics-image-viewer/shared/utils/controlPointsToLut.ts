@@ -1,4 +1,4 @@
-import {  type ControlPoint, type Histogram, Lut, type Volume } from "@aics/vole-core";
+import { type ControlPoint, type Histogram, Lut, type Volume } from "@aics/vole-core";
 
 import { LUT_MAX_PERCENTILE, LUT_MIN_PERCENTILE, TFEDITOR_DEFAULT_COLOR, TFEDITOR_MAX_BIN } from "../constants";
 import { findFirstChannelMatch, type ViewerChannelSetting, type ViewerChannelSettings } from "./viewerChannelSettings";
@@ -179,15 +179,6 @@ export function initializeLut(
     }));
   }
 
-  // Apply whatever lut is currently visible
-  let visibleLut: Lut;
-  if (initSettings?.controlPointsEnabled) {
-    visibleLut = new Lut().createFromControlPoints(controlPoints);
-  } else {
-    visibleLut = new Lut().createFromControlPoints(ramp);
-  }
-
-  aimg.setLut(channelIndex, visibleLut);
   return { ramp, controlPoints };
 }
 
