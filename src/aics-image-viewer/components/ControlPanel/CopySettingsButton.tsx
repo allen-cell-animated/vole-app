@@ -2,18 +2,41 @@ import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Button, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
 
-type SerializedChannelSettings = {
+import { deserializeChannelState, parseKeyValueList } from "../../state/deserialize";
+import { objectToKeyValueList, serializeViewerChannelSetting } from "../../state/serialize";
+import { useViewerState } from "../../state/store";
+import type { ChannelState } from "../../state/types";
+
+type SerializedChannelState = {
   version: string;
   channels: Record<string, string>;
 };
 
-const validateSettings = (settings: unknown): settings is SerializedChannelSettings => {
+const validateState = (settings: unknown): settings is SerializedChannelState => {
   return (
     settings !== null &&
     settings !== undefined &&
-    typeof (settings as SerializedChannelSettings).version === "string" &&
-    typeof (settings as SerializedChannelSettings).channels === "object"
+    typeof (settings as SerializedChannelState).version === "string" &&
+    typeof (settings as SerializedChannelState).channels === "object"
   );
+};
+
+const serializeChannelState = (channelStates: ChannelState[]): SerializedChannelState => {
+  const channels: Record<string, string> = {};
+  for (const ch of channelStates) {
+    const stateString = objectToKeyValueList(serializeViewerChannelSetting(ch, false));
+    channels[ch.name] = stateString;
+  }
+
+  return { version: VOLEAPP_VERSION, channels };
+};
+
+const deserialize = (serialized: SerializedChannelState): Record<string, Partial<ChannelState>> => {
+  const result: Record<string, Partial<ChannelState>> = {};
+  for (const [name, state] of Object.entries(serialized.channels)) {
+    result[name] = deserializeChannelState(parseKeyValueList(state));
+  }
+  return result;
 };
 
 const enum ClipboardState {
@@ -46,7 +69,7 @@ const CopySettingsButton: React.FC = () => {
         setClipboardState(ClipboardState.Denied);
       } else if (permission.state === "granted") {
         const clipboard = await navigator.clipboard.readText();
-        if (!validateSettings(JSON.parse(clipboard))) {
+        if (!validateState(JSON.parse(clipboard))) {
           setClipboardState(ClipboardState.Invalid);
         }
       }
@@ -58,7 +81,7 @@ const CopySettingsButton: React.FC = () => {
   // Update our guess about whether pasting will succeed on mount and whenever the clipboard changes.
   React.useEffect(() => {
     queryPasteState();
-    // This event only exists in Chromium browsers, but `queryPasteState` only works in Chromium-based browsers anyways
+    // This event only exists in Chromium browsers, but `queryPasteState` only works in Chromium browsers anyways
     navigator.clipboard.addEventListener("clipboardchange", queryPasteState);
     return () => navigator.clipboard.removeEventListener("clipboardchange", queryPasteState);
   }, [queryPasteState]);
@@ -74,7 +97,8 @@ const CopySettingsButton: React.FC = () => {
       key: 0,
       label: "Copy",
       onClick: async () => {
-        console.log(await navigator.clipboard.readText());
+        const { channelSettings } = useViewerState.getState();
+        navigator.clipboard.writeText(JSON.stringify(serializeChannelState(channelSettings)));
       },
     },
     { key: 1, label: "Export" },
@@ -88,8 +112,20 @@ const CopySettingsButton: React.FC = () => {
       ),
       disabled: clipboardState !== ClipboardState.Enabled,
       onClick: async () => {
+        const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
         try {
-          console.log(await navigator.clipboard.readText());
+          const clipboard = await navigator.clipboard.readText();
+          const parsed = JSON.parse(clipboard);
+          if (!validateState(parsed)) {
+            return;
+          }
+          const deserialized = deserialize(parsed);
+
+          const nextState = channelSettings.map((state) => ({
+            ...state,
+            ...deserialized[state.name],
+          }));
+          replaceAllChannelSettings(nextState);
         } catch {
           // If paste failed, check if it was because the user was asked to grant clipboard access and said no
           queryPasteState();
