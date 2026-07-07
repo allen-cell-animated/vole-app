@@ -59,22 +59,32 @@ const CopySettingsButton: React.FC = () => {
 
   /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
   const queryPasteState = React.useCallback(async (): Promise<void> => {
+    let permission: PermissionStatus;
     try {
       // Chromium browsers: we can query permissions to learn whether a clipboard read will succeed
-      const permission = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
-
-      // If we didn't error, the browser supports the `clipboard-read` permission. Its state may be `denied` (disable
-      // paste), `granted` (silently validate clipboard), or `prompt` (wait until asked to read the clipboard).
-      if (permission.state === "denied") {
-        setClipboardState(ClipboardState.Denied);
-      } else if (permission.state === "granted") {
-        const clipboard = await navigator.clipboard.readText();
-        if (!validateState(JSON.parse(clipboard))) {
-          setClipboardState(ClipboardState.Invalid);
-        }
-      }
+      permission = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
     } catch {
       // Non-Chromium browsers: clipboard reads don't have stateful permissions and will always require a prompt
+      setClipboardState(ClipboardState.Enabled);
+      return;
+    }
+
+    // If we're here, the `clipboard-read` permission is supported. Its value may be `denied`, `granted`, or `prompt`.
+    if (permission.state === "denied") {
+      setClipboardState(ClipboardState.Denied);
+    } else if (permission.state === "granted") {
+      try {
+        const clipboardText = await navigator.clipboard.readText();
+        const clipboardJson = JSON.parse(clipboardText);
+        if (validateState(clipboardJson)) {
+          setClipboardState(ClipboardState.Enabled);
+        } else {
+          setClipboardState(ClipboardState.Invalid);
+        }
+      } catch {
+        // Clipboard does not contain JSON
+        setClipboardState(ClipboardState.Invalid);
+      }
     }
   }, []);
 
