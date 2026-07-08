@@ -20,6 +20,7 @@ export const isClipboardChannelState = (settings: unknown): settings is Clipboar
   );
 };
 
+/** Converts an array of `ChannelState`s to a compact JSON representation that can be stringified into the clipboard. */
 export const channelStateToClipboard = (channelStates: ChannelState[]): ClipboardChannelStates => {
   const channels: Record<string, string> = {};
   for (const ch of channelStates) {
@@ -30,10 +31,11 @@ export const channelStateToClipboard = (channelStates: ChannelState[]): Clipboar
   return { version: VOLEAPP_VERSION, channels };
 };
 
+/** Converts a compacted set of `ChannelState`s from the clipboard into a record of channel names and their states. */
 export const clipboardToChannelState = (serialized: ClipboardChannelStates): Record<string, Partial<ChannelState>> => {
   const result: Record<string, Partial<ChannelState>> = {};
   for (const [name, state] of Object.entries(serialized.channels)) {
-    result[name] = deserializeChannelState(parseKeyValueList(state));
+    result[name] = { ...deserializeChannelState(parseKeyValueList(state)), name };
   }
   return result;
 };
