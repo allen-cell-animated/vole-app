@@ -120,7 +120,7 @@ export const DEFAULT_TEST_CHANNEL_STATE: ChannelState = {
   useControlPoints: false,
   controlPoints: [
     { x: 0, opacity: 0.5, color: [255, 255, 255] },
-    { x: 255, opacity: 1.0, color: [255, 255, 255] },
+    { x: 255, opacity: 1.0, color: [50, 100, 150] },
   ],
   ramp: [0, 255],
   plotMin: 0,
@@ -137,7 +137,7 @@ export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ViewerChannelStateParams = {
   clz: "1",
   cza: "0.5",
   cpe: "0",
-  cpt: "0:0.5:1:255:1:1",
+  cpt: "0:0.5:1:255:1:326496",
   ram: "0:255",
   pin: "0",
 };
