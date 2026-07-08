@@ -50,6 +50,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const columnRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = (): HTMLElement => containerRef.current ?? document.body;
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
@@ -177,10 +178,12 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         {renderTab(ControlTab.Advanced, <ViewerIcon type="preferences" />)}
         {props.visibleControls.metadataViewer && renderTab(ControlTab.Metadata, <ViewerIcon type="metadata" />)}
       </div>
-      <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
+      <div className="control-panel-col" style={{ flex: "0 0 450px" }} ref={columnRef}>
         <div className="control-panel-title-container">
           <h2>{ControlTabNames[tab]}</h2>
-          {tab === ControlTab.Channels && <CopySettingsButton />}
+          {tab === ControlTab.Channels && (
+            <CopySettingsButton scrollContainer={columnRef.current} hide={props.collapsed} />
+          )}
         </div>
         {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
         {hasImage && (

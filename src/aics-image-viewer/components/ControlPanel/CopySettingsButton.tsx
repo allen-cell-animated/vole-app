@@ -1,6 +1,7 @@
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Button, Dropdown, type MenuProps, Tooltip } from "antd";
+import { Alert, Button, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
+import { createPortal } from "react-dom";
 
 import { deserializeChannelState, parseKeyValueList } from "../../state/deserialize";
 import { objectToKeyValueList, serializeViewerChannelSetting } from "../../state/serialize";
@@ -54,8 +55,21 @@ const clipboardStatePrompts = {
   [ClipboardState.Denied]: "Can't paste: you must grant permission to access the clipboard.",
 };
 
-const CopySettingsButton: React.FC = () => {
+const ALERT_STYLE = {
+  position: "absolute",
+  bottom: "auto",
+  right: "auto",
+  zIndex: 1500,
+} as const;
+
+const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?: boolean }> = ({
+  scrollContainer,
+  hide,
+}) => {
   const [clipboardState, setClipboardState] = React.useState(ClipboardState.Enabled);
+  const [alertPosition, setAlertPosition] = React.useState({ top: 0, left: 0 });
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const alertContainerRef = React.useRef<HTMLDivElement>(null);
 
   /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
   const queryPasteState = React.useCallback(async (): Promise<void> => {
@@ -102,6 +116,23 @@ const CopySettingsButton: React.FC = () => {
     </Tooltip>
   );
 
+  React.useEffect(() => {
+    const positionAlert = (): void => {
+      const button = buttonRef.current;
+      if (button !== null) {
+        const rect = button.getBoundingClientRect();
+        setAlertPosition({ top: rect.bottom + 10, left: rect.left });
+      }
+    };
+
+    positionAlert();
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", positionAlert);
+      return () => scrollContainer.removeEventListener("scroll", positionAlert);
+    }
+    return undefined;
+  }, [scrollContainer]);
+
   const items: MenuProps["items"] = [
     {
       key: 0,
@@ -146,11 +177,19 @@ const CopySettingsButton: React.FC = () => {
   ];
 
   return (
-    <Dropdown menu={{ items }} trigger={["click"]} overlayStyle={{ minWidth: 100 }}>
-      <Button type="text" size="large">
-        <EllipsisOutlined />
-      </Button>
-    </Dropdown>
+    <>
+      <Dropdown menu={{ items }} trigger={["click"]} overlayStyle={{ minWidth: 100 }}>
+        <Button type="text" size="large" ref={buttonRef}>
+          <EllipsisOutlined />
+        </Button>
+      </Dropdown>
+      {createPortal(
+        <div style={{ ...ALERT_STYLE, ...alertPosition, display: hide ? "none" : "block" }} ref={alertContainerRef}>
+          <Alert message="this is a test" />
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 
