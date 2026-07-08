@@ -1,21 +1,17 @@
-import { Alert } from "antd";
+import { Alert, type AlertProps } from "antd";
 import React from "react";
 import { createPortal } from "react-dom";
+
+type AlertType = AlertProps["type"];
 
 type AlertContext = {
   scrollContainer?: HTMLElement | null;
   hide?: boolean;
 };
 
-export type ContextualAlertProps = AlertContext & {
-  // TODO pretty sure this will fail because it's not a ref...
-  target: HTMLElement | null;
-  message: React.ReactNode;
-};
+export type ContextualAlertProps = AlertProps & AlertContext & { target: HTMLElement | null };
 
-export type ContextualAlertOptions = AlertContext & {
-  timeout?: number;
-};
+export type ContextualAlertOptions = AlertContext & { timeout?: number };
 
 const ALERT_STYLE = {
   position: "absolute",
@@ -52,7 +48,7 @@ export const ContextualAlert: React.FC<ContextualAlertProps> = (props) => {
 
   return createPortal(
     <div style={{ ...ALERT_STYLE, ...alertPosition, display: !message || hide ? "none" : "block" }}>
-      <Alert message={message} />
+      <Alert {...props} />
     </div>,
     document.body
   );
@@ -68,24 +64,26 @@ export const ContextualAlert: React.FC<ContextualAlertProps> = (props) => {
 export const useContextualAlert = (
   target: HTMLElement | null,
   options: ContextualAlertOptions
-): [React.ReactNode, (message: React.ReactNode) => void] => {
+): [React.ReactNode, (message: React.ReactNode, messageType?: AlertType) => void] => {
   const [message, setMessage] = React.useState<React.ReactNode | undefined>(undefined);
+  const [messageType, setMessageType] = React.useState<AlertType>(undefined);
   const messageTimeoutRef = React.useRef<number | undefined>(undefined);
 
   const timeout = options.timeout ?? 10_000;
 
   const showMessage = React.useCallback(
-    (message: React.ReactNode): void => {
+    (message: React.ReactNode, messageType: AlertType): void => {
       if (messageTimeoutRef.current !== undefined) {
         window.clearTimeout(messageTimeoutRef.current);
       }
       window.setTimeout(() => setMessage(undefined), timeout);
       setMessage(message);
+      setMessageType(messageType);
     },
     [timeout]
   );
 
-  const alert = <ContextualAlert message={message} target={target} {...options} />;
+  const alert = <ContextualAlert message={message} target={target} type={messageType ?? "success"} {...options} />;
 
   return [alert, showMessage];
 };
