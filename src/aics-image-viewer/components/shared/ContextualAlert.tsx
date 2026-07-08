@@ -17,7 +17,7 @@ const ALERT_STYLE = {
   position: "absolute",
   bottom: "auto",
   right: "auto",
-  zIndex: 1500,
+  zIndex: 1000,
 } as const;
 
 /**
