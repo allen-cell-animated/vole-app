@@ -9,6 +9,8 @@ import { removeMatchingProperties, removeUndefinedProperties } from "../shared/u
 import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
 import { CameraTransformKeys, ViewerChannelSettingKeys, ViewerStateKeys } from "./types";
 
+const ENCODED_COLON_REGEX = /%3A/g;
+
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
@@ -20,7 +22,7 @@ export function objectToKeyValueList(obj: Record<string, string | undefined>): s
       continue;
     }
     // Allow colon separators to remain unencoded to save URL character length.
-    const escapedValue = encodeURIComponent(value.trim()).replace(/%3A/g, ":");
+    const escapedValue = encodeURIComponent(value.trim()).replace(ENCODED_COLON_REGEX, ":");
     keyValuePairs.push(`${encodeURIComponent(key.trim())}:${escapedValue}`);
   }
   return keyValuePairs.join(",");

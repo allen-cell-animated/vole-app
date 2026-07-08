@@ -12,6 +12,9 @@ import { selectViewerSettings, useViewerState, type ViewerStore } from "../../..
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
 
+const ENCODED_COLON_REGEX = /%3A/g;
+const ENCODED_COMMA_REGEX = /%2C/g;
+
 type ShareModalProps = {
   appProps: AppDataProps;
   imageTitle?: string;
@@ -81,7 +84,10 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
   if (serializedViewerParams.size > 0) {
     // Decode specifically colons and commas for better readability + decreased char count
-    let viewerParamString = serializedViewerParams.toString().replace(/%3A/g, ":").replace(/%2C/g, ",");
+    let viewerParamString = serializedViewerParams
+      .toString()
+      .replace(ENCODED_COLON_REGEX, ":")
+      .replace(ENCODED_COMMA_REGEX, ",");
     urlParams.push(viewerParamString);
   }
 

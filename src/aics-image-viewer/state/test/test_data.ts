@@ -2,7 +2,7 @@ import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
 import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../types";
 
-export const DEFAULT_VIEWER_STATE: ViewerState = {
+export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {
   viewMode: ViewMode.threeD, // "XY", "XZ", "YZ"
   renderMode: RenderMode.volumetric, // "pathtrace", "maxproject"
   imageType: ImageType.segmentedCell,
@@ -27,7 +27,7 @@ export const DEFAULT_VIEWER_STATE: ViewerState = {
   scaleLevelIndex: 0,
 };
 
-export const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
+export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateParams = {
   mode: "volumetric",
   view: "3D",
   image: "cell",
@@ -51,7 +51,7 @@ export const SERIALIZED_DEFAULT_VIEWER_STATE: ViewerStateParams = {
   scl: "0",
 };
 
-export const CUSTOM_VIEWER_STATE: ViewerState = {
+export const CUSTOM_TEST_VIEWER_STATE: ViewerState = {
   renderMode: RenderMode.pathTrace,
   viewMode: ViewMode.xy,
   imageType: ImageType.fullField,
@@ -82,7 +82,7 @@ export const CUSTOM_VIEWER_STATE: ViewerState = {
   },
 };
 
-export const SERIALIZED_CUSTOM_VIEWER_STATE: ViewerStateParams = {
+export const SERIALIZED_CUSTOM_TEST_VIEWER_STATE: ViewerStateParams = {
   mode: "pathtrace",
   view: "Z",
   image: "fov",
@@ -107,7 +107,7 @@ export const SERIALIZED_CUSTOM_VIEWER_STATE: ViewerStateParams = {
   cam: "pos:-1.05:-4:45,tar:0:0:0,up:0:1:0,ort:3.534,fov:43.5",
 };
 
-export const DEFAULT_CHANNEL_STATE: ChannelState = {
+export const DEFAULT_TEST_CHANNEL_STATE: ChannelState = {
   name: "",
   displayName: "",
   color: [255, 0, 0],
@@ -120,7 +120,7 @@ export const DEFAULT_CHANNEL_STATE: ChannelState = {
   useControlPoints: false,
   controlPoints: [
     { x: 0, opacity: 0.5, color: [255, 255, 255] },
-    { x: 255, opacity: 1.0, color: [255, 255, 255] },
+    { x: 255, opacity: 1.0, color: [50, 100, 150] },
   ],
   ramp: [0, 255],
   plotMin: 0,
@@ -128,7 +128,7 @@ export const DEFAULT_CHANNEL_STATE: ChannelState = {
   keepIntensityRange: false,
 };
 
-export const SERIALIZED_DEFAULT_CHANNEL_STATE: ViewerChannelStateParams = {
+export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ViewerChannelStateParams = {
   col: "ff0000",
   ven: "1",
   sen: "1",
@@ -137,12 +137,12 @@ export const SERIALIZED_DEFAULT_CHANNEL_STATE: ViewerChannelStateParams = {
   clz: "1",
   cza: "0.5",
   cpe: "0",
-  cpt: "0:0.5:1:255:1:1",
+  cpt: "0:0.5:1:255:1:326496",
   ram: "0:255",
   pin: "0",
 };
 
-export const DEFAULT_VIEWER_CHANNEL_SETTING: ViewerChannelSetting = {
+export const DEFAULT_TEST_VIEWER_CHANNEL_SETTING: ViewerChannelSetting = {
   match: 0,
   color: undefined,
   enabled: undefined,

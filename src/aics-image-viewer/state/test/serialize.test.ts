@@ -4,17 +4,17 @@ import { getDefaultCameraState } from "../../shared/constants";
 import { serializeCameraState, serializeViewerChannelSetting, serializeViewerState } from "../serialize";
 import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../types";
 import {
-  CUSTOM_VIEWER_STATE,
-  DEFAULT_CHANNEL_STATE,
-  DEFAULT_VIEWER_STATE,
-  SERIALIZED_CUSTOM_VIEWER_STATE,
-  SERIALIZED_DEFAULT_CHANNEL_STATE,
-  SERIALIZED_DEFAULT_VIEWER_STATE,
+  CUSTOM_TEST_VIEWER_STATE,
+  DEFAULT_TEST_CHANNEL_STATE,
+  DEFAULT_TEST_VIEWER_STATE,
+  SERIALIZED_CUSTOM_TEST_VIEWER_STATE,
+  SERIALIZED_DEFAULT_TEST_CHANNEL_STATE,
+  SERIALIZED_DEFAULT_TEST_VIEWER_STATE,
 } from "./test_data";
 
 describe("serializeViewerChannelSetting", () => {
   it("serializes channel settings", () => {
-    expect(serializeViewerChannelSetting(DEFAULT_CHANNEL_STATE, false)).toEqual(SERIALIZED_DEFAULT_CHANNEL_STATE);
+    expect(serializeViewerChannelSetting(DEFAULT_TEST_CHANNEL_STATE, false)).toEqual(SERIALIZED_DEFAULT_TEST_CHANNEL_STATE);
   });
 
   it("serializes custom channel settings", () => {
@@ -55,11 +55,11 @@ describe("serializeViewerChannelSetting", () => {
 
 describe("serializeViewerState", () => {
   it("serializes the default viewer settings", () => {
-    expect(serializeViewerState(DEFAULT_VIEWER_STATE, false)).toEqual(SERIALIZED_DEFAULT_VIEWER_STATE);
+    expect(serializeViewerState(DEFAULT_TEST_VIEWER_STATE, false)).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("serializes custom viewer settings", () => {
-    expect(serializeViewerState(CUSTOM_VIEWER_STATE, false)).toEqual(SERIALIZED_CUSTOM_VIEWER_STATE);
+    expect(serializeViewerState(CUSTOM_TEST_VIEWER_STATE, false)).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("shortens long numbers in the slice and region parameters", () => {
