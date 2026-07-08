@@ -76,7 +76,7 @@ export const useContextualAlert = (
       if (messageTimeoutRef.current !== undefined) {
         window.clearTimeout(messageTimeoutRef.current);
       }
-      window.setTimeout(() => setMessage(undefined), timeout);
+      messageTimeoutRef.current = window.setTimeout(() => setMessage(undefined), timeout);
       setMessage(message);
       setMessageType(messageType);
     },

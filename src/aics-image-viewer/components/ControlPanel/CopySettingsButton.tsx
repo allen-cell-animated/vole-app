@@ -8,6 +8,7 @@ import {
   isClipboardChannelState,
 } from "../../shared/utils/parseClipboard";
 import { useViewerState } from "../../state/store";
+import { cloneChannelState } from "../../state/util";
 
 import { useContextualAlert } from "../shared/ContextualAlert";
 
@@ -79,15 +80,22 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
           }
           const deserialized = clipboardToChannelState(parsed);
 
+          const currentState = channelSettings.map(cloneChannelState);
           const nextState = channelSettings.map((state) => ({
-            ...state,
+            ...cloneChannelState(state),
             ...deserialized[state.name],
           }));
+
+          const undo = (): void => {
+            replaceAllChannelSettings(currentState);
+            showMessage(undefined);
+          };
+
           replaceAllChannelSettings(nextState);
           showMessage(
             <>
               Settings applied -{" "}
-              <Button type="link" style={{ padding: 0, height: "unset" }}>
+              <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
                 Undo
               </Button>
             </>
