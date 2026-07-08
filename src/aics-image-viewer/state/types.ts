@@ -214,7 +214,7 @@ export class ViewerChannelStateParams {
    *   range.
    * - `m{n}` represents the median multiplied by `n / 100`.
    * - `autoij` in either the min or max fields will use the "auto" algorithm
-   *   from ImageJ to select the min and max.
+   *   from ImageJ to select the min AND max.
    *
    * Values will be used to determine the initial control points and ramp if
    * those fields are not provided.
