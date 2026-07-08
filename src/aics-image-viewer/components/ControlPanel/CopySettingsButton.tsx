@@ -3,42 +3,12 @@ import { Alert, Button, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
 import { createPortal } from "react-dom";
 
-import { deserializeChannelState, parseKeyValueList } from "../../state/deserialize";
-import { objectToKeyValueList, serializeViewerChannelSetting } from "../../state/serialize";
+import {
+  channelStateToClipboard,
+  clipboardToChannelState,
+  isClipboardChannelState,
+} from "../../shared/utils/parseClipboard";
 import { useViewerState } from "../../state/store";
-import type { ChannelState } from "../../state/types";
-
-type SerializedChannelState = {
-  version: string;
-  channels: Record<string, string>;
-};
-
-const validateState = (settings: unknown): settings is SerializedChannelState => {
-  return (
-    settings !== null &&
-    settings !== undefined &&
-    typeof (settings as SerializedChannelState).version === "string" &&
-    typeof (settings as SerializedChannelState).channels === "object"
-  );
-};
-
-const serializeChannelState = (channelStates: ChannelState[]): SerializedChannelState => {
-  const channels: Record<string, string> = {};
-  for (const ch of channelStates) {
-    const stateString = objectToKeyValueList(serializeViewerChannelSetting(ch, false));
-    channels[ch.name] = stateString;
-  }
-
-  return { version: VOLEAPP_VERSION, channels };
-};
-
-const deserialize = (serialized: SerializedChannelState): Record<string, Partial<ChannelState>> => {
-  const result: Record<string, Partial<ChannelState>> = {};
-  for (const [name, state] of Object.entries(serialized.channels)) {
-    result[name] = deserializeChannelState(parseKeyValueList(state));
-  }
-  return result;
-};
 
 const enum ClipboardState {
   /** Pasting is enabled: we either know the clipboard contains paste-able settings or we can't be sure it doesn't */
@@ -90,7 +60,7 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
       try {
         const clipboardText = await navigator.clipboard.readText();
         const clipboardJson = JSON.parse(clipboardText);
-        if (validateState(clipboardJson)) {
+        if (isClipboardChannelState(clipboardJson)) {
           setClipboardState(ClipboardState.Enabled);
         } else {
           setClipboardState(ClipboardState.Invalid);
@@ -139,7 +109,7 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
       label: "Copy",
       onClick: async () => {
         const { channelSettings } = useViewerState.getState();
-        navigator.clipboard.writeText(JSON.stringify(serializeChannelState(channelSettings)));
+        navigator.clipboard.writeText(JSON.stringify(channelStateToClipboard(channelSettings)));
       },
     },
     { key: 1, label: "Export" },
@@ -157,10 +127,10 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
         try {
           const clipboard = await navigator.clipboard.readText();
           const parsed = JSON.parse(clipboard);
-          if (!validateState(parsed)) {
+          if (!isClipboardChannelState(parsed)) {
             return;
           }
-          const deserialized = deserialize(parsed);
+          const deserialized = clipboardToChannelState(parsed);
 
           const nextState = channelSettings.map((state) => ({
             ...state,
