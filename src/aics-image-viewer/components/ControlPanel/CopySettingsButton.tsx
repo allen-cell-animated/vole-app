@@ -32,7 +32,7 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
 }) => {
   const [clipboardState, setClipboardState] = React.useState(ClipboardState.Enabled);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide });
+  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 3_600_000 });
 
   /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
   const queryPasteState = React.useCallback(async (): Promise<void> => {
@@ -84,8 +84,13 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
       key: 0,
       label: "Copy",
       onClick: async () => {
-        const { channelSettings } = useViewerState.getState();
-        navigator.clipboard.writeText(JSON.stringify(channelStateToClipboard(channelSettings)));
+        try {
+          const { channelSettings } = useViewerState.getState();
+          navigator.clipboard.writeText(JSON.stringify(channelStateToClipboard(channelSettings)));
+          showMessage("Settings copied");
+        } catch {
+          showMessage("Could not copy settings", "error");
+        }
       },
     },
     { key: 1, label: "Export" },
@@ -113,8 +118,16 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
             ...deserialized[state.name],
           }));
           replaceAllChannelSettings(nextState);
-          showMessage("Settings pasted");
+          showMessage(
+            <>
+              Settings applied -{" "}
+              <Button type="link" style={{ padding: 0 }}>
+                Undo
+              </Button>
+            </>
+          );
         } catch {
+          showMessage("Could not apply settings", "error");
           // If paste failed, check if it was because the user was asked to grant clipboard access and said no
           queryPasteState();
         }
