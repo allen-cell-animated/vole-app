@@ -69,18 +69,16 @@ export const useContextualAlert = (
   const [messageType, setMessageType] = React.useState<AlertType>(undefined);
   const messageTimeoutRef = React.useRef<number | undefined>(undefined);
 
-  const timeout = options.timeout ?? 10_000;
-
   const showMessage = React.useCallback(
     (message: React.ReactNode, messageType: AlertType): void => {
       if (messageTimeoutRef.current !== undefined) {
         window.clearTimeout(messageTimeoutRef.current);
       }
-      messageTimeoutRef.current = window.setTimeout(() => setMessage(undefined), timeout);
+      messageTimeoutRef.current = window.setTimeout(() => setMessage(undefined), options.timeout);
       setMessage(message);
       setMessageType(messageType);
     },
-    [timeout]
+    [options.timeout]
   );
 
   const alert = <ContextualAlert message={message} target={target} type={messageType ?? "success"} {...options} />;

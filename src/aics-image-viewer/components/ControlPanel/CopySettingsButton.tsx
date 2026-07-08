@@ -18,7 +18,7 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
 }) => {
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
+  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000_000 });
 
   /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
   const queryPasteState = React.useCallback(async (): Promise<void> => {
@@ -60,7 +60,7 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
         }
       },
     },
-    { key: 1, label: "Export" },
+    // { key: 1, label: "Export" },
     {
       key: 2,
       label: (
@@ -72,42 +72,89 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
       disabled: pasteDenied,
       onClick: async () => {
         const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
+
+        // Try to read the clipboard
+        let clipboard: string | undefined = undefined;
         try {
-          const clipboard = await navigator.clipboard.readText();
-          const parsed = JSON.parse(clipboard);
-          if (!isClipboardChannelState(parsed)) {
-            return;
-          }
-          const deserialized = clipboardToChannelState(parsed);
+          clipboard = await navigator.clipboard.readText();
+        } catch {
+          showMessage("Could not read clipboard", "error");
+          // If paste failed, check if it was because the user was asked to grant clipboard access and said no
+          queryPasteState();
+          return;
+        }
 
-          const currentState = channelSettings.map(cloneChannelState);
-          const nextState = channelSettings.map((state) => ({
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(clipboard);
+        } catch {
+          parsed = undefined;
+        }
+        if (!isClipboardChannelState(parsed)) {
+          showMessage("Clipboard does not contain channel settings", "error");
+          return;
+        }
+
+        const newStates = clipboardToChannelState(parsed);
+        const newStatesCount = Object.keys(newStates).length;
+        const currentStates = channelSettings.map(cloneChannelState);
+        const nextStates = channelSettings.map((state) => {
+          const result = {
             ...cloneChannelState(state),
-            ...deserialized[state.name],
-          }));
-
-          const undo = (): void => {
-            replaceAllChannelSettings(currentState);
-            showMessage(undefined);
+            ...newStates[state.name],
           };
+          delete newStates[state.name];
+          return result;
+        });
 
-          replaceAllChannelSettings(nextState);
+        replaceAllChannelSettings(nextStates);
+
+        const undo = (): void => {
+          replaceAllChannelSettings(currentStates);
+          showMessage(undefined);
+        };
+
+        const unmatchedStates = Object.keys(newStates);
+
+        if (unmatchedStates.length > 0) {
+          if (unmatchedStates.length === newStatesCount) {
+            showMessage("No channel names matched", "error");
+          } else {
+            const unmatchedCount = unmatchedStates.length;
+            const matchedCount = newStatesCount - unmatchedCount;
+            showMessage(
+              <>
+                <div>
+                  Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
+                  <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+                    Undo
+                  </Button>
+                </div>
+                <p>
+                  {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""} from clipboard did not match:
+                </p>
+                <ul>
+                  {unmatchedStates.map((channelName, index) => (
+                    <li key={index}>{channelName}</li>
+                  ))}
+                </ul>
+              </>,
+              "warning"
+            );
+          }
+        } else {
           showMessage(
             <>
-              Settings applied -{" "}
+              Settings applied to {newStatesCount} channel{newStatesCount > 1 ? "s" : ""} -{" "}
               <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
                 Undo
               </Button>
             </>
           );
-        } catch {
-          showMessage("Could not apply settings", "error");
-          // If paste failed, check if it was because the user was asked to grant clipboard access and said no
-          queryPasteState();
         }
       },
     },
-    { key: 3, label: "Import" },
+    // { key: 3, label: "Import" },
   ];
 
   return (
