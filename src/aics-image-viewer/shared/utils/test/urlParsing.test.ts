@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { parseKeyValueList } from "../../../state/deserialize";
-import { DEFAULT_VIEWER_CHANNEL_SETTING } from "../../../state/test/test_data";
+import { DEFAULT_TEST_VIEWER_CHANNEL_SETTING } from "../../../state/test/test_data";
 import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../../../state/types";
 import { getDefaultChannelState, getDefaultViewerState } from "../../constants";
 import { ViewMode } from "../../enums";
@@ -138,7 +138,7 @@ describe("parseViewerUrlParams", () => {
     for (let i = 0; i < channelSettings.length; i++) {
       const channelSetting = channelSettings[i];
       // Match with default on everything except match number
-      expect(channelSetting).toEqual({ ...DEFAULT_VIEWER_CHANNEL_SETTING, match: channelSetting.match });
+      expect(channelSetting).toEqual({ ...DEFAULT_TEST_VIEWER_CHANNEL_SETTING, match: channelSetting.match });
     }
   });
 

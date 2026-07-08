@@ -15,11 +15,11 @@ import {
 import { serializeViewerState } from "../serialize";
 import type { ViewerChannelStateParams, ViewerState } from "../types";
 import {
-  CUSTOM_VIEWER_STATE,
-  DEFAULT_VIEWER_CHANNEL_SETTING,
-  DEFAULT_VIEWER_STATE,
-  SERIALIZED_CUSTOM_VIEWER_STATE,
-  SERIALIZED_DEFAULT_VIEWER_STATE,
+  CUSTOM_TEST_VIEWER_STATE,
+  DEFAULT_TEST_VIEWER_CHANNEL_SETTING,
+  DEFAULT_TEST_VIEWER_STATE,
+  SERIALIZED_CUSTOM_TEST_VIEWER_STATE,
+  SERIALIZED_DEFAULT_TEST_VIEWER_STATE,
 } from "./test_data";
 
 //// VALUE PARSING ////////////////////////////////////////
@@ -224,13 +224,13 @@ describe("deserializeViewerChannelSetting", () => {
   it("returns default settings for empty objects", () => {
     const data = {};
     const result = deserializeViewerChannelSetting(0, data);
-    expect(result).toEqual(DEFAULT_VIEWER_CHANNEL_SETTING);
+    expect(result).toEqual(DEFAULT_TEST_VIEWER_CHANNEL_SETTING);
   });
 
   it("ignores unexpected keys", () => {
     const data = { badKey: "badValue", ven: "1", sen: "1" } as ViewerChannelStateParams;
     const result = deserializeViewerChannelSetting(0, data);
-    expect(result).toEqual({ ...DEFAULT_VIEWER_CHANNEL_SETTING, enabled: true, surfaceEnabled: true });
+    expect(result).toEqual({ ...DEFAULT_TEST_VIEWER_CHANNEL_SETTING, enabled: true, surfaceEnabled: true });
   });
 
   it("parses settings correctly", () => {
@@ -319,19 +319,19 @@ describe("deserializeViewerState", () => {
   });
 
   it("deserializes the default viewer settings", () => {
-    const params = SERIALIZED_DEFAULT_VIEWER_STATE;
-    expect(deserializeViewerState(params)).toEqual(DEFAULT_VIEWER_STATE);
+    const params = SERIALIZED_DEFAULT_TEST_VIEWER_STATE;
+    expect(deserializeViewerState(params)).toEqual(DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("deserializes custom viewer settings", () => {
-    const params = SERIALIZED_CUSTOM_VIEWER_STATE;
-    expect(deserializeViewerState(params)).toEqual(CUSTOM_VIEWER_STATE);
+    const params = SERIALIZED_CUSTOM_TEST_VIEWER_STATE;
+    expect(deserializeViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("handles all ViewMode values", () => {
     const viewModes = Object.values(ViewMode);
     for (const viewMode of viewModes) {
-      const state: ViewerState = { ...DEFAULT_VIEWER_STATE, viewMode };
+      const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, viewMode };
       expect(deserializeViewerState(serializeViewerState(state, false)).viewMode).toEqual(viewMode);
     }
   });
@@ -339,7 +339,7 @@ describe("deserializeViewerState", () => {
   it("handles all RenderMode values", () => {
     const renderModes = Object.values(RenderMode);
     for (const renderMode of renderModes) {
-      const state: ViewerState = { ...DEFAULT_VIEWER_STATE, renderMode };
+      const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, renderMode };
       expect(deserializeViewerState(serializeViewerState(state, false)).renderMode).toEqual(renderMode);
     }
   });
