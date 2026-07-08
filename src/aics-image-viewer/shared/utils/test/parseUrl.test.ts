@@ -5,7 +5,7 @@ import { DEFAULT_TEST_VIEWER_CHANNEL_SETTING } from "../../../state/test/test_da
 import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../../../state/types";
 import { getDefaultChannelState, getDefaultViewerState } from "../../constants";
 import { ViewMode } from "../../enums";
-import { parseViewerUrlParams, serializeViewerUrlParams } from "../urlParsing";
+import { parseViewerUrlParams, serializeViewerUrlParams } from "../parseUrl";
 import type { ViewerChannelSetting } from "../viewerChannelSettings";
 
 //// URL parsing /////////////////////////////////
