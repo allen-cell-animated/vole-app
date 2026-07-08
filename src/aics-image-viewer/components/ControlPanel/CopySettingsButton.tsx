@@ -33,13 +33,11 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
     }
   }, []);
 
-  // Update our guess about whether pasting will succeed on mount and whenever the clipboard changes.
-  React.useEffect(() => {
+  const firstRenderRef = React.useRef(false);
+  if (firstRenderRef.current) {
     queryPasteState();
-    // This event only exists in Chromium browsers, but `queryPasteState` only works in Chromium browsers anyways
-    navigator.clipboard.addEventListener("clipboardchange", queryPasteState);
-    return () => navigator.clipboard.removeEventListener("clipboardchange", queryPasteState);
-  }, [queryPasteState]);
+    firstRenderRef.current = true;
+  }
 
   const pastePrompt = pasteDenied && (
     <Tooltip title="You must grant access to the clipboard" placement="right">
