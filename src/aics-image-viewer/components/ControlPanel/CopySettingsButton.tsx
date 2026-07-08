@@ -18,7 +18,7 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
 }) => {
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000_000 });
+  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
 
   /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
   const queryPasteState = React.useCallback(async (): Promise<void> => {
