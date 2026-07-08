@@ -9,7 +9,8 @@ import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState } from "../../state/store";
 
 import BottomPanel from "../BottomPanel";
-import { AxisClipSliders, RotationSliders } from "../BottomPanelSliders";
+import { AxisClipSliders } from "../dimension_sliders/AxisClipSliders";
+import { RotationSliders } from "../dimension_sliders/RotationSliders";
 
 import "./styles.css";
 
