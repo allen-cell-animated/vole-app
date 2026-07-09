@@ -47,6 +47,13 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
     setRotation({ x, y, z });
   }, []);
 
+  const jumpXMinus = useCallback(() => handleJump(0, -Math.PI / 2, 0), [handleJump]);
+  const jumpXPlus = useCallback(() => handleJump(0, Math.PI / 2, 0), [handleJump]);
+  const jumpYMinus = useCallback(() => handleJump(Math.PI / 2, 0, -Math.PI / 2), [handleJump]);
+  const jumpYPlus = useCallback(() => handleJump(-Math.PI / 2, 0, -Math.PI / 2), [handleJump]);
+  const jumpZMinus = useCallback(() => handleJump(Math.PI, 0, -Math.PI), [handleJump]);
+  const jumpZPlus = useCallback(() => handleJump(0, 0, 0), [handleJump]);
+
   // Take away control when autorotate is enabled
   useEffect(() => {
     if (autorotate) {
@@ -96,13 +103,6 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
       />
     </div>
   );
-
-  const jumpXMinus = useCallback(() => handleJump(0, -Math.PI / 2, 0), [handleJump]);
-  const jumpXPlus = useCallback(() => handleJump(0, Math.PI / 2, 0), [handleJump]);
-  const jumpYMinus = useCallback(() => handleJump(Math.PI / 2, 0, -Math.PI / 2), [handleJump]);
-  const jumpYPlus = useCallback(() => handleJump(-Math.PI / 2, 0, -Math.PI / 2), [handleJump]);
-  const jumpZMinus = useCallback(() => handleJump(Math.PI, 0, -Math.PI), [handleJump]);
-  const jumpZPlus = useCallback(() => handleJump(0, 0, 0), [handleJump]);
 
   return (
     <div className="clip-sliders clip-sliders-2d">
