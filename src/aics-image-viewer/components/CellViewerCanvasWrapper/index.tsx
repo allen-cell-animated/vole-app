@@ -8,8 +8,9 @@ import type { AxisName, PerAxis, Styles } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState } from "../../state/store";
 
-import AxisClipSliders from "../AxisClipSliders";
 import BottomPanel from "../BottomPanel";
+import { AxisClipSliders } from "../dimension_sliders/AxisClipSliders";
+import { RotationSliders } from "../dimension_sliders/RotationSliders";
 
 import "./styles.css";
 
@@ -26,6 +27,7 @@ type ViewerWrapperProps = {
   numScenes: number;
   visibleControls: {
     axisClipSliders: boolean;
+    rotationSliders: boolean;
   };
   clippingPanelOpen?: boolean;
   onClippingPanelOpenChange?: (visible: boolean) => void;
@@ -66,33 +68,47 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
 
   const clippingPanelTall = numTimesteps > 1 && numScenes > 1 && viewMode === ViewMode.threeD;
 
+  const bottomPanelContents = [];
+
+  if (visibleControls.axisClipSliders && !!props.image) {
+    bottomPanelContents.push({
+      title: "Clipping",
+      children: (
+        <AxisClipSliders
+          mode={viewMode}
+          image={props.image}
+          changeViewerSetting={changeViewerSetting}
+          numSlices={props.numSlices}
+          numSlicesLoaded={props.numSlicesLoaded}
+          numScenes={numScenes}
+          region={region}
+          slices={slice}
+          numTimesteps={numTimesteps}
+          time={time}
+          scene={scene}
+          playControls={props.playControls}
+          playingAxis={props.playingAxis}
+        />
+      ),
+    });
+  }
+
+  if (visibleControls.rotationSliders) {
+    bottomPanelContents.push({
+      title: "Rotation",
+      children: <RotationSliders view3d={props.view3d} disable={viewMode !== ViewMode.threeD} />,
+    });
+  }
+
   return (
     <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
       <div ref={view3dviewerRef} style={STYLES.view3d}></div>
       <BottomPanel
-        title="Clipping"
         open={props.clippingPanelOpen}
-        onOpenChange={props.onClippingPanelOpenChange}
+        onPageChange={(open) => props.onClippingPanelOpenChange?.(open !== null)}
         height={clippingPanelTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT}
-      >
-        {visibleControls.axisClipSliders && !!props.image && (
-          <AxisClipSliders
-            mode={viewMode}
-            image={props.image}
-            changeViewerSetting={changeViewerSetting}
-            numSlices={props.numSlices}
-            numSlicesLoaded={props.numSlicesLoaded}
-            numScenes={numScenes}
-            region={region}
-            slices={slice}
-            numTimesteps={numTimesteps}
-            time={time}
-            scene={scene}
-            playControls={props.playControls}
-            playingAxis={props.playingAxis}
-          />
-        )}
-      </BottomPanel>
+        contents={bottomPanelContents}
+      ></BottomPanel>
       {renderOverlay()}
     </div>
   );

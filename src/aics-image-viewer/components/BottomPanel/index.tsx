@@ -1,35 +1,75 @@
 import { Button, Drawer } from "antd";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import ViewerIcon from "../shared/ViewerIcon";
 
 import "./styles.css";
 
 type BottomPanelProps = {
-  title?: string;
+  contents: { title: string; children: React.ReactNode }[];
   open?: boolean;
-  onOpenChange?: (visible: boolean) => void;
-  children?: React.ReactNode;
+  pageIndex?: number;
+  onPageChange?: (page: number | null) => void;
   height?: number;
 };
 
-const BottomPanel: React.FC<BottomPanelProps> = ({ children, open: openProp, title, height, onOpenChange }) => {
+const BottomPanel: React.FC<BottomPanelProps> = ({
+  contents,
+  open: openProp,
+  pageIndex: pageProp,
+  height,
+  onPageChange,
+}) => {
   const [openState, setOpenState] = useState(true);
+  const [pageState, setPageState] = useState(0);
   const open = openProp ?? openState;
+  const page = pageProp ?? pageState;
 
-  const toggleDrawer = useCallback((): void => {
-    if (openProp === undefined) {
-      setOpenState(!open);
+  const setPage = useCallback(
+    (index: number): void => {
+      const nextOpen = !open || index !== page;
+
+      if (openProp === undefined) {
+        setOpenState(nextOpen);
+      }
+      if (pageProp === undefined) {
+        setPageState(index);
+      }
+
+      onPageChange?.(nextOpen ? index : null);
+    },
+    [open, openProp, page, pageProp, onPageChange]
+  );
+
+  // If length of `contents` decreases, ensure we're still on a valid page
+  useEffect(() => {
+    if (page >= contents.length && contents.length > 0) {
+      const nextPage = contents.length - 1;
+
+      if (pageProp === undefined) {
+        setPageState(nextPage);
+      }
+
+      onPageChange?.(open ? nextPage : null);
     }
-
-    onOpenChange?.(!open);
-  }, [open, openProp, onOpenChange]);
+  }, [contents.length, onPageChange, open, page, pageProp]);
 
   const optionsButton = (
-    <Button className="options-button" size="small" onClick={toggleDrawer}>
-      {title || "Options"}
-      <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
-    </Button>
+    <div className="options-button-container">
+      {contents
+        .map(({ title }, index) => (
+          <Button
+            key={index}
+            className={open && page === index ? "options-button button-open" : "options-button"}
+            size="small"
+            onClick={() => setPage(index)}
+          >
+            {title}
+            <ViewerIcon type="closePanel" className="button-arrow" style={{ fontSize: "15px" }} />
+          </Button>
+        ))
+        .reverse()}
+    </div>
   );
 
   return (
@@ -44,7 +84,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ children, open: openProp, tit
         title={optionsButton}
         height={height ?? 190}
       >
-        <div className="drawer-body-wrapper">{children}</div>
+        <div className="drawer-body-wrapper">{open !== null && contents[page]?.children}</div>
       </Drawer>
     </div>
   );
