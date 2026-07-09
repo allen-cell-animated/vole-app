@@ -253,6 +253,8 @@
 .clip-sliders .slider-group .slider-group-title{
       flex:0 0 var(--w-group-title);
       margin:0;
+      font-family:var(--font-family);
+      color:var(--color-text-header);
     }
 
 .clip-sliders .slider-group .slider-group-title.group-title-extra{
