@@ -2,22 +2,15 @@ import type { CameraState, View3d } from "@aics/vole-core";
 import { mat3, quat, vec3 } from "gl-matrix";
 import React from "react";
 
-type CameraVector = CameraState["position"];
+/**
+ * Converts a `vec3` to a `[number, number, number]`.
+ *
+ * Technically, these are already equivalent types for all the math we do here, but the `vec3` type also includes any
+ * other indexable collection of `number`s, so this keeps the type checker happy.
+ */
+const toArray = (v: vec3): [number, number, number] => [v[0], v[1], v[2]];
 
-const toTuple3 = (v: vec3): CameraVector => [v[0], v[1], v[2]];
-const toVec3 = (v: CameraVector): vec3 => vec3.fromValues(v[0], v[1], v[2]);
-
-const vecToTarget = (state: CameraState): vec3 => {
-  const out = vec3.create();
-  return vec3.subtract(out, toVec3(state.target), toVec3(state.position));
-};
-
-/** Multiply a matrix by a vector */
-const mulMatrix = (matrix: mat3, vector: CameraVector): CameraVector => {
-  const out = vec3.create();
-  vec3.transformMat3(out, toVec3(vector), matrix);
-  return toTuple3(out);
-};
+const vecToTarget = (state: CameraState): vec3 => vec3.subtract(vec3.create(), state.target, state.position);
 
 /** Transpose a 3x3 matrix */
 const transpose = (matrix: mat3): mat3 => {
@@ -28,9 +21,9 @@ const transpose = (matrix: mat3): mat3 => {
 
 /** Multiply every vector in `state` by `matrix` */
 export const applyMatrix = (state: CameraState, matrix: mat3): CameraState => {
-  const position = mulMatrix(matrix, state.position);
-  const up = mulMatrix(matrix, state.up);
-  const target = mulMatrix(matrix, state.target);
+  const position = toArray(vec3.transformMat3(vec3.create(), state.position, matrix));
+  const up = toArray(vec3.transformMat3(vec3.create(), state.up, matrix));
+  const target = toArray(vec3.transformMat3(vec3.create(), state.target, matrix));
   return { position, up, target };
 };
 
@@ -40,13 +33,10 @@ type CameraBasis = { forward: vec3; right: vec3; up: vec3; distance: number };
 const getBasis = (state: CameraState): CameraBasis => {
   const toTarget = vecToTarget(state);
   const distance = vec3.length(toTarget);
-  const forward = vec3.create();
-  vec3.scale(forward, toTarget, 1 / distance);
-  const right = vec3.create();
-  vec3.cross(right, forward, toVec3(state.up));
+  const forward = vec3.scale(vec3.create(), toTarget, 1 / distance);
+  const right = vec3.cross(vec3.create(), forward, state.up);
   vec3.normalize(right, right);
-  const up = vec3.create();
-  vec3.cross(up, right, forward);
+  const up = vec3.cross(vec3.create(), right, forward);
   return { forward, right, up, distance };
 };
 
@@ -56,8 +46,7 @@ export const rotationMatrix = (x: number, y: number, z: number): mat3 => {
   quat.rotateX(rotationQuat, rotationQuat, x);
   quat.rotateY(rotationQuat, rotationQuat, y);
   quat.rotateZ(rotationQuat, rotationQuat, z);
-  const rotation = mat3.create();
-  mat3.fromQuat(rotation, rotationQuat);
+  const rotation = mat3.fromQuat(mat3.create(), rotationQuat);
   return rotation;
 };
 
@@ -87,14 +76,9 @@ export const defaultOrientedCamera = (state: CameraState): CameraState => {
   // Rotate `target` about the origin, then derive `position` from `target`
   const { x, y, z } = getRotationAngles(state);
   const matrix = transpose(rotationMatrix(x, y, z));
-  const target = mulMatrix(matrix, state.target);
-  const position = vec3.create();
-  vec3.add(position, toVec3(target), vec3.fromValues(0, 0, distance));
-  return {
-    target,
-    position: toTuple3(position),
-    up: [0, 1, 0],
-  };
+  const target = toArray(vec3.transformMat3(vec3.create(), state.target, matrix));
+  const position = toArray(vec3.add(vec3.create(), target, vec3.fromValues(0, 0, distance)));
+  return { target, position, up: [0, 1, 0] };
 };
 
 /** Creates a callback that performs some action on the camera, by applying `transform` to the current camera state. */
