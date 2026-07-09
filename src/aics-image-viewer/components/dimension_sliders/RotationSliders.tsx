@@ -1,5 +1,5 @@
 import type { View3d } from "@aics/vole-core";
-import { Button } from "antd";
+import { Button, Space } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import type { AxisName } from "../../shared/types";
@@ -124,14 +124,14 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
         <span className="slider-group">
           <span className="slider-group-title group-title-extra">Jump to</span>
           <span className="slider-group-rows">
-            <Button.Group>
+            <Space.Compact>
               <Button onClick={jumpXMinus}>-X</Button>
               <Button onClick={jumpXPlus}>+X</Button>
               <Button onClick={jumpYMinus}>-Y</Button>
               <Button onClick={jumpYPlus}>+Y</Button>
               <Button onClick={jumpZMinus}>-Z</Button>
               <Button onClick={jumpZPlus}>+Z</Button>
-            </Button.Group>
+            </Space.Compact>
           </span>
         </span>
       )}
