@@ -1,82 +1,64 @@
 import type { CameraState, View3d } from "@aics/vole-core";
+import { mat3, quat, vec3 } from "gl-matrix";
 import React from "react";
 
-/** Dumbest possible 3-dimensional vector type for doing a little linear algebra */
-export type Tuple3 = [number, number, number];
-/** 3x3 matrix packed into a 9-tuple in *column-major order* */
-export type Matrix3x3 = [number, number, number, number, number, number, number, number, number];
+type CameraVector = CameraState["position"];
 
-const add = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => [ax + bx, ay + by, az + bz];
-const sub = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => [ax - bx, ay - by, az - bz];
-const mulScalar = ([x, y, z]: Tuple3, n: number): Tuple3 => [x * n, y * n, z * n];
+const toTuple3 = (v: vec3): CameraVector => [v[0], v[1], v[2]];
+const toVec3 = (v: CameraVector): vec3 => vec3.fromValues(v[0], v[1], v[2]);
 
-const length = ([x, y, z]: Tuple3): number => Math.sqrt(x * x + y * y + z * z);
-const normalize = (vec: Tuple3): Tuple3 => mulScalar(vec, 1.0 / length(vec));
-
-const cross = ([ax, ay, az]: Tuple3, [bx, by, bz]: Tuple3): Tuple3 => {
-  return [ay * bz - by * az, az * bx - bz * ax, ax * by - bx * ay];
+const vecToTarget = (state: CameraState): vec3 => {
+  const out = vec3.create();
+  return vec3.subtract(out, toVec3(state.target), toVec3(state.position));
 };
 
-const vecToTarget = (state: CameraState): Tuple3 => sub(state.target, state.position);
-
 /** Multiply a matrix by a vector */
-const mulMatrix = ([xx, xy, xz, yx, yy, yz, zx, zy, zz]: Matrix3x3, [x, y, z]: Tuple3): Tuple3 => {
-  // Destructured elements above are named by column then row, like so:
-  // ┌ xx yx zx ┐
-  // │ xy yy zy │
-  // └ xz yz zz ┘
-  // prettier-ignore
-  return [
-    x * xx + y * yx + z * zx,
-    x * xy + y * yy + z * zy,
-    x * xz + y * yz + z * zz,
-  ];
+const mulMatrix = (matrix: mat3, vector: CameraVector): CameraVector => {
+  const out = vec3.create();
+  vec3.transformMat3(out, toVec3(vector), matrix);
+  return toTuple3(out);
 };
 
 /** Transpose a 3x3 matrix */
-const transpose = ([m00, m10, m20, m01, m11, m21, m02, m12, m22]: Matrix3x3): Matrix3x3 => {
-  return [m00, m01, m02, m10, m11, m12, m20, m21, m22];
+const transpose = (matrix: mat3): mat3 => {
+  const out = mat3.create();
+  mat3.transpose(out, matrix);
+  return out;
 };
 
 /** Multiply every vector in `state` by `matrix` */
-export const applyMatrix = (state: CameraState, matrix: Matrix3x3): CameraState => {
+export const applyMatrix = (state: CameraState, matrix: mat3): CameraState => {
   const position = mulMatrix(matrix, state.position);
   const up = mulMatrix(matrix, state.up);
   const target = mulMatrix(matrix, state.target);
   return { position, up, target };
 };
 
-type CameraBasis = { forward: Tuple3; right: Tuple3; up: Tuple3; distance: number };
+type CameraBasis = { forward: vec3; right: vec3; up: vec3; distance: number };
 
 /** Orthonormal camera basis derived from `state`. */
 const getBasis = (state: CameraState): CameraBasis => {
   const toTarget = vecToTarget(state);
-  const distance = length(toTarget);
-  const forward = mulScalar(toTarget, 1 / distance);
-  const right = normalize(cross(forward, state.up));
-  const up = cross(right, forward);
+  const distance = vec3.length(toTarget);
+  const forward = vec3.create();
+  vec3.scale(forward, toTarget, 1 / distance);
+  const right = vec3.create();
+  vec3.cross(right, forward, toVec3(state.up));
+  vec3.normalize(right, right);
+  const up = vec3.create();
+  vec3.cross(up, right, forward);
   return { forward, right, up, distance };
 };
 
 /** Creates a XYZ rotation matrix with the given angles */
-export const rotationMatrix = (x: number, y: number, z: number): Matrix3x3 => {
-  const sinX = Math.sin(x);
-  const cosX = Math.cos(x);
-  const sinY = Math.sin(y);
-  const cosY = Math.cos(y);
-  const sinZ = Math.sin(z);
-  const cosZ = Math.cos(z);
-  return [
-    cosY * cosZ,
-    cosX * sinZ + sinX * sinY * cosZ,
-    sinX * sinZ - cosX * sinY * cosZ,
-    -cosY * sinZ,
-    cosX * cosZ - sinX * sinY * sinZ,
-    sinX * cosZ + cosX * sinY * sinZ,
-    sinY,
-    -sinX * cosY,
-    cosX * cosY,
-  ];
+export const rotationMatrix = (x: number, y: number, z: number): mat3 => {
+  const rotationQuat = quat.create();
+  quat.rotateX(rotationQuat, rotationQuat, x);
+  quat.rotateY(rotationQuat, rotationQuat, y);
+  quat.rotateZ(rotationQuat, rotationQuat, z);
+  const rotation = mat3.create();
+  mat3.fromQuat(rotation, rotationQuat);
+  return rotation;
 };
 
 /** Extract Tait-Bryan angles from a `CameraState` */
@@ -101,14 +83,16 @@ export const getRotationAngles = (state: CameraState): { x: number; y: number; z
  * default *orientation* (looking towards -Z, +Y up), though not necessarily its default *position*.
  */
 export const defaultOrientedCamera = (state: CameraState): CameraState => {
-  const distance = length(vecToTarget(state));
+  const distance = vec3.length(vecToTarget(state));
   // Rotate `target` about the origin, then derive `position` from `target`
   const { x, y, z } = getRotationAngles(state);
   const matrix = transpose(rotationMatrix(x, y, z));
   const target = mulMatrix(matrix, state.target);
+  const position = vec3.create();
+  vec3.add(position, toVec3(target), vec3.fromValues(0, 0, distance));
   return {
-    target: target,
-    position: add(target, [0, 0, distance]),
+    target,
+    position: toTuple3(position),
     up: [0, 1, 0],
   };
 };
