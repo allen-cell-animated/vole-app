@@ -32,6 +32,8 @@
     .slider-group-title {
       flex: 0 0 var(--w-group-title);
       margin: 0;
+      font-family: var(--font-family);
+      color: var(--color-text-header);
 
       &.group-title-extra {
         flex-basis: calc(var(--w-group-title) + var(--w-name) + 14px);

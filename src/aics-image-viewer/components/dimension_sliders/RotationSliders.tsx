@@ -107,7 +107,7 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
   return (
     <div className="clip-sliders clip-sliders-2d">
       <span className="slider-group">
-        <h4 className="slider-group-title">Rotate</h4>
+        <span className="slider-group-title">Rotate</span>
         {disable ? (
           <span className="axis-slider-container">
             <i>Unavailable in 2d mode</i>
@@ -122,7 +122,7 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
       </span>
       {!disable && (
         <span className="slider-group">
-          <h4 className="slider-group-title group-title-extra">Jump to</h4>
+          <span className="slider-group-title group-title-extra">Jump to</span>
           <span className="slider-group-rows">
             <Button.Group>
               <Button onClick={jumpXMinus}>-X</Button>

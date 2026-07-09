@@ -114,7 +114,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   return (
     <div className={activeAxis ? "clip-sliders clip-sliders-2d" : "clip-sliders"}>
       <span className="slider-group">
-        <h4 className="slider-group-title">ROI</h4>
+        <span className="slider-group-title">ROI</span>
         <span className="slider-group-rows">
           {activeAxis ? create2dAxisSlider(activeAxis) : AXES.map(create3dAxisSlider)}
         </span>
@@ -122,7 +122,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
 
       {props.numTimesteps > 1 && (
         <span className="slider-group">
-          <h4 className="slider-group-title">Time</h4>
+          <span className="slider-group-title">Time</span>
           <span className="slider-group-rows">
             <div className="slider-row slider-t">
               <PlaySliderRow
@@ -142,7 +142,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
 
       {props.numScenes > 1 && (
         <span className="slider-group">
-          <h4 className="slider-group-title">Scene</h4>
+          <span className="slider-group-title">Scene</span>
           <span className="slider-group-rows">
             <div className="slider-row slider-scene">
               <IndexSliderRow
