@@ -14,7 +14,7 @@ export const // Control panel will automatically close if viewport is less than 
   BACKGROUND_COLOR_DEFAULT: ColorArray = [0, 0, 0],
   BOUNDING_BOX_COLOR_DEFAULT: ColorArray = [255, 255, 255],
   AXIS_MARGIN_DEFAULT: [number, number] = [16, 16],
-  SCALE_BAR_MARGIN_DEFAULT: [number, number] = [120, 12],
+  SCALE_BAR_MARGIN_DEFAULT: [number, number] = [220, 12],
   // These settings were chosen to work well with most AICS microscopy pipeline images.
   // These numbers mean: remap the bottom LUT_MIN_PERCENTILE fraction of pixels to zero intensity,
   // and linearly increase intensity up to the LUT_MAX_PERCENTILE fraction of pixels.

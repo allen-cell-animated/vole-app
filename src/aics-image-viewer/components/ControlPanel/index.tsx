@@ -116,6 +116,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     </Tooltip>
   );
 
+  // TODO this can just be a component...?
   const renderAdvancedSettings = (): React.ReactNode => {
     const items: CollapseProps["items"] = [
       {

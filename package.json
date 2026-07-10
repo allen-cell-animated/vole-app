@@ -54,6 +54,7 @@
     "color-string": "^1.5.3",
     "d3": "^7.9.0",
     "fuse.js": "^7.0.0",
+    "gl-matrix": "^3.4.4",
     "lodash": "^4.17.20",
     "nouislider-react": "^3.4.2",
     "react-color": "^2.19.3",
