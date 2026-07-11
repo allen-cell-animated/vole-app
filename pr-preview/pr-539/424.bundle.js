@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunk_aics_vole_app=self.webpackChunk_aics_vole_app||[]).push([[424],{424(e,a,s){s.d(a,{default:()=>p});var c=s(3075),l=s(2132);class p extends l.A{decodeBlock(e){return(0,c.UD)(new Uint8Array(e)).buffer}}}}]);
+//# sourceMappingURL=424.bundle.js.map
