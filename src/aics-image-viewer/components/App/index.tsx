@@ -24,11 +24,11 @@ import type { ViewerState } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
-import CellViewerCanvasWrapper from "../CellViewerCanvasWrapper";
 import ControlPanel from "../ControlPanel";
 import { useErrorAlert } from "../ErrorAlert";
 import StyleProvider from "../StyleProvider";
 import Toolbar from "../Toolbar";
+import CellViewerCanvasWrapper from "../ViewerCanvasWrapper";
 import ChannelUpdater from "./ChannelUpdater";
 
 import "../../assets/styles/globals.css";
