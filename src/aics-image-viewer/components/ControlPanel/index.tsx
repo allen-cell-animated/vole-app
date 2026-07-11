@@ -183,7 +183,11 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         <div className="control-panel-title-container">
           <h2>{ControlTabNames[tab]}</h2>
           {tab === ControlTab.Channels && (
-            <CopySettingsButton scrollContainer={columnRef.current} hide={props.collapsed} />
+            <CopySettingsButton
+              scrollContainer={columnRef.current}
+              hide={props.collapsed}
+              getDropdownContainer={getDropdownContainer}
+            />
           )}
         </div>
         {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
