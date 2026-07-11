@@ -12,10 +12,11 @@ import { cloneChannelState } from "../../state/util";
 
 import { useContextualAlert } from "../shared/ContextualAlert";
 
-const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?: boolean }> = ({
-  scrollContainer,
-  hide,
-}) => {
+const CopySettingsButton: React.FC<{
+  scrollContainer?: HTMLElement | null;
+  hide?: boolean;
+  getDropdownContainer?: () => HTMLElement;
+}> = ({ scrollContainer, hide, getDropdownContainer }) => {
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
@@ -159,7 +160,12 @@ const CopySettingsButton: React.FC<{ scrollContainer?: HTMLElement | null; hide?
 
   return (
     <>
-      <Dropdown menu={{ items }} trigger={["click"]} overlayStyle={{ minWidth: 100 }}>
+      <Dropdown
+        menu={{ items }}
+        trigger={["click"]}
+        overlayStyle={{ minWidth: 100 }}
+        getPopupContainer={getDropdownContainer}
+      >
         <Button type="text" size="large" ref={buttonRef}>
           <EllipsisOutlined />
         </Button>
