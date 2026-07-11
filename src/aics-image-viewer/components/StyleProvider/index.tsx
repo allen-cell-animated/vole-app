@@ -20,7 +20,8 @@ const palette = {
   veryLtPurple: "#e7e4f2",
   brightRed: "#dc4446",
   brightYellow: "#e39b0d",
-  brightGreen: "#61d900",
+  darkGreen: "#294c2f",
+  brightGreen: "#0ccf4d",
   veryBrightGreen: "#61ff00",
   brightBlue: "#0099ff",
   veryBrightBlue: "#0dc4d9",
@@ -127,6 +128,10 @@ const theme = {
       textPlaceholder: palette.ltPurple,
     },
     alert: {
+      success: {
+        text: palette.brightGreen,
+        bg: palette.darkGreen,
+      },
       warning: {
         text: palette.brightYellow,
         bg: palette.darkYellow,
@@ -439,7 +444,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       }
     }
   }
-
 `;
 
 const GlobalTooltipStyle = createGlobalStyle`
@@ -475,6 +479,10 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           colorBgContainer: "transparent",
           colorSplit: theme.colors.layout.split,
           colorPrimaryTextHover: theme.colors.text.selectionText,
+          colorSuccess: theme.colors.alert.success.text,
+          colorSuccessBg: theme.colors.alert.success.bg,
+          colorSuccessBorder: theme.colors.alert.success.text,
+          colorSuccessText: theme.colors.alert.success.text,
           colorWarning: theme.colors.alert.warning.text,
           colorWarningBg: theme.colors.alert.warning.bg,
           colorWarningBorder: theme.colors.alert.warning.text,
