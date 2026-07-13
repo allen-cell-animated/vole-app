@@ -184,6 +184,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
           <h2>{ControlTabNames[tab]}</h2>
           {tab === ControlTab.Channels && (
             <CopySettingsButton
+              imageName={props.imageName}
               scrollContainer={columnRef.current}
               hide={props.collapsed}
               getDropdownContainer={getDropdownContainer}

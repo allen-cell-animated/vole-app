@@ -13,10 +13,11 @@ import { cloneChannelState } from "../../state/util";
 import { useContextualAlert } from "../shared/ContextualAlert";
 
 const CopySettingsButton: React.FC<{
+  imageName?: string;
   scrollContainer?: HTMLElement | null;
   hide?: boolean;
   getDropdownContainer?: () => HTMLElement;
-}> = ({ scrollContainer, hide, getDropdownContainer }) => {
+}> = ({ imageName, scrollContainer, hide, getDropdownContainer }) => {
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
@@ -61,7 +62,25 @@ const CopySettingsButton: React.FC<{
         }
       },
     },
-    // { key: 1, label: "Export" },
+    {
+      key: 1,
+      label: "Export",
+      onClick: () => {
+        const { channelSettings } = useViewerState.getState();
+        const stateText = JSON.stringify(channelStateToClipboard(channelSettings));
+        const link = document.createElement("a");
+
+        link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(stateText));
+        const isoDate = new Date().toISOString().split("T")[0];
+        const imgName = imageName ?? "settings";
+        link.setAttribute("download", `${isoDate}_${imgName}.json`);
+        link.style.display = "none";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    },
     {
       key: 2,
       label: (
