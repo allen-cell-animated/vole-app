@@ -1,5 +1,5 @@
-import { DragOutlined, EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Button, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
+import { DragOutlined, EllipsisOutlined, ExclamationCircleOutlined, WarningOutlined } from "@ant-design/icons";
+import { Alert, type AlertProps, Button, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
 import React from "react";
 
 import {
@@ -66,12 +66,42 @@ const importSettings = (settingsString: string): ImportResult => {
   return { success: true, matchedCount, unmatched, undo };
 };
 
+const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[]; undo: () => void }> = (props) => {
+  const { matchedCount, unmatched, undo } = props;
+  const unmatchedCount = unmatched.length;
+  return (
+    <>
+      <div>
+        Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
+        <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+          Undo
+        </Button>
+      </div>
+      <p>
+        {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""} from clipboard did not match:
+      </p>
+      <ul>
+        {unmatched.map((channelName, index) => (
+          <li key={index}>{channelName}</li>
+        ))}
+      </ul>
+    </>
+  );
+};
+
 const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const { imageName, scrollContainer, hide, getDropdownContainer } = props;
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const [importModalOpen, setImportModalOpen] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
+  const [alert, showContextualAlert] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
+  const [modalAlert, setModalAlert] = React.useState<React.ReactNode>(undefined);
+  const [modalAlertType, setModalAlertType] = React.useState<AlertProps["type"]>(undefined);
+
+  const showModalAlert = React.useCallback((content: React.ReactNode, alertType?: AlertProps["type"]) => {
+    setModalAlert(content);
+    setModalAlertType(alertType);
+  }, []);
 
   // On first render, check if the user has disabled clipboard access
   const firstRenderRef = React.useRef(false);
@@ -92,7 +122,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     try {
       clipboard = await navigator.clipboard.readText();
     } catch {
-      showMessage("Could not read clipboard", "error");
+      showContextualAlert("Could not read clipboard", "error");
       // If paste failed, check if it was because the user was asked to grant clipboard access and said no
       queryPasteDenied().then(setPasteDenied);
       return;
@@ -100,7 +130,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
     const importResult = importSettings(clipboard);
     if (!importResult.success) {
-      showMessage("Clipboard does not contain channel settings", "error");
+      showContextualAlert("Clipboard does not contain channel settings", "error");
       return;
     }
 
@@ -108,12 +138,12 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     const unmatchedCount = unmatched.length;
     const undo = (): void => {
       importResult.undo();
-      showMessage(undefined);
+      showContextualAlert(undefined);
     };
 
     if (unmatchedCount > 0) {
       if (matchedCount > 0) {
-        showMessage(
+        showContextualAlert(
           <>
             <div>
               Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
@@ -133,23 +163,16 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
           "warning"
         );
       } else {
-        showMessage("No channel names matched", "error");
+        showContextualAlert("No channel names matched", "error");
       }
     } else {
       if (matchedCount > 0) {
-        showMessage(
-          <>
-            Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-            <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-              Undo
-            </Button>
-          </>
-        );
+        showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
       } else {
-        showMessage("Clipboard contains an empty settings object", "error");
+        showContextualAlert("Clipboard contains an empty settings object", "error");
       }
     }
-  }, [showMessage]);
+  }, [showContextualAlert]);
 
   const items: MenuProps["items"] = [
     {
@@ -159,9 +182,9 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         try {
           const { channelSettings } = useViewerState.getState();
           navigator.clipboard.writeText(JSON.stringify(channelStateToClipboard(channelSettings)));
-          showMessage("Settings copied");
+          showContextualAlert("Settings copied");
         } catch {
-          showMessage("Could not copy settings", "error");
+          showContextualAlert("Could not copy settings", "error");
         }
       },
     },
@@ -195,7 +218,14 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       disabled: pasteDenied,
       onClick: onClickPaste,
     },
-    { key: 3, label: "Import", onClick: () => setImportModalOpen(true) },
+    {
+      key: 3,
+      label: "Import",
+      onClick: () => {
+        setImportModalOpen(true);
+        setModalAlert(undefined);
+      },
+    },
   ];
 
   return (
@@ -217,6 +247,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         open={importModalOpen}
         onCancel={() => setImportModalOpen(false)}
         footer={null}
+        getContainer={getDropdownContainer}
       >
         <p>Upload a saved .json settings file</p>
         <Upload.Dragger
@@ -224,11 +255,63 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
           customRequest={async ({ file, onSuccess, onError }) => {
             const text = await (file as Blob).text();
             const importResult = importSettings(text);
+
+            if (!importResult.success) {
+              showModalAlert("File does not contain channel settings", "error");
+              onError?.(new Error());
+              return;
+            }
+
+            const { matchedCount, unmatched } = importResult;
+            const unmatchedCount = unmatched.length;
+            const undo = (): void => {
+              importResult.undo();
+              showContextualAlert(undefined);
+              showModalAlert(undefined);
+            };
+
+            if (unmatchedCount > 0) {
+              if (matchedCount > 0) {
+                setImportModalOpen(false);
+                showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
+              } else {
+                showModalAlert("No channel names in file match any channel names in the current image", "error");
+              }
+            } else {
+              if (matchedCount > 0) {
+                setImportModalOpen(false);
+                showContextualAlert(
+                  <>
+                    Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
+                    <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+                      Undo
+                    </Button>
+                  </>
+                );
+              } else {
+                showModalAlert("File is properly formatted but contains no channel settings", "error");
+              }
+            }
             onSuccess?.(undefined);
           }}
         >
           <DragOutlined /> Drag and drop here or click to browse
         </Upload.Dragger>
+        {modalAlert !== undefined && (
+          <Alert
+            showIcon
+            style={{ marginTop: 15 }}
+            message={modalAlert}
+            icon={
+              modalAlertType === "error" ? (
+                <WarningOutlined style={{ fontSize: 21 }} />
+              ) : (
+                <ExclamationCircleOutlined style={{ fontSize: 21 }} />
+              )
+            }
+            type={modalAlertType}
+          />
+        )}
       </Modal>
       {alert}
     </>
