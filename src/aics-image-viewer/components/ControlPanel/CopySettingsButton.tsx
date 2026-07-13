@@ -1,5 +1,5 @@
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Button, Dropdown, type MenuProps, Tooltip } from "antd";
+import { Button, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
 import React from "react";
 
 import {
@@ -19,9 +19,56 @@ export type CopySettingsButtonProps = {
   getDropdownContainer?: () => HTMLElement;
 };
 
+type ImportResult =
+  | { success: false }
+  | {
+      success: true;
+      /** The number of channel names in the JSON that were also present in the current image. */
+      matchedCount: number;
+      /** A list of channel names that were present in the JSON but not in the current image. */
+      unmatched: string[];
+      /** Function to restore all channel states from before the new settings were imported. */
+      undo: () => void;
+    };
+
+const importSettings = (settingsString: string): ImportResult => {
+  const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(settingsString);
+  } catch {
+    parsed = undefined;
+  }
+  if (!isClipboardChannelState(parsed)) {
+    return { success: false };
+  }
+
+  const channelStates = clipboardToChannelState(parsed);
+  const channelCount = Object.keys(channelStates).length;
+  const currentStates = channelSettings.map(cloneChannelState);
+  const nextStates = channelSettings.map((state) => {
+    const result = {
+      ...cloneChannelState(state),
+      ...channelStates[state.name],
+    };
+    delete channelStates[state.name];
+    return result;
+  });
+
+  replaceAllChannelSettings(nextStates);
+  const undo = (): void => replaceAllChannelSettings(currentStates);
+
+  const unmatched = Object.keys(channelStates);
+  const matchedCount = channelCount - unmatched.length;
+
+  return { success: true, matchedCount, unmatched, undo };
+};
+
 const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const { imageName, scrollContainer, hide, getDropdownContainer } = props;
   const [pasteDenied, setPasteDenied] = React.useState(false);
+  const [importModalOpen, setImportModalOpen] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
 
@@ -94,8 +141,6 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       ),
       disabled: pasteDenied,
       onClick: async () => {
-        const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
-
         // Try to read the clipboard
         let clipboard: string | undefined = undefined;
         try {
@@ -107,44 +152,21 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
           return;
         }
 
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(clipboard);
-        } catch {
-          parsed = undefined;
-        }
-        if (!isClipboardChannelState(parsed)) {
+        const importResult = importSettings(clipboard);
+        if (!importResult.success) {
           showMessage("Clipboard does not contain channel settings", "error");
           return;
         }
 
-        const newStates = clipboardToChannelState(parsed);
-        const newStatesCount = Object.keys(newStates).length;
-        const currentStates = channelSettings.map(cloneChannelState);
-        const nextStates = channelSettings.map((state) => {
-          const result = {
-            ...cloneChannelState(state),
-            ...newStates[state.name],
-          };
-          delete newStates[state.name];
-          return result;
-        });
-
-        replaceAllChannelSettings(nextStates);
-
+        const { unmatched, matchedCount } = importResult;
+        const unmatchedCount = unmatched.length;
         const undo = (): void => {
-          replaceAllChannelSettings(currentStates);
+          importResult.undo();
           showMessage(undefined);
         };
 
-        const unmatchedStates = Object.keys(newStates);
-
-        if (unmatchedStates.length > 0) {
-          if (unmatchedStates.length === newStatesCount) {
-            showMessage("No channel names matched", "error");
-          } else {
-            const unmatchedCount = unmatchedStates.length;
-            const matchedCount = newStatesCount - unmatchedCount;
+        if (unmatchedCount > 0) {
+          if (matchedCount > 0) {
             showMessage(
               <>
                 <div>
@@ -157,27 +179,33 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
                   {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""} from clipboard did not match:
                 </p>
                 <ul>
-                  {unmatchedStates.map((channelName, index) => (
+                  {unmatched.map((channelName, index) => (
                     <li key={index}>{channelName}</li>
                   ))}
                 </ul>
               </>,
               "warning"
             );
+          } else {
+            showMessage("No channel names matched", "error");
           }
         } else {
-          showMessage(
-            <>
-              Settings applied to {newStatesCount} channel{newStatesCount > 1 ? "s" : ""} -{" "}
-              <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-                Undo
-              </Button>
-            </>
-          );
+          if (matchedCount > 0) {
+            showMessage(
+              <>
+                Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
+                <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+                  Undo
+                </Button>
+              </>
+            );
+          } else {
+            showMessage("Clipboard contains an empty settings object", "error");
+          }
         }
       },
     },
-    // { key: 3, label: "Import" },
+    { key: 3, label: "Import", onClick: () => setImportModalOpen(true) },
   ];
 
   return (
@@ -192,6 +220,16 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
           <EllipsisOutlined />
         </Button>
       </Dropdown>
+      <Modal closable title="Import channel settings" open={importModalOpen} onCancel={() => setImportModalOpen(false)}>
+        <Upload.Dragger
+          showUploadList={false}
+          customRequest={async ({ file, onSuccess, onError }) => {
+            const text = await (file as Blob).text();
+            const importResult = importSettings(text);
+            onSuccess?.(undefined);
+          }}
+        ></Upload.Dragger>
+      </Modal>
       {alert}
     </>
   );
