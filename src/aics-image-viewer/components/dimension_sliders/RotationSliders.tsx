@@ -2,6 +2,7 @@ import type { View3d } from "@aics/vole-core";
 import { Button, Space } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { ViewMode } from "../../shared/enums";
 import type { AxisName } from "../../shared/types";
 import {
   applyMatrix,
@@ -22,6 +23,7 @@ const toDegrees = (rad: number): number => rad * (180 / Math.PI);
 export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = ({ view3d, disable }) => {
   const [rotation, setRotation] = useState(() => getRotationAngles(view3d.getCameraState()));
   const autorotate = useViewerState(select("autorotate"));
+  const viewMode = useViewerState(select("viewMode"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   // Set to `true` when user interacts with this component, `false` when they click on the canvas or start autorotate.
@@ -68,10 +70,10 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
 
   // Sync down rotation state while this component is "in control."
   useEffect(() => {
-    if (hasControlRef.current) {
+    if (hasControlRef.current && viewMode === ViewMode.threeD) {
       rotateCameraTo(rotation);
     }
-  }, [rotateCameraTo, rotation]);
+  }, [rotateCameraTo, rotation, viewMode]);
 
   // Set up event listeners on mount.
   useEffect(() => {
