@@ -94,6 +94,8 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
   const [includeColor, setIncludeColor] = React.useState(true);
   const [pasteDenied, setPasteDenied] = React.useState(false);
+
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [importModalOpen, setImportModalOpen] = React.useState(false);
 
   const [alert, showContextualAlert] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
@@ -135,7 +137,8 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     {
       key: 0,
       label: "Copy",
-      onClick: async () => {
+      onClick: () => {
+        setDropdownOpen(false);
         try {
           const { channelSettings } = useViewerState.getState();
           navigator.clipboard.writeText(JSON.stringify(channelStateToClipboard(channelSettings)));
@@ -149,6 +152,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       key: 1,
       label: "Export",
       onClick: () => {
+        setDropdownOpen(false);
         const { channelSettings } = useViewerState.getState();
         const stateText = JSON.stringify(channelStateToClipboard(channelSettings));
         const link = document.createElement("a");
@@ -174,6 +178,8 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       ),
       disabled: pasteDenied,
       onClick: async () => {
+        setDropdownOpen(false);
+
         // Try to read the clipboard
         let clipboard: string | undefined = undefined;
         try {
@@ -224,8 +230,9 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       key: 3,
       label: "Import",
       onClick: () => {
+        setDropdownOpen(false);
         setImportModalOpen(true);
-        setModalAlert(undefined);
+        showModalAlert(undefined);
       },
     },
     { key: 4, type: "divider" },
@@ -248,8 +255,9 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         trigger={["click"]}
         overlayStyle={{ minWidth: 100 }}
         getPopupContainer={getDropdownContainer}
+        open={dropdownOpen}
       >
-        <Button type="text" size="large" ref={buttonRef}>
+        <Button type="text" size="large" ref={buttonRef} onClick={() => setDropdownOpen(true)}>
           <EllipsisOutlined />
         </Button>
       </Dropdown>
