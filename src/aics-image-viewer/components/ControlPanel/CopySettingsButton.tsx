@@ -1,4 +1,4 @@
-import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { DragOutlined, EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Button, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
 import React from "react";
 
@@ -220,7 +220,15 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
           <EllipsisOutlined />
         </Button>
       </Dropdown>
-      <Modal closable title="Import channel settings" open={importModalOpen} onCancel={() => setImportModalOpen(false)}>
+      <Modal
+        closable
+        title="Import channel settings"
+        className="modal-settings-import"
+        open={importModalOpen}
+        onCancel={() => setImportModalOpen(false)}
+        footer={null}
+      >
+        <p>Upload a saved .json settings file</p>
         <Upload.Dragger
           showUploadList={false}
           customRequest={async ({ file, onSuccess, onError }) => {
@@ -228,7 +236,9 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
             const importResult = importSettings(text);
             onSuccess?.(undefined);
           }}
-        ></Upload.Dragger>
+        >
+          <DragOutlined /> Drag and drop here or click to browse
+        </Upload.Dragger>
       </Modal>
       {alert}
     </>
