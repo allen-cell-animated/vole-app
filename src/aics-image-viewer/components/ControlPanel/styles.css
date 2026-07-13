@@ -135,3 +135,17 @@
     @extend %axis-override;
   }
 }
+
+.ant-modal.modal-settings-import {
+  .ant-upload.ant-upload-drag {
+    transition-property: background-color, border-color;
+
+    &:hover {
+      background-color: #ffffff20;
+    }
+  }
+
+  .ant-upload.ant-upload-btn {
+    padding: 32px;
+  }
+}
