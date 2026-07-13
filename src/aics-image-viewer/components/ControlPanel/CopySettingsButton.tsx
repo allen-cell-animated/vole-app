@@ -12,12 +12,15 @@ import { cloneChannelState } from "../../state/util";
 
 import { useContextualAlert } from "../shared/ContextualAlert";
 
-const CopySettingsButton: React.FC<{
+export type CopySettingsButtonProps = {
   imageName?: string;
   scrollContainer?: HTMLElement | null;
   hide?: boolean;
   getDropdownContainer?: () => HTMLElement;
-}> = ({ imageName, scrollContainer, hide, getDropdownContainer }) => {
+};
+
+const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
+  const { imageName, scrollContainer, hide, getDropdownContainer } = props;
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
