@@ -1,5 +1,5 @@
 import { DragOutlined, EllipsisOutlined, ExclamationCircleOutlined, WarningOutlined } from "@ant-design/icons";
-import { Alert, type AlertProps, Button, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
+import { Alert, type AlertProps, Button, Checkbox, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
 import React from "react";
 
 import {
@@ -90,9 +90,12 @@ const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[];
 
 const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const { imageName, scrollContainer, hide, getDropdownContainer } = props;
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  const [includeColor, setIncludeColor] = React.useState(true);
   const [pasteDenied, setPasteDenied] = React.useState(false);
   const [importModalOpen, setImportModalOpen] = React.useState(false);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
   const [alert, showContextualAlert] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
   const [modalAlert, setModalAlert] = React.useState<React.ReactNode>(undefined);
   const [modalAlertType, setModalAlertType] = React.useState<AlertProps["type"]>(undefined);
@@ -223,6 +226,17 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       onClick: () => {
         setImportModalOpen(true);
         setModalAlert(undefined);
+      },
+    },
+    { key: 4, type: "divider" },
+    {
+      key: 5,
+      className: "import-dropdown-menu-item-include-color",
+      label: <Checkbox checked={includeColor}>Include color</Checkbox>,
+      onClick: ({ domEvent }) => {
+        domEvent.stopPropagation();
+        domEvent.preventDefault();
+        setIncludeColor((includeColor) => !includeColor);
       },
     },
   ];
