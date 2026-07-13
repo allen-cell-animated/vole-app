@@ -134,18 +134,33 @@
     /*slider settings*/
     @extend %axis-override;
   }
-}
 
-.ant-modal.modal-settings-import {
-  .ant-upload.ant-upload-drag {
-    transition-property: background-color, border-color;
+  .ant-modal.modal-settings-import {
+    .ant-upload.ant-upload-drag {
+      transition-property: background-color, border-color;
 
-    &:hover {
-      background-color: #ffffff20;
+      &:hover {
+        background-color: #ffffff20;
+      }
+    }
+
+    .ant-upload.ant-upload-btn {
+      padding: 32px;
     }
   }
 
-  .ant-upload.ant-upload-btn {
-    padding: 32px;
+  .ant-dropdown {
+    .import-dropdown-menu-item-include-color {
+      white-space: nowrap;
+      padding-bottom: 9px;
+
+      &.ant-dropdown-menu-item-active {
+        background-color: transparent;
+      }
+    }
+
+    .ant-dropdown-menu-item-divider {
+      background-color: var(--color-controlpanel-border);
+    }
   }
 }
