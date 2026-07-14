@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "3.3.0",
+  "version": "3.4.1",
   "description": "web view of cell volume images",
   "main": "es/index.js",
   "module": "es/index.js",
@@ -25,6 +25,7 @@
     "gh-build-nightly": "webpack --config webpack.dev.js --env env=production basename=/vole-app/",
     "gh-build-release": "webpack --config webpack.dev.js --env env=production basename=/website-3d-cell-viewer-release/",
     "s3-build": "webpack --config webpack.dev.js --env env=production",
+    "release-build": "webpack --config webpack.dev.js --env env=production",
     "docker-build": "webpack --config webpack.common.js --env env=production",
     "dev": "webpack --config webpack.dev.js --env env=dev",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
@@ -43,7 +44,7 @@
     "checks": "npm run lint && npm run typeCheck && npm run test"
   },
   "author": "Megan Riel-Mehan",
-  "license": "ISC",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "@aics/vole-core": "^4.9.1",
     "@ant-design/icons": "^5.2.5",
@@ -53,6 +54,7 @@
     "color-string": "^1.5.3",
     "d3": "^7.9.0",
     "fuse.js": "^7.0.0",
+    "gl-matrix": "^3.4.4",
     "lodash": "^4.17.20",
     "nouislider-react": "^3.4.2",
     "react-color": "^2.19.3",

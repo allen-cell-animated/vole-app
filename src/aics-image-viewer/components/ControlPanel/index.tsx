@@ -109,8 +109,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   };
 
   const renderTab = (thisTab: ControlTab, icon: React.ReactNode): React.ReactNode => (
-    <Tooltip title={ControlTabNames[thisTab]} placement="right" {...(!props.collapsed && { open: false })}>
+    <Tooltip title={ControlTabNames[thisTab]} placement="right">
       <Button
+        aria-label={ControlTabNames[thisTab]}
         className={tab === thisTab ? "ant-btn-icon-only btn-tabactive" : "ant-btn-icon-only"}
         onClick={() => setTab(thisTab)}
         icon={typeof icon === "string" ? icon : undefined}
@@ -120,6 +121,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     </Tooltip>
   );
 
+  // TODO this can just be a component...?
   const renderAdvancedSettings = (): React.ReactNode => {
     const items: CollapseProps["items"] = [
       {
@@ -203,15 +205,20 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     );
   };
 
+  const collapseLabel = props.collapsed ? "Show panel" : "Hide panel";
+
   return (
     <div className="control-panel-col-container" ref={containerRef}>
       <div className="control-panel-tab-col" style={{ flex: "0 0 50px" }}>
-        <Button
-          className={"ant-btn-icon-only btn-collapse" + (props.collapsed ? " btn-collapse-collapsed" : "")}
-          onClick={() => props.setCollapsed(!props.collapsed)}
-        >
-          <ViewerIcon type="closePanel" />
-        </Button>
+        <Tooltip title={collapseLabel} placement="right">
+          <Button
+            aria-label={collapseLabel}
+            className={"ant-btn-icon-only btn-collapse" + (props.collapsed ? " btn-collapse-collapsed" : "")}
+            onClick={() => props.setCollapsed(!props.collapsed)}
+          >
+            <ViewerIcon type="closePanel" />
+          </Button>
+        </Tooltip>
 
         <div className="tab-divider" />
 

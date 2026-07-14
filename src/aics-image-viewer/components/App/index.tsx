@@ -40,6 +40,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   alphaMaskSlider: true,
   autoRotateButton: true,
   axisClipSliders: true,
+  rotationSliders: true,
   brightnessSlider: true,
   backgroundColorPicker: true,
   boundingBoxColorPicker: true,

@@ -1,5 +1,5 @@
-import React from "react";
 import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons";
+import React from "react";
 
 import { useRefWithSetter } from "../../../shared/utils/hooks";
 
@@ -13,6 +13,7 @@ interface NumericInputProps {
   max?: number;
   disabled?: boolean;
   className?: string;
+  unitSymbol?: string;
   onChange: (value: number) => void;
 }
 
@@ -29,6 +30,7 @@ const NumericInput: React.FC<NumericInputProps> = ({
   max = Number.MAX_SAFE_INTEGER,
   disabled = false,
   className = "",
+  unitSymbol = "",
   onChange,
 }) => {
   // While the input has focus, allow invalid input, just don't call `onChange` with it
@@ -97,7 +99,7 @@ const NumericInput: React.FC<NumericInputProps> = ({
   return (
     <div className={fullClassName} onKeyDown={onKeyDown}>
       <input
-        value={hasFocus ? textContent : displayedValue}
+        value={hasFocus ? textContent : displayedValue + unitSymbol}
         step={step}
         min={min}
         max={max}

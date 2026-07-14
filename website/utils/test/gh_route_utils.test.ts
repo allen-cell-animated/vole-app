@@ -5,6 +5,8 @@ import {
   decodeUrlQueryStringPath,
   encodeGitHubPagesUrl,
   encodeUrlPathAsQueryString,
+  RELATIVE_BASENAME,
+  resolveBasename,
   tryRemoveHashRouting,
 } from "../gh_route_utils";
 
@@ -171,6 +173,41 @@ describe("Route utils", () => {
         const url = new URL(input);
         expect(tryRemoveHashRouting(decodeGitHubPagesUrl(url)).toString()).toEqual(expected);
       }
+    });
+  });
+
+  describe("resolveBasename", () => {
+    it("returns the provided basename if it's not the relative basename", () => {
+      expect(resolveBasename("/")).toEqual("/");
+      expect(resolveBasename("/myapp/")).toEqual("/myapp/");
+      expect(resolveBasename("/vole-app/")).toEqual("/vole-app/");
+      expect(resolveBasename("/website-3d-cell-viewer-release/")).toEqual("/website-3d-cell-viewer-release/");
+    });
+
+    it("appends trailing slash to the basename if missing", () => {
+      expect(resolveBasename("")).toEqual("/");
+      expect(resolveBasename("/myapp")).toEqual("/myapp/");
+      expect(resolveBasename("/vole-app")).toEqual("/vole-app/");
+      expect(resolveBasename("/website-3d-cell-viewer-release")).toEqual("/website-3d-cell-viewer-release/");
+    });
+
+    it("resolves relative basenames", () => {
+      expect(resolveBasename(RELATIVE_BASENAME, "")).toEqual("/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/")).toEqual("/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/myapp/")).toEqual("/myapp/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/myapp/subfolder/")).toEqual("/myapp/subfolder/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/viewers/vole-app/")).toEqual("/viewers/vole-app/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/viewers/website-3d-cell-viewer-release/")).toEqual(
+        "/viewers/website-3d-cell-viewer-release/"
+      );
+    });
+
+    it("excludes subpages from the returned basename", () => {
+      expect(resolveBasename(RELATIVE_BASENAME, "/myapp/subpage")).toEqual("/myapp/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/myapp/subpage2")).toEqual("/myapp/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/myapp/subfolder/subpage2")).toEqual("/myapp/subfolder/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/my-path/vole-app/viewer")).toEqual("/my-path/vole-app/");
+      expect(resolveBasename(RELATIVE_BASENAME, "/my-path/vole-app/write_storage")).toEqual("/my-path/vole-app/");
     });
   });
 });
