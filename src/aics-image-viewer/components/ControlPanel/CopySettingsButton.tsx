@@ -141,7 +141,8 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         setDropdownOpen(false);
         try {
           const { channelSettings } = useViewerState.getState();
-          navigator.clipboard.writeText(JSON.stringify(channelStateToClipboard(channelSettings)));
+          const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
+          navigator.clipboard.writeText(JSON.stringify(serialized));
           showContextualAlert("Settings copied");
         } catch {
           showContextualAlert("Could not copy settings", "error");
@@ -154,7 +155,8 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       onClick: () => {
         setDropdownOpen(false);
         const { channelSettings } = useViewerState.getState();
-        const stateText = JSON.stringify(channelStateToClipboard(channelSettings));
+        const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
+        const stateText = JSON.stringify(serialized);
         const link = document.createElement("a");
 
         link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(stateText));
