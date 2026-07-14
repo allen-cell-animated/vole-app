@@ -25,6 +25,8 @@ export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {
   singleChannelIndex: 0,
   useExactScaleLevel: false,
   scaleLevelIndex: 0,
+  offsetScaleLevelForPlayback: true,
+  playbackScaleLevelOffset: 1,
 };
 
 export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateParams = {
@@ -73,6 +75,8 @@ export const CUSTOM_TEST_VIEWER_STATE: ViewerState = {
   singleChannelIndex: 3,
   useExactScaleLevel: true,
   scaleLevelIndex: 3,
+  offsetScaleLevelForPlayback: true,
+  playbackScaleLevelOffset: 1,
   cameraState: {
     position: [-1.05, -4, 45],
     target: [0, 0, 0],

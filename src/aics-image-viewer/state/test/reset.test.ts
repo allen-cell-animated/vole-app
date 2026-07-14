@@ -29,6 +29,8 @@ const arbitraryViewerState = (): ViewerState => ({
   cameraState: undefined,
   useExactScaleLevel: true,
   scaleLevelIndex: 3,
+  offsetScaleLevelForPlayback: true,
+  playbackScaleLevelOffset: 1,
 });
 
 const arbitraryChannelState = (): ChannelState => ({
