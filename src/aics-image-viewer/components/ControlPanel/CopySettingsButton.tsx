@@ -258,8 +258,13 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         overlayStyle={{ minWidth: 100 }}
         getPopupContainer={getDropdownContainer}
         open={dropdownOpen}
+        onOpenChange={(open, { source }) => {
+          if (open || source === "trigger") {
+            setDropdownOpen(open);
+          }
+        }}
       >
-        <Button type="text" size="large" ref={buttonRef} onClick={() => setDropdownOpen(true)}>
+        <Button type="text" size="large" ref={buttonRef}>
           <EllipsisOutlined />
         </Button>
       </Dropdown>
