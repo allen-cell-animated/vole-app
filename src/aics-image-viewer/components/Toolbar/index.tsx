@@ -1,4 +1,4 @@
-import type { VolumeDims } from "@aics/vole-core";
+import type { ScaleLevelDims } from "@aics/vole-core";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
@@ -19,7 +19,7 @@ type ToolbarProps = {
   hasCellId: boolean;
   hasParentImage: boolean;
   canPathTrace: boolean;
-  multiscaleDims?: VolumeDims[];
+  multiscaleDims?: ScaleLevelDims[];
   multiscaleIndex?: number;
 
   resetCamera: () => void;

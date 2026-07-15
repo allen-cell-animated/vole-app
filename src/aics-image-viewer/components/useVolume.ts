@@ -1,6 +1,5 @@
 import { LoadSpec, type RawArrayLoaderOptions, type View3d, type Volume, VolumeLoaderContext } from "@aics/vole-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box3, Vector3 } from "three";
 
 import {
   AXIS_TO_LOADER_PRIORITY,
@@ -127,9 +126,7 @@ const useVolume = (
       sceneLoader.syncMultichannelLoading(isPlaying);
       if (image) {
         // If we're playing and entire axis is not in memory (T always, Z likely), downlevel to speed things up
-        const { volumeSize, subregionSize } = image.imageInfo;
-        const shouldDownlevel = isPlaying && (axis === "t" || volumeSize[axis] !== subregionSize[axis]);
-        image.updateRequiredData({ scaleLevelBias: shouldDownlevel ? 1 : 0 });
+        // TODO this will be put back in the next PR!
       }
     };
   }, [sceneLoader, playControls, image]);
@@ -295,7 +292,7 @@ const useVolume = (
       // (We don't do this for ZX and YZ modes because we assume that the data won't be chunked along the
       // X or Y axes in ways that would improve loading resolution, and we load the full 3D volume instead.)
       if (viewMode === ViewMode.xy) {
-        requiredLoadSpec.subregion = new Box3(new Vector3(0, 0, slice.z), new Vector3(1, 1, slice.z));
+        requiredLoadSpec.subregion = { min: [0, 0, slice.z], max: [1, 1, slice.z] };
       }
 
       // initiate loading only after setting up new channel settings,
