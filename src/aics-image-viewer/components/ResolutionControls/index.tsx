@@ -1,4 +1,4 @@
-import type { VolumeDims } from "@aics/vole-core";
+import type { ScaleLevelDims } from "@aics/vole-core";
 import { Radio, Select } from "antd";
 import React from "react";
 
@@ -7,7 +7,7 @@ import { select, useViewerState } from "../../state/store";
 import "./styles.css";
 
 export type ResolutionControlsProps = {
-  multiscaleDims: VolumeDims[];
+  multiscaleDims: ScaleLevelDims[];
   multiscaleIndex?: number;
   getPopupContainer?: () => HTMLElement;
 };

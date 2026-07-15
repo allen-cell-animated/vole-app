@@ -1,4 +1,4 @@
-import type { VolumeDims } from "@aics/vole-core";
+import type { ScaleLevelDims } from "@aics/vole-core";
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Select, Tooltip } from "antd";
 import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
@@ -25,7 +25,7 @@ interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsPro
       scaleLevelControls: boolean;
     };
   metadata: MetadataRecord;
-  multiscaleDims?: VolumeDims[];
+  multiscaleDims?: ScaleLevelDims[];
   multiscaleIndex?: number;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
