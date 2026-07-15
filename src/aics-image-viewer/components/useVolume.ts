@@ -1,7 +1,6 @@
 import type { RawArrayLoaderOptions, View3d, Volume } from "@aics/vole-core";
 import { LoadSpec, VolumeLoaderContext } from "@aics/vole-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box3, Vector3 } from "three";
 
 import {
   AXIS_TO_LOADER_PRIORITY,
@@ -321,7 +320,7 @@ const useVolume = (
       // (We don't do this for ZX and YZ modes because we assume that the data won't be chunked along the
       // X or Y axes in ways that would improve loading resolution, and we load the full 3D volume instead.)
       if (viewMode === ViewMode.xy) {
-        requiredLoadSpec.subregion = new Box3(new Vector3(0, 0, slice.z), new Vector3(1, 1, slice.z));
+        requiredLoadSpec.subregion = { min: [0, 0, slice.z], max: [1, 1, slice.z] };
       }
 
       // initiate loading only after setting up new channel settings,
@@ -345,6 +344,7 @@ const useVolume = (
     initChannelSettings,
     setChannelStateForNewImage,
     options?.viewerChannelSettings,
+    options?.scaleLevelIndex,
   ]);
   // of the above dependencies, we expect only `sceneLoader` to change.
 

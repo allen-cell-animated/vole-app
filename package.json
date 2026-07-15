@@ -85,7 +85,6 @@
     "@types/react": "^18.x",
     "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.x",
-    "@types/three": "^0.171.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "antd": "^5.16.2",
