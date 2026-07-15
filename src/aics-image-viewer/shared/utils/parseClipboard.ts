@@ -1,6 +1,7 @@
 import { deserializeChannelState, parseKeyValueList } from "../../state/deserialize";
 import { objectToKeyValueList, serializeViewerChannelSetting } from "../../state/serialize";
 import type { ChannelState } from "../../state/types";
+import { cloneChannelState } from "../../state/util";
 
 export type ClipboardChannelStates = {
   version: string;
@@ -21,10 +22,19 @@ export const isClipboardChannelState = (settings: unknown): settings is Clipboar
 };
 
 /** Converts an array of `ChannelState`s to a compact JSON representation that can be stringified into the clipboard. */
-export const channelStateToClipboard = (channelStates: ChannelState[]): ClipboardChannelStates => {
+export const channelStateToClipboard = (
+  channelStates: ChannelState[],
+  excludeKeys?: (keyof ChannelState)[]
+): ClipboardChannelStates => {
   const channels: Record<string, string> = {};
   for (const ch of channelStates) {
-    const stateString = objectToKeyValueList(serializeViewerChannelSetting(ch, false));
+    const setting = cloneChannelState(ch);
+    if (excludeKeys !== undefined) {
+      for (const key of excludeKeys) {
+        delete setting[key];
+      }
+    }
+    const stateString = objectToKeyValueList(serializeViewerChannelSetting(setting, false));
     channels[ch.name] = stateString;
   }
 
