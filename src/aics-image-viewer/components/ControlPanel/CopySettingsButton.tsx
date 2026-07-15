@@ -210,7 +210,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
           if (matchedCount > 0) {
             showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
           } else {
-            showContextualAlert("No channel names matched", "error");
+            showContextualAlert("Channel names in clipboard did not match names in image", "error");
           }
         } else {
           if (matchedCount > 0) {
@@ -223,7 +223,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
               </>
             );
           } else {
-            showContextualAlert("Clipboard contains an empty settings object", "error");
+            showContextualAlert("Clipboard does not contain channel settings", "error");
           }
         }
       },
@@ -241,7 +241,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     {
       key: 5,
       className: "import-dropdown-menu-item-include-color",
-      label: <Checkbox checked={includeColor}>Include color</Checkbox>,
+      label: <Checkbox checked={includeColor}>Include color setting</Checkbox>,
       onClick: ({ domEvent }) => {
         domEvent.stopPropagation();
         domEvent.preventDefault();
@@ -303,7 +303,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
                 setImportModalOpen(false);
                 showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
               } else {
-                showModalAlert("No channel names in file match any channel names in the current image", "error");
+                showModalAlert("Channel names in file did not match names in image", "error");
               }
             } else {
               if (matchedCount > 0) {
@@ -317,7 +317,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
                   </>
                 );
               } else {
-                showModalAlert("File is properly formatted but contains no channel settings", "error");
+                showModalAlert("File does not contain channel settings", "error");
               }
             }
             onSuccess?.(undefined);
