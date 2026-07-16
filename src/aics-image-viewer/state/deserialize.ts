@@ -1,13 +1,15 @@
-import type { CameraState, ControlPoint } from "@aics/vole-core";
+import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
 
 import { ImageType, RenderMode, ViewMode } from "../shared/enums";
 import type { PerAxis } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
+import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
 import { removeUndefinedProperties } from "../shared/utils/datatypes";
 import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import {
   CameraTransformKeys,
+  type ChannelState,
   ViewerChannelSettingKeys,
   type ViewerChannelStateParams,
   type ViewerState,
@@ -393,4 +395,75 @@ export function deserializeViewerChannelSetting(
     }
   }
   return result;
+}
+
+/**
+ * Parses a `ViewerChannelStateParams` object into a partial `ChannelState`.
+ *
+ * This is used to convert raw URL params into internal channel state fields,
+ * leaving absent or invalid values undefined.
+ *
+ * This function optionally accepts the target channel's `Histogram`. This
+ * argument is required to parse the `lut` param correctly, since that param
+ * contains instructions for how to set the channel's intensities *relative to
+ * its intensity distribution*. If `histogram` is left undefined, e.g. because
+ * the channel has not yet been loaded, the `lut` param is ignored.
+ */
+export function deserializeChannelState(
+  jsonState: ViewerChannelStateParams,
+  histogram?: Histogram
+): Partial<ChannelState> {
+  const result: Partial<ChannelState> = {
+    volumeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
+    isosurfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
+    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(jsonState[ViewerChannelSettingKeys.KeepRange]),
+    opacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
+    colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
+    colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
+    useControlPoints: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
+    color: parseHexColorAsColorArray(jsonState[ViewerChannelSettingKeys.Color]),
+  };
+
+  let pointsFromLut: ControlPoint[] | undefined = undefined;
+  if (histogram !== undefined && jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
+    const [min, max] = jsonState[ViewerChannelSettingKeys.Lut].split(":");
+    if (max !== undefined) {
+      const lut = parseLutSetting(histogram, [min.trim(), max.trim()]);
+      pointsFromLut = lut?.controlPoints.map((point) => ({
+        ...point,
+        x: histogram.getValueFromBinIndex(point.x),
+      }));
+    }
+  }
+
+  if (jsonState[ViewerChannelSettingKeys.Ramp]) {
+    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
+      const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
+      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
+    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
+      const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
+      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+    }
+  } else if (pointsFromLut !== undefined) {
+    result.ramp = controlPointsToRamp(pointsFromLut);
+  }
+
+  if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+    if (parsedResult) {
+      result.controlPoints = parsedResult;
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
+    if (parsedResult) {
+      result.controlPoints = parsedResult;
+    }
+  } else if (pointsFromLut !== undefined) {
+    result.controlPoints = pointsFromLut;
+  }
+
+  return removeUndefinedProperties(result);
 }
