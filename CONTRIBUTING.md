@@ -1,7 +1,8 @@
-# Contributing to Allen Institute for Cell Science Open Source
+# Contributing to open source projects by the Allen Institute
 
-Thank you for your interest in contributing to this Allen Institute for Cell Science open source project! This document is
-a set of guidelines to help you contribute to this project.
+Thank you for your interest in contributing to this open source project by the
+cell science accelerator at the Allen Institute! This document is a set of
+guidelines to help you contribute to this project.
 
 ## Code of Conduct
 
@@ -22,16 +23,15 @@ you'd like to see documented.
 1. Fork the repo on GitHub.
 2. Create a branch and make your edits on your branch, pushing back to your fork.
 3. Make sure `npm run typeCheck`, `npm run test` and `npm run lint` all exit without errors. Add tests and documentation as needed.
-4. Submit a pull request back to main via GitHub using template, include screen shots for visual changes. 
+4. Submit a pull request back to main via GitHub using template, include screen shots for visual changes.
 
-___
+---
 
 ## Publishing
 
 1. Make a new version: `npm version [patch/minor/major]` -- this will give you the new tag, e.g., `v2.7.1`
 2. Push the new package.json version: `git push origin main`
 3. Push the new tag: `git push origin [NEW_TAG]` -- e.g. `git push origin v2.7.1`
-
 
 ## Questions or Thoughts?
 
