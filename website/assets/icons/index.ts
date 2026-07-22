@@ -1,5 +1,5 @@
-import AicsLogoAndNameSVG from "./AICS-logo.svg";
-import AicsLogoSVG from "./AICS-logo-and-name.svg";
+import AllenInstituteCellScienceLogoSVG from "./allen-institute-cell-science-logo.svg";
+import AllenInstituteLogo from "./allen-institute-logo.svg";
 import DropdownSVG from "./dropdown-arrow.svg";
 
-export { AicsLogoAndNameSVG, AicsLogoSVG, DropdownSVG };
+export { AllenInstituteCellScienceLogoSVG, AllenInstituteLogo, DropdownSVG };
