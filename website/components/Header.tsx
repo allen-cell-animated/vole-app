@@ -2,7 +2,7 @@ import React, { type PropsWithChildren, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
-import { AicsLogoAndNameSVG, AicsLogoSVG } from "../assets/icons";
+import { AllenInstituteCellScienceLogoSVG, AllenInstituteLogo } from "../assets/icons";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
 // TODO: Adjust this when additional buttons are added to the header.
@@ -30,7 +30,7 @@ const HeaderTitleLink = styled(Link)`
 
 const AicsLogoLink = styled.a`
   position: relative;
-  width: 140px;
+  width: 110px;
   height: 36px;
 
   div > svg:last-child {
@@ -77,8 +77,8 @@ function HeaderLogo({ noNavigate }: { noNavigate?: boolean }): ReactElement {
     <FlexRowAlignCenter>
       <AicsLogoLink href="https://www.allencell.org/" rel="noopener noreferrer" target="_blank">
         <div title={"https://www.allencell.org"}>
-          <AicsLogoSVG />
-          <AicsLogoAndNameSVG />
+          <AllenInstituteCellScienceLogoSVG />
+          <AllenInstituteLogo />
         </div>
       </AicsLogoLink>
       <VerticalDivider />
