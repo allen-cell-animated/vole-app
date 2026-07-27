@@ -23,6 +23,7 @@ module.exports = (env) => {
         filename: "index.html",
         template: "./public/index.html",
         chunks: ["index"],
+        favicon: "./public/icon.svg",
       }),
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
@@ -31,6 +32,7 @@ module.exports = (env) => {
         chunks: ["reroute"],
         inject: "head",
         scriptLoading: "blocking",
+        favicon: "./public/icon.svg",
       }),
       new MiniCssExtractPlugin(),
       new webpack.DefinePlugin({
@@ -58,7 +60,7 @@ module.exports = (env) => {
           use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
         },
         {
-          test: /\.(woff|woff2|tff|eot|glyph|mp4)$/,
+          test: /\.(woff|woff2|ttf|eot|glyph|mp4|png)$/,
           type: "asset/resource",
         },
       ],
