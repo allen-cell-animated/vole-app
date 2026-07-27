@@ -33,7 +33,7 @@
     <meta property="og:url" content="https://vole.allencell.org/" />
     <meta property="og:description" content="A web-based viewer for multi-channel 3D microscopy data." />
     <meta property="og:locale" content="en_US" />
-   <meta property="og:image" content="./meta-image.png" />
+   <meta property="og:image" content="<%= require('./meta-image.png') %>"/>
     <meta property="og:image:width" content="1250" />
     <meta property="og:image:height" content="800" />
     <meta property="og:image:type" content="image/png" />
@@ -52,7 +52,7 @@
       name="twitter:description"
       content="A web-based viewer for multi-channel 3D microscopy data."
     />
-    <meta name="twitter:image" content="./meta-image.png" />
+    <meta name="twitter:image" content="<%= require('./meta-image.png') %>" />
     <meta
       name="twitter:image:alt"
       content="A screenshot of the Vol-E web viewer, viewing a 3D volumetric microscopy image of a colony of cells. The cell nuclei are shown in white, and the brightfield image is shown in purple."
