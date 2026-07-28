@@ -429,13 +429,11 @@ export function deserializeChannelState(
   let pointsFromLut: ControlPoint[] | undefined = undefined;
   if (histogram !== undefined && lutSerialized !== undefined && LUT_REGEX.test(lutSerialized)) {
     const [min, max] = lutSerialized.split(":");
-    if (max !== undefined) {
-      const lut = parseLutSetting(histogram, [min.trim(), max.trim()]);
-      pointsFromLut = lut?.controlPoints.map((point) => ({
-        ...point,
-        x: histogram.getValueFromBinIndex(point.x),
-      }));
-    }
+    const lut = parseLutSetting(histogram, [min.trim(), max.trim()]);
+    pointsFromLut = lut?.controlPoints.map((point) => ({
+      ...point,
+      x: histogram.getValueFromBinIndex(point.x),
+    }));
   }
 
   if (jsonState[ViewerChannelSettingKeys.Ramp]) {
@@ -444,9 +442,13 @@ export function deserializeChannelState(
       result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
     }
   } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
-    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
-      const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
-      result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
+    if (histogram !== undefined) {
+      if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
+        const [rawMin, rawMax] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
+        const min = histogram.getValueFromBinIndex(Number.parseFloat(rawMin));
+        const max = histogram.getValueFromBinIndex(Number.parseFloat(rawMax));
+        result.ramp = [min, max];
+      }
     }
   } else if (pointsFromLut !== undefined) {
     result.ramp = controlPointsToRamp(pointsFromLut);
@@ -458,9 +460,15 @@ export function deserializeChannelState(
       result.controlPoints = parsedResult;
     }
   } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
-    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
-    if (parsedResult) {
-      result.controlPoints = parsedResult;
+    if (histogram !== undefined) {
+      const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
+      if (parsedResult) {
+        result.controlPoints = parsedResult.map(({ opacity, color, x }) => ({
+          opacity,
+          color,
+          x: histogram.getValueFromBinIndex(x),
+        }));
+      }
     }
   } else if (pointsFromLut !== undefined) {
     result.controlPoints = pointsFromLut;
