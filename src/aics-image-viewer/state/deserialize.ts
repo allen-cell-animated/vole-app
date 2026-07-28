@@ -425,9 +425,10 @@ export function deserializeChannelState(
     color: parseHexColorAsColorArray(jsonState[ViewerChannelSettingKeys.Color]),
   };
 
+  const lutSerialized = jsonState[ViewerChannelSettingKeys.Lut];
   let pointsFromLut: ControlPoint[] | undefined = undefined;
-  if (histogram !== undefined && jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
-    const [min, max] = jsonState[ViewerChannelSettingKeys.Lut].split(":");
+  if (histogram !== undefined && lutSerialized !== undefined && LUT_REGEX.test(lutSerialized)) {
+    const [min, max] = lutSerialized.split(":");
     if (max !== undefined) {
       const lut = parseLutSetting(histogram, [min.trim(), max.trim()]);
       pointsFromLut = lut?.controlPoints.map((point) => ({
