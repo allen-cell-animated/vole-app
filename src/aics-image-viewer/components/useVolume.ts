@@ -190,7 +190,16 @@ const useVolume = (
   );
 
   // channel indexes, sorted by category
-  const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
+  const [_channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
+  // While a new scene is loading, the channel count of the next scene is unknown. Since we load new scene data into
+  // the existing `image`, we can't easily react to changes to image properties, and therefore currently can't prevent
+  // React from rendering with *new* properties in image but the *old* value of `channelGroupedByType`. So we hide
+  // `channelGroupedByType` while the scene is loading to avoid indexing channels that no longer exist.
+  const [scenePending, setScenePending] = useState(false);
+  const channelGroupedByType = useMemo(
+    () => (scenePending ? {} : _channelGroupedByType),
+    [_channelGroupedByType, scenePending]
+  );
 
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
@@ -337,6 +346,7 @@ const useVolume = (
       if (image && !inInitialLoadRef.current) {
         const onCreateScene = (volume: Volume, sceneIndex: number, loadSpec: LoadSpec): void => {
           setChannelStateForNewImage(volume.imageInfo.channelNames);
+          setScenePending(false);
           volume.updateChannelCount();
 
           const prevChannelVersions = channelVersionsRef.current;
@@ -356,6 +366,7 @@ const useVolume = (
 
         sceneLoader.loadScene(scene, image, undefined, { onCreateScene }).catch(onError);
         setIsLoading(LoadType.SCENE);
+        setScenePending(true);
       }
     },
     [
