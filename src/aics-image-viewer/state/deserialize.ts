@@ -452,11 +452,13 @@ export function deserializeChannelState(
     result.ramp = controlPointsToRamp(pointsFromLut);
   }
 
-  const controlPointsSerialized =
-    jsonState[ViewerChannelSettingKeys.ControlPoints] ?? jsonState[ViewerChannelSettingKeys.ControlPointsLegacy];
-
-  if (controlPointsSerialized) {
-    const parsedResult = parseControlPoints(controlPointsSerialized);
+  if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+    if (parsedResult) {
+      result.controlPoints = parsedResult;
+    }
+  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
+    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
