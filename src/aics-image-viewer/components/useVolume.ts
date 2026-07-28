@@ -190,7 +190,14 @@ const useVolume = (
   );
 
   // channel indexes, sorted by category
-  const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
+  const channelNames = channelSettings.map(({ name }) => name);
+  const useDefaultViewerChannelSettings = useViewerState(select("useDefaultViewerChannelSettings"));
+  const channelGroupedByType = useMemo(() => {
+    const viewerChannelSettings = useDefaultViewerChannelSettings
+      ? getDefaultViewerChannelSettings()
+      : options?.viewerChannelSettings;
+    return makeChannelIndexGrouping(channelNames, viewerChannelSettings);
+  }, [channelNames, options?.viewerChannelSettings, useDefaultViewerChannelSettings]);
 
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
@@ -217,8 +224,6 @@ const useVolume = (
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : options?.viewerChannelSettings;
-      const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
-      setChannelGroupedByType(grouping);
 
       return initChannelSettings(channelNames, viewerChannelSettings);
     },
