@@ -325,7 +325,6 @@ const useVolume = (
     setIsLoading,
     onChannelDataLoaded,
     changeViewerSetting,
-    initChannelSettings,
     setChannelStateForNewImage,
     options?.viewerChannelSettings,
   ]);
