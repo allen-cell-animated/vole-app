@@ -404,10 +404,16 @@ export function deserializeViewerChannelSetting(
  * leaving absent or invalid values undefined.
  *
  * This function optionally accepts the target channel's `Histogram`. This
- * argument is required to parse the `lut` param correctly, since that param
- * contains instructions for how to set the channel's intensities *relative to
- * its intensity distribution*. If `histogram` is left undefined, e.g. because
- * the channel has not yet been loaded, the `lut` param is ignored.
+ * argument is required to parse the following params correctly:
+ *
+ * - `lut`, which contains instructions for how to set the channel's
+ *   intensities *relative to its intensity distribution*.
+ * - `rmp`, the legacy ramp parameter represented as histogram bin indices
+ * - `cps`, the legacy control points parameter where `x` values are
+ *   represented as histogram bin indices
+ *
+ * If `histogram` is left undefined, e.g. because the channel has not yet been
+ * loaded, these params are ignored.
  */
 export function deserializeChannelState(
   jsonState: ViewerChannelStateParams,
