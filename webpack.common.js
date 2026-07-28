@@ -6,6 +6,10 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
+// Use require.resolve instead of just "./node_modules/@aics/..." to support
+// local development with both vole-core and vole-app in an npm workspace.
+const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { paths: [__dirname] });
+
 module.exports = (env) => {
   return {
     entry: { index: "./public/index.tsx", reroute: "./public/gh-reroute/index.tsx" },
@@ -35,7 +39,7 @@ module.exports = (env) => {
       new MiniCssExtractPlugin(),
       new webpack.DefinePlugin({
         VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
-        VOLECORE_VERSION: JSON.stringify(require("./node_modules/@aics/vole-core/package.json").version),
+        VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
         VOLEAPP_BUILD_ENVIRONMENT: JSON.stringify(env.env),
         VOLEAPP_BASENAME: JSON.stringify(env.basename),
       }),
