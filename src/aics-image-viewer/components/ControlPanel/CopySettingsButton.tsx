@@ -47,6 +47,90 @@ const CopySettingsButton: React.FC<{
     </Tooltip>
   );
 
+  const onClickCopy = React.useCallback(async () => {
+    const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
+
+    // Try to read the clipboard
+    let clipboard: string | undefined = undefined;
+    try {
+      clipboard = await navigator.clipboard.readText();
+    } catch {
+      showMessage("Could not read clipboard", "error");
+      // If paste failed, check if it was because the user was asked to grant clipboard access and said no
+      queryPasteState();
+      return;
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(clipboard);
+    } catch {
+      parsed = undefined;
+    }
+    if (!isClipboardChannelState(parsed)) {
+      showMessage("Clipboard does not contain channel settings", "error");
+      return;
+    }
+
+    const newStates = clipboardToChannelState(parsed);
+    const newStatesCount = Object.keys(newStates).length;
+    const currentStates = channelSettings.map(cloneChannelState);
+    const nextStates = channelSettings.map((state) => {
+      const result = {
+        ...cloneChannelState(state),
+        ...newStates[state.name],
+      };
+      delete newStates[state.name];
+      return result;
+    });
+
+    replaceAllChannelSettings(nextStates);
+
+    const undo = (): void => {
+      replaceAllChannelSettings(currentStates);
+      showMessage(undefined);
+    };
+
+    const unmatchedStates = Object.keys(newStates);
+
+    if (unmatchedStates.length > 0) {
+      if (unmatchedStates.length === newStatesCount) {
+        showMessage("No channel names matched", "error");
+      } else {
+        const unmatchedCount = unmatchedStates.length;
+        const matchedCount = newStatesCount - unmatchedCount;
+        showMessage(
+          <>
+            <div>
+              Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
+              <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+                Undo
+              </Button>
+            </div>
+            <p>
+              {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""} from clipboard did not match:
+            </p>
+            <ul>
+              {unmatchedStates.map((channelName, index) => (
+                <li key={index}>{channelName}</li>
+              ))}
+            </ul>
+          </>,
+          "warning"
+        );
+      }
+    } else {
+      showMessage(
+        <>
+          Settings applied to {newStatesCount} channel{newStatesCount > 1 ? "s" : ""} -{" "}
+          <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+            Undo
+          </Button>
+        </>
+      );
+    }
+  }, [queryPasteState, showMessage]);
+
   const items: MenuProps["items"] = [
     {
       key: 0,
@@ -71,89 +155,7 @@ const CopySettingsButton: React.FC<{
         </div>
       ),
       disabled: pasteDenied,
-      onClick: async () => {
-        const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
-
-        // Try to read the clipboard
-        let clipboard: string | undefined = undefined;
-        try {
-          clipboard = await navigator.clipboard.readText();
-        } catch {
-          showMessage("Could not read clipboard", "error");
-          // If paste failed, check if it was because the user was asked to grant clipboard access and said no
-          queryPasteState();
-          return;
-        }
-
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(clipboard);
-        } catch {
-          parsed = undefined;
-        }
-        if (!isClipboardChannelState(parsed)) {
-          showMessage("Clipboard does not contain channel settings", "error");
-          return;
-        }
-
-        const newStates = clipboardToChannelState(parsed);
-        const newStatesCount = Object.keys(newStates).length;
-        const currentStates = channelSettings.map(cloneChannelState);
-        const nextStates = channelSettings.map((state) => {
-          const result = {
-            ...cloneChannelState(state),
-            ...newStates[state.name],
-          };
-          delete newStates[state.name];
-          return result;
-        });
-
-        replaceAllChannelSettings(nextStates);
-
-        const undo = (): void => {
-          replaceAllChannelSettings(currentStates);
-          showMessage(undefined);
-        };
-
-        const unmatchedStates = Object.keys(newStates);
-
-        if (unmatchedStates.length > 0) {
-          if (unmatchedStates.length === newStatesCount) {
-            showMessage("No channel names matched", "error");
-          } else {
-            const unmatchedCount = unmatchedStates.length;
-            const matchedCount = newStatesCount - unmatchedCount;
-            showMessage(
-              <>
-                <div>
-                  Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-                  <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-                    Undo
-                  </Button>
-                </div>
-                <p>
-                  {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""} from clipboard did not match:
-                </p>
-                <ul>
-                  {unmatchedStates.map((channelName, index) => (
-                    <li key={index}>{channelName}</li>
-                  ))}
-                </ul>
-              </>,
-              "warning"
-            );
-          }
-        } else {
-          showMessage(
-            <>
-              Settings applied to {newStatesCount} channel{newStatesCount > 1 ? "s" : ""} -{" "}
-              <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-                Undo
-              </Button>
-            </>
-          );
-        }
-      },
+      onClick: onClickCopy,
     },
     // { key: 3, label: "Import" },
   ];
