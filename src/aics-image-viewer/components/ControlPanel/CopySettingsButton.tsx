@@ -90,6 +90,15 @@ const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[];
   );
 };
 
+const SuccessMessage: React.FC<{ channelCount: number; undo: () => void }> = ({ channelCount, undo }) => (
+  <>
+    Settings applied to {channelCount} channel{channelCount > 1 ? "s" : ""} -{" "}
+    <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+      Undo
+    </Button>
+  </>
+);
+
 const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const { imageName, scrollContainer, hide, getDropdownContainer } = props;
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -267,14 +276,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       } else {
         if (matchedCount > 0) {
           setImportModalOpen(false);
-          showContextualAlert(
-            <>
-              Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-              <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-                Undo
-              </Button>
-            </>
-          );
+          showContextualAlert(<SuccessMessage channelCount={matchedCount} undo={undo} />);
         } else {
           showModalAlert("File does not contain channel settings", "error");
         }
