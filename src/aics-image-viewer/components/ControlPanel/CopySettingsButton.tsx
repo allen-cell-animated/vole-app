@@ -133,21 +133,23 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     </Tooltip>
   );
 
+  const onClickCopy = React.useCallback(() => {
+    setDropdownOpen(false);
+    try {
+      const { channelSettings } = useViewerState.getState();
+      const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
+      navigator.clipboard.writeText(JSON.stringify(serialized));
+      showContextualAlert("Settings copied");
+    } catch {
+      showContextualAlert("Could not copy settings", "error");
+    }
+  }, [includeColor, showContextualAlert]);
+
   const items: MenuProps["items"] = [
     {
       key: 0,
       label: "Copy",
-      onClick: () => {
-        setDropdownOpen(false);
-        try {
-          const { channelSettings } = useViewerState.getState();
-          const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
-          navigator.clipboard.writeText(JSON.stringify(serialized));
-          showContextualAlert("Settings copied");
-        } catch {
-          showContextualAlert("Could not copy settings", "error");
-        }
-      },
+      onClick: onClickCopy,
     },
     {
       key: 1,
