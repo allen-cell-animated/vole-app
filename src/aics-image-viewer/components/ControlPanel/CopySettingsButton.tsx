@@ -1,5 +1,6 @@
 import { DragOutlined, EllipsisOutlined, ExclamationCircleOutlined, WarningOutlined } from "@ant-design/icons";
-import { Alert, type AlertProps, Button, Checkbox, Dropdown, type MenuProps, Modal, Tooltip, Upload } from "antd";
+import { Alert, Button, Checkbox, Dropdown, Modal, Tooltip, Upload } from "antd";
+import type { AlertProps, DraggerProps, MenuProps } from "antd";
 import React from "react";
 
 import {
@@ -237,6 +238,52 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     }
   }, [queryPasteState, showContextualAlert]);
 
+  const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
+    async ({ file, onSuccess, onError }) => {
+      const text = await (file as Blob).text();
+      const importResult = importSettings(text);
+
+      if (!importResult.success) {
+        showModalAlert("File does not contain channel settings", "error");
+        onError?.(new Error());
+        return;
+      }
+
+      const { matchedCount, unmatched } = importResult;
+      const unmatchedCount = unmatched.length;
+      const undo = (): void => {
+        importResult.undo();
+        showContextualAlert(undefined);
+        showModalAlert(undefined);
+      };
+
+      if (unmatchedCount > 0) {
+        if (matchedCount > 0) {
+          setImportModalOpen(false);
+          showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
+        } else {
+          showModalAlert("Channel names in file did not match names in image", "error");
+        }
+      } else {
+        if (matchedCount > 0) {
+          setImportModalOpen(false);
+          showContextualAlert(
+            <>
+              Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
+              <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
+                Undo
+              </Button>
+            </>
+          );
+        } else {
+          showModalAlert("File does not contain channel settings", "error");
+        }
+      }
+      onSuccess?.(undefined);
+    },
+    [showContextualAlert, showModalAlert]
+  );
+
   const items: MenuProps["items"] = [
     {
       key: 0,
@@ -319,51 +366,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         getContainer={getDropdownContainer}
       >
         <p>Upload a saved .json settings file</p>
-        <Upload.Dragger
-          showUploadList={false}
-          customRequest={async ({ file, onSuccess, onError }) => {
-            const text = await (file as Blob).text();
-            const importResult = importSettings(text);
-
-            if (!importResult.success) {
-              showModalAlert("File does not contain channel settings", "error");
-              onError?.(new Error());
-              return;
-            }
-
-            const { matchedCount, unmatched } = importResult;
-            const unmatchedCount = unmatched.length;
-            const undo = (): void => {
-              importResult.undo();
-              showContextualAlert(undefined);
-              showModalAlert(undefined);
-            };
-
-            if (unmatchedCount > 0) {
-              if (matchedCount > 0) {
-                setImportModalOpen(false);
-                showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
-              } else {
-                showModalAlert("Channel names in file did not match names in image", "error");
-              }
-            } else {
-              if (matchedCount > 0) {
-                setImportModalOpen(false);
-                showContextualAlert(
-                  <>
-                    Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-                    <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-                      Undo
-                    </Button>
-                  </>
-                );
-              } else {
-                showModalAlert("File does not contain channel settings", "error");
-              }
-            }
-            onSuccess?.(undefined);
-          }}
-        >
+        <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
           <DragOutlined /> Drag and drop here or click to browse
         </Upload.Dragger>
         {modalAlert !== undefined && (
