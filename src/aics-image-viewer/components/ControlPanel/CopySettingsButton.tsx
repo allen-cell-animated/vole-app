@@ -268,16 +268,20 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
       if (unmatchedCount > 0) {
         if (matchedCount > 0) {
+          // Some channels in the file matched, some did not
           setImportModalOpen(false);
           showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
         } else {
+          // No channels in the file matched channels in the current image
           showModalAlert("Channel names in file did not match names in image", "error");
         }
       } else {
         if (matchedCount > 0) {
+          // All channels matched!
           setImportModalOpen(false);
           showContextualAlert(<SuccessMessage channelCount={matchedCount} undo={undo} />);
         } else {
+          // There were no channels in the file at all!
           showModalAlert("File does not contain channel settings", "error");
         }
       }
