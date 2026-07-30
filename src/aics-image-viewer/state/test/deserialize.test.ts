@@ -3,6 +3,7 @@ import { describe, expect, it } from "@jest/globals";
 import { RenderMode, ViewMode } from "../../shared/enums";
 import {
   CONTROL_POINTS_REGEX,
+  deserializeChannelState,
   deserializeViewerChannelSetting,
   deserializeViewerState,
   LEGACY_CONTROL_POINTS_REGEX,
@@ -310,6 +311,57 @@ describe("deserializeViewerChannelSetting", () => {
     expect(result.colorizeAlpha).toBeUndefined();
     expect(result.surfaceOpacity).toBeUndefined();
     expect(result.isovalue).toBeUndefined();
+  });
+});
+
+describe("deserializeChannelState", () => {
+  it("returns an empty object for empty input", () => {
+    expect(deserializeChannelState({})).toEqual({});
+  });
+
+  it("parses channel state fields", () => {
+    const data = {
+      col: "ff0000",
+      clz: "1",
+      cza: "0.5",
+      isa: "0.75",
+      ven: "1",
+      sen: "1",
+      isv: "128",
+      ram: "0:255",
+      cpe: "1",
+      pin: "1",
+    } as ViewerChannelStateParams;
+
+    expect(deserializeChannelState(data)).toEqual({
+      color: [255, 0, 0],
+      colorizeEnabled: true,
+      colorizeAlpha: 0.5,
+      opacity: 0.75,
+      volumeEnabled: true,
+      isosurfaceEnabled: true,
+      isovalue: 128,
+      ramp: [0, 255],
+      useControlPoints: true,
+      keepIntensityRange: true,
+    });
+  });
+
+  it("prefers new control points and ramp fields over legacy fields", () => {
+    const data = {
+      cpt: "0:0:000000:255:1:ffffff",
+      cps: "0:0:ff0000:255:1:00ff00",
+      ram: "1:2",
+      rmp: "3:4",
+    } as ViewerChannelStateParams;
+
+    expect(deserializeChannelState(data)).toEqual({
+      controlPoints: [
+        { x: 0, opacity: 0, color: [0, 0, 0] },
+        { x: 255, opacity: 1, color: [255, 255, 255] },
+      ],
+      ramp: [1, 2],
+    });
   });
 });
 
