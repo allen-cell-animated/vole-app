@@ -35,7 +35,7 @@ const CopySettingsButton: React.FC<{
     </Tooltip>
   );
 
-  const onClickCopy = React.useCallback(async () => {
+  const onClickPaste = React.useCallback(async () => {
     const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
 
     // Try to read the clipboard
@@ -143,7 +143,7 @@ const CopySettingsButton: React.FC<{
         </div>
       ),
       disabled: pasteDenied,
-      onClick: onClickCopy,
+      onClick: onClickPaste,
     },
     // { key: 3, label: "Import" },
   ];
