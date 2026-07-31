@@ -7,6 +7,7 @@ import {
   clipboardToChannelState,
   isClipboardChannelState,
 } from "../../shared/utils/parseClipboard";
+import { queryPasteDenied } from "../../shared/utils/permissions";
 import { useViewerState } from "../../state/store";
 import { cloneChannelState } from "../../state/util";
 
@@ -21,23 +22,10 @@ const CopySettingsButton: React.FC<{
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [alert, showMessage] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
 
-  /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
-  const queryPasteState = React.useCallback(async (): Promise<void> => {
-    let permission: PermissionStatus;
-    try {
-      // Chromium browsers: we can query permissions to learn whether a clipboard read will succeed
-      permission = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
-      // If we're here, the `clipboard-read` permission is supported. Its state may be `denied`, `granted`, or `prompt`.
-      setPasteDenied(permission.state === "denied");
-    } catch {
-      // Non-Chromium browsers: clipboard reads don't have stateful permissions and will always require a prompt
-      setPasteDenied(false);
-    }
-  }, []);
-
+  // On first render, check if the user has disabled clipboard access
   const firstRenderRef = React.useRef(false);
   if (firstRenderRef.current) {
-    queryPasteState();
+    queryPasteDenied().then(setPasteDenied);
     firstRenderRef.current = true;
   }
 
@@ -57,7 +45,7 @@ const CopySettingsButton: React.FC<{
     } catch {
       showMessage("Could not read clipboard", "error");
       // If paste failed, check if it was because the user was asked to grant clipboard access and said no
-      queryPasteState();
+      queryPasteDenied().then(setPasteDenied);
       return;
     }
 
@@ -129,7 +117,7 @@ const CopySettingsButton: React.FC<{
         </>
       );
     }
-  }, [queryPasteState, showMessage]);
+  }, [showMessage]);
 
   const items: MenuProps["items"] = [
     {
