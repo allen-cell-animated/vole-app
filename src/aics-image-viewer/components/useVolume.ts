@@ -189,8 +189,12 @@ const useVolume = (
     [onErrorRef]
   );
 
-  // channel indexes, sorted by category
-  const channelNames = channelSettings.map(({ name }) => name);
+  // channelGroupedByType groups channel indexes by their category.
+  // It depends on `viewerChannelSettings` and the channel names in the current image.
+  // TODO this can be derived much more easily once `Volume` has events
+  const channelNamesKey = channelSettings.map(({ name }) => name).join("\0");
+  const channelNames = useMemo(() => channelNamesKey.split("\0"), [channelNamesKey]);
+
   const useDefaultViewerChannelSettings = useViewerState(select("useDefaultViewerChannelSettings"));
   const channelGroupedByType = useMemo(() => {
     const viewerChannelSettings = useDefaultViewerChannelSettings
