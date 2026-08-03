@@ -8,6 +8,7 @@ import {
   clipboardToChannelState,
   isClipboardChannelState,
 } from "../../shared/utils/parseClipboard";
+import { queryPasteDenied } from "../../shared/utils/permissions";
 import { useViewerState } from "../../state/store";
 import { cloneChannelState } from "../../state/util";
 
@@ -117,23 +118,10 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     setModalAlertType(alertType);
   }, []);
 
-  /** Learn as much as we can about whether the "paste" action will succeed, so we can disable it in advance. */
-  const queryPasteState = React.useCallback(async (): Promise<void> => {
-    let permission: PermissionStatus;
-    try {
-      // Chromium browsers: we can query permissions to learn whether a clipboard read will succeed
-      permission = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
-      // If we're here, the `clipboard-read` permission is supported. Its state may be `denied`, `granted`, or `prompt`.
-      setPasteDenied(permission.state === "denied");
-    } catch {
-      // Non-Chromium browsers: clipboard reads don't have stateful permissions and will always require a prompt
-      setPasteDenied(false);
-    }
-  }, []);
-
+  // On first render, check if the user has disabled clipboard access
   const firstRenderRef = React.useRef(false);
   if (firstRenderRef.current) {
-    queryPasteState();
+    queryPasteDenied().then(setPasteDenied);
     firstRenderRef.current = true;
   }
 
@@ -183,7 +171,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     } catch {
       showContextualAlert("Could not read clipboard", "error");
       // If paste failed, check if it was because the user was asked to grant clipboard access and said no
-      queryPasteState();
+      queryPasteDenied().then(setPasteDenied);
       return;
     }
 
@@ -220,7 +208,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         showContextualAlert("Clipboard does not contain channel settings", "error");
       }
     }
-  }, [queryPasteState, showContextualAlert]);
+  }, [showContextualAlert]);
 
   const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
     async ({ file, onSuccess, onError }) => {

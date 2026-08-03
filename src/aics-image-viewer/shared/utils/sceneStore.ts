@@ -68,6 +68,9 @@ export default class SceneStore {
       channels: spec.channels?.filter((channelIndex) => channelIndex < imageInfo.channelNames.length),
       time: Math.min(spec.time, maxTime),
     };
+    // TODO it's not great that this is the caller's responsibility... fix this more robustly in vole-core
+    image.loadSpec = { ...image.loadSpec, ...adjustedSpec };
+    image.loadSpecRequired = { ...image.loadSpecRequired, ...adjustedSpec };
 
     options?.onCreateScene?.(image, scene, adjustedSpec);
     loader.loadVolumeData(image, adjustedSpec, options?.onChannelLoaded);
