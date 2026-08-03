@@ -189,8 +189,19 @@ const useVolume = (
     [onErrorRef]
   );
 
-  // channel indexes, sorted by category
-  const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
+  // channelGroupedByType groups channel indexes by their category.
+  // It depends on `viewerChannelSettings` and the channel names in the current image.
+  // TODO this can be derived much more easily once `Volume` has events
+  const channelNamesKey = channelSettings.map(({ name }) => name).join("\0");
+  const channelNames = useMemo(() => channelNamesKey.split("\0"), [channelNamesKey]);
+
+  const useDefaultViewerChannelSettings = useViewerState(select("useDefaultViewerChannelSettings"));
+  const channelGroupedByType = useMemo(() => {
+    const viewerChannelSettings = useDefaultViewerChannelSettings
+      ? getDefaultViewerChannelSettings()
+      : options?.viewerChannelSettings;
+    return makeChannelIndexGrouping(channelNames, viewerChannelSettings);
+  }, [channelNames, options?.viewerChannelSettings, useDefaultViewerChannelSettings]);
 
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
@@ -217,8 +228,6 @@ const useVolume = (
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : options?.viewerChannelSettings;
-      const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
-      setChannelGroupedByType(grouping);
 
       return initChannelSettings(channelNames, viewerChannelSettings);
     },
@@ -316,7 +325,6 @@ const useVolume = (
     setIsLoading,
     onChannelDataLoaded,
     changeViewerSetting,
-    initChannelSettings,
     setChannelStateForNewImage,
     options?.viewerChannelSettings,
   ]);
