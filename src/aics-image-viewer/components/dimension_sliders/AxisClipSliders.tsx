@@ -50,7 +50,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
     changeViewerSetting("region", { [axis]: [start, end] });
   };
 
-  const startScrub = (axis: AxisName | "t"): void => {
+  const startScrub = (): void => {
     if (!scrubStarted.current) {
       scrubStarted.current = true;
       const highResLoaded = props.numSlices === props.numSlicesLoaded;
@@ -61,7 +61,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   const updateSlice = (axis: AxisName, slice: number, isScrubbing = false): void => {
     pauseOnInput(axis);
     if (isScrubbing) {
-      startScrub(axis);
+      startScrub();
     }
     props.changeViewerSetting("slice", { [axis]: slice / props.numSlices[axis] });
   };
@@ -69,7 +69,7 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   const updateTime = (time: number, isScrubbing = false): void => {
     pauseOnInput("t");
     if (isScrubbing) {
-      startScrub("t");
+      startScrub();
     }
     props.changeViewerSetting("time", time);
   };
