@@ -23,6 +23,8 @@ type ViewerWrapperProps = {
   numSlicesLoaded: PerAxis<number>;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
+  beginScrubPreview: (highResLoaded: boolean) => void;
+  endScrubPreview: () => void;
   numTimesteps: number;
   numScenes: number;
   visibleControls: {
@@ -88,6 +90,8 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
           scene={scene}
           playControls={props.playControls}
           playingAxis={props.playingAxis}
+          beginScrubPreview={props.beginScrubPreview}
+          endScrubPreview={props.endScrubPreview}
         />
       ),
     });

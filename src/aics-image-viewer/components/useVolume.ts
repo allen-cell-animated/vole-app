@@ -41,7 +41,7 @@ export const enum ImageLoadStatus {
 }
 
 const enum LoadType {
-  TIME,
+  RELOAD,
   SCENE,
 }
 
@@ -66,6 +66,8 @@ export type ReactiveVolume = {
   setScene: (scene: number) => void;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
+  beginScrubPreview: (highResLoaded: boolean) => void;
+  endScrubPreview: () => void;
   channelGroupedByType: ChannelGrouping;
 };
 
@@ -334,7 +336,7 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time).catch(onError);
-        setIsLoading(LoadType.TIME);
+        setIsLoading(LoadType.RELOAD);
       }
     },
     [image, onError, setIsLoading, inInitialLoadRef]
@@ -378,6 +380,33 @@ const useVolume = (
     ]
   );
 
+  const beginScrubPreview = useCallback(
+    (highResLoaded: boolean): void => {
+      if (image && !inInitialLoadRef.current) {
+        sceneLoader.syncMultichannelLoading(false);
+        const scaleLevelBias = highResLoaded ? 0 : image.imageInfo.numMultiscaleLevels;
+        image.updateRequiredData({ scaleLevelBias }).catch(onError);
+      }
+    },
+    [image, onError, sceneLoader]
+  );
+
+  const endScrubPreview = useCallback(
+    (): void => {
+      if (image && !inInitialLoadRef.current) {
+        if (playingAxis !== null) {
+          playControls.play(playingAxis);
+          return;
+        }
+
+        image.updateRequiredData({ scaleLevelBias: 0 }).catch(onError);
+        setIsLoading(LoadType.RELOAD);
+      }
+    },
+    [image, onError, playControls, playingAxis, setIsLoading]
+  );
+
+
   return useMemo(
     () => ({
       image,
@@ -385,11 +414,24 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
+      beginScrubPreview,
+      endScrubPreview,
       playControls,
       playingAxis,
       channelGroupedByType,
     }),
-    [image, channelVersions, imageLoadStatus, setTime, setScene, playControls, playingAxis, channelGroupedByType]
+    [
+      image,
+      channelVersions,
+      imageLoadStatus,
+      setTime,
+      setScene,
+      beginScrubPreview,
+      endScrubPreview,
+      playControls,
+      playingAxis,
+      channelGroupedByType,
+    ]
   );
 };
 
