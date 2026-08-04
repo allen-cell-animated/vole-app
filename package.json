@@ -43,7 +43,7 @@
     "deploy": "gh-pages -d imageviewer -t true",
     "checks": "npm run lint && npm run typeCheck && npm run test"
   },
-  "author": "Megan Riel-Mehan",
+  "author": "Allen Institute, Cell Science",
   "license": "BSD-3-Clause",
   "dependencies": {
     "@aics/vole-core": "^4.9.2",
