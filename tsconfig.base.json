@@ -15,5 +15,10 @@
     "strict": true,
     "target": "ES6"
   },
-  "files": ["src/index.ts", "src/aics-image-viewer/assets/icons/svg.d.ts", "website/assets/videos/mp4.d.ts"]
+  "files": [
+    "src/index.ts",
+    "src/aics-image-viewer/assets/icons/svg.d.ts",
+    "src/Globals.d.ts",
+    "website/assets/videos/mp4.d.ts"
+  ]
 }

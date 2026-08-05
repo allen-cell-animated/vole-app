@@ -6,8 +6,8 @@ import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/parseUrl";
 import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
-import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";

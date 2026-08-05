@@ -63,10 +63,16 @@
       display: none;
     }
 
-    .control-panel-title {
+    .control-panel-title-container {
       margin: 16px;
       max-height: 24px; /* align bottom border with divider to the left */
-      font-size: 1.4em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      > * {
+        font-size: 1.4em;
+      }
     }
 
     .channel-settings-header {

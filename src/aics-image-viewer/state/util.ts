@@ -1,5 +1,5 @@
 import { RenderMode, ViewMode } from "../shared/enums";
-import type { ViewerState } from "../state/types";
+import type { ChannelState, ViewerState } from "../state/types";
 
 // TODO move back to a new `types` module (?)
 type ViewerSettingChangeHandlers = {
@@ -73,3 +73,24 @@ export const validateState = (
 
   return validated;
 };
+
+/** Creates a deep copy of a `ChannelState` */
+// Fills in every property individually so that new properties force a modification to this function
+export const cloneChannelState = (setting: ChannelState): ChannelState => ({
+  ramp: [...setting.ramp],
+  controlPoints: setting.controlPoints.map(({ x, opacity, color }) => ({ x, opacity, color: [...color] })),
+  // Safe shallow copies
+  name: setting.name,
+  displayName: setting.displayName,
+  volumeEnabled: setting.volumeEnabled,
+  isosurfaceEnabled: setting.isosurfaceEnabled,
+  isovalue: setting.isovalue,
+  colorizeEnabled: setting.colorizeEnabled,
+  colorizeAlpha: setting.colorizeAlpha,
+  opacity: setting.opacity,
+  color: setting.color,
+  useControlPoints: setting.useControlPoints,
+  plotMin: setting.plotMin,
+  plotMax: setting.plotMax,
+  keepIntensityRange: setting.keepIntensityRange,
+});
