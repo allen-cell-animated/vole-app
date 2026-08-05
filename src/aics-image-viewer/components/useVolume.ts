@@ -34,6 +34,8 @@ export type UseVolumeOptions = {
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
   onError?: (error: unknown, image?: Volume) => void;
+  /** Callback for when scrubbing starts or stops, including the state info needed */
+  onScrub?: (isScrubbing: boolean, image: Volume) => void;
   /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
 };
@@ -112,6 +114,7 @@ const useVolume = (
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
   const onChangeSceneRef = useEffectEventRef(options?.onChangeScene);
   const onCreateImageRef = useEffectEventRef(options?.onCreateImage);
+  const onScrubRef = useEffectEventRef(options?.onScrub);
   const maskChannelName = options?.maskChannelName;
 
   // set up our big objects: the image, its loading infrastructure, and controls for playback
@@ -408,6 +411,11 @@ const useVolume = (
       sceneLoader.syncMultichannelLoading(scrubbingAxis === null && playingAxis !== null);
     }
   }, [image, scrubbingAxis, playingAxis, sceneLoader]);
+
+  useEffect(() => {
+    if (!image) return;
+    onScrubRef(scrubbingAxis !== null, image);
+  }, [onScrubRef, scrubbingAxis, image]);
 
   return useMemo(
     () => ({
