@@ -80,7 +80,7 @@ export type ChannelState = {
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
 export enum ViewerStateKeys {
-  /** Axis to view. Valid values are `3D`, `XY`, `XZ`, and `YZ`. Defaults to `3D`. */
+  /** Axis to view. Valid values are `3D`, `X`, `Y`, and `Z`. Defaults to `3D`. */
   View = "view",
   /** Render mode. Valid values are `volumetric`, `maxproject`, and `pathtrace`. Defaults to `volumetric`. */
   Mode = "mode",
@@ -160,7 +160,7 @@ export enum CameraTransformKeys {
   Fov = "fov",
 }
 
-export type RawViewerStateParams = {
+type ViewerStateParamTypes = {
   [ViewerStateKeys.View]: ViewMode;
   [ViewerStateKeys.Mode]: RenderMode;
   [ViewerStateKeys.Mask]: number;
@@ -178,12 +178,14 @@ export type RawViewerStateParams = {
   [ViewerStateKeys.Slice]: [number, number, number];
   [ViewerStateKeys.Time]: number;
   [ViewerStateKeys.Scene]: number;
-  [ViewerStateKeys.CameraState]: CameraState;
+  [ViewerStateKeys.CameraState]: CameraState | undefined;
   [ViewerStateKeys.SingleChannelMode]: boolean;
   [ViewerStateKeys.SingleChannelIndex]: number;
   [ViewerStateKeys.UseExactScaleLevel]: boolean;
   [ViewerStateKeys.ScaleLevelIndex]: number;
 };
+
+export type RawViewerStateParams = { [K in ViewerStateKeys]: ViewerStateParamTypes[K] };
 
 /** Serialized version of `ViewerState`, with all keys stringified. */
 // TODO make keys required and use `Partial`?
