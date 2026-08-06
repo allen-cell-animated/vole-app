@@ -2,6 +2,24 @@ import type { CameraState, View3d } from "@aics/vole-core";
 import { mat3, quat, vec3 } from "gl-matrix";
 import React from "react";
 
+export const cloneCameraState = (state: CameraState): CameraState => {
+  const result: CameraState = {
+    position: [...state.position],
+    target: [...state.target],
+    up: [...state.up],
+  };
+
+  if (state.fov !== undefined) {
+    result.fov = state.fov;
+  }
+
+  if (state.orthoScale !== undefined) {
+    result.orthoScale = state.orthoScale;
+  }
+
+  return result;
+};
+
 /**
  * Converts a `vec3` to a `[number, number, number]`.
  *
