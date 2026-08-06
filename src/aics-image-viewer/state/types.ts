@@ -160,7 +160,33 @@ export enum CameraTransformKeys {
   Fov = "fov",
 }
 
+export type RawViewerStateParams = {
+  [ViewerStateKeys.View]: ViewMode;
+  [ViewerStateKeys.Mode]: RenderMode;
+  [ViewerStateKeys.Mask]: number;
+  [ViewerStateKeys.Image]: ImageType;
+  [ViewerStateKeys.Axes]: boolean;
+  [ViewerStateKeys.BoundingBox]: boolean;
+  [ViewerStateKeys.BoundingBoxColor]: string;
+  [ViewerStateKeys.BackgroundColor]: string;
+  [ViewerStateKeys.Autorotate]: boolean;
+  [ViewerStateKeys.Brightness]: number;
+  [ViewerStateKeys.Density]: number;
+  [ViewerStateKeys.Levels]: [number, number, number];
+  [ViewerStateKeys.Interpolation]: boolean;
+  [ViewerStateKeys.Region]: [[number, number], [number, number], [number, number]];
+  [ViewerStateKeys.Slice]: [number, number, number];
+  [ViewerStateKeys.Time]: number;
+  [ViewerStateKeys.Scene]: number;
+  [ViewerStateKeys.CameraState]: CameraState;
+  [ViewerStateKeys.SingleChannelMode]: boolean;
+  [ViewerStateKeys.SingleChannelIndex]: number;
+  [ViewerStateKeys.UseExactScaleLevel]: boolean;
+  [ViewerStateKeys.ScaleLevelIndex]: number;
+};
+
 /** Serialized version of `ViewerState`, with all keys stringified. */
+// TODO make keys required and use `Partial`?
 export type ViewerStateParams = { [K in ViewerStateKeys]?: string };
 
 /**
