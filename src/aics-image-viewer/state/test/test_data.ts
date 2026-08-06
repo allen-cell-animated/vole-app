@@ -1,5 +1,5 @@
-import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
+import { ImageType, RenderMode, ViewMode } from "../types";
 import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../types";
 
 export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {

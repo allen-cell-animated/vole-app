@@ -1,7 +1,6 @@
 import { type CameraState, type Channel, PrefetchDirection } from "@aics/vole-core";
 
-import type { ChannelState, ViewerState } from "../state/types";
-import { ImageType, RenderMode, ViewMode } from "./enums";
+import { type ChannelState, ImageType, RenderMode, type ViewerState, ViewMode } from "../state/types";
 import type { AxisName } from "./types";
 import type { ColorArray } from "./utils/colorRepresentations";
 import type { ViewerChannelSettings } from "./utils/viewerChannelSettings";

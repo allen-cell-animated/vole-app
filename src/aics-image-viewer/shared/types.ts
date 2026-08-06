@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { ViewMode } from "./enums";
+import { ViewMode } from "../state/types";
 
 export type AxisName = "x" | "y" | "z";
 export type PerAxis<T> = Record<AxisName, T>;

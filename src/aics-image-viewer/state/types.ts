@@ -1,8 +1,25 @@
 import type { CameraState, ControlPoint } from "@aics/vole-core";
 
-import type { ImageType, RenderMode, ViewMode } from "../shared/enums";
 import type { PerAxis } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
+
+export enum ViewMode {
+  threeD = "3D",
+  xy = "XY",
+  xz = "XZ",
+  yz = "YZ",
+}
+
+export enum RenderMode {
+  volumetric = "volumetric",
+  maxProject = "maxproject",
+  pathTrace = "pathtrace",
+}
+
+export enum ImageType {
+  segmentedCell = "cell",
+  fullField = "fov",
+}
 
 /** Global (not per-channel) viewer state which may be changed in the UI */
 export type ViewerState = {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { RenderMode, ViewMode } from "../../shared/enums";
 import {
   CONTROL_POINTS_REGEX,
   deserializeChannelState,
@@ -14,7 +13,7 @@ import {
   parseStringInt,
 } from "../deserialize";
 import { serializeViewerState } from "../serialize";
-import type { ViewerChannelStateParams, ViewerState } from "../types";
+import { RenderMode, type ViewerChannelStateParams, type ViewerState, ViewMode } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_VIEWER_CHANNEL_SETTING,
