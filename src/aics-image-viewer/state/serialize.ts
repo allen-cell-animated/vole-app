@@ -169,7 +169,16 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
       delete state.scaleLevelIndex;
     }
   }
+
+  const viewModeToViewParam = {
+    [ViewMode.threeD]: "3D",
+    [ViewMode.xy]: "Z",
+    [ViewMode.xz]: "Y",
+    [ViewMode.yz]: "X",
+  };
+
   const result: ViewerStateParams = {
+    [ViewerStateKeys.View]: state.viewMode && viewModeToViewParam[state.viewMode],
     [ViewerStateKeys.Mode]: state.renderMode,
     [ViewerStateKeys.Mask]: state.maskAlpha?.toString(),
     [ViewerStateKeys.Image]: state.imageType,
@@ -193,13 +202,5 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewerStateKeys.CameraState]:
       state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
   };
-
-  const viewModeToViewParam = {
-    [ViewMode.threeD]: "3D",
-    [ViewMode.xy]: "Z",
-    [ViewMode.xz]: "Y",
-    [ViewMode.yz]: "X",
-  };
-  result[ViewerStateKeys.View] = state.viewMode && viewModeToViewParam[state.viewMode];
   return removeUndefinedProperties(result);
 }
