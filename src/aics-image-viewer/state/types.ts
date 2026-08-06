@@ -1,6 +1,6 @@
 import type { CameraState, ControlPoint } from "@aics/vole-core";
 
-import type { PerAxis } from "../shared/types";
+import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 
 export enum ViewMode {
@@ -39,10 +39,10 @@ export type ViewerState = {
   // `region` values are in the range [0, 1]. We derive from this the format that the sliders expect
   // (integers between 0 and num_slices - 1) and the format that view3d expects (in [-0.5, 0.5]).
   // This state is only active in 3d mode.
-  region: PerAxis<[number, number]>;
+  region: XYZ<[number, number]>;
   // Store the relative position of the slice in the range [0, 1] for each of 3 axes.
   // This state is active in x,y,z single slice modes.
-  slice: PerAxis<number>;
+  slice: XYZ<number>;
   time: number;
   scene: number;
   cameraState: Partial<CameraState> | undefined;

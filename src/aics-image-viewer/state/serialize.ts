@@ -2,7 +2,7 @@ import type { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../shared/constants";
-import type { PerAxis } from "../shared/types";
+import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "../shared/utils/datatypes";
 import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
@@ -58,19 +58,19 @@ function formatFloat(value: number, maxPrecision: number = 7): string {
   return Number(value.toPrecision(maxPrecision)).toString();
 }
 
-function perAxisToArray<T>(perAxis: PerAxis<T>): T[] {
+function perAxisToArray<T>(perAxis: XYZ<T>): T[] {
   return [perAxis.x, perAxis.y, perAxis.z];
 }
 
 /** Serializes a region into a `x1:x2,y1:y2,z1:z2` string format. */
-function serializeRegion(region: PerAxis<[number, number]>): string {
+function serializeRegion(region: XYZ<[number, number]>): string {
   return perAxisToArray(region)
     .map((axis) => axis.map((val) => formatFloat(val)).join(":"))
     .join(",");
 }
 
 /** Serializes a slice parameter into a `x,y,z` string format. */
-function serializeSlice(slice: PerAxis<number>): string {
+function serializeSlice(slice: XYZ<number>): string {
   return perAxisToArray(slice)
     .map((val) => formatFloat(val))
     .join(",");
