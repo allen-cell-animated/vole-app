@@ -13,7 +13,7 @@ import {
   getDefaultViewerChannelSettings,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
-import type { IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
+import type { IsosurfaceFormat, MetadataRecord, XYZ } from "../../shared/types";
 import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
@@ -360,8 +360,8 @@ const App: React.FC<AppProps> = (props) => {
 
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
-  const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 1, y: 1, z: 1 };
-  const numSlicesLoaded: PerAxis<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
+  const numSlices: XYZ<number> = image?.imageInfo.volumeSize ?? { x: 1, y: 1, z: 1 };
+  const numSlicesLoaded: XYZ<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
   const numTimesteps = image?.imageInfo.times ?? 1;
 
   // const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
