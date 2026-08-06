@@ -2,12 +2,11 @@ import type { CameraState, ControlPoint } from "@aics/vole-core";
 import { isEqual } from "lodash";
 
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../shared/constants";
-import { ViewMode } from "../shared/enums";
 import type { PerAxis } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "../shared/utils/datatypes";
 import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
-import { CameraTransformKeys, ViewerChannelSettingKeys, ViewerStateKeys } from "./types";
+import { CameraTransformKeys, ViewerChannelSettingKeys, ViewerStateKeys, ViewMode } from "./types";
 
 const ENCODED_COLON_REGEX = /%3A/g;
 

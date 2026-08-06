@@ -13,14 +13,13 @@ import {
   getDefaultViewerChannelSettings,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
-import { ImageType, ViewMode } from "../../shared/enums";
 import type { IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
 import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
-import type { ViewerState } from "../../state/types";
+import { ImageType, type ViewerState, ViewMode } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 

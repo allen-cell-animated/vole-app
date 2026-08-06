@@ -1,6 +1,5 @@
 import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
 
-import { ImageType, RenderMode, ViewMode } from "../shared/enums";
 import type { PerAxis } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
@@ -9,13 +8,13 @@ import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import {
   CameraTransformKeys,
-  type ChannelState,
+  ImageType,
+  RenderMode,
   ViewerChannelSettingKeys,
-  type ViewerChannelStateParams,
-  type ViewerState,
   ViewerStateKeys,
-  type ViewerStateParams,
+  ViewMode,
 } from "./types";
+import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
 
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";

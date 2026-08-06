@@ -1,5 +1,5 @@
-import { RenderMode, ViewMode } from "../shared/enums";
 import type { ChannelState, ViewerState } from "../state/types";
+import { RenderMode, ViewMode } from "./types";
 
 // TODO move back to a new `types` module (?)
 type ViewerSettingChangeHandlers = {

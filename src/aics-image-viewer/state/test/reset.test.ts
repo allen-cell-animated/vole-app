@@ -1,10 +1,9 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../shared/constants";
-import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import type { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";
-import type { ChannelState, ViewerState } from "../../state/types";
 import { useViewerState } from "../store";
+import { type ChannelState, ImageType, RenderMode, type ViewerState, ViewMode } from "../types";
 
 const arbitraryViewerState = (): ViewerState => ({
   viewMode: ViewMode.xy,
