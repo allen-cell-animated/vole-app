@@ -4,7 +4,8 @@ import type { AppProps, MultisceneUrls } from "../../components/App/types";
 import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueList } from "../../state/deserialize";
 import { objectToKeyValueList, serializeViewerChannelSetting, serializeViewerState } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
-import { type ViewerChannelStateParams, type ViewerState, ViewerStateParams } from "../../state/types";
+import { ViewerStateKeys } from "../../state/types";
+import type { ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../../state/types";
 import type { ManifestJson, MetadataRecord } from "../types";
 import { removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
@@ -87,7 +88,7 @@ type ViewerMessage = {
 };
 
 const allowedParamKeys: Array<keyof AppParams> = [
-  ...Object.keys(new ViewerStateParams()),
+  ...Object.values(ViewerStateKeys),
   ...Object.keys(new DataParams()),
   ...Object.keys(new DeprecatedParams()),
 ] as Array<keyof AppParams>;
