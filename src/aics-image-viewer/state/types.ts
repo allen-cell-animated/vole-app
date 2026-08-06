@@ -52,6 +52,7 @@ export type ViewerState = {
   scaleLevelIndex: number;
 };
 
+/** Settings for a single channel which may be changed in the UI */
 export type ChannelState = {
   name: string;
   displayName: string;
@@ -75,10 +76,10 @@ export type ChannelState = {
 };
 
 /**
- * Enum keys for serialized viewer settings. These are stored as enums for
- * better readability, and are mapped to types in `ViewerStateParams`.
+ * Property keys for the serialized variants of `ViewerState`. These keys are shorter, for contexts that need brevity
+ * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
-export enum ViewerStateKeys {
+export const enum ViewerStateKeys {
   View = "view",
   Mode = "mode",
   Mask = "mask",
@@ -103,7 +104,7 @@ export enum ViewerStateKeys {
   ScaleLevelIndex = "scl",
 }
 
-export enum CameraTransformKeys {
+export const enum CameraTransformKeys {
   /** Camera position in 3D coordinates. */
   Position = "pos",
   /** Target position of the trackball controls in 3D coordinates. */
