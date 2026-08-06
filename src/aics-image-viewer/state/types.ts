@@ -111,7 +111,7 @@ export enum ViewerStateKeys {
   /** Whether to enable interpolation. Boolean, or `0`/`1` when stringified. Default `true`. */
   Interpolation = "interp",
   /**
-   * Size of the clipped subregion, in the form `{ x: [xmin, xmax], y: [ymin, ymax], z: [zmin, zmax] }`.
+   * Size of the clipped subregion, in the form `[[xmin, xmax], [ymin, ymax], [zmin, zmax]]`.
    * Stringifies to the form `xmin:xmax,ymin:ymax,zmin:zmax`. Default full range (`[0, 1]`) for each axis.
    */
   Region = "reg",
@@ -160,8 +160,8 @@ export enum CameraTransformKeys {
   Fov = "fov",
 }
 
-/** Serialized version of `ViewerState`. */
-export type ViewerStateParams = { [K in ViewerStateKeys]: string | undefined };
+/** Serialized version of `ViewerState`, with all keys stringified. */
+export type ViewerStateParams = { [K in ViewerStateKeys]?: string };
 
 /**
  * Mapped to types in `ViewerChannelStateParams`.
