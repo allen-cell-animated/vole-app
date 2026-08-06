@@ -79,7 +79,7 @@ export type ChannelState = {
  * Property keys for the serialized variants of `ViewerState`. These keys are shorter, for contexts that need brevity
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
-export const enum ViewerStateKeys {
+export enum ViewerStateKeys {
   View = "view",
   Mode = "mode",
   Mask = "mask",
@@ -104,7 +104,7 @@ export const enum ViewerStateKeys {
   ScaleLevelIndex = "scl",
 }
 
-export const enum CameraTransformKeys {
+export enum CameraTransformKeys {
   /** Camera position in 3D coordinates. */
   Position = "pos",
   /** Target position of the trackball controls in 3D coordinates. */
