@@ -1,5 +1,5 @@
 import type { CameraState, ControlPoint } from "@aics/vole-core";
-import { isEqual } from "lodash";
+import { identity, isEqual } from "lodash";
 
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../shared/constants";
 import type { XYZ } from "../shared/types";
@@ -117,6 +117,37 @@ export function serializeCameraState(
   return cameraString === "" ? undefined : cameraString;
 }
 
+function cameraStateToSnapshot(
+  cameraState: Partial<CameraState> | undefined,
+  removeDefaults: boolean,
+  viewMode: ViewMode = ViewMode.threeD
+): CameraStateSnapshot | undefined {
+  if (cameraState === undefined) {
+    return undefined;
+  }
+
+  // Note that we use the `getDefaultCameraState()` to get the defaults here,
+  // instead of `getDefaultViewerState().cameraState`. The latter is undefined, which signals
+  // that the camera should not be modified for URLs that don't specify it.
+  const modifiedState = removeDefaults
+    ? removeMatchingProperties(cameraState, getDefaultCameraState(viewMode))
+    : cameraState;
+
+  const snapshot: CameraStateSnapshot = removeUndefinedProperties({
+    [CameraTransformKeys.Position]: modifiedState.position && [...modifiedState.position],
+    [CameraTransformKeys.Target]: modifiedState.target && [...modifiedState.target],
+    [CameraTransformKeys.Up]: modifiedState.up && [...modifiedState.up],
+    [CameraTransformKeys.OrthoScale]: modifiedState.orthoScale,
+    [CameraTransformKeys.Fov]: modifiedState.fov,
+  });
+
+  if (Object.keys(snapshot).length === 0) {
+    return undefined;
+  }
+
+  return snapshot;
+}
+
 function serializeControlPoints(controlPoints: ControlPoint[]): string {
   return controlPoints
     .map((cp) => {
@@ -213,10 +244,7 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
   return removeUndefinedProperties(result);
 }
 
-export function rawSerializeViewerState(
-  state: Partial<ViewerState>,
-  removeDefaults: boolean
-): Partial<ExportedViewerState> {
+export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ExportedViewerState {
   if (removeDefaults) {
     state = removeMatchingProperties(state, getDefaultViewerState());
     // special case: if there's an explicit scale level but it's not being used, no reason to include it
@@ -225,7 +253,7 @@ export function rawSerializeViewerState(
     }
   }
 
-  const result: Partial<ExportedViewerState> = {
+  const result: ExportedViewerState = {
     [ViewerStateKeys.View]: state.viewMode,
     [ViewerStateKeys.Mode]: state.renderMode,
     [ViewerStateKeys.Mask]: state.maskAlpha,
@@ -247,8 +275,7 @@ export function rawSerializeViewerState(
     [ViewerStateKeys.SingleChannelIndex]: state.singleChannelIndex,
     [ViewerStateKeys.UseExactScaleLevel]: state.useExactScaleLevel,
     [ViewerStateKeys.ScaleLevelIndex]: state.scaleLevelIndex,
-    [ViewerStateKeys.CameraState]:
-      state.cameraState && removeMatchingProperties(state.cameraState, getDefaultCameraState()),
+    [ViewerStateKeys.CameraState]: cameraStateToSnapshot(state.cameraState, removeDefaults, state.viewMode),
   };
 
   return removeUndefinedProperties(result);
@@ -273,8 +300,6 @@ const stringify = <T extends Record<string, unknown>>(
   return result;
 };
 
-const id = <T>(x: T): T => x;
-
 const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.threeD]: "3D",
   [ViewMode.xy]: "Z",
@@ -282,7 +307,7 @@ const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.yz]: "X",
 };
 
-export const stringifyCameraState = (state: CameraStateSnapshot): CameraStateStringified =>
+export const stringifyCameraStateSnapshot = (state: CameraStateSnapshot): CameraStateStringified =>
   stringify(state, {
     [CameraTransformKeys.Position]: (position) => position.map(formatFloat).join(":"),
     [CameraTransformKeys.Target]: (target) => target.map(formatFloat).join(":"),
@@ -291,16 +316,16 @@ export const stringifyCameraState = (state: CameraStateSnapshot): CameraStateStr
     [CameraTransformKeys.Fov]: formatFloat,
   });
 
-export const stringifyViewerState = (exportedState: ExportedViewerState): ViewerStateParams =>
+export const stringifyViewerStateSnapshot = (exportedState: ExportedViewerState): ViewerStateParams =>
   stringify(exportedState, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
-    [ViewerStateKeys.Mode]: id,
+    [ViewerStateKeys.Mode]: identity,
     [ViewerStateKeys.Mask]: Number.toString,
-    [ViewerStateKeys.Image]: id,
+    [ViewerStateKeys.Image]: identity,
     [ViewerStateKeys.Axes]: stringifyBoolean,
     [ViewerStateKeys.BoundingBox]: stringifyBoolean,
-    [ViewerStateKeys.BoundingBoxColor]: id,
-    [ViewerStateKeys.BackgroundColor]: id,
+    [ViewerStateKeys.BoundingBoxColor]: identity,
+    [ViewerStateKeys.BackgroundColor]: identity,
     [ViewerStateKeys.Autorotate]: stringifyBoolean,
     [ViewerStateKeys.Brightness]: Number.toString,
     [ViewerStateKeys.Density]: Number.toString,
@@ -314,5 +339,5 @@ export const stringifyViewerState = (exportedState: ExportedViewerState): Viewer
     [ViewerStateKeys.SingleChannelIndex]: Number.toString,
     [ViewerStateKeys.UseExactScaleLevel]: stringifyBoolean,
     [ViewerStateKeys.ScaleLevelIndex]: Number.toString,
-    [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraState(value)),
+    [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraStateSnapshot(value)),
   });
