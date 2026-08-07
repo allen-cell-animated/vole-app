@@ -70,54 +70,7 @@ function formatFloat(value: number, maxPrecision: number = 7): string {
 
 const xyzToArray = <T>({ x, y, z }: XYZ<T>): [T, T, T] => [x, y, z];
 
-/** Serializes a region into a `x1:x2,y1:y2,z1:z2` string format. */
-function serializeRegion(region: XYZ<[number, number]>): string {
-  return xyzToArray(region)
-    .map((axis) => axis.map((val) => formatFloat(val)).join(":"))
-    .join(",");
-}
-
-/** Serializes a slice parameter into a `x,y,z` string format. */
-function serializeSlice(slice: XYZ<number>): string {
-  return xyzToArray(slice)
-    .map((val) => formatFloat(val))
-    .join(",");
-}
-
-function serializeBoolean(value: boolean | undefined): "1" | "0" | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  return value ? "1" : "0";
-}
-
 const stringifyBoolean = (value: boolean): "1" | "0" => (value ? "1" : "0");
-
-export function serializeCameraState(
-  cameraState: Partial<CameraState>,
-  removeDefaults: boolean,
-  viewMode: ViewMode = ViewMode.threeD
-): string | undefined {
-  if (removeDefaults) {
-    // Note that we use the `getDefaultCameraState()` to get the defaults here,
-    // instead of `getDefaultViewerState().cameraState`. The latter is undefined, which signals
-    // that the camera should not be modified for URLs that don't specify it.
-    cameraState = removeMatchingProperties(cameraState, getDefaultCameraState(viewMode));
-    if (Object.keys(cameraState).length === 0) {
-      return undefined;
-    }
-  }
-  const cameraString = objectToKeyValueList({
-    [CameraTransformKeys.Position]:
-      cameraState.position && cameraState.position.map((value) => formatFloat(value)).join(":"),
-    [CameraTransformKeys.Target]: cameraState.target && cameraState.target.map((value) => formatFloat(value)).join(":"),
-    [CameraTransformKeys.Up]: cameraState.up && cameraState.up.map((value) => formatFloat(value)).join(":"),
-    [CameraTransformKeys.OrthoScale]:
-      cameraState.orthoScale === undefined ? undefined : formatFloat(cameraState.orthoScale),
-    [CameraTransformKeys.Fov]: cameraState.fov === undefined ? undefined : formatFloat(cameraState.fov),
-  });
-  return cameraString === "" ? undefined : cameraString;
-}
 
 export function cameraStateToSnapshot(
   cameraState: Partial<CameraState> | undefined,
@@ -160,104 +113,8 @@ function controlPointToSnapshot(controlPoint: ControlPoint): ControlPointSnapsho
   };
 }
 
-function stringifyControlPoints(controlPoints: ControlPoint[]): string {
-  return controlPoints
-    .map((cp) => {
-      const x = formatFloat(cp.x);
-      const opacity = formatFloat(cp.opacity);
-      // Default control-point color is encoded as DEFAULT_CONTROL_POINT_COLOR_CODE ("1").
-      const color = isEqual(cp.color, DEFAULT_CONTROL_POINT_COLOR)
-        ? DEFAULT_CONTROL_POINT_COLOR_CODE
-        : colorArrayToHex(cp.color);
-      return `${x}:${opacity}:${color}`;
-    })
-    .join(":");
-}
-
 function stringifyControlPointSnapshots(controlPoints: ControlPointSnapshot[]): string {
   return controlPoints.map((cp) => `${formatFloat(cp.x)}:${formatFloat(cp.opacity)}:${cp.color}`).join(":");
-}
-
-/**
- * Serializes a single viewer channel setting into a dictionary of URL parameters
- * (`ViewerChannelStateParams`).
- * @param channelSetting The channel state object to serialize.
- * @param removeDefaults Whether to remove properties that match the output of `getDefaultChannelState`.
- * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
- */
-export function serializeViewerChannelSetting(
-  channelSetting: Partial<ChannelState>,
-  removeDefaults: boolean
-): Partial<ViewerChannelStateParams> {
-  if (removeDefaults) {
-    channelSetting = removeMatchingProperties(channelSetting, getDefaultChannelState());
-  }
-  return removeUndefinedProperties({
-    [ViewerChannelSettingKeys.VolumeEnabled]: serializeBoolean(channelSetting.volumeEnabled),
-    [ViewerChannelSettingKeys.SurfaceEnabled]: serializeBoolean(channelSetting.isosurfaceEnabled),
-    [ViewerChannelSettingKeys.IsosurfaceValue]: channelSetting.isovalue?.toString(),
-    [ViewerChannelSettingKeys.IsosurfaceAlpha]: channelSetting.opacity?.toString(),
-    [ViewerChannelSettingKeys.Colorize]: serializeBoolean(channelSetting.colorizeEnabled),
-    [ViewerChannelSettingKeys.ColorizeAlpha]: channelSetting.colorizeAlpha?.toString(),
-    [ViewerChannelSettingKeys.Color]: channelSetting.color && colorArrayToHex(channelSetting.color),
-    [ViewerChannelSettingKeys.ControlPoints]:
-      channelSetting.controlPoints && stringifyControlPoints(channelSetting.controlPoints),
-    [ViewerChannelSettingKeys.ControlPointsEnabled]: serializeBoolean(channelSetting.useControlPoints),
-    [ViewerChannelSettingKeys.Ramp]: channelSetting.ramp?.join(":"),
-    [ViewerChannelSettingKeys.KeepRange]: serializeBoolean(channelSetting.keepIntensityRange),
-    // Note that Lut is not saved here, as it is expected as user input and is redundant with
-    // the control points and ramp.
-  });
-}
-
-/**
- * Serializes a `ViewerState` object into a dictionary of URL parameters.
- * @param state The `ViewerState` to serialize.
- * @param removeDefaults If true, remove properties that match the output of `getDefaultViewerState`.
- * @returns A `ViewerStateParams` object with the serialized parameters. Undefined values are removed.
- */
-export function serializeViewerState(state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateParams {
-  if (removeDefaults) {
-    state = removeMatchingProperties(state, getDefaultViewerState());
-    // special case: if there's an explicit scale level but it's not being used, no reason to include it
-    if (state.scaleLevelIndex !== undefined && state.useExactScaleLevel === undefined) {
-      delete state.scaleLevelIndex;
-    }
-  }
-
-  const viewModeToViewParam = {
-    [ViewMode.threeD]: "3D",
-    [ViewMode.xy]: "Z",
-    [ViewMode.xz]: "Y",
-    [ViewMode.yz]: "X",
-  };
-
-  const result: ViewerStateParams = {
-    [ViewerStateKeys.View]: state.viewMode && viewModeToViewParam[state.viewMode],
-    [ViewerStateKeys.Mode]: state.renderMode,
-    [ViewerStateKeys.Mask]: state.maskAlpha?.toString(),
-    [ViewerStateKeys.Image]: state.imageType,
-    [ViewerStateKeys.Axes]: serializeBoolean(state.showAxes),
-    [ViewerStateKeys.BoundingBox]: serializeBoolean(state.showBoundingBox),
-    [ViewerStateKeys.BoundingBoxColor]: state.boundingBoxColor && colorArrayToHex(state.boundingBoxColor),
-    [ViewerStateKeys.BackgroundColor]: state.backgroundColor && colorArrayToHex(state.backgroundColor),
-    [ViewerStateKeys.Autorotate]: serializeBoolean(state.autorotate),
-    [ViewerStateKeys.Brightness]: state.brightness?.toString(),
-    [ViewerStateKeys.Density]: state.density?.toString(),
-    [ViewerStateKeys.Interpolation]: serializeBoolean(state.interpolationEnabled),
-    [ViewerStateKeys.Region]: state.region && serializeRegion(state.region),
-    [ViewerStateKeys.Slice]: state.slice && serializeSlice(state.slice),
-    [ViewerStateKeys.Levels]: state.levels?.join(","),
-    [ViewerStateKeys.Time]: state.time?.toString(),
-    [ViewerStateKeys.Scene]: state.scene?.toString(),
-    [ViewerStateKeys.SingleChannelMode]: serializeBoolean(state.singleChannelMode),
-    [ViewerStateKeys.SingleChannelIndex]: state.singleChannelIndex?.toString(),
-    [ViewerStateKeys.UseExactScaleLevel]: serializeBoolean(state.useExactScaleLevel),
-    [ViewerStateKeys.ScaleLevelIndex]: state.scaleLevelIndex?.toString(),
-    [ViewerStateKeys.CameraState]:
-      state.cameraState && serializeCameraState(state.cameraState as CameraState, removeDefaults, state.viewMode),
-  };
-  return removeUndefinedProperties(result);
 }
 
 export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ExportedViewerState {
@@ -399,3 +256,24 @@ export const stringifyChannelStateSnapshot = (snapshot: ExportedChannelState): V
     [ViewerChannelSettingKeys.IsosurfaceValue]: formatFloat,
     [ViewerChannelSettingKeys.KeepRange]: stringifyBoolean,
   });
+
+/**
+ * Serializes a single viewer channel setting into a dictionary of URL parameters
+ * (`ViewerChannelStateParams`).
+ * @param channelSetting The channel state object to serialize.
+ * @param removeDefaults Whether to remove properties that match the output of `getDefaultChannelState`.
+ * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
+ */
+export const serializeViewerChannelSetting = (
+  channelSetting: Partial<ChannelState>,
+  removeDefaults: boolean
+): ViewerChannelStateParams => stringifyChannelStateSnapshot(channelStateToSnapshot(channelSetting, removeDefaults));
+
+/**
+ * Serializes a `ViewerState` object into a dictionary of URL parameters.
+ * @param state The `ViewerState` to serialize.
+ * @param removeDefaults If true, remove properties that match the output of `getDefaultViewerState`.
+ * @returns A `ViewerStateParams` object with the serialized parameters. Undefined values are removed.
+ */
+export const serializeViewerState = (state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateParams =>
+  stringifyViewerStateSnapshot(viewerStateToSnapshot(state, removeDefaults));
