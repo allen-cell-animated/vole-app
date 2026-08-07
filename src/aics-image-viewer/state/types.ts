@@ -178,14 +178,14 @@ type ViewerStateParamTypes = {
   [ViewerStateKeys.Slice]: [number, number, number];
   [ViewerStateKeys.Time]: number;
   [ViewerStateKeys.Scene]: number;
-  [ViewerStateKeys.CameraState]: CameraState | undefined;
+  [ViewerStateKeys.CameraState]: Partial<CameraState> | undefined;
   [ViewerStateKeys.SingleChannelMode]: boolean;
   [ViewerStateKeys.SingleChannelIndex]: number;
   [ViewerStateKeys.UseExactScaleLevel]: boolean;
   [ViewerStateKeys.ScaleLevelIndex]: number;
 };
 
-export type RawViewerStateParams = { [K in ViewerStateKeys]: ViewerStateParamTypes[K] };
+export type ExportedViewerState = { [K in ViewerStateKeys]?: ViewerStateParamTypes[K] };
 
 /** Serialized version of `ViewerState`, with all keys stringified. */
 // TODO make keys required and use `Partial`?
