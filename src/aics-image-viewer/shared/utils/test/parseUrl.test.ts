@@ -348,7 +348,7 @@ describe("serializeViewerUrlParams", () => {
     const urlParams = new URLSearchParams(serializedParams);
     // Pos is 1.2:3.4:5.6 but escaped
     const expectedCameraPosition = encodeURIComponent("pos:1.2:3.4:5.6");
-    expect(urlParams.toString()).toEqual(`dens=100&t=40&cam=${expectedCameraPosition}&view=Z`);
+    expect(urlParams.toString()).toEqual(`view=Z&dens=100&t=40&cam=${expectedCameraPosition}`);
   });
 
   it("can remove channel state fields that matches the default", () => {

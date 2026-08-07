@@ -23,7 +23,7 @@ const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
-export function objectToKeyValueList(obj: Record<string, string | undefined>): string {
+export function objectToKeyValueList(obj: Record<string, string | undefined>, keySeparator: string = ","): string {
   const keyValuePairs: string[] = [];
   for (const key in obj) {
     const value = obj[key];
@@ -34,7 +34,7 @@ export function objectToKeyValueList(obj: Record<string, string | undefined>): s
     const escapedValue = encodeURIComponent(value.trim()).replace(ENCODED_COLON_REGEX, ":");
     keyValuePairs.push(`${encodeURIComponent(key.trim())}:${escapedValue}`);
   }
-  return keyValuePairs.join(",");
+  return keyValuePairs.join(keySeparator);
 }
 
 function colorArrayToHex(color: ColorArray): string {
@@ -119,7 +119,7 @@ export function serializeCameraState(
   return cameraString === "" ? undefined : cameraString;
 }
 
-function cameraStateToSnapshot(
+export function cameraStateToSnapshot(
   cameraState: Partial<CameraState> | undefined,
   removeDefaults: boolean,
   viewMode: ViewMode = ViewMode.threeD
@@ -337,6 +337,9 @@ const stringify = <T extends Record<string, unknown>>(
   return result;
 };
 
+const stringifyNumberList = (list: number[], separator = ":"): string =>
+  list.map((value) => formatFloat(value)).join(separator);
+
 const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.threeD]: "3D",
   [ViewMode.xy]: "Z",
@@ -346,9 +349,9 @@ const VIEW_MODE_TO_VIEW_PARAM = {
 
 export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): CameraStateStringified =>
   stringify(snapshot, {
-    [CameraTransformKeys.Position]: (position) => position.map(formatFloat).join(":"),
-    [CameraTransformKeys.Target]: (target) => target.map(formatFloat).join(":"),
-    [CameraTransformKeys.Up]: (up) => up.map(formatFloat).join(":"),
+    [CameraTransformKeys.Position]: stringifyNumberList,
+    [CameraTransformKeys.Target]: stringifyNumberList,
+    [CameraTransformKeys.Up]: stringifyNumberList,
     [CameraTransformKeys.OrthoScale]: formatFloat,
     [CameraTransformKeys.Fov]: formatFloat,
   });
@@ -357,25 +360,25 @@ export const stringifyViewerStateSnapshot = (snapshot: ExportedViewerState): Vie
   stringify(snapshot, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
     [ViewerStateKeys.Mode]: identity,
-    [ViewerStateKeys.Mask]: Number.toString,
+    [ViewerStateKeys.Mask]: formatFloat,
     [ViewerStateKeys.Image]: identity,
     [ViewerStateKeys.Axes]: stringifyBoolean,
     [ViewerStateKeys.BoundingBox]: stringifyBoolean,
     [ViewerStateKeys.BoundingBoxColor]: identity,
     [ViewerStateKeys.BackgroundColor]: identity,
     [ViewerStateKeys.Autorotate]: stringifyBoolean,
-    [ViewerStateKeys.Brightness]: Number.toString,
-    [ViewerStateKeys.Density]: Number.toString,
+    [ViewerStateKeys.Brightness]: formatFloat,
+    [ViewerStateKeys.Density]: formatFloat,
     [ViewerStateKeys.Interpolation]: stringifyBoolean,
-    [ViewerStateKeys.Region]: (value) => value.map((axis) => axis.map(formatFloat).join(":")).join(","),
-    [ViewerStateKeys.Slice]: (value) => value.map(formatFloat).join(","),
-    [ViewerStateKeys.Levels]: (value) => value.map(formatFloat).join(","),
-    [ViewerStateKeys.Time]: Number.toString,
-    [ViewerStateKeys.Scene]: Number.toString,
+    [ViewerStateKeys.Region]: (value) => value.map((axis) => stringifyNumberList(axis)).join(","),
+    [ViewerStateKeys.Slice]: (value) => stringifyNumberList(value, ","),
+    [ViewerStateKeys.Levels]: (value) => stringifyNumberList(value, ","),
+    [ViewerStateKeys.Time]: formatFloat,
+    [ViewerStateKeys.Scene]: formatFloat,
     [ViewerStateKeys.SingleChannelMode]: stringifyBoolean,
-    [ViewerStateKeys.SingleChannelIndex]: Number.toString,
+    [ViewerStateKeys.SingleChannelIndex]: formatFloat,
     [ViewerStateKeys.UseExactScaleLevel]: stringifyBoolean,
-    [ViewerStateKeys.ScaleLevelIndex]: Number.toString,
+    [ViewerStateKeys.ScaleLevelIndex]: formatFloat,
     [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraStateSnapshot(value)),
   });
 
@@ -383,16 +386,16 @@ export const stringifyChannelStateSnapshot = (snapshot: ExportedChannelState): V
   stringify(snapshot, {
     [ViewerChannelSettingKeys.Color]: identity,
     [ViewerChannelSettingKeys.Colorize]: stringifyBoolean,
-    [ViewerChannelSettingKeys.ColorizeAlpha]: Number.toString,
-    [ViewerChannelSettingKeys.IsosurfaceAlpha]: Number.toString,
+    [ViewerChannelSettingKeys.ColorizeAlpha]: formatFloat,
+    [ViewerChannelSettingKeys.IsosurfaceAlpha]: formatFloat,
     [ViewerChannelSettingKeys.Lut]: ([min, max]) => `${min}:${max}`,
     [ViewerChannelSettingKeys.ControlPoints]: stringifyControlPointSnapshots,
     [ViewerChannelSettingKeys.ControlPointsLegacy]: stringifyControlPointSnapshots,
-    [ViewerChannelSettingKeys.Ramp]: (ramp) => ramp.map(formatFloat).join(":"),
-    [ViewerChannelSettingKeys.RampLegacy]: (ramp) => ramp.map(formatFloat).join(":"),
+    [ViewerChannelSettingKeys.Ramp]: stringifyNumberList,
+    [ViewerChannelSettingKeys.RampLegacy]: stringifyNumberList,
     [ViewerChannelSettingKeys.ControlPointsEnabled]: stringifyBoolean,
     [ViewerChannelSettingKeys.VolumeEnabled]: stringifyBoolean,
     [ViewerChannelSettingKeys.SurfaceEnabled]: stringifyBoolean,
-    [ViewerChannelSettingKeys.IsosurfaceValue]: Number.toString,
+    [ViewerChannelSettingKeys.IsosurfaceValue]: formatFloat,
     [ViewerChannelSettingKeys.KeepRange]: stringifyBoolean,
   });
