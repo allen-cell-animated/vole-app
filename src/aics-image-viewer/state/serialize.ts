@@ -23,7 +23,7 @@ const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
-export function objectToKeyValueList(obj: Record<string, string | undefined>, keySeparator: string = ","): string {
+export function objectToKeyValueList(obj: Record<string, string | undefined>): string {
   const keyValuePairs: string[] = [];
   for (const key in obj) {
     const value = obj[key];
@@ -34,7 +34,7 @@ export function objectToKeyValueList(obj: Record<string, string | undefined>, ke
     const escapedValue = encodeURIComponent(value.trim()).replace(ENCODED_COLON_REGEX, ":");
     keyValuePairs.push(`${encodeURIComponent(key.trim())}:${escapedValue}`);
   }
-  return keyValuePairs.join(keySeparator);
+  return keyValuePairs.join(",");
 }
 
 function colorArrayToHex(color: ColorArray): string {
@@ -204,6 +204,7 @@ const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.yz]: "X",
 };
 
+/** Converts all keys of a `CameraStateSnapshot` to compact `string` representations. */
 export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): CameraStateStringified =>
   stringify(snapshot, {
     [CameraTransformKeys.Position]: stringifyNumberList,
@@ -213,6 +214,7 @@ export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): Cam
     [CameraTransformKeys.Fov]: formatFloat,
   });
 
+/** Converts all keys of a `ViewerStateSnapshot` to compact `string` representations. */
 export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): ViewerStateStringified =>
   stringify(snapshot, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
@@ -239,6 +241,7 @@ export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): Vie
     [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraStateSnapshot(value)),
   });
 
+/** Converts all keys of a `ChannelStateSnapshot` to compact `string` representations. */
 export const stringifyChannelStateSnapshot = (snapshot: ChannelStateSnapshot): ChannelStateStringified =>
   stringify(snapshot, {
     [ChannelStateKeys.Color]: identity,
