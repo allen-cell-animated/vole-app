@@ -10,6 +10,7 @@ import type {
   CameraStateStringified,
   ChannelState,
   ControlPointSnapshot,
+  ExportedChannelState,
   ExportedViewerState,
   ViewerChannelStateParams,
   ViewerState,
@@ -260,37 +261,58 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
 }
 
 export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ExportedViewerState {
+  let s = state;
   if (removeDefaults) {
-    state = removeMatchingProperties(state, getDefaultViewerState());
+    s = removeMatchingProperties(state, getDefaultViewerState());
     // special case: if there's an explicit scale level but it's not being used, no reason to include it
-    if (state.scaleLevelIndex !== undefined && state.useExactScaleLevel === undefined) {
-      delete state.scaleLevelIndex;
+    if (s.scaleLevelIndex !== undefined && state.useExactScaleLevel === undefined) {
+      delete s.scaleLevelIndex;
     }
   }
 
   const result: ExportedViewerState = {
-    [ViewerStateKeys.View]: state.viewMode,
-    [ViewerStateKeys.Mode]: state.renderMode,
-    [ViewerStateKeys.Mask]: state.maskAlpha,
-    [ViewerStateKeys.Image]: state.imageType,
-    [ViewerStateKeys.Axes]: state.showAxes,
-    [ViewerStateKeys.BoundingBox]: state.showBoundingBox,
-    [ViewerStateKeys.BoundingBoxColor]: state.boundingBoxColor && colorArrayToHex(state.boundingBoxColor),
-    [ViewerStateKeys.BackgroundColor]: state.backgroundColor && colorArrayToHex(state.backgroundColor),
-    [ViewerStateKeys.Autorotate]: state.autorotate,
-    [ViewerStateKeys.Brightness]: state.brightness,
-    [ViewerStateKeys.Density]: state.density,
-    [ViewerStateKeys.Interpolation]: state.interpolationEnabled,
-    [ViewerStateKeys.Region]: state.region && xyzToArray(state.region),
-    [ViewerStateKeys.Slice]: state.slice && xyzToArray(state.slice),
-    [ViewerStateKeys.Levels]: state.levels && [...state.levels],
-    [ViewerStateKeys.Time]: state.time,
-    [ViewerStateKeys.Scene]: state.scene,
-    [ViewerStateKeys.SingleChannelMode]: state.singleChannelMode,
-    [ViewerStateKeys.SingleChannelIndex]: state.singleChannelIndex,
-    [ViewerStateKeys.UseExactScaleLevel]: state.useExactScaleLevel,
-    [ViewerStateKeys.ScaleLevelIndex]: state.scaleLevelIndex,
-    [ViewerStateKeys.CameraState]: cameraStateToSnapshot(state.cameraState, removeDefaults, state.viewMode),
+    [ViewerStateKeys.View]: s.viewMode,
+    [ViewerStateKeys.Mode]: s.renderMode,
+    [ViewerStateKeys.Mask]: s.maskAlpha,
+    [ViewerStateKeys.Image]: s.imageType,
+    [ViewerStateKeys.Axes]: s.showAxes,
+    [ViewerStateKeys.BoundingBox]: s.showBoundingBox,
+    [ViewerStateKeys.BoundingBoxColor]: s.boundingBoxColor && colorArrayToHex(s.boundingBoxColor),
+    [ViewerStateKeys.BackgroundColor]: s.backgroundColor && colorArrayToHex(s.backgroundColor),
+    [ViewerStateKeys.Autorotate]: s.autorotate,
+    [ViewerStateKeys.Brightness]: s.brightness,
+    [ViewerStateKeys.Density]: s.density,
+    [ViewerStateKeys.Interpolation]: s.interpolationEnabled,
+    [ViewerStateKeys.Region]: s.region && xyzToArray(s.region),
+    [ViewerStateKeys.Slice]: s.slice && xyzToArray(s.slice),
+    [ViewerStateKeys.Levels]: s.levels && [...s.levels],
+    [ViewerStateKeys.Time]: s.time,
+    [ViewerStateKeys.Scene]: s.scene,
+    [ViewerStateKeys.SingleChannelMode]: s.singleChannelMode,
+    [ViewerStateKeys.SingleChannelIndex]: s.singleChannelIndex,
+    [ViewerStateKeys.UseExactScaleLevel]: s.useExactScaleLevel,
+    [ViewerStateKeys.ScaleLevelIndex]: s.scaleLevelIndex,
+    [ViewerStateKeys.CameraState]: cameraStateToSnapshot(s.cameraState, removeDefaults, s.viewMode),
+  };
+
+  return removeUndefinedProperties(result);
+}
+
+export function channelStateToSnapshot(state: Partial<ChannelState>, removeDefaults: boolean): ExportedChannelState {
+  const s = removeDefaults ? removeMatchingProperties(state, getDefaultChannelState()) : state;
+
+  const result: ExportedChannelState = {
+    [ViewerChannelSettingKeys.VolumeEnabled]: s.volumeEnabled,
+    [ViewerChannelSettingKeys.SurfaceEnabled]: s.isosurfaceEnabled,
+    [ViewerChannelSettingKeys.IsosurfaceValue]: s.isovalue,
+    [ViewerChannelSettingKeys.IsosurfaceAlpha]: s.opacity,
+    [ViewerChannelSettingKeys.Colorize]: s.colorizeEnabled,
+    [ViewerChannelSettingKeys.ColorizeAlpha]: s.colorizeAlpha,
+    [ViewerChannelSettingKeys.Color]: s.color && colorArrayToHex(s.color),
+    [ViewerChannelSettingKeys.ControlPoints]: s.controlPoints && s.controlPoints.map(controlPointToSnapshot),
+    [ViewerChannelSettingKeys.ControlPointsEnabled]: s.useControlPoints,
+    [ViewerChannelSettingKeys.Ramp]: s.ramp && [...s.ramp],
+    [ViewerChannelSettingKeys.KeepRange]: s.keepIntensityRange,
   };
 
   return removeUndefinedProperties(result);

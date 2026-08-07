@@ -309,7 +309,7 @@ type ViewerChannelStateParamTypes = {
 };
 
 // TODO update docs here
-export type ExportedChannelState = { [K in ViewerChannelSettingKeys]: ViewerChannelStateParamTypes[K] };
+export type ExportedChannelState = { [K in ViewerChannelSettingKeys]?: ViewerChannelStateParamTypes[K] };
 
 /**
  * The serialized form of a ViewerChannelSetting, as a dictionary object.
