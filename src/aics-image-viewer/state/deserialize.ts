@@ -1,7 +1,6 @@
 import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
 
-import { ImageType, RenderMode, ViewMode } from "../shared/enums";
-import type { PerAxis } from "../shared/types";
+import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
 import { removeUndefinedProperties } from "../shared/utils/datatypes";
@@ -9,13 +8,13 @@ import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import {
   CameraTransformKeys,
-  type ChannelState,
+  ImageType,
+  RenderMode,
   ViewerChannelSettingKeys,
-  type ViewerChannelStateParams,
-  type ViewerState,
   ViewerStateKeys,
-  type ViewerStateParams,
+  ViewMode,
 } from "./types";
+import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
 
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
@@ -183,7 +182,7 @@ export function parseHexColorAsColorArray(hexColor: string | undefined): ColorAr
   return [r, g, b];
 }
 
-function parseStringSlice(region: string | undefined): PerAxis<number> | undefined {
+function parseStringSlice(region: string | undefined): XYZ<number> | undefined {
   if (!region || !SLICE_REGEX.test(region)) {
     return undefined;
   }
@@ -224,7 +223,7 @@ function parseThreeNumberArray(
   return [x, y, z];
 }
 
-function parseStringRegion(region: string | undefined): PerAxis<[number, number]> | undefined {
+function parseStringRegion(region: string | undefined): XYZ<[number, number]> | undefined {
   if (!region || !REGION_REGEX.test(region)) {
     return undefined;
   }

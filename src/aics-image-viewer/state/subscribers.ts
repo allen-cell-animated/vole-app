@@ -1,7 +1,6 @@
 import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type View3d, type Volume } from "@aics/vole-core";
 import { shallow } from "zustand/shallow";
 
-import { RenderMode, ViewMode } from "../shared/enums";
 import { activeAxisMap, type AxisName } from "../shared/types";
 import { colorArrayToFloats } from "../shared/utils/colorRepresentations";
 import {
@@ -11,6 +10,7 @@ import {
   gammaSliderToImageValues,
 } from "../shared/utils/sliderValuesToImageValues";
 import { select, type useViewerState, type ViewerStore } from "./store";
+import { RenderMode, ViewMode } from "./types";
 
 const REF_EQ = { fireImmediately: true };
 const DEEP_EQ = { fireImmediately: true, equalityFn: shallow };

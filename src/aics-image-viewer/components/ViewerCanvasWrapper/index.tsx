@@ -3,10 +3,10 @@ import { LoadingOutlined } from "@ant-design/icons";
 import React from "react";
 
 import { CLIPPING_PANEL_HEIGHT_DEFAULT, CLIPPING_PANEL_HEIGHT_TALL } from "../../shared/constants";
-import { ViewMode } from "../../shared/enums";
-import type { AxisName, PerAxis, Styles } from "../../shared/types";
+import type { AxisName, Styles, XYZ } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState } from "../../state/store";
+import { ViewMode } from "../../state/types";
 
 import BottomPanel from "../BottomPanel";
 import { AxisClipSliders } from "../dimension_sliders/AxisClipSliders";
@@ -19,8 +19,8 @@ type ViewerWrapperProps = {
   loadingImage: boolean;
   appHeight: string;
   image: Volume | null;
-  numSlices: PerAxis<number>;
-  numSlicesLoaded: PerAxis<number>;
+  numSlices: XYZ<number>;
+  numSlicesLoaded: XYZ<number>;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
   numTimesteps: number;

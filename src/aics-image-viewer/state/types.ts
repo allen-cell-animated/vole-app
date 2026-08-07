@@ -1,8 +1,25 @@
 import type { CameraState, ControlPoint } from "@aics/vole-core";
 
-import type { ImageType, RenderMode, ViewMode } from "../shared/enums";
-import type { PerAxis } from "../shared/types";
+import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
+
+export enum ViewMode {
+  threeD = "3D",
+  xy = "XY",
+  xz = "XZ",
+  yz = "YZ",
+}
+
+export enum RenderMode {
+  volumetric = "volumetric",
+  maxProject = "maxproject",
+  pathTrace = "pathtrace",
+}
+
+export enum ImageType {
+  segmentedCell = "cell",
+  fullField = "fov",
+}
 
 /** Global (not per-channel) viewer state which may be changed in the UI */
 export type ViewerState = {
@@ -22,10 +39,10 @@ export type ViewerState = {
   // `region` values are in the range [0, 1]. We derive from this the format that the sliders expect
   // (integers between 0 and num_slices - 1) and the format that view3d expects (in [-0.5, 0.5]).
   // This state is only active in 3d mode.
-  region: PerAxis<[number, number]>;
+  region: XYZ<[number, number]>;
   // Store the relative position of the slice in the range [0, 1] for each of 3 axes.
   // This state is active in x,y,z single slice modes.
-  slice: PerAxis<number>;
+  slice: XYZ<number>;
   time: number;
   scene: number;
   cameraState: Partial<CameraState> | undefined;
@@ -100,60 +117,60 @@ export enum CameraTransformKeys {
 }
 
 /** Serialized version of `ViewerState`. */
-export class ViewerStateParams {
+export type ViewerStateParams = {
   /** Axis to view. Valid values are "3D", "X", "Y", and "Z". Defaults to "3D". */
-  [ViewerStateKeys.View]?: string = undefined;
+  [ViewerStateKeys.View]?: string;
   /**
    * Render mode. Valid values are "volumetric", "maxproject", and "pathtrace".
    * Defaults to "volumetric".
    */
-  [ViewerStateKeys.Mode]?: string = undefined;
+  [ViewerStateKeys.Mode]?: string;
   /** The opacity of the mask channel, an integer in the range [0, 100]. Defaults to 50. */
-  [ViewerStateKeys.Mask]?: string = undefined;
+  [ViewerStateKeys.Mask]?: string;
   /** The type of image to display. Valid values are "cell" and "fov". Defaults to "cell". */
-  [ViewerStateKeys.Image]?: string = undefined;
+  [ViewerStateKeys.Image]?: string;
   /** Whether to show the axes helper. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.Axes]?: string = undefined;
+  [ViewerStateKeys.Axes]?: string;
   /** Whether to show the bounding box. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.BoundingBox]?: string = undefined;
+  [ViewerStateKeys.BoundingBox]?: string;
   /** Whether single-channel mode is active. "1" is active. Inactive by default. */
-  [ViewerStateKeys.SingleChannelMode]?: string = undefined;
+  [ViewerStateKeys.SingleChannelMode]?: string;
   /** If single-channel mode is active, which channel index is shown. Defaults to 0. */
-  [ViewerStateKeys.SingleChannelIndex]?: string = undefined;
+  [ViewerStateKeys.SingleChannelIndex]?: string;
   /** The color of the bounding box, as a 6-digit hex color. */
-  [ViewerStateKeys.BoundingBoxColor]?: string = undefined;
+  [ViewerStateKeys.BoundingBoxColor]?: string;
   /** The background color, as a 6-digit hex color. */
-  [ViewerStateKeys.BackgroundColor]?: string = undefined;
+  [ViewerStateKeys.BackgroundColor]?: string;
   /** Whether to autorotate the view. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.Autorotate]?: string = undefined;
+  [ViewerStateKeys.Autorotate]?: string;
   /** The brightness of the image, an float in the range [0, 100]. Defaults to 70. */
-  [ViewerStateKeys.Brightness]?: string = undefined;
+  [ViewerStateKeys.Brightness]?: string;
   /** Density, a float in the range [0, 100]. Defaults to 50. */
-  [ViewerStateKeys.Density]?: string = undefined;
+  [ViewerStateKeys.Density]?: string;
   /**
    * Levels for image intensity adjustment. Should be three numeric values separated
    * by commas, representing the low, middle, and high values in a [0, 255] range.
    * Values will be sorted in ascending order; empty values will be parsed as 0.
    */
-  [ViewerStateKeys.Levels]?: string = undefined;
+  [ViewerStateKeys.Levels]?: string;
   /** Whether to enable interpolation. "1" is enabled. Enabled by default. */
-  [ViewerStateKeys.Interpolation]?: string = undefined;
+  [ViewerStateKeys.Interpolation]?: string;
   /** Subregions per axis, as min:max pairs separated by commas.
    * Defaults to full range (`0:1`) for each axis.
    */
-  [ViewerStateKeys.Region]?: string = undefined;
+  [ViewerStateKeys.Region]?: string;
   /** Slice position per X, Y, and Z axes, as a list of comma-separated floats.
    * 0.5 for all axes by default (e.g. `0.5,0.5,0.5`)
    */
-  [ViewerStateKeys.Slice]?: string = undefined;
+  [ViewerStateKeys.Slice]?: string;
   /** Frame number, for time-series volumes. 0 by default. */
-  [ViewerStateKeys.Time]?: string = undefined;
+  [ViewerStateKeys.Time]?: string;
   /** Scene number, for multiscene images. 0 by default. */
-  [ViewerStateKeys.Scene]?: string = undefined;
+  [ViewerStateKeys.Scene]?: string;
   /** Whether to use an exact scale level index. 0 by default. */
-  [ViewerStateKeys.UseExactScaleLevel]?: string = undefined;
+  [ViewerStateKeys.UseExactScaleLevel]?: string;
   /** The exact scale level index to use, if `UseExactScaleLevel` is 1. 0 by default. */
-  [ViewerStateKeys.ScaleLevelIndex]?: string = undefined;
+  [ViewerStateKeys.ScaleLevelIndex]?: string;
   /**
    * Camera transform settings, as a list of `key:value` pairs separated by commas.
    * Valid keys are defined in `CameraTransformKeys`:
@@ -166,8 +183,8 @@ export class ViewerStateParams {
    * Vector values are encoded as three floats separated by colons (e.g. `1:2:3`) and
    * encoded using `encodeURIComponent`.
    */
-  [ViewerStateKeys.CameraState]?: string = undefined;
-}
+  [ViewerStateKeys.CameraState]?: string;
+};
 
 /**
  * Mapped to types in `ViewerChannelStateParams`.
@@ -192,15 +209,15 @@ export enum ViewerChannelSettingKeys {
 /**
  * The serialized form of a ViewerChannelSetting, as a dictionary object.
  */
-export class ViewerChannelStateParams {
+export type ViewerChannelStateParams = {
   /** Color, as a 6-digit hex color.  */
-  [ViewerChannelSettingKeys.Color]?: string = undefined;
+  [ViewerChannelSettingKeys.Color]?: string;
   /** Colorize. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.Colorize]?: "1" | "0" = undefined;
+  [ViewerChannelSettingKeys.Colorize]?: "1" | "0";
   /** Colorize alpha, in the [0, 1] range. Set to `1.0` by default. */
-  [ViewerChannelSettingKeys.ColorizeAlpha]?: string = undefined;
+  [ViewerChannelSettingKeys.ColorizeAlpha]?: string;
   /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
-  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string = undefined;
+  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string;
   /**
    * Lookup table (LUT) to map from volume intensity to opacity. Should be two
    * alphanumeric values separated by a colon, where the first value is the
@@ -227,7 +244,7 @@ export class ViewerChannelStateParams {
    * "autoij:0" // use Auto-IJ to calculate min and max.
    * ```
    */
-  [ViewerChannelSettingKeys.Lut]?: string = undefined;
+  [ViewerChannelSettingKeys.Lut]?: string;
   /**
    * Legacy specifier for control points for the transfer function as a list of
    * `x:opacity:color` triplets, separated by colon. Uses histogram bin indices
@@ -238,7 +255,7 @@ export class ViewerChannelStateParams {
    *
    * Will be overridden by the ControlPoints field (`cpt`) if provided.
    */
-  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string = undefined;
+  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string;
   /**
    * Control points for the transfer function, formatted as a list of
    * `x:opacity:color` triplets, separated by colons.
@@ -248,32 +265,32 @@ export class ViewerChannelStateParams {
    *
    * If provided, overrides the `lut` field when calculating the control points.
    */
-  [ViewerChannelSettingKeys.ControlPoints]?: string = undefined;
+  [ViewerChannelSettingKeys.ControlPoints]?: string;
   /**
    * Whether to show advanced mode, which will show control points instead of
    * ramp values defined by the LUT. "1" is enabled, disabled by default.
    */
-  [ViewerChannelSettingKeys.ControlPointsEnabled]?: "1" | "0" = undefined;
+  [ViewerChannelSettingKeys.ControlPointsEnabled]?: "1" | "0";
   /**
    * Legacy specifier for the transfer function ramp which uses histogram bin
    * indices instead of intensity values, formatted as `min:max`. Will be
    * overridden by the Ramp field (`ram`) if provided.
    */
-  [ViewerChannelSettingKeys.RampLegacy]?: string = undefined;
+  [ViewerChannelSettingKeys.RampLegacy]?: string;
   /**
    * Ramp min and max intensity values (`min:max`). If provided, overrides the
    * `lut` field when calculating the ramp.
    */
-  [ViewerChannelSettingKeys.Ramp]?: string = undefined;
+  [ViewerChannelSettingKeys.Ramp]?: string;
   /** Volume enabled. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.VolumeEnabled]?: "1" | "0" = undefined;
+  [ViewerChannelSettingKeys.VolumeEnabled]?: "1" | "0";
   /** Isosurface enabled. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.SurfaceEnabled]?: "1" | "0" = undefined;
+  [ViewerChannelSettingKeys.SurfaceEnabled]?: "1" | "0";
   /** Isosurface value, in the [0, 255] range. Set to `128` by default. */
-  [ViewerChannelSettingKeys.IsosurfaceValue]?: string = undefined;
+  [ViewerChannelSettingKeys.IsosurfaceValue]?: string;
   /**
    * Whether to keep the current contrast settings when loading a new volume.
    * "1" is enabled. Disabled by default.
    */
-  [ViewerChannelSettingKeys.KeepRange]?: "1" | "0" = undefined;
-}
+  [ViewerChannelSettingKeys.KeepRange]?: "1" | "0";
+};
