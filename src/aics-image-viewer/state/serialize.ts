@@ -344,8 +344,8 @@ const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.yz]: "X",
 };
 
-export const stringifyCameraStateSnapshot = (state: CameraStateSnapshot): CameraStateStringified =>
-  stringify(state, {
+export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): CameraStateStringified =>
+  stringify(snapshot, {
     [CameraTransformKeys.Position]: (position) => position.map(formatFloat).join(":"),
     [CameraTransformKeys.Target]: (target) => target.map(formatFloat).join(":"),
     [CameraTransformKeys.Up]: (up) => up.map(formatFloat).join(":"),
@@ -353,8 +353,8 @@ export const stringifyCameraStateSnapshot = (state: CameraStateSnapshot): Camera
     [CameraTransformKeys.Fov]: formatFloat,
   });
 
-export const stringifyViewerStateSnapshot = (exportedState: ExportedViewerState): ViewerStateParams =>
-  stringify(exportedState, {
+export const stringifyViewerStateSnapshot = (snapshot: ExportedViewerState): ViewerStateParams =>
+  stringify(snapshot, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
     [ViewerStateKeys.Mode]: identity,
     [ViewerStateKeys.Mask]: Number.toString,
@@ -377,4 +377,22 @@ export const stringifyViewerStateSnapshot = (exportedState: ExportedViewerState)
     [ViewerStateKeys.UseExactScaleLevel]: stringifyBoolean,
     [ViewerStateKeys.ScaleLevelIndex]: Number.toString,
     [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraStateSnapshot(value)),
+  });
+
+export const stringifyChannelStateSnapshot = (snapshot: ExportedChannelState): ViewerChannelStateParams =>
+  stringify(snapshot, {
+    [ViewerChannelSettingKeys.Color]: identity,
+    [ViewerChannelSettingKeys.Colorize]: stringifyBoolean,
+    [ViewerChannelSettingKeys.ColorizeAlpha]: Number.toString,
+    [ViewerChannelSettingKeys.IsosurfaceAlpha]: Number.toString,
+    [ViewerChannelSettingKeys.Lut]: ([min, max]) => `${min}:${max}`,
+    [ViewerChannelSettingKeys.ControlPoints]: stringifyControlPointSnapshots,
+    [ViewerChannelSettingKeys.ControlPointsLegacy]: stringifyControlPointSnapshots,
+    [ViewerChannelSettingKeys.Ramp]: (ramp) => ramp.map(formatFloat).join(":"),
+    [ViewerChannelSettingKeys.RampLegacy]: (ramp) => ramp.map(formatFloat).join(":"),
+    [ViewerChannelSettingKeys.ControlPointsEnabled]: stringifyBoolean,
+    [ViewerChannelSettingKeys.VolumeEnabled]: stringifyBoolean,
+    [ViewerChannelSettingKeys.SurfaceEnabled]: stringifyBoolean,
+    [ViewerChannelSettingKeys.IsosurfaceValue]: Number.toString,
+    [ViewerChannelSettingKeys.KeepRange]: stringifyBoolean,
   });
