@@ -9,6 +9,7 @@ import type {
   CameraStateSnapshot,
   CameraStateStringified,
   ChannelState,
+  ControlPointSnapshot,
   ExportedViewerState,
   ViewerChannelStateParams,
   ViewerState,
@@ -148,7 +149,17 @@ function cameraStateToSnapshot(
   return snapshot;
 }
 
-function serializeControlPoints(controlPoints: ControlPoint[]): string {
+function controlPointToSnapshot(controlPoint: ControlPoint): ControlPointSnapshot {
+  return {
+    x: controlPoint.x,
+    opacity: controlPoint.opacity,
+    color: isEqual(controlPoint.color, DEFAULT_CONTROL_POINT_COLOR)
+      ? DEFAULT_CONTROL_POINT_COLOR_CODE
+      : colorArrayToHex(controlPoint.color),
+  };
+}
+
+function stringifyControlPoints(controlPoints: ControlPoint[]): string {
   return controlPoints
     .map((cp) => {
       const x = formatFloat(cp.x);
@@ -160,6 +171,10 @@ function serializeControlPoints(controlPoints: ControlPoint[]): string {
       return `${x}:${opacity}:${color}`;
     })
     .join(":");
+}
+
+function stringifyControlPointSnapshots(controlPoints: ControlPointSnapshot[]): string {
+  return controlPoints.map((cp) => `${formatFloat(cp.x)}:${formatFloat(cp.opacity)}:${cp.color}`).join(":");
 }
 
 /**
@@ -185,7 +200,7 @@ export function serializeViewerChannelSetting(
     [ViewerChannelSettingKeys.ColorizeAlpha]: channelSetting.colorizeAlpha?.toString(),
     [ViewerChannelSettingKeys.Color]: channelSetting.color && colorArrayToHex(channelSetting.color),
     [ViewerChannelSettingKeys.ControlPoints]:
-      channelSetting.controlPoints && serializeControlPoints(channelSetting.controlPoints),
+      channelSetting.controlPoints && stringifyControlPoints(channelSetting.controlPoints),
     [ViewerChannelSettingKeys.ControlPointsEnabled]: serializeBoolean(channelSetting.useControlPoints),
     [ViewerChannelSettingKeys.Ramp]: channelSetting.ramp?.join(":"),
     [ViewerChannelSettingKeys.KeepRange]: serializeBoolean(channelSetting.keepIntensityRange),
