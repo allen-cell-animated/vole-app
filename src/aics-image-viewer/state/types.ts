@@ -195,51 +195,28 @@ export type ViewerStateParams = { [K in ViewerStateKeys]?: string };
  * Mapped to types in `ViewerChannelStateParams`.
  */
 export enum ViewerChannelSettingKeys {
-  Color = "col",
-  Colorize = "clz",
-  ColorizeAlpha = "cza",
-  IsosurfaceAlpha = "isa",
-  Lut = "lut",
-  ControlPoints = "cpt",
-  ControlPointsLegacy = "cps",
-  Ramp = "ram",
-  RampLegacy = "rmp",
-  ControlPointsEnabled = "cpe",
-  VolumeEnabled = "ven",
-  SurfaceEnabled = "sen",
-  IsosurfaceValue = "isv",
-  KeepRange = "pin",
-}
-
-/**
- * The serialized form of a ViewerChannelSetting, as a dictionary object.
- */
-export type ViewerChannelStateParams = {
   /** Color, as a 6-digit hex color.  */
-  [ViewerChannelSettingKeys.Color]?: string;
-  /** Colorize. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.Colorize]?: string;
-  /** Colorize alpha, in the [0, 1] range. Set to `1.0` by default. */
-  [ViewerChannelSettingKeys.ColorizeAlpha]?: string;
-  /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
-  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string;
+  Color = "col",
+  /** Whether colorize is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
+  Colorize = "clz",
+  /** Colorize alpha, in the range `[0, 1]`. Default `1.0`. */
+  ColorizeAlpha = "cza",
+  /** Isosurface alpha, in the range `[0, 1]`. Set to `1.0` by default.*/
+  IsosurfaceAlpha = "isa",
   /**
-   * Lookup table (LUT) to map from volume intensity to opacity. Should be two
-   * alphanumeric values separated by a colon, where the first value is the
-   * minimum and the second is the maximum. Defaults to [0, 255].
+   * Lookup table (LUT) to map from volume intensity to opacity. A two-element array of alphanumeric values
+   * (colon-separated when stringified), where the first value is the minimum and the second is the maximum.
+   * Default `[0, 255]`.
    *
    * Min and max values are determined as following:
-   * - Plain numbers are indices of histogram bins, typically in the range [0,
-   *   255].
+   * - Plain numbers are indices of histogram bins, typically in the range `[0, 255]`.
    * - `v{n}` represents a raw intensity value, where `n` is a number.
-   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
-   *   range.
+   * - `p{n}` represents a percentile, where `n` is a percentile in the range `[0, 100]`.
    * - `m{n}` represents the median multiplied by `n / 100`.
-   * - `autoij` in either the min or max fields will use the "auto" algorithm
-   *   from ImageJ to select the min AND max.
+   * - `autoij` in either the min or max fields will use the "auto" algorithm from ImageJ to select the min AND max.
    *
-   * Values will be used to determine the initial control points and ramp if
-   * those fields are not provided.
+   * This field has no counterpart in `ChannelState`. It will be used to determine the initial values of
+   * `ControlPoints` and `Ramp` if those fields are not provided.
    *
    * @example
    * ```
@@ -249,53 +226,72 @@ export type ViewerChannelStateParams = {
    * "autoij:0" // use Auto-IJ to calculate min and max.
    * ```
    */
-  [ViewerChannelSettingKeys.Lut]?: string;
+  Lut = "lut",
   /**
-   * Legacy specifier for control points for the transfer function as a list of
-   * `x:opacity:color` triplets, separated by colon. Uses histogram bin indices
-   * instead of intensity values.
-   * - `x` is a histogram bin index in the [0, 255] range.
-   * - `opacity` is a float in the [0, 1] range.
-   * - `color` is a 6-digit hex color, e.g. `ff0000`.
-   *
-   * Will be overridden by the ControlPoints field (`cpt`) if provided.
-   */
-  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string;
-  /**
-   * Control points for the transfer function, formatted as a list of
-   * `x:opacity:color` triplets, separated by colons.
+   * Control points for the transfer function, formatted as a list of objects with the following keys:
    * - `x` is a numeric intensity value.
-   * - `opacity` is a float in the [0, 1] range.
+   * - `opacity` is a float in the range `[0, 1]`.
    * - `color` is a 6-digit hex color, e.g. `ff0000`.
    *
-   * If provided, overrides the `lut` field when calculating the control points.
+   * Stringifies to a colon-separated list: `x1:opacity1:color1:x2:opacity2:color2:...`
+   *
+   * If provided, overrides the `lut` field when calculating control points.
    */
+  ControlPoints = "cpt",
+  /**
+   * Legacy specifier for control points for the transfer function. Formatted exactly like `ControlPoints`,
+   * except `x` represents histogram bin indices (in the range `[0, 255]`), not raw intensities.
+   *
+   * Will be overridden by the `ControlPoints` field (`cpt`) if provided.
+   */
+  ControlPointsLegacy = "cps",
+  /**
+   * Ramp min and max intensity values. Two-element array, colon-separated when stringified (`min:max`).
+   *
+   * If provided, overrides the `lut` field when calculating the ramp.
+   */
+  Ramp = "ram",
+  /**
+   * Legacy specifier for the transfer function ramp. Formatted exactly like `Ramp`, except values represent histogram
+   * bin indices (in the range `[0, 255]`), not raw intensities.
+   *
+   * Will be overridden by the Ramp field (`ram`) if provided.
+   */
+  RampLegacy = "rmp",
+  /**
+   * Whether this channel's settings are in "advanced mode" and using control points rather than min/max ramp to derive
+   * the transfer function. Boolean, or `0`/`1` when stringified. Default `false`.
+   */
+  ControlPointsEnabled = "cpe",
+  /** Whether volume is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
+  VolumeEnabled = "ven",
+  /** Whether isosurface is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
+  SurfaceEnabled = "sen",
+  /** Isosurface value, in the range `[0, 255]`. Default `128`. */
+  IsosurfaceValue = "isv",
+  /**
+   * Whether to keep the current contrast settings when loading a new volume. Boolean, or `0`/`1` when stringified.
+   * Default `false`.
+   */
+  KeepRange = "pin",
+}
+
+/**
+ * The serialized form of a ViewerChannelSetting, as a dictionary object.
+ */
+export type ViewerChannelStateParams = {
+  [ViewerChannelSettingKeys.Color]?: string;
+  [ViewerChannelSettingKeys.Colorize]?: string;
+  [ViewerChannelSettingKeys.ColorizeAlpha]?: string;
+  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string;
+  [ViewerChannelSettingKeys.Lut]?: string;
+  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string;
   [ViewerChannelSettingKeys.ControlPoints]?: string;
-  /**
-   * Whether to show advanced mode, which will show control points instead of
-   * ramp values defined by the LUT. "1" is enabled, disabled by default.
-   */
   [ViewerChannelSettingKeys.ControlPointsEnabled]?: string;
-  /**
-   * Legacy specifier for the transfer function ramp which uses histogram bin
-   * indices instead of intensity values, formatted as `min:max`. Will be
-   * overridden by the Ramp field (`ram`) if provided.
-   */
   [ViewerChannelSettingKeys.RampLegacy]?: string;
-  /**
-   * Ramp min and max intensity values (`min:max`). If provided, overrides the
-   * `lut` field when calculating the ramp.
-   */
   [ViewerChannelSettingKeys.Ramp]?: string;
-  /** Volume enabled. "1" is enabled. Disabled by default. */
   [ViewerChannelSettingKeys.VolumeEnabled]?: string;
-  /** Isosurface enabled. "1" is enabled. Disabled by default. */
   [ViewerChannelSettingKeys.SurfaceEnabled]?: string;
-  /** Isosurface value, in the [0, 255] range. Set to `128` by default. */
   [ViewerChannelSettingKeys.IsosurfaceValue]?: string;
-  /**
-   * Whether to keep the current contrast settings when loading a new volume.
-   * "1" is enabled. Disabled by default.
-   */
   [ViewerChannelSettingKeys.KeepRange]?: string;
 };
