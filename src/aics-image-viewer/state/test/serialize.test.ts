@@ -1,7 +1,16 @@
 import type { CameraState } from "@aics/vole-core";
 
 import { getDefaultCameraState } from "../../shared/constants";
-import { serializeCameraState, serializeViewerChannelSetting, serializeViewerState } from "../serialize";
+import {
+  cameraStateToSnapshot,
+  channelStateToSnapshot,
+  objectToKeyValueList,
+  stringifyCameraStateSnapshot,
+  stringifyChannelStateSnapshot,
+  stringifyViewerStateSnapshot,
+  viewerStateToSnapshot,
+} from "../serialize";
+// import { serializeCameraState, serializeViewerChannelSetting, serializeViewerState } from "../serialize";
 import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
@@ -14,7 +23,8 @@ import {
 
 describe("serializeViewerChannelSetting", () => {
   it("serializes channel settings", () => {
-    expect(serializeViewerChannelSetting(DEFAULT_TEST_CHANNEL_STATE, false)).toEqual(SERIALIZED_DEFAULT_TEST_CHANNEL_STATE);
+    const serialized = stringifyChannelStateSnapshot(channelStateToSnapshot(DEFAULT_TEST_CHANNEL_STATE, false));
+    expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_CHANNEL_STATE);
   });
 
   it("serializes custom channel settings", () => {
@@ -49,17 +59,20 @@ describe("serializeViewerChannelSetting", () => {
       ram: "0:255",
       pin: "0",
     };
-    expect(serializeViewerChannelSetting(customChannelState, false)).toEqual(serializedCustomChannelState);
+    const serialized = stringifyChannelStateSnapshot(channelStateToSnapshot(customChannelState, false));
+    expect(serialized).toEqual(serializedCustomChannelState);
   });
 });
 
 describe("serializeViewerState", () => {
   it("serializes the default viewer settings", () => {
-    expect(serializeViewerState(DEFAULT_TEST_VIEWER_STATE, false)).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
+    const serialized = stringifyViewerStateSnapshot(viewerStateToSnapshot(DEFAULT_TEST_VIEWER_STATE, false));
+    expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("serializes custom viewer settings", () => {
-    expect(serializeViewerState(CUSTOM_TEST_VIEWER_STATE, false)).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
+    const serialized = stringifyViewerStateSnapshot(viewerStateToSnapshot(CUSTOM_TEST_VIEWER_STATE, false));
+    expect(serialized).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("shortens long numbers in the slice and region parameters", () => {
@@ -68,7 +81,7 @@ describe("serializeViewerState", () => {
       region: { x: [0.4566666666, 0.8667332], y: [0.49999999, 0.8999999], z: [0.3000000001, 0.16467883] },
       slice: { x: 0.41111186, y: 0.49999999, z: 0.677402 },
     };
-    let serializedState = serializeViewerState(state, true);
+    let serializedState = stringifyViewerStateSnapshot(viewerStateToSnapshot(state, true));
     expect(serializedState.reg).toEqual("0.4566667:0.8667332,0.5:0.8999999,0.3:0.1646788");
     expect(serializedState.slice).toEqual("0.4111119,0.5,0.677402");
   });
@@ -76,14 +89,13 @@ describe("serializeViewerState", () => {
 
 describe("Camera state", () => {
   it("uses default camera state when choosing elements to exclude/ignore", () => {
-    let cameraState: CameraState = {
-      ...getDefaultCameraState(),
-    };
+    let cameraState: CameraState = getDefaultCameraState();
     // No changes from default
-    expect(serializeCameraState(cameraState, true)).toEqual(undefined);
+    expect(cameraStateToSnapshot(cameraState, true)).toEqual(undefined);
 
     cameraState = { ...cameraState, position: [1, 2, 3] };
-    expect(serializeCameraState(cameraState, true)).toEqual("pos:1:2:3");
+    const stringified = stringifyCameraStateSnapshot(cameraStateToSnapshot(cameraState, true)!);
+    expect(objectToKeyValueList(stringified)).toEqual("pos:1:2:3");
   });
 
   it("default camera state has not been changed", () => {
