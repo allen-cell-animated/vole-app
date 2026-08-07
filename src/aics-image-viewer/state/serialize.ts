@@ -261,8 +261,10 @@ const stringify = <T extends Record<string, unknown>>(
   for (const k of Object.keys(record)) {
     const key = k as keyof T;
     const value = record[key];
-    if (value !== undefined) {
-      result[key] = stringifiers[key](value);
+    const stringifier = stringifiers[key];
+
+    if (value !== undefined && stringifier !== undefined) {
+      result[key] = stringifier(value);
     }
   }
 
