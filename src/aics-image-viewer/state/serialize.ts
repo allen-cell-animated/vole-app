@@ -6,6 +6,8 @@ import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "../shared/utils/datatypes";
 import type {
+  CameraStateSnapshot,
+  CameraStateStringified,
   ChannelState,
   ExportedViewerState,
   ViewerChannelStateParams,
@@ -280,6 +282,15 @@ const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.yz]: "X",
 };
 
+export const stringifyCameraState = (state: CameraStateSnapshot): CameraStateStringified =>
+  stringify(state, {
+    [CameraTransformKeys.Position]: (position) => position.map(formatFloat).join(":"),
+    [CameraTransformKeys.Target]: (target) => target.map(formatFloat).join(":"),
+    [CameraTransformKeys.Up]: (up) => up.map(formatFloat).join(":"),
+    [CameraTransformKeys.OrthoScale]: formatFloat,
+    [CameraTransformKeys.Fov]: formatFloat,
+  });
+
 export const stringifyViewerState = (exportedState: ExportedViewerState): ViewerStateParams =>
   stringify(exportedState, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
@@ -303,5 +314,5 @@ export const stringifyViewerState = (exportedState: ExportedViewerState): Viewer
     [ViewerStateKeys.SingleChannelIndex]: Number.toString,
     [ViewerStateKeys.UseExactScaleLevel]: stringifyBoolean,
     [ViewerStateKeys.ScaleLevelIndex]: Number.toString,
-    [ViewerStateKeys.CameraState]: (value) => serializeCameraState(value, true, exportedState[ViewerStateKeys.View]),
+    [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraState(value)),
   });

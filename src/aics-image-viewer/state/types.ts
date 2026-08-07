@@ -75,6 +75,29 @@ export type ChannelState = {
   keepIntensityRange: boolean;
 };
 
+export enum CameraTransformKeys {
+  /** Camera position in 3D coordinates. */
+  Position = "pos",
+  /** Target position of the trackball controls in 3D coordinates. */
+  Target = "tar",
+  /** The up vector of the camera. Will be normalized to magnitude of 1. */
+  Up = "up",
+  /** Scale factor for orthographic cameras. */
+  OrthoScale = "ort",
+  /** Vertical FOV of the camera view frustum, from top to bottom, in degrees. */
+  Fov = "fov",
+}
+
+export type CameraStateSnapshot = {
+  [CameraTransformKeys.Position]?: [number, number, number];
+  [CameraTransformKeys.Target]?: [number, number, number];
+  [CameraTransformKeys.Up]?: [number, number, number];
+  [CameraTransformKeys.OrthoScale]?: number;
+  [CameraTransformKeys.Fov]?: number;
+};
+
+export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
+
 /**
  * Property keys for the serialized variants of `ViewerState`. These keys are shorter, for contexts that need brevity
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
@@ -145,19 +168,6 @@ export enum ViewerStateKeys {
   UseExactScaleLevel = "esl",
   /** The exact scale level index to use, if `UseExactScaleLevel` is `true`. Default `0`. */
   ScaleLevelIndex = "scl",
-}
-
-export enum CameraTransformKeys {
-  /** Camera position in 3D coordinates. */
-  Position = "pos",
-  /** Target position of the trackball controls in 3D coordinates. */
-  Target = "tar",
-  /** The up vector of the camera. Will be normalized to magnitude of 1. */
-  Up = "up",
-  /** Scale factor for orthographic cameras. */
-  OrthoScale = "ort",
-  /** Vertical FOV of the camera view frustum, from top to bottom, in degrees. */
-  Fov = "fov",
 }
 
 /**
@@ -263,7 +273,7 @@ type ViewerStateParamTypes = {
   [ViewerStateKeys.Slice]: [number, number, number];
   [ViewerStateKeys.Time]: number;
   [ViewerStateKeys.Scene]: number;
-  [ViewerStateKeys.CameraState]: Partial<CameraState> | undefined;
+  [ViewerStateKeys.CameraState]: CameraStateSnapshot;
   [ViewerStateKeys.SingleChannelMode]: boolean;
   [ViewerStateKeys.SingleChannelIndex]: number;
   [ViewerStateKeys.UseExactScaleLevel]: boolean;
