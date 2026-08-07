@@ -11,7 +11,7 @@ import {
   viewerStateToSnapshot,
 } from "../serialize";
 // import { serializeCameraState, serializeViewerChannelSetting, serializeViewerState } from "../serialize";
-import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../types";
+import type { ChannelState, ChannelStateStringified, ViewerState } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_CHANNEL_STATE,
@@ -46,7 +46,7 @@ describe("serializeViewerChannelSetting", () => {
       plotMax: 255,
       keepIntensityRange: false,
     };
-    const serializedCustomChannelState: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
+    const serializedCustomChannelState: Required<Omit<ChannelStateStringified, "lut" | "rmp" | "cps">> = {
       col: "03ff9d",
       ven: "0",
       sen: "0",

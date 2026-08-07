@@ -9,14 +9,14 @@ import type {
   CameraStateSnapshot,
   CameraStateStringified,
   ChannelState,
+  ChannelStateSnapshot,
+  ChannelStateStringified,
   ControlPointSnapshot,
-  ExportedChannelState,
-  ExportedViewerState,
-  ViewerChannelStateParams,
   ViewerState,
-  ViewerStateParams,
+  ViewerStateSnapshot,
+  ViewerStateStringified,
 } from "./types";
-import { CameraTransformKeys, ViewerChannelSettingKeys, ViewerStateKeys, ViewMode } from "./types";
+import { CameraTransformKeys, ChannelStateKeys, ViewerStateKeys, ViewMode } from "./types";
 
 const ENCODED_COLON_REGEX = /%3A/g;
 
@@ -87,7 +87,7 @@ function controlPointToSnapshot(controlPoint: ControlPoint): ControlPointSnapsho
   };
 }
 
-export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ExportedViewerState {
+export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateSnapshot {
   let s = state;
   if (removeDefaults) {
     s = removeMatchingProperties(state, getDefaultViewerState());
@@ -97,7 +97,7 @@ export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefault
     }
   }
 
-  const result: ExportedViewerState = {
+  const result: ViewerStateSnapshot = {
     [ViewerStateKeys.View]: s.viewMode,
     [ViewerStateKeys.Mode]: s.renderMode,
     [ViewerStateKeys.Mask]: s.maskAlpha,
@@ -125,21 +125,21 @@ export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefault
   return removeUndefinedProperties(result);
 }
 
-export function channelStateToSnapshot(state: Partial<ChannelState>, removeDefaults: boolean): ExportedChannelState {
+export function channelStateToSnapshot(state: Partial<ChannelState>, removeDefaults: boolean): ChannelStateSnapshot {
   const s = removeDefaults ? removeMatchingProperties(state, getDefaultChannelState()) : state;
 
-  const result: ExportedChannelState = {
-    [ViewerChannelSettingKeys.VolumeEnabled]: s.volumeEnabled,
-    [ViewerChannelSettingKeys.SurfaceEnabled]: s.isosurfaceEnabled,
-    [ViewerChannelSettingKeys.IsosurfaceValue]: s.isovalue,
-    [ViewerChannelSettingKeys.IsosurfaceAlpha]: s.opacity,
-    [ViewerChannelSettingKeys.Colorize]: s.colorizeEnabled,
-    [ViewerChannelSettingKeys.ColorizeAlpha]: s.colorizeAlpha,
-    [ViewerChannelSettingKeys.Color]: s.color && colorArrayToHex(s.color),
-    [ViewerChannelSettingKeys.ControlPoints]: s.controlPoints && s.controlPoints.map(controlPointToSnapshot),
-    [ViewerChannelSettingKeys.ControlPointsEnabled]: s.useControlPoints,
-    [ViewerChannelSettingKeys.Ramp]: s.ramp && [...s.ramp],
-    [ViewerChannelSettingKeys.KeepRange]: s.keepIntensityRange,
+  const result: ChannelStateSnapshot = {
+    [ChannelStateKeys.VolumeEnabled]: s.volumeEnabled,
+    [ChannelStateKeys.SurfaceEnabled]: s.isosurfaceEnabled,
+    [ChannelStateKeys.IsosurfaceValue]: s.isovalue,
+    [ChannelStateKeys.IsosurfaceAlpha]: s.opacity,
+    [ChannelStateKeys.Colorize]: s.colorizeEnabled,
+    [ChannelStateKeys.ColorizeAlpha]: s.colorizeAlpha,
+    [ChannelStateKeys.Color]: s.color && colorArrayToHex(s.color),
+    [ChannelStateKeys.ControlPoints]: s.controlPoints && s.controlPoints.map(controlPointToSnapshot),
+    [ChannelStateKeys.ControlPointsEnabled]: s.useControlPoints,
+    [ChannelStateKeys.Ramp]: s.ramp && [...s.ramp],
+    [ChannelStateKeys.KeepRange]: s.keepIntensityRange,
   };
 
   return removeUndefinedProperties(result);
@@ -213,7 +213,7 @@ export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): Cam
     [CameraTransformKeys.Fov]: formatFloat,
   });
 
-export const stringifyViewerStateSnapshot = (snapshot: ExportedViewerState): ViewerStateParams =>
+export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): ViewerStateStringified =>
   stringify(snapshot, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
     [ViewerStateKeys.Mode]: identity,
@@ -239,22 +239,22 @@ export const stringifyViewerStateSnapshot = (snapshot: ExportedViewerState): Vie
     [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraStateSnapshot(value)),
   });
 
-export const stringifyChannelStateSnapshot = (snapshot: ExportedChannelState): ViewerChannelStateParams =>
+export const stringifyChannelStateSnapshot = (snapshot: ChannelStateSnapshot): ChannelStateStringified =>
   stringify(snapshot, {
-    [ViewerChannelSettingKeys.Color]: identity,
-    [ViewerChannelSettingKeys.Colorize]: stringifyBoolean,
-    [ViewerChannelSettingKeys.ColorizeAlpha]: formatFloat,
-    [ViewerChannelSettingKeys.IsosurfaceAlpha]: formatFloat,
-    [ViewerChannelSettingKeys.Lut]: ([min, max]) => `${min}:${max}`,
-    [ViewerChannelSettingKeys.ControlPoints]: stringifyControlPointSnapshots,
-    [ViewerChannelSettingKeys.ControlPointsLegacy]: stringifyControlPointSnapshots,
-    [ViewerChannelSettingKeys.Ramp]: stringifyNumberList,
-    [ViewerChannelSettingKeys.RampLegacy]: stringifyNumberList,
-    [ViewerChannelSettingKeys.ControlPointsEnabled]: stringifyBoolean,
-    [ViewerChannelSettingKeys.VolumeEnabled]: stringifyBoolean,
-    [ViewerChannelSettingKeys.SurfaceEnabled]: stringifyBoolean,
-    [ViewerChannelSettingKeys.IsosurfaceValue]: formatFloat,
-    [ViewerChannelSettingKeys.KeepRange]: stringifyBoolean,
+    [ChannelStateKeys.Color]: identity,
+    [ChannelStateKeys.Colorize]: stringifyBoolean,
+    [ChannelStateKeys.ColorizeAlpha]: formatFloat,
+    [ChannelStateKeys.IsosurfaceAlpha]: formatFloat,
+    [ChannelStateKeys.Lut]: ([min, max]) => `${min}:${max}`,
+    [ChannelStateKeys.ControlPoints]: stringifyControlPointSnapshots,
+    [ChannelStateKeys.ControlPointsLegacy]: stringifyControlPointSnapshots,
+    [ChannelStateKeys.Ramp]: stringifyNumberList,
+    [ChannelStateKeys.RampLegacy]: stringifyNumberList,
+    [ChannelStateKeys.ControlPointsEnabled]: stringifyBoolean,
+    [ChannelStateKeys.VolumeEnabled]: stringifyBoolean,
+    [ChannelStateKeys.SurfaceEnabled]: stringifyBoolean,
+    [ChannelStateKeys.IsosurfaceValue]: formatFloat,
+    [ChannelStateKeys.KeepRange]: stringifyBoolean,
   });
 
 /**
@@ -267,7 +267,7 @@ export const stringifyChannelStateSnapshot = (snapshot: ExportedChannelState): V
 export const channelStateToStringSnapshot = (
   channelSetting: Partial<ChannelState>,
   removeDefaults: boolean
-): ViewerChannelStateParams => stringifyChannelStateSnapshot(channelStateToSnapshot(channelSetting, removeDefaults));
+): ChannelStateStringified => stringifyChannelStateSnapshot(channelStateToSnapshot(channelSetting, removeDefaults));
 
 /**
  * Serializes a `ViewerState` object into a dictionary of URL parameters.
@@ -275,5 +275,7 @@ export const channelStateToStringSnapshot = (
  * @param removeDefaults If true, remove properties that match the output of `getDefaultViewerState`.
  * @returns A `ViewerStateParams` object with the serialized parameters. Undefined values are removed.
  */
-export const viewerStateToStringSnapshot = (state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateParams =>
-  stringifyViewerStateSnapshot(viewerStateToSnapshot(state, removeDefaults));
+export const viewerStateToStringSnapshot = (
+  state: Partial<ViewerState>,
+  removeDefaults: boolean
+): ViewerStateStringified => stringifyViewerStateSnapshot(viewerStateToSnapshot(state, removeDefaults));

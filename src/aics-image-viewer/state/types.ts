@@ -173,7 +173,7 @@ export enum ViewerStateKeys {
 /**
  * Mapped to types in `ViewerChannelStateParams`.
  */
-export enum ViewerChannelSettingKeys {
+export enum ChannelStateKeys {
   /** Color, as a 6-digit hex color.  */
   Color = "col",
   /** Whether colorize is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
@@ -255,7 +255,7 @@ export enum ViewerChannelSettingKeys {
   KeepRange = "pin",
 }
 
-type ViewerStateParamTypes = {
+type ViewerStateSnapshotTypes = {
   [ViewerStateKeys.View]: ViewMode;
   [ViewerStateKeys.Mode]: RenderMode;
   [ViewerStateKeys.Mask]: number;
@@ -280,10 +280,10 @@ type ViewerStateParamTypes = {
   [ViewerStateKeys.ScaleLevelIndex]: number;
 };
 
-export type ExportedViewerState = { [K in ViewerStateKeys]?: ViewerStateParamTypes[K] };
+export type ViewerStateSnapshot = { [K in ViewerStateKeys]?: ViewerStateSnapshotTypes[K] };
 
 /** Serialized version of `ViewerState`, with all keys stringified. */
-export type ViewerStateParams = { [K in ViewerStateKeys]?: string };
+export type ViewerStateStringified = { [K in ViewerStateKeys]?: string };
 
 export type ControlPointSnapshot = {
   x: number;
@@ -292,26 +292,26 @@ export type ControlPointSnapshot = {
 };
 
 type ViewerChannelStateParamTypes = {
-  [ViewerChannelSettingKeys.Color]: string;
-  [ViewerChannelSettingKeys.Colorize]: boolean;
-  [ViewerChannelSettingKeys.ColorizeAlpha]: number;
-  [ViewerChannelSettingKeys.IsosurfaceAlpha]: number;
-  [ViewerChannelSettingKeys.Lut]: [string | number, string | number];
-  [ViewerChannelSettingKeys.ControlPointsLegacy]: ControlPointSnapshot[];
-  [ViewerChannelSettingKeys.ControlPoints]: ControlPointSnapshot[];
-  [ViewerChannelSettingKeys.ControlPointsEnabled]: boolean;
-  [ViewerChannelSettingKeys.RampLegacy]: [number, number];
-  [ViewerChannelSettingKeys.Ramp]: [number, number];
-  [ViewerChannelSettingKeys.VolumeEnabled]: boolean;
-  [ViewerChannelSettingKeys.SurfaceEnabled]: boolean;
-  [ViewerChannelSettingKeys.IsosurfaceValue]: number;
-  [ViewerChannelSettingKeys.KeepRange]: boolean;
+  [ChannelStateKeys.Color]: string;
+  [ChannelStateKeys.Colorize]: boolean;
+  [ChannelStateKeys.ColorizeAlpha]: number;
+  [ChannelStateKeys.IsosurfaceAlpha]: number;
+  [ChannelStateKeys.Lut]: [string | number, string | number];
+  [ChannelStateKeys.ControlPointsLegacy]: ControlPointSnapshot[];
+  [ChannelStateKeys.ControlPoints]: ControlPointSnapshot[];
+  [ChannelStateKeys.ControlPointsEnabled]: boolean;
+  [ChannelStateKeys.RampLegacy]: [number, number];
+  [ChannelStateKeys.Ramp]: [number, number];
+  [ChannelStateKeys.VolumeEnabled]: boolean;
+  [ChannelStateKeys.SurfaceEnabled]: boolean;
+  [ChannelStateKeys.IsosurfaceValue]: number;
+  [ChannelStateKeys.KeepRange]: boolean;
 };
 
 // TODO update docs here
-export type ExportedChannelState = { [K in ViewerChannelSettingKeys]?: ViewerChannelStateParamTypes[K] };
+export type ChannelStateSnapshot = { [K in ChannelStateKeys]?: ViewerChannelStateParamTypes[K] };
 
 /**
  * The serialized form of a ViewerChannelSetting, as a dictionary object.
  */
-export type ViewerChannelStateParams = { [K in ViewerChannelSettingKeys]?: string };
+export type ChannelStateStringified = { [K in ChannelStateKeys]?: string };
