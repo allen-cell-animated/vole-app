@@ -12,7 +12,7 @@ import {
   parseStringFloat,
   parseStringInt,
 } from "../deserialize";
-import { serializeViewerState } from "../serialize";
+import { viewerStateToStringSnapshot } from "../serialize";
 import { RenderMode, type ViewerChannelStateParams, type ViewerState, ViewMode } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
@@ -383,7 +383,7 @@ describe("deserializeViewerState", () => {
     const viewModes = Object.values(ViewMode);
     for (const viewMode of viewModes) {
       const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, viewMode };
-      expect(deserializeViewerState(serializeViewerState(state, false)).viewMode).toEqual(viewMode);
+      expect(deserializeViewerState(viewerStateToStringSnapshot(state, false)).viewMode).toEqual(viewMode);
     }
   });
 
@@ -391,7 +391,7 @@ describe("deserializeViewerState", () => {
     const renderModes = Object.values(RenderMode);
     for (const renderMode of renderModes) {
       const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, renderMode };
-      expect(deserializeViewerState(serializeViewerState(state, false)).renderMode).toEqual(renderMode);
+      expect(deserializeViewerState(viewerStateToStringSnapshot(state, false)).renderMode).toEqual(renderMode);
     }
   });
 

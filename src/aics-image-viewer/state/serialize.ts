@@ -44,33 +44,7 @@ function colorArrayToHex(color: ColorArray): string {
     .toLowerCase();
 }
 
-/**
- * Formats a float or integer value to a string with a maximum precision for float values.
- * @param value The number to format.
- * @param maxPrecision The maximum number of significant digits to display for float values.
- * Default is 7.
- * @returns
- * - For integers, the integer value as a string.
- * - For floats, the float value as a string with a maximum of `maxPrecision` significant digits
- * and any trailing zeroes removed.
- *
- * @example
- * ```
- * formatFloat(1.23456, 3) // "1.23"
- * formatFloat(123456, 3) // "123456"
- * formatFloat(1.3999999999999999, 3) // "1.4"
- * ```
- */
-function formatFloat(value: number, maxPrecision: number = 7): string {
-  if (Number.isInteger(value)) {
-    return value.toString();
-  }
-  return Number(value.toPrecision(maxPrecision)).toString();
-}
-
 const xyzToArray = <T>({ x, y, z }: XYZ<T>): [T, T, T] => [x, y, z];
-
-const stringifyBoolean = (value: boolean): "1" | "0" => (value ? "1" : "0");
 
 export function cameraStateToSnapshot(
   cameraState: Partial<CameraState> | undefined,
@@ -111,10 +85,6 @@ function controlPointToSnapshot(controlPoint: ControlPoint): ControlPointSnapsho
       ? DEFAULT_CONTROL_POINT_COLOR_CODE
       : colorArrayToHex(controlPoint.color),
   };
-}
-
-function stringifyControlPointSnapshots(controlPoints: ControlPointSnapshot[]): string {
-  return controlPoints.map((cp) => `${formatFloat(cp.x)}:${formatFloat(cp.opacity)}:${cp.color}`).join(":");
 }
 
 export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ExportedViewerState {
@@ -194,8 +164,38 @@ const stringify = <T extends Record<string, unknown>>(
   return result;
 };
 
+/**
+ * Formats a float or integer value to a string with a maximum precision for float values.
+ * @param value The number to format.
+ * @param maxPrecision The maximum number of significant digits to display for float values.
+ * Default is 7.
+ * @returns
+ * - For integers, the integer value as a string.
+ * - For floats, the float value as a string with a maximum of `maxPrecision` significant digits
+ * and any trailing zeroes removed.
+ *
+ * @example
+ * ```
+ * formatFloat(1.23456, 3) // "1.23"
+ * formatFloat(123456, 3) // "123456"
+ * formatFloat(1.3999999999999999, 3) // "1.4"
+ * ```
+ */
+function formatFloat(value: number, maxPrecision: number = 7): string {
+  if (Number.isInteger(value)) {
+    return value.toString();
+  }
+  return Number(value.toPrecision(maxPrecision)).toString();
+}
+
+const stringifyBoolean = (value: boolean): "1" | "0" => (value ? "1" : "0");
+
 const stringifyNumberList = (list: number[], separator = ":"): string =>
   list.map((value) => formatFloat(value)).join(separator);
+
+function stringifyControlPointSnapshots(controlPoints: ControlPointSnapshot[]): string {
+  return controlPoints.map((cp) => `${formatFloat(cp.x)}:${formatFloat(cp.opacity)}:${cp.color}`).join(":");
+}
 
 const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.threeD]: "3D",
@@ -264,7 +264,7 @@ export const stringifyChannelStateSnapshot = (snapshot: ExportedChannelState): V
  * @param removeDefaults Whether to remove properties that match the output of `getDefaultChannelState`.
  * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
  */
-export const serializeViewerChannelSetting = (
+export const channelStateToStringSnapshot = (
   channelSetting: Partial<ChannelState>,
   removeDefaults: boolean
 ): ViewerChannelStateParams => stringifyChannelStateSnapshot(channelStateToSnapshot(channelSetting, removeDefaults));
@@ -275,5 +275,5 @@ export const serializeViewerChannelSetting = (
  * @param removeDefaults If true, remove properties that match the output of `getDefaultViewerState`.
  * @returns A `ViewerStateParams` object with the serialized parameters. Undefined values are removed.
  */
-export const serializeViewerState = (state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateParams =>
+export const viewerStateToStringSnapshot = (state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateParams =>
   stringifyViewerStateSnapshot(viewerStateToSnapshot(state, removeDefaults));

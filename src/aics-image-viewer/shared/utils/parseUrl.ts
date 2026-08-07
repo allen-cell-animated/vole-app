@@ -2,7 +2,7 @@ import type { FirebaseFirestore } from "@firebase/firestore-types";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
 import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueList } from "../../state/deserialize";
-import { objectToKeyValueList, serializeViewerChannelSetting, serializeViewerState } from "../../state/serialize";
+import { channelStateToStringSnapshot, objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
 import { ViewerStateKeys } from "../../state/types";
 import type { ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../../state/types";
@@ -448,10 +448,10 @@ export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" |
  * This includes the output of GET_DEFAULT_VIEWER_STATE and GET_DEFAULT_CHANNEL_STATE.
  */
 export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefaults: boolean = true): AppParams {
-  const params = serializeViewerState(state, removeDefaults);
+  const params = viewerStateToStringSnapshot(state, removeDefaults);
 
   const channelParams = state.channelSettings?.reduce((acc, channelSetting, index): Record<`c${number}`, string> => {
-    acc[`c${index}`] = objectToKeyValueList(serializeViewerChannelSetting(channelSetting, removeDefaults));
+    acc[`c${index}`] = objectToKeyValueList(channelStateToStringSnapshot(channelSetting, removeDefaults));
     return acc;
   }, {});
 
