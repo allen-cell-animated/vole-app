@@ -1,6 +1,6 @@
 import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
 import { ImageType, RenderMode, ViewMode } from "../types";
-import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../types";
+import type { ChannelState, ChannelStateStringified, ViewerState, ViewerStateStringified } from "../types";
 
 export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {
   viewMode: ViewMode.threeD, // "XY", "XZ", "YZ"
@@ -27,7 +27,7 @@ export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {
   scaleLevelIndex: 0,
 };
 
-export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateParams = {
+export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateStringified = {
   mode: "volumetric",
   view: "3D",
   image: "cell",
@@ -82,7 +82,7 @@ export const CUSTOM_TEST_VIEWER_STATE: ViewerState = {
   },
 };
 
-export const SERIALIZED_CUSTOM_TEST_VIEWER_STATE: ViewerStateParams = {
+export const SERIALIZED_CUSTOM_TEST_VIEWER_STATE: ViewerStateStringified = {
   mode: "pathtrace",
   view: "Z",
   image: "fov",
@@ -128,7 +128,7 @@ export const DEFAULT_TEST_CHANNEL_STATE: ChannelState = {
   keepIntensityRange: false,
 };
 
-export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ViewerChannelStateParams = {
+export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ChannelStateStringified = {
   col: "ff0000",
   ven: "1",
   sen: "1",

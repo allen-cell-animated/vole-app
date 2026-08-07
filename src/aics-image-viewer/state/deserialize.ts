@@ -6,15 +6,8 @@ import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPoi
 import { removeUndefinedProperties } from "../shared/utils/datatypes";
 import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
-import {
-  CameraTransformKeys,
-  ImageType,
-  RenderMode,
-  ViewerChannelSettingKeys,
-  ViewerStateKeys,
-  ViewMode,
-} from "./types";
-import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
+import { CameraTransformKeys, ChannelStateKeys, ImageType, RenderMode, ViewerStateKeys, ViewMode } from "./types";
+import type { ChannelState, ChannelStateStringified, ViewerState, ViewerStateStringified } from "./types";
 
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
@@ -259,7 +252,7 @@ function parseCameraState(cameraSettings: string | undefined): Partial<CameraSta
   return removeUndefinedProperties(result);
 }
 
-export function deserializeViewerState(params: ViewerStateParams): Partial<ViewerState> {
+export function deserializeViewerState(params: ViewerStateStringified): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
     maskAlpha: parseStringInt(params[ViewerStateKeys.Mask], 0, 100),
     imageType: parseStringEnum(params[ViewerStateKeys.Image], ImageType),
@@ -348,47 +341,47 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
  */
 export function deserializeViewerChannelSetting(
   channelIndex: number,
-  jsonState: ViewerChannelStateParams
+  jsonState: ChannelStateStringified
 ): ViewerChannelSetting {
   // Missing/undefined fields should be handled downstream.
   const result: ViewerChannelSetting = {
     match: channelIndex,
-    enabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
-    surfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
-    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
-    keepIntensityRange: parseStringBoolean(jsonState[ViewerChannelSettingKeys.KeepRange]),
-    surfaceOpacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
-    colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
-    colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
-    controlPointsEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
+    enabled: parseStringBoolean(jsonState[ChannelStateKeys.VolumeEnabled]),
+    surfaceEnabled: parseStringBoolean(jsonState[ChannelStateKeys.SurfaceEnabled]),
+    isovalue: parseStringFloat(jsonState[ChannelStateKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(jsonState[ChannelStateKeys.KeepRange]),
+    surfaceOpacity: parseStringFloat(jsonState[ChannelStateKeys.IsosurfaceAlpha], 0, 1),
+    colorizeEnabled: parseStringBoolean(jsonState[ChannelStateKeys.Colorize]),
+    colorizeAlpha: parseStringFloat(jsonState[ChannelStateKeys.ColorizeAlpha], 0, 1),
+    controlPointsEnabled: parseStringBoolean(jsonState[ChannelStateKeys.ControlPointsEnabled]),
   };
-  if (jsonState[ViewerChannelSettingKeys.Color] && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
-    result.color = jsonState[ViewerChannelSettingKeys.Color];
+  if (jsonState[ChannelStateKeys.Color] && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
+    result.color = jsonState[ChannelStateKeys.Color];
   }
-  if (jsonState[ViewerChannelSettingKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
-    const [min, max] = jsonState[ViewerChannelSettingKeys.Lut].split(":");
+  if (jsonState[ChannelStateKeys.Lut] && LUT_REGEX.test(jsonState.lut)) {
+    const [min, max] = jsonState[ChannelStateKeys.Lut].split(":");
     result.intensity = { ...result.intensity, lut: [min.trim(), max.trim()] };
   }
 
-  if (jsonState[ViewerChannelSettingKeys.Ramp]) {
-    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
-      const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
+  if (jsonState[ChannelStateKeys.Ramp]) {
+    if (RAMP_REGEX.test(jsonState[ChannelStateKeys.Ramp])) {
+      const [min, max] = jsonState[ChannelStateKeys.Ramp].split(":");
       result.intensity = { ...result.intensity, ramp: [Number.parseFloat(min), Number.parseFloat(max)] };
     }
-  } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
-    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
-      const [min, max] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
+  } else if (jsonState[ChannelStateKeys.RampLegacy]) {
+    if (RAMP_REGEX.test(jsonState[ChannelStateKeys.RampLegacy])) {
+      const [min, max] = jsonState[ChannelStateKeys.RampLegacy].split(":");
       result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
     }
   }
 
-  if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
-    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+  if (jsonState[ChannelStateKeys.ControlPoints]) {
+    const parsedResult = parseControlPoints(jsonState[ChannelStateKeys.ControlPoints]);
     if (parsedResult) {
       result.intensity = { ...result.intensity, controlPoints: parsedResult };
     }
-  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
-    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
+  } else if (jsonState[ChannelStateKeys.ControlPointsLegacy]) {
+    const parsedResult = parseControlPoints(jsonState[ChannelStateKeys.ControlPointsLegacy]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
@@ -415,22 +408,22 @@ export function deserializeViewerChannelSetting(
  * loaded, these params are ignored.
  */
 export function deserializeChannelState(
-  jsonState: ViewerChannelStateParams,
+  jsonState: ChannelStateStringified,
   histogram?: Histogram
 ): Partial<ChannelState> {
   const result: Partial<ChannelState> = {
-    volumeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.VolumeEnabled]),
-    isosurfaceEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.SurfaceEnabled]),
-    isovalue: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceValue], -Infinity, Infinity),
-    keepIntensityRange: parseStringBoolean(jsonState[ViewerChannelSettingKeys.KeepRange]),
-    opacity: parseStringFloat(jsonState[ViewerChannelSettingKeys.IsosurfaceAlpha], 0, 1),
-    colorizeEnabled: parseStringBoolean(jsonState[ViewerChannelSettingKeys.Colorize]),
-    colorizeAlpha: parseStringFloat(jsonState[ViewerChannelSettingKeys.ColorizeAlpha], 0, 1),
-    useControlPoints: parseStringBoolean(jsonState[ViewerChannelSettingKeys.ControlPointsEnabled]),
-    color: parseHexColorAsColorArray(jsonState[ViewerChannelSettingKeys.Color]),
+    volumeEnabled: parseStringBoolean(jsonState[ChannelStateKeys.VolumeEnabled]),
+    isosurfaceEnabled: parseStringBoolean(jsonState[ChannelStateKeys.SurfaceEnabled]),
+    isovalue: parseStringFloat(jsonState[ChannelStateKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: parseStringBoolean(jsonState[ChannelStateKeys.KeepRange]),
+    opacity: parseStringFloat(jsonState[ChannelStateKeys.IsosurfaceAlpha], 0, 1),
+    colorizeEnabled: parseStringBoolean(jsonState[ChannelStateKeys.Colorize]),
+    colorizeAlpha: parseStringFloat(jsonState[ChannelStateKeys.ColorizeAlpha], 0, 1),
+    useControlPoints: parseStringBoolean(jsonState[ChannelStateKeys.ControlPointsEnabled]),
+    color: parseHexColorAsColorArray(jsonState[ChannelStateKeys.Color]),
   };
 
-  const lutSerialized = jsonState[ViewerChannelSettingKeys.Lut];
+  const lutSerialized = jsonState[ChannelStateKeys.Lut];
   let pointsFromLut: ControlPoint[] | undefined = undefined;
   if (histogram !== undefined && lutSerialized !== undefined && LUT_REGEX.test(lutSerialized)) {
     const [min, max] = lutSerialized.split(":");
@@ -441,15 +434,15 @@ export function deserializeChannelState(
     }));
   }
 
-  if (jsonState[ViewerChannelSettingKeys.Ramp]) {
-    if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.Ramp])) {
-      const [min, max] = jsonState[ViewerChannelSettingKeys.Ramp].split(":");
+  if (jsonState[ChannelStateKeys.Ramp]) {
+    if (RAMP_REGEX.test(jsonState[ChannelStateKeys.Ramp])) {
+      const [min, max] = jsonState[ChannelStateKeys.Ramp].split(":");
       result.ramp = [Number.parseFloat(min), Number.parseFloat(max)];
     }
-  } else if (jsonState[ViewerChannelSettingKeys.RampLegacy]) {
+  } else if (jsonState[ChannelStateKeys.RampLegacy]) {
     if (histogram !== undefined) {
-      if (RAMP_REGEX.test(jsonState[ViewerChannelSettingKeys.RampLegacy])) {
-        const [rawMin, rawMax] = jsonState[ViewerChannelSettingKeys.RampLegacy].split(":");
+      if (RAMP_REGEX.test(jsonState[ChannelStateKeys.RampLegacy])) {
+        const [rawMin, rawMax] = jsonState[ChannelStateKeys.RampLegacy].split(":");
         const min = histogram.getValueFromBinIndex(Number.parseFloat(rawMin));
         const max = histogram.getValueFromBinIndex(Number.parseFloat(rawMax));
         result.ramp = [min, max];
@@ -459,14 +452,14 @@ export function deserializeChannelState(
     result.ramp = controlPointsToRamp(pointsFromLut);
   }
 
-  if (jsonState[ViewerChannelSettingKeys.ControlPoints]) {
-    const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPoints]);
+  if (jsonState[ChannelStateKeys.ControlPoints]) {
+    const parsedResult = parseControlPoints(jsonState[ChannelStateKeys.ControlPoints]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
-  } else if (jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]) {
+  } else if (jsonState[ChannelStateKeys.ControlPointsLegacy]) {
     if (histogram !== undefined) {
-      const parsedResult = parseControlPoints(jsonState[ViewerChannelSettingKeys.ControlPointsLegacy]);
+      const parsedResult = parseControlPoints(jsonState[ChannelStateKeys.ControlPointsLegacy]);
       if (parsedResult) {
         result.controlPoints = parsedResult.map(({ opacity, color, x }) => ({
           opacity,

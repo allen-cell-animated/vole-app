@@ -5,7 +5,7 @@ import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueL
 import { channelStateToStringSnapshot, objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
 import { ViewerStateKeys } from "../../state/types";
-import type { ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../../state/types";
+import type { ChannelStateStringified, ViewerState, ViewerStateStringified } from "../../state/types";
 import type { ManifestJson, MetadataRecord } from "../types";
 import { removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
@@ -72,7 +72,7 @@ class DeprecatedParams {
   colors?: string = undefined;
 }
 
-type AppParams = Partial<ViewerStateParams & DataParams & DeprecatedParams & ChannelParams>;
+type AppParams = Partial<ViewerStateStringified & DataParams & DeprecatedParams & ChannelParams>;
 
 /**
  * A message sent from an external application after this app was opened,
@@ -211,7 +211,7 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
       const channelIndex = Number.parseInt(key.slice(1), 10);
       try {
         const channelData = parseKeyValueList(params[key]!);
-        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ViewerChannelStateParams);
+        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ChannelStateStringified);
         channelIndexToSettings.set(channelIndex, channelSetting);
       } catch (e) {
         console.warn(
