@@ -5,7 +5,13 @@ import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } 
 import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { removeMatchingProperties, removeUndefinedProperties } from "../shared/utils/datatypes";
-import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "./types";
+import type {
+  ChannelState,
+  ExportedViewerState,
+  ViewerChannelStateParams,
+  ViewerState,
+  ViewerStateParams,
+} from "./types";
 import { CameraTransformKeys, ViewerChannelSettingKeys, ViewerStateKeys, ViewMode } from "./types";
 
 const ENCODED_COLON_REGEX = /%3A/g;
@@ -58,20 +64,18 @@ function formatFloat(value: number, maxPrecision: number = 7): string {
   return Number(value.toPrecision(maxPrecision)).toString();
 }
 
-function perAxisToArray<T>(perAxis: XYZ<T>): T[] {
-  return [perAxis.x, perAxis.y, perAxis.z];
-}
+const xyzToArray = <T>({ x, y, z }: XYZ<T>): [T, T, T] => [x, y, z];
 
 /** Serializes a region into a `x1:x2,y1:y2,z1:z2` string format. */
 function serializeRegion(region: XYZ<[number, number]>): string {
-  return perAxisToArray(region)
+  return xyzToArray(region)
     .map((axis) => axis.map((val) => formatFloat(val)).join(":"))
     .join(",");
 }
 
 /** Serializes a slice parameter into a `x,y,z` string format. */
 function serializeSlice(slice: XYZ<number>): string {
-  return perAxisToArray(slice)
+  return xyzToArray(slice)
     .map((val) => formatFloat(val))
     .join(",");
 }
@@ -82,6 +86,8 @@ function serializeBoolean(value: boolean | undefined): "1" | "0" | undefined {
   }
   return value ? "1" : "0";
 }
+
+const stringifyBoolean = (value: boolean): "1" | "0" => (value ? "1" : "0");
 
 export function serializeCameraState(
   cameraState: Partial<CameraState>,
@@ -204,3 +210,96 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
   };
   return removeUndefinedProperties(result);
 }
+
+export function rawSerializeViewerState(
+  state: Partial<ViewerState>,
+  removeDefaults: boolean
+): Partial<ExportedViewerState> {
+  if (removeDefaults) {
+    state = removeMatchingProperties(state, getDefaultViewerState());
+    // special case: if there's an explicit scale level but it's not being used, no reason to include it
+    if (state.scaleLevelIndex !== undefined && state.useExactScaleLevel === undefined) {
+      delete state.scaleLevelIndex;
+    }
+  }
+
+  const result: Partial<ExportedViewerState> = {
+    [ViewerStateKeys.View]: state.viewMode,
+    [ViewerStateKeys.Mode]: state.renderMode,
+    [ViewerStateKeys.Mask]: state.maskAlpha,
+    [ViewerStateKeys.Image]: state.imageType,
+    [ViewerStateKeys.Axes]: state.showAxes,
+    [ViewerStateKeys.BoundingBox]: state.showBoundingBox,
+    [ViewerStateKeys.BoundingBoxColor]: state.boundingBoxColor && colorArrayToHex(state.boundingBoxColor),
+    [ViewerStateKeys.BackgroundColor]: state.backgroundColor && colorArrayToHex(state.backgroundColor),
+    [ViewerStateKeys.Autorotate]: state.autorotate,
+    [ViewerStateKeys.Brightness]: state.brightness,
+    [ViewerStateKeys.Density]: state.density,
+    [ViewerStateKeys.Interpolation]: state.interpolationEnabled,
+    [ViewerStateKeys.Region]: state.region && xyzToArray(state.region),
+    [ViewerStateKeys.Slice]: state.slice && xyzToArray(state.slice),
+    [ViewerStateKeys.Levels]: state.levels && [...state.levels],
+    [ViewerStateKeys.Time]: state.time,
+    [ViewerStateKeys.Scene]: state.scene,
+    [ViewerStateKeys.SingleChannelMode]: state.singleChannelMode,
+    [ViewerStateKeys.SingleChannelIndex]: state.singleChannelIndex,
+    [ViewerStateKeys.UseExactScaleLevel]: state.useExactScaleLevel,
+    [ViewerStateKeys.ScaleLevelIndex]: state.scaleLevelIndex,
+    [ViewerStateKeys.CameraState]:
+      state.cameraState && removeMatchingProperties(state.cameraState, getDefaultCameraState()),
+  };
+
+  return removeUndefinedProperties(result);
+}
+
+const stringify = <T extends Record<string, unknown>>(
+  record: Partial<T>,
+  stringifiers: { [K in keyof T]: (value: T[K]) => string }
+): Partial<Record<keyof T, string>> => {
+  const result: Partial<Record<keyof T, string>> = {};
+
+  for (const k of Object.keys(record)) {
+    const key = k as keyof T;
+    const value = record[key];
+    if (value !== undefined) {
+      result[key] = stringifiers[key](value);
+    }
+  }
+
+  return result;
+};
+
+const id = <T>(x: T): T => x;
+
+const VIEW_MODE_TO_VIEW_PARAM = {
+  [ViewMode.threeD]: "3D",
+  [ViewMode.xy]: "Z",
+  [ViewMode.xz]: "Y",
+  [ViewMode.yz]: "X",
+};
+
+export const stringifyViewerState = (exportedState: ExportedViewerState): ViewerStateParams =>
+  stringify(exportedState, {
+    [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
+    [ViewerStateKeys.Mode]: id,
+    [ViewerStateKeys.Mask]: Number.toString,
+    [ViewerStateKeys.Image]: id,
+    [ViewerStateKeys.Axes]: stringifyBoolean,
+    [ViewerStateKeys.BoundingBox]: stringifyBoolean,
+    [ViewerStateKeys.BoundingBoxColor]: id,
+    [ViewerStateKeys.BackgroundColor]: id,
+    [ViewerStateKeys.Autorotate]: stringifyBoolean,
+    [ViewerStateKeys.Brightness]: Number.toString,
+    [ViewerStateKeys.Density]: Number.toString,
+    [ViewerStateKeys.Interpolation]: stringifyBoolean,
+    [ViewerStateKeys.Region]: (value) => value.map((axis) => axis.map(formatFloat).join(":")).join(","),
+    [ViewerStateKeys.Slice]: (value) => value.map(formatFloat).join(","),
+    [ViewerStateKeys.Levels]: (value) => value.map(formatFloat).join(","),
+    [ViewerStateKeys.Time]: Number.toString,
+    [ViewerStateKeys.Scene]: Number.toString,
+    [ViewerStateKeys.SingleChannelMode]: stringifyBoolean,
+    [ViewerStateKeys.SingleChannelIndex]: Number.toString,
+    [ViewerStateKeys.UseExactScaleLevel]: stringifyBoolean,
+    [ViewerStateKeys.ScaleLevelIndex]: Number.toString,
+    [ViewerStateKeys.CameraState]: (value) => serializeCameraState(value, true, exportedState[ViewerStateKeys.View]),
+  });
