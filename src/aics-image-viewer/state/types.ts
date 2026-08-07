@@ -160,37 +160,6 @@ export enum CameraTransformKeys {
   Fov = "fov",
 }
 
-type ViewerStateParamTypes = {
-  [ViewerStateKeys.View]: ViewMode;
-  [ViewerStateKeys.Mode]: RenderMode;
-  [ViewerStateKeys.Mask]: number;
-  [ViewerStateKeys.Image]: ImageType;
-  [ViewerStateKeys.Axes]: boolean;
-  [ViewerStateKeys.BoundingBox]: boolean;
-  [ViewerStateKeys.BoundingBoxColor]: string;
-  [ViewerStateKeys.BackgroundColor]: string;
-  [ViewerStateKeys.Autorotate]: boolean;
-  [ViewerStateKeys.Brightness]: number;
-  [ViewerStateKeys.Density]: number;
-  [ViewerStateKeys.Levels]: [number, number, number];
-  [ViewerStateKeys.Interpolation]: boolean;
-  [ViewerStateKeys.Region]: [[number, number], [number, number], [number, number]];
-  [ViewerStateKeys.Slice]: [number, number, number];
-  [ViewerStateKeys.Time]: number;
-  [ViewerStateKeys.Scene]: number;
-  [ViewerStateKeys.CameraState]: Partial<CameraState> | undefined;
-  [ViewerStateKeys.SingleChannelMode]: boolean;
-  [ViewerStateKeys.SingleChannelIndex]: number;
-  [ViewerStateKeys.UseExactScaleLevel]: boolean;
-  [ViewerStateKeys.ScaleLevelIndex]: number;
-};
-
-export type ExportedViewerState = { [K in ViewerStateKeys]?: ViewerStateParamTypes[K] };
-
-/** Serialized version of `ViewerState`, with all keys stringified. */
-// TODO make keys required and use `Partial`?
-export type ViewerStateParams = { [K in ViewerStateKeys]?: string };
-
 /**
  * Mapped to types in `ViewerChannelStateParams`.
  */
@@ -276,22 +245,63 @@ export enum ViewerChannelSettingKeys {
   KeepRange = "pin",
 }
 
+type ViewerStateParamTypes = {
+  [ViewerStateKeys.View]: ViewMode;
+  [ViewerStateKeys.Mode]: RenderMode;
+  [ViewerStateKeys.Mask]: number;
+  [ViewerStateKeys.Image]: ImageType;
+  [ViewerStateKeys.Axes]: boolean;
+  [ViewerStateKeys.BoundingBox]: boolean;
+  [ViewerStateKeys.BoundingBoxColor]: string;
+  [ViewerStateKeys.BackgroundColor]: string;
+  [ViewerStateKeys.Autorotate]: boolean;
+  [ViewerStateKeys.Brightness]: number;
+  [ViewerStateKeys.Density]: number;
+  [ViewerStateKeys.Levels]: [number, number, number];
+  [ViewerStateKeys.Interpolation]: boolean;
+  [ViewerStateKeys.Region]: [[number, number], [number, number], [number, number]];
+  [ViewerStateKeys.Slice]: [number, number, number];
+  [ViewerStateKeys.Time]: number;
+  [ViewerStateKeys.Scene]: number;
+  [ViewerStateKeys.CameraState]: Partial<CameraState> | undefined;
+  [ViewerStateKeys.SingleChannelMode]: boolean;
+  [ViewerStateKeys.SingleChannelIndex]: number;
+  [ViewerStateKeys.UseExactScaleLevel]: boolean;
+  [ViewerStateKeys.ScaleLevelIndex]: number;
+};
+
+export type ExportedViewerState = { [K in ViewerStateKeys]?: ViewerStateParamTypes[K] };
+
+/** Serialized version of `ViewerState`, with all keys stringified. */
+export type ViewerStateParams = { [K in ViewerStateKeys]?: string };
+
+export type ControlPointSnapshot = {
+  x: number;
+  opacity: number;
+  color: string;
+};
+
+type ViewerChannelStateParamTypes = {
+  [ViewerChannelSettingKeys.Color]: string;
+  [ViewerChannelSettingKeys.Colorize]: boolean;
+  [ViewerChannelSettingKeys.ColorizeAlpha]: number;
+  [ViewerChannelSettingKeys.IsosurfaceAlpha]: number;
+  [ViewerChannelSettingKeys.Lut]: [string | number, string | number];
+  [ViewerChannelSettingKeys.ControlPointsLegacy]: ControlPointSnapshot[];
+  [ViewerChannelSettingKeys.ControlPoints]: ControlPointSnapshot[];
+  [ViewerChannelSettingKeys.ControlPointsEnabled]: boolean;
+  [ViewerChannelSettingKeys.RampLegacy]: [number, number];
+  [ViewerChannelSettingKeys.Ramp]: [number, number];
+  [ViewerChannelSettingKeys.VolumeEnabled]: boolean;
+  [ViewerChannelSettingKeys.SurfaceEnabled]: boolean;
+  [ViewerChannelSettingKeys.IsosurfaceValue]: number;
+  [ViewerChannelSettingKeys.KeepRange]: boolean;
+};
+
+// TODO update docs here
+export type ExportedChannelState = { [K in ViewerChannelSettingKeys]: ViewerChannelStateParamTypes[K] };
+
 /**
  * The serialized form of a ViewerChannelSetting, as a dictionary object.
  */
-export type ViewerChannelStateParams = {
-  [ViewerChannelSettingKeys.Color]?: string;
-  [ViewerChannelSettingKeys.Colorize]?: string;
-  [ViewerChannelSettingKeys.ColorizeAlpha]?: string;
-  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string;
-  [ViewerChannelSettingKeys.Lut]?: string;
-  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string;
-  [ViewerChannelSettingKeys.ControlPoints]?: string;
-  [ViewerChannelSettingKeys.ControlPointsEnabled]?: string;
-  [ViewerChannelSettingKeys.RampLegacy]?: string;
-  [ViewerChannelSettingKeys.Ramp]?: string;
-  [ViewerChannelSettingKeys.VolumeEnabled]?: string;
-  [ViewerChannelSettingKeys.SurfaceEnabled]?: string;
-  [ViewerChannelSettingKeys.IsosurfaceValue]?: string;
-  [ViewerChannelSettingKeys.KeepRange]?: string;
-};
+export type ViewerChannelStateParams = { [K in ViewerChannelSettingKeys]?: string };
