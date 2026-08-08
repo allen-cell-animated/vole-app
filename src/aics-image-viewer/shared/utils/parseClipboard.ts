@@ -1,5 +1,5 @@
 import { deserializeChannelState, parseKeyValueList } from "../../state/deserialize";
-import { objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
+import { channelStateToStringSnapshot, objectToKeyValueList } from "../../state/serialize";
 import type { ChannelState } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
 
@@ -34,7 +34,7 @@ export const channelStateToClipboard = (
         delete setting[key];
       }
     }
-    const stateString = objectToKeyValueList(viewerStateToStringSnapshot(setting, false));
+    const stateString = objectToKeyValueList(channelStateToStringSnapshot(setting, false));
     channels[ch.name] = stateString;
   }
 
