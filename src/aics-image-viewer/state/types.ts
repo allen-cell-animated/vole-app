@@ -207,10 +207,12 @@ export enum ChannelStateKeys {
    */
   Lut = "lut",
   /**
-   * Control points for the transfer function, formatted as a list of objects with the following keys:
+   * Control points for the transfer function, formatted as a list of objects of type `ControlPointSnapshot` with the
+   * following keys:
    * - `x` is a numeric intensity value.
    * - `opacity` is a float in the range `[0, 1]`.
-   * - `color` is a 6-digit hex color, e.g. `ff0000`.
+   * - `color` is a 6-digit hex color, e.g. `"ff0000"`. For the extremely common default case where the control point is
+   *   white (`ffffff`), `color` is shortened to just `"1"`.
    *
    * Stringifies to a colon-separated list: `x1:opacity1:color1:x2:opacity2:color2:...`
    *
@@ -255,6 +257,9 @@ export enum ChannelStateKeys {
   KeepRange = "pin",
 }
 
+// Maps `ViewerStateKeys` to the type of each key in `ViewerStateSnapshot`.
+// This is not the exported "snapshot" type: that's `ViewerStateSnapshot`, below.  Defining `ViewerStateSnapshot` as a
+// mapped type means it will type error unless this type is exhaustive over all variants of `ViewerStateKeys`.
 type ViewerStateSnapshotTypes = {
   [ViewerStateKeys.View]: ViewMode;
   [ViewerStateKeys.Mode]: RenderMode;
@@ -280,18 +285,34 @@ type ViewerStateSnapshotTypes = {
   [ViewerStateKeys.ScaleLevelIndex]: number;
 };
 
+/**
+ * A "snapshot" of a `ViewerState`.
+ *
+ * This type is a variant representation of `ViewerState`, specialized for saving/restoring state to/from some
+ * serialized representation. It has the following desirable properties for this purpose:
+ * - Its keys are *shorter*, for formats where that's desirable (mostly URL parameters)
+ * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
+ * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
+ */
 export type ViewerStateSnapshot = { [K in ViewerStateKeys]?: ViewerStateSnapshotTypes[K] };
 
-/** Serialized version of `ViewerState`, with all keys stringified. */
+/**
+ * A `ViewerStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
+ * viewer state to/from URL parameters.
+ */
 export type ViewerStateStringified = { [K in ViewerStateKeys]?: string };
 
+/** A `ControlPoint`, but with its color converted to a six-digit hex string. Used by `ChannelStateSnapshot`. */
 export type ControlPointSnapshot = {
   x: number;
   opacity: number;
   color: string;
 };
 
-type ViewerChannelStateParamTypes = {
+// Maps `ChannelStateKeys` to the type of each key in `ChannelStateSnapshot`.
+// This is not the exported "snapshot" type: that's `ChannelStateSnapshot`, below.  Defining `ChannelStateSnapshot` as
+// a mapped type means it will type error unless this type is exhaustive over all variants of `ChannelStateKeys`.
+type ChannelStateParamTypes = {
   [ChannelStateKeys.Color]: string;
   [ChannelStateKeys.Colorize]: boolean;
   [ChannelStateKeys.ColorizeAlpha]: number;
@@ -308,10 +329,19 @@ type ViewerChannelStateParamTypes = {
   [ChannelStateKeys.KeepRange]: boolean;
 };
 
-// TODO update docs here
-export type ChannelStateSnapshot = { [K in ChannelStateKeys]?: ViewerChannelStateParamTypes[K] };
+/**
+ * A "snapshot" of a `ChannelState` or `ViewerChannelSetting`.
+ *
+ * This type is a variant representation of `ChannelState`/`ViewerChannelSetting`, specialized for saving/restoring
+ * channel state to/from some serialized representation. It has the following desirable properties for this purpose:
+ * - Its keys are *shorter*, for formats where that's desirable (mostly URL parameters)
+ * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
+ * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
+ */
+export type ChannelStateSnapshot = { [K in ChannelStateKeys]?: ChannelStateParamTypes[K] };
 
 /**
- * The serialized form of a ViewerChannelSetting, as a dictionary object.
+ * A `ChannelStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
+ * channel state to/from URL parameters.
  */
 export type ChannelStateStringified = { [K in ChannelStateKeys]?: string };
