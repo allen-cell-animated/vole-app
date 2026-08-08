@@ -212,7 +212,7 @@ export enum ChannelStateKeys {
    * - `x` is a numeric intensity value.
    * - `opacity` is a float in the range `[0, 1]`.
    * - `color` is a 6-digit hex color, e.g. `"ff0000"`. For the extremely common default case where the control point is
-   *   white (`ffffff`), `color` is shortened to just `"1"`.
+   *   white (`"ffffff"`), `color` is shortened to just `"1"`.
    *
    * Stringifies to a colon-separated list: `x1:opacity1:color1:x2:opacity2:color2:...`
    *
@@ -302,7 +302,7 @@ export type ViewerStateSnapshot = { [K in ViewerStateKeys]?: ViewerStateSnapshot
  */
 export type ViewerStateStringified = { [K in ViewerStateKeys]?: string };
 
-/** A `ControlPoint`, but with its color converted to a six-digit hex string. Used by `ChannelStateSnapshot`. */
+/** A `ControlPoint` where `color` is a six-digit hex string, or `"1"` for white. Used by `ChannelStateSnapshot`. */
 export type ControlPointSnapshot = {
   x: number;
   opacity: number;
