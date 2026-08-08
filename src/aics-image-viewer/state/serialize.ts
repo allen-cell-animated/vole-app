@@ -265,7 +265,7 @@ export const stringifyChannelStateSnapshot = (snapshot: ChannelStateSnapshot): C
  * (`ViewerChannelStateParams`).
  * @param channelSetting The channel state object to serialize.
  * @param removeDefaults Whether to remove properties that match the output of `getDefaultChannelState`.
- * @returns A `ViewerChannelSettingParams` object with the serialized parameters. Undefined values are removed.
+ * @returns A `ChannelStateStringified` object with the serialized parameters. `undefined` values are removed.
  */
 export const channelStateToStringSnapshot = (
   channelSetting: Partial<ChannelState>,
@@ -276,7 +276,7 @@ export const channelStateToStringSnapshot = (
  * Serializes a `ViewerState` object into a dictionary of URL parameters.
  * @param state The `ViewerState` to serialize.
  * @param removeDefaults If true, remove properties that match the output of `getDefaultViewerState`.
- * @returns A `ViewerStateParams` object with the serialized parameters. Undefined values are removed.
+ * @returns A `ViewerStateStringified` object with the serialized parameters. `undefined` values are removed.
  */
 export const viewerStateToStringSnapshot = (
   state: Partial<ViewerState>,
