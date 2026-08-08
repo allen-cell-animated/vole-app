@@ -99,7 +99,7 @@ export type CameraStateSnapshot = {
 export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
 
 /**
- * Property keys for the serialized variants of `ViewerState`. These keys are shorter, for contexts that need brevity
+ * Property keys for the "snapshot" variants of `ViewerState`. These keys are shorter, for contexts that need brevity
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
 export enum ViewerStateKeys {
@@ -171,7 +171,8 @@ export enum ViewerStateKeys {
 }
 
 /**
- * Mapped to types in `ViewerChannelStateParams`.
+ * Property keys for the "snapshot" variants of `ChannelState`/`ViewerChannelSettings`. These keys are shorter, for
+ * contexts that need brevity (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
 export enum ChannelStateKeys {
   /** Color, as a 6-digit hex color.  */
