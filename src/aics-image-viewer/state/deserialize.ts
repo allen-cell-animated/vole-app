@@ -1,4 +1,5 @@
 import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
+import { identity } from "lodash";
 
 import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
@@ -7,7 +8,14 @@ import { removeUndefinedProperties } from "../shared/utils/datatypes";
 import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import { CameraTransformKeys, ChannelStateKeys, ImageType, RenderMode, ViewerStateKeys, ViewMode } from "./types";
-import type { ChannelState, ChannelStateStringified, ViewerState, ViewerStateStringified } from "./types";
+import type {
+  ChannelState,
+  ChannelStateSnapshot,
+  ChannelStateStringified,
+  ControlPointSnapshot,
+  ViewerState,
+  ViewerStateStringified,
+} from "./types";
 
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
@@ -159,6 +167,8 @@ function parseStringBoolean(value: string | undefined): boolean | undefined {
   return value === "1";
 }
 
+const parseBoolean = (value: string): boolean | undefined => (value === "1" ? true : value === "0" ? false : undefined);
+
 export function parseHexColorAsColorArray(hexColor: string | undefined): ColorArray | undefined {
   if (!hexColor || !HEX_COLOR_STR_REGEX.test(hexColor)) {
     return undefined;
@@ -299,7 +309,7 @@ export function deserializeViewerState(params: ViewerStateStringified): Partial<
   return removeUndefinedProperties(result);
 }
 
-function parseControlPoints(controlPoints: string | undefined): ControlPoint[] | undefined {
+function parseControlPointSnapshots(controlPoints: string | undefined): ControlPointSnapshot[] | undefined {
   if (
     !(controlPoints && (CONTROL_POINTS_REGEX.test(controlPoints) || LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)))
   ) {
@@ -326,11 +336,23 @@ function parseControlPoints(controlPoints: string | undefined): ControlPoint[] |
     return {
       x: parseStringFloat(x, -Infinity, Infinity) ?? 0,
       opacity: parseStringFloat(opacity, 0, 1) ?? 1.0,
-      color: parseHexColorAsColorArray(color) ?? DEFAULT_CONTROL_POINT_COLOR,
+      color,
     };
   });
   // Sort control points by x value
   return newControlPoints.sort((a, b) => a.x - b.x);
+}
+
+function parseControlPoints(controlPoints: string | undefined): ControlPoint[] | undefined {
+  const result = parseControlPointSnapshots(controlPoints);
+  if (result === undefined) {
+    return undefined;
+  }
+  return result.map(({ x, opacity, color }) => ({
+    x,
+    opacity,
+    color: parseHexColorAsColorArray(color) ?? [...DEFAULT_CONTROL_POINT_COLOR],
+  }));
 }
 
 /**
@@ -474,3 +496,71 @@ export function deserializeChannelState(
 
   return removeUndefinedProperties(result);
 }
+
+/**
+ * Helper function for parsing all keys of a stringified object back to their proper types.
+ *
+ * Accepts an object with string keys, and a map of parsers that convert the keys to
+ */
+const parse = <T extends Record<string, unknown>>(
+  stringified: Partial<Record<keyof T, string>>,
+  parsers: { [K in keyof T]: (value: string) => T[K] | undefined }
+): Partial<T> => {
+  const result: Partial<T> = {};
+
+  for (const k of Object.keys(parsers)) {
+    const key = k as keyof T;
+    const parser = parsers[key];
+    const stringValue = stringified[key];
+
+    if (stringValue !== undefined) {
+      const parsed = parser(stringValue);
+      if (parsed !== undefined && !Number.isNaN(parsed)) {
+        result[key] = parsed;
+      }
+    }
+  }
+
+  return result;
+};
+
+const parsePair = (value: string): [string, string] | undefined => {
+  const split = value.split(":");
+  if (split.length !== 2) {
+    return undefined;
+  }
+  const [min, max] = split;
+  return [min.trim(), max.trim()];
+};
+
+const parseFloatPair = (value: string): [number, number] | undefined => {
+  const pair = parsePair(value);
+  if (pair === undefined) {
+    return undefined;
+  }
+  const [rawMin, rawMax] = pair;
+  const min = Number.parseFloat(rawMin);
+  const max = Number.parseFloat(rawMax);
+  if (Number.isNaN(min) || Number.isNaN(max)) {
+    return undefined;
+  }
+  return [min, max];
+};
+
+export const parseChannelStateSnapshot = (stringified: ChannelStateStringified): ChannelStateSnapshot =>
+  parse<ChannelStateSnapshot>(stringified, {
+    [ChannelStateKeys.Color]: identity,
+    [ChannelStateKeys.Colorize]: parseBoolean,
+    [ChannelStateKeys.ColorizeAlpha]: Number.parseFloat,
+    [ChannelStateKeys.IsosurfaceAlpha]: Number.parseFloat,
+    [ChannelStateKeys.Lut]: parsePair,
+    [ChannelStateKeys.ControlPoints]: parseControlPointSnapshots,
+    [ChannelStateKeys.ControlPointsLegacy]: parseControlPointSnapshots,
+    [ChannelStateKeys.Ramp]: parseFloatPair,
+    [ChannelStateKeys.RampLegacy]: parseFloatPair,
+    [ChannelStateKeys.ControlPointsEnabled]: parseBoolean,
+    [ChannelStateKeys.VolumeEnabled]: parseBoolean,
+    [ChannelStateKeys.SurfaceEnabled]: parseBoolean,
+    [ChannelStateKeys.IsosurfaceValue]: Number.parseFloat,
+    [ChannelStateKeys.KeepRange]: parseBoolean,
+  });
