@@ -23,6 +23,10 @@ const ENCODED_COLON_REGEX = /%3A/g;
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
+/**
+ * Serializes an object with `string` keys to a compact `string` representation, where keys and values are separated
+ * by colons (`:`) and entries are separated by commas (`,`).
+ */
 export function objectToKeyValueList(obj: Record<string, string | undefined>): string {
   const keyValuePairs: string[] = [];
   for (const key in obj) {
@@ -46,6 +50,13 @@ function colorArrayToHex(color: ColorArray): string {
 
 const xyzToArray = <T>({ x, y, z }: XYZ<T>): [T, T, T] => [x, y, z];
 
+/**
+ * Converts a `CameraState` to a `CameraStateSnapshot`, suitable for serialization.
+ * @param cameraState The camera state to serialize.
+ * @param removeDefaults Whether to remove default values.
+ * @param viewMode The current view mode. Default `ViewMode.threeD`.
+ * @returns The resulting `CameraStateSnapshot`, or `undefined` if all values are default.
+ */
 export function cameraStateToSnapshot(
   cameraState: Partial<CameraState> | undefined,
   removeDefaults: boolean,
@@ -87,6 +98,9 @@ function controlPointToSnapshot(controlPoint: ControlPoint): ControlPointSnapsho
   };
 }
 
+/**
+ * Converts a `ViewerState` to a `ViewerStateSnapshot`, suitable for serialization.
+ */
 export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefaults: boolean): ViewerStateSnapshot {
   let s = state;
   if (removeDefaults) {
@@ -145,6 +159,11 @@ export function channelStateToSnapshot(state: Partial<ChannelState>, removeDefau
   return removeUndefinedProperties(result);
 }
 
+/**
+ * Helper function for converting all keys of an object to `string` representations.
+ *
+ * Accepts an object of the input type, and a map of stringifiers for each of the input type's properties.
+ */
 const stringify = <T extends Record<string, unknown>>(
   record: Partial<T>,
   stringifiers: { [K in keyof T]: (value: T[K]) => string }
@@ -204,7 +223,10 @@ const VIEW_MODE_TO_VIEW_PARAM = {
   [ViewMode.yz]: "X",
 };
 
-/** Converts all keys of a `CameraStateSnapshot` to compact `string` representations. */
+/**
+ * Converts all keys of a `CameraStateSnapshot` to compact `string` representations,
+ * for serialization to `string` formats.
+ */
 export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): CameraStateStringified =>
   stringify(snapshot, {
     [CameraTransformKeys.Position]: stringifyNumberList,
@@ -214,7 +236,10 @@ export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): Cam
     [CameraTransformKeys.Fov]: formatFloat,
   });
 
-/** Converts all keys of a `ViewerStateSnapshot` to compact `string` representations. */
+/**
+ * Converts all keys of a `ViewerStateSnapshot` to compact `string` representations,
+ * for serialization to `string` formats.
+ */
 export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): ViewerStateStringified =>
   stringify(snapshot, {
     [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
@@ -241,7 +266,10 @@ export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): Vie
     [ViewerStateKeys.CameraState]: (value) => objectToKeyValueList(stringifyCameraStateSnapshot(value)),
   });
 
-/** Converts all keys of a `ChannelStateSnapshot` to compact `string` representations. */
+/**
+ * Converts all keys of a `ChannelStateSnapshot` to compact `string` representations,
+ * for serialization to `string` formats.
+ */
 export const stringifyChannelStateSnapshot = (snapshot: ChannelStateSnapshot): ChannelStateStringified =>
   stringify(snapshot, {
     [ChannelStateKeys.Color]: identity,
@@ -261,8 +289,9 @@ export const stringifyChannelStateSnapshot = (snapshot: ChannelStateSnapshot): C
   });
 
 /**
- * Serializes a single viewer channel setting into a dictionary of URL parameters
- * (`ViewerChannelStateParams`).
+ * Converts a single viewer channel setting into a `ChannelStateStringified`.
+ *
+ * This is equivalent to (and implemented by) applying `channelStateToSnapshot`, then `stringifyChannelStateSnapshot`.
  * @param channelSetting The channel state object to serialize.
  * @param removeDefaults Whether to remove properties that match the output of `getDefaultChannelState`.
  * @returns A `ChannelStateStringified` object with the serialized parameters. `undefined` values are removed.
@@ -273,7 +302,9 @@ export const channelStateToStringSnapshot = (
 ): ChannelStateStringified => stringifyChannelStateSnapshot(channelStateToSnapshot(channelSetting, removeDefaults));
 
 /**
- * Serializes a `ViewerState` object into a dictionary of URL parameters.
+ * Serializes a `ViewerState` object into a `ViewerStateStringified`.
+ *
+ * This is equivalent to (and implemented by) applying `viewerStateToSnapshot`, then `stringifyViewerStateSnapshot`.
  * @param state The `ViewerState` to serialize.
  * @param removeDefaults If true, remove properties that match the output of `getDefaultViewerState`.
  * @returns A `ViewerStateStringified` object with the serialized parameters. `undefined` values are removed.
