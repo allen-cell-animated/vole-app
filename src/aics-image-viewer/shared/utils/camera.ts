@@ -2,21 +2,6 @@ import type { CameraState, View3d } from "@aics/vole-core";
 import { mat3, quat, vec3 } from "gl-matrix";
 import React from "react";
 
-import { removeUndefinedProperties } from "./datatypes";
-
-export const cloneCameraState = (state: Partial<CameraState>): Partial<CameraState> => {
-  // mapped type ensures every key is accounted for, even though we're working with a `Partial`
-  const result: { [K in keyof Required<CameraState>]: CameraState[K] | undefined } = {
-    position: state.position && [...state.position],
-    target: state.target && [...state.target],
-    up: state.up && [...state.up],
-    fov: state.fov,
-    orthoScale: state.orthoScale,
-  };
-
-  return removeUndefinedProperties(result);
-};
-
 /**
  * Converts a `vec3` to a `[number, number, number]`.
  *
