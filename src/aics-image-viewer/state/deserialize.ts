@@ -26,8 +26,11 @@ const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
 const FLOAT_REGEX = /-?[0-9]*\.?[0-9]+/;
 
-/** Match colon-separated pairs of alphanumeric strings */
-const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
+/**
+ * A valid lut specifier for `ViewerChannelSettings` is a float optionally prefixed with one of `v`, `p`, or `m`, or
+ * the string `autoij`.
+ */
+const LUT_VALUE_REGEX = new RegExp(`^([vpm]?${FLOAT_REGEX.source}|autoij)$`);
 
 const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${DEFAULT_CONTROL_POINT_COLOR_CODE})`);
 
@@ -185,6 +188,23 @@ const validateRecord = (value: unknown): Record<string, unknown> | undefined => 
   return value as Record<string, unknown>;
 };
 
+const validateLutValue = (value: unknown): string | number | undefined => {
+  if (typeof value === "number") {
+    return clamp(value, 0, 255);
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const result = value.trim().toLowerCase();
+  if (LUT_VALUE_REGEX.test(result)) {
+    return result;
+  }
+
+  return undefined;
+};
+
 function snapshotToCameraState(snapshot: Untrusted<CameraStateSnapshot> | undefined): Partial<CameraState> | undefined {
   if (snapshot === undefined) {
     return undefined;
@@ -260,8 +280,7 @@ function parseControlPointSnapshots(controlPoints: string | undefined): ControlP
       color,
     };
   });
-  // Sort control points by x value
-  return newControlPoints.sort((a, b) => a.x - b.x);
+  return newControlPoints;
 }
 
 function snapshotToControlPoints(controlPoints: Untrusted<ControlPointSnapshot>[]): ControlPoint[] | undefined {
@@ -275,7 +294,8 @@ function snapshotToControlPoints(controlPoints: Untrusted<ControlPointSnapshot>[
     }
     result.push({ x, opacity, color });
   }
-  return result;
+  // Sort control points by x value
+  return result.sort((a, b) => a.x - b.x);
 }
 
 /**
@@ -369,7 +389,7 @@ export function snapshotToChannelState(
     color: parseHexColorAsColorArray(jsonState[ChannelStateKeys.Color]),
   };
 
-  const lutRaw = validateTuple<string | number, 2>(jsonState[ChannelStateKeys.Lut], 2, identity);
+  const lutRaw = validateTuple(jsonState[ChannelStateKeys.Lut], 2, validateLutValue);
   let pointsFromLut: ControlPoint[] | undefined = undefined;
   if (histogram !== undefined && lutRaw !== undefined) {
     const lut = parseLutSetting(histogram, lutRaw);
