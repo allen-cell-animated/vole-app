@@ -302,7 +302,7 @@ function parseControlPointSnapshots(controlPoints: string | undefined): ControlP
   return newControlPoints.sort((a, b) => a.x - b.x);
 }
 
-function snapshotToControlPoints(controlPoints: ControlPointSnapshot[]): ControlPoint[] | undefined {
+function snapshotToControlPoints(controlPoints: Untrusted<ControlPointSnapshot>[]): ControlPoint[] | undefined {
   const result: ControlPoint[] = [];
   for (const point of controlPoints) {
     const x = validateNumber(point.x);
@@ -324,7 +324,7 @@ function snapshotToControlPoints(controlPoints: ControlPointSnapshot[]): Control
  */
 export function snapshotToViewerChannelSetting(
   channelIndex: number,
-  jsonState: ChannelStateSnapshot
+  jsonState: Untrusted<ChannelStateSnapshot>
 ): ViewerChannelSetting {
   // Missing/undefined fields should be handled downstream.
   const result: ViewerChannelSetting = {
@@ -338,7 +338,7 @@ export function snapshotToViewerChannelSetting(
     colorizeAlpha: validateNumber(jsonState[ChannelStateKeys.ColorizeAlpha], 0, 1),
     controlPointsEnabled: validateBoolean(jsonState[ChannelStateKeys.ControlPointsEnabled]),
   };
-  if (jsonState[ChannelStateKeys.Color] && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
+  if (typeof jsonState[ChannelStateKeys.Color] === "string" && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
     result.color = jsonState[ChannelStateKeys.Color];
   }
 
@@ -359,12 +359,12 @@ export function snapshotToViewerChannelSetting(
     }
   }
 
-  if (jsonState[ChannelStateKeys.ControlPoints]) {
+  if (Array.isArray(jsonState[ChannelStateKeys.ControlPoints])) {
     const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPoints]);
     if (parsedResult) {
       result.intensity = { ...result.intensity, controlPoints: parsedResult };
     }
-  } else if (jsonState[ChannelStateKeys.ControlPointsLegacy]) {
+  } else if (Array.isArray(jsonState[ChannelStateKeys.ControlPointsLegacy])) {
     const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPointsLegacy]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
@@ -391,7 +391,10 @@ export function snapshotToViewerChannelSetting(
  * If `histogram` is left undefined, e.g. because the channel has not yet been
  * loaded, these params are ignored.
  */
-export function snapshotToChannelState(jsonState: ChannelStateSnapshot, histogram?: Histogram): Partial<ChannelState> {
+export function snapshotToChannelState(
+  jsonState: Untrusted<ChannelStateSnapshot>,
+  histogram?: Histogram
+): Partial<ChannelState> {
   const result: Partial<ChannelState> = {
     volumeEnabled: validateBoolean(jsonState[ChannelStateKeys.VolumeEnabled]),
     isosurfaceEnabled: validateBoolean(jsonState[ChannelStateKeys.SurfaceEnabled]),
@@ -431,12 +434,12 @@ export function snapshotToChannelState(jsonState: ChannelStateSnapshot, histogra
     result.ramp = controlPointsToRamp(pointsFromLut);
   }
 
-  if (jsonState[ChannelStateKeys.ControlPoints]) {
+  if (Array.isArray(jsonState[ChannelStateKeys.ControlPoints])) {
     const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPoints]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
-  } else if (jsonState[ChannelStateKeys.ControlPointsLegacy]) {
+  } else if (Array.isArray(jsonState[ChannelStateKeys.ControlPointsLegacy])) {
     if (histogram !== undefined) {
       const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPointsLegacy]);
       if (parsedResult) {
