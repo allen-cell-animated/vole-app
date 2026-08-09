@@ -1,11 +1,10 @@
 import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
-import { identity } from "lodash";
+import { clamp, identity } from "lodash";
 
 import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
 import { removeUndefinedProperties } from "../shared/utils/datatypes";
-import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import { CameraTransformKeys, ChannelStateKeys, ImageType, RenderMode, ViewerStateKeys, ViewMode } from "./types";
 import type {
@@ -265,6 +264,75 @@ function parseCameraState(cameraSettings: string | undefined): Partial<CameraSta
   return removeUndefinedProperties(result);
 }
 
+const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
+  return typeof value === "number" ? clamp(value, min, max) : undefined;
+};
+
+const validateInt = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
+  return typeof value === "number" ? clamp(Math.floor(value), min, max) : undefined;
+};
+
+const validateBoolean = (value: unknown): boolean | undefined => (typeof value === "boolean" ? value : undefined);
+
+const validateTuple = <N extends number, T>(
+  value: unknown,
+  length: N,
+  validator: (entry: unknown) => T | undefined
+): Tuple<T, N> | undefined => {
+  if (!Array.isArray(value) || value.length !== length) {
+    return undefined;
+  }
+
+  const result: T[] = [];
+  for (const v of value) {
+    const validated = validator(v);
+    if (validated === undefined) {
+      return undefined;
+    }
+    result.push(validated);
+  }
+
+  return result as Tuple<T, N>;
+};
+
+const validateXYZ = <T>(value: unknown, validator: (entry: unknown) => T | undefined): XYZ<T> | undefined => {
+  const tuple = validateTuple(value, 3, validator);
+
+  if (tuple === undefined) {
+    return undefined;
+  }
+
+  const [x, y, z] = tuple;
+  return { x, y, z };
+};
+
+const validateSortedPair = (value: unknown, min?: number, max?: number): [number, number] | undefined => {
+  const tuple = validateTuple(value, 2, (number) => validateNumber(value, min, max));
+
+  if (tuple === undefined) {
+    return undefined;
+  }
+
+  const [minVal, maxVal] = tuple;
+  return minVal > maxVal ? [maxVal, minVal] : [minVal, maxVal];
+};
+
+function snapshotToCameraState(snapshot: CameraStateSnapshot | undefined): Partial<CameraState> | undefined {
+  if (snapshot === undefined) {
+    return undefined;
+  }
+
+  const result: Partial<CameraState> = {
+    position: validateTuple(snapshot[CameraTransformKeys.Position], 3, validateNumber),
+    target: validateTuple(snapshot[CameraTransformKeys.Target], 3, validateNumber),
+    up: validateTuple(snapshot[CameraTransformKeys.Up], 3, validateNumber),
+    // Orthographic scales cannot be negative
+    orthoScale: validateNumber(snapshot[CameraTransformKeys.OrthoScale], 0),
+    fov: validateNumber(snapshot[CameraTransformKeys.Fov], 0, 180),
+  };
+  return removeUndefinedProperties(result);
+}
+
 export function deserializeViewerState(params: ViewerStateStringified): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
     maskAlpha: parseStringInt(params[ViewerStateKeys.Mask], 0, 100),
@@ -308,6 +376,34 @@ export function deserializeViewerState(params: ViewerStateStringified): Partial<
     }
     result.viewMode = viewParamToViewMode[view];
   }
+
+  return removeUndefinedProperties(result);
+}
+
+export function snapshotToViewerState(snapshot: ViewerStateSnapshot): Partial<ViewerState> {
+  const result: Partial<ViewerState> = {
+    maskAlpha: validateNumber(snapshot[ViewerStateKeys.Mask], 0, 100),
+    imageType: parseStringEnum(snapshot[ViewerStateKeys.Image], ImageType),
+    showAxes: validateBoolean(snapshot[ViewerStateKeys.Axes]),
+    showBoundingBox: validateBoolean(snapshot[ViewerStateKeys.BoundingBox]),
+    boundingBoxColor: parseHexColorAsColorArray(snapshot[ViewerStateKeys.BoundingBoxColor]),
+    backgroundColor: parseHexColorAsColorArray(snapshot[ViewerStateKeys.BackgroundColor]),
+    autorotate: validateBoolean(snapshot[ViewerStateKeys.Autorotate]),
+    brightness: validateNumber(snapshot[ViewerStateKeys.Brightness], 0, 100),
+    density: validateNumber(snapshot[ViewerStateKeys.Density], 0, 100),
+    levels: validateTuple(snapshot[ViewerStateKeys.Levels], 3, (value) => validateNumber(value, 0, 255)),
+    interpolationEnabled: validateBoolean(snapshot[ViewerStateKeys.Interpolation]),
+    region: validateXYZ(snapshot[ViewerStateKeys.Region], (value) => validateSortedPair(value, 0, 1)),
+    slice: validateXYZ(snapshot[ViewerStateKeys.Slice], (value) => validateNumber(value, 0, 1)),
+    time: validateInt(snapshot[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
+    scene: validateInt(snapshot[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
+    renderMode: parseStringEnum(snapshot[ViewerStateKeys.Mode], RenderMode),
+    singleChannelMode: validateBoolean(snapshot[ViewerStateKeys.SingleChannelMode]),
+    singleChannelIndex: validateInt(snapshot[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
+    useExactScaleLevel: validateBoolean(snapshot[ViewerStateKeys.UseExactScaleLevel]),
+    scaleLevelIndex: validateInt(snapshot[ViewerStateKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
+    cameraState: snapshotToCameraState(snapshot[ViewerStateKeys.CameraState]),
+  };
 
   return removeUndefinedProperties(result);
 }
@@ -527,9 +623,10 @@ const parse = <T extends Record<string, unknown>>(
   return result;
 };
 
+// adapted from https://github.com/microsoft/TypeScript/pull/40002
 type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : Tuple<T, N, [T, ...R]>;
 
-const tupleParser = <T = string, N extends number = 2>(
+const tupleParser = <N extends number, T = string>(
   length: N,
   delimiter = ":",
   itemParser: (item: string) => T | undefined = identity
