@@ -9,11 +9,14 @@ import { clamp } from "../shared/utils/math";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
 import { CameraTransformKeys, ChannelStateKeys, ImageType, RenderMode, ViewerStateKeys, ViewMode } from "./types";
 import type {
+  CameraStateSnapshot,
+  CameraStateStringified,
   ChannelState,
   ChannelStateSnapshot,
   ChannelStateStringified,
   ControlPointSnapshot,
   ViewerState,
+  ViewerStateSnapshot,
   ViewerStateStringified,
 } from "./types";
 
@@ -500,11 +503,11 @@ export function deserializeChannelState(
 /**
  * Helper function for parsing all keys of a stringified object back to their proper types.
  *
- * Accepts an object with string keys, and a map of parsers that convert the keys to
+ * Accepts an object with string keys, and a map of parsers that convert the keys to their proper types.
  */
 const parse = <T extends Record<string, unknown>>(
   stringified: Partial<Record<keyof T, string>>,
-  parsers: { [K in keyof T]: (value: string) => T[K] | undefined }
+  parsers: { [K in keyof Required<T>]: (value: string) => T[K] | undefined }
 ): Partial<T> => {
   const result: Partial<T> = {};
 
@@ -524,28 +527,76 @@ const parse = <T extends Record<string, unknown>>(
   return result;
 };
 
-const parsePair = (value: string): [string, string] | undefined => {
-  const split = value.split(":");
-  if (split.length !== 2) {
-    return undefined;
-  }
-  const [min, max] = split;
-  return [min.trim(), max.trim()];
+type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : Tuple<T, N, [T, ...R]>;
+
+const tupleParser = <T = string, N extends number = 2>(
+  length: N,
+  delimiter = ":",
+  itemParser: (item: string) => T | undefined = identity
+): ((stringified: string) => Tuple<T, N> | undefined) => {
+  return (stringified) => {
+    const split = stringified.split(delimiter);
+
+    if (split.length !== length) {
+      return undefined;
+    }
+
+    const result = [];
+    for (const value of split) {
+      const parsedValue = itemParser(value.trim());
+      if (parsedValue === undefined || Number.isNaN(parsedValue)) {
+        return undefined;
+      }
+
+      result.push(parsedValue);
+    }
+
+    return result as Tuple<T, N>;
+  };
 };
 
-const parseFloatPair = (value: string): [number, number] | undefined => {
-  const pair = parsePair(value);
-  if (pair === undefined) {
-    return undefined;
-  }
-  const [rawMin, rawMax] = pair;
-  const min = Number.parseFloat(rawMin);
-  const max = Number.parseFloat(rawMax);
-  if (Number.isNaN(min) || Number.isNaN(max)) {
-    return undefined;
-  }
-  return [min, max];
+export const parseCameraStateSnapshot = (stringified: CameraStateStringified): CameraStateSnapshot =>
+  parse<CameraStateSnapshot>(stringified, {
+    [CameraTransformKeys.Position]: tupleParser(3, ":", Number.parseFloat),
+    [CameraTransformKeys.Target]: tupleParser(3, ":", Number.parseFloat),
+    [CameraTransformKeys.Up]: tupleParser(3, ":", Number.parseFloat),
+    [CameraTransformKeys.OrthoScale]: Number.parseFloat,
+    [CameraTransformKeys.Fov]: Number.parseFloat,
+  });
+
+const VIEW_PARAM_TO_VIEW_MODE = {
+  "3d": ViewMode.threeD,
+  x: ViewMode.yz,
+  y: ViewMode.xz,
+  z: ViewMode.xy,
 };
+
+export const parseViewerStateSnapshot = (stringified: ViewerStateStringified): ViewerStateSnapshot =>
+  parse<ViewerStateSnapshot>(stringified, {
+    [ViewerStateKeys.View]: (value) =>
+      VIEW_PARAM_TO_VIEW_MODE[value.toLowerCase() as keyof typeof VIEW_PARAM_TO_VIEW_MODE],
+    [ViewerStateKeys.Mode]: (value) => parseStringEnum(value, RenderMode),
+    [ViewerStateKeys.Mask]: Number.parseFloat,
+    [ViewerStateKeys.Image]: (value) => parseStringEnum(value, ImageType),
+    [ViewerStateKeys.Axes]: parseBoolean,
+    [ViewerStateKeys.BoundingBox]: parseBoolean,
+    [ViewerStateKeys.BoundingBoxColor]: identity,
+    [ViewerStateKeys.BackgroundColor]: identity,
+    [ViewerStateKeys.Autorotate]: parseBoolean,
+    [ViewerStateKeys.Brightness]: Number.parseFloat,
+    [ViewerStateKeys.Density]: Number.parseFloat,
+    [ViewerStateKeys.Levels]: tupleParser(3, ",", Number.parseFloat),
+    [ViewerStateKeys.Interpolation]: parseBoolean,
+    [ViewerStateKeys.Region]: tupleParser(3, ",", tupleParser(2, ":", Number.parseFloat)),
+    [ViewerStateKeys.Slice]: tupleParser(3, ",", Number.parseFloat),
+    [ViewerStateKeys.Time]: Number.parseInt,
+    [ViewerStateKeys.Scene]: Number.parseInt,
+    [ViewerStateKeys.CameraState]: (cameraString) => parseCameraStateSnapshot(parseKeyValueList(cameraString)),
+    [ViewerStateKeys.SingleChannelMode]: parseBoolean,
+    [ViewerStateKeys.SingleChannelIndex]: Number.parseInt,
+    [ViewerStateKeys.UseExactScaleLevel]: parseBoolean,
+    [ViewerStateKeys.ScaleLevelIndex]: Number.parseInt,
+  });
 
 export const parseChannelStateSnapshot = (stringified: ChannelStateStringified): ChannelStateSnapshot =>
   parse<ChannelStateSnapshot>(stringified, {
@@ -553,11 +604,11 @@ export const parseChannelStateSnapshot = (stringified: ChannelStateStringified):
     [ChannelStateKeys.Colorize]: parseBoolean,
     [ChannelStateKeys.ColorizeAlpha]: Number.parseFloat,
     [ChannelStateKeys.IsosurfaceAlpha]: Number.parseFloat,
-    [ChannelStateKeys.Lut]: parsePair,
+    [ChannelStateKeys.Lut]: tupleParser(2),
     [ChannelStateKeys.ControlPoints]: parseControlPointSnapshots,
     [ChannelStateKeys.ControlPointsLegacy]: parseControlPointSnapshots,
-    [ChannelStateKeys.Ramp]: parseFloatPair,
-    [ChannelStateKeys.RampLegacy]: parseFloatPair,
+    [ChannelStateKeys.Ramp]: tupleParser(2, ":", Number.parseFloat),
+    [ChannelStateKeys.RampLegacy]: tupleParser(2, ":", Number.parseFloat),
     [ChannelStateKeys.ControlPointsEnabled]: parseBoolean,
     [ChannelStateKeys.VolumeEnabled]: parseBoolean,
     [ChannelStateKeys.SurfaceEnabled]: parseBoolean,
