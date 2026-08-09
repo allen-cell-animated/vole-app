@@ -86,44 +86,6 @@ export function parseKeyValueList(data: string): Record<string, string> {
 }
 
 /**
- * Parses a string to a float and clamps the result to the [min, max] range.
- * Returns `undefined` if the string is undefined or NaN.
- * @param value String to parse as a float. Will be parsed with `Number.parseFloat`.
- * @param min Minimum value, inclusive.
- * @param max Maximum value, inclusive.
- * @returns
- * - The parsed number, clamped to the [min, max] range.
- * - `undefined` if the string is undefined or NaN.
- */
-export function parseStringFloat(value: string | undefined, min: number, max: number): number | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  const number = Number.parseFloat(value);
-  return Number.isNaN(number) ? undefined : clamp(number, min, max);
-}
-
-/**
- * Parses a string to an integer and clamps the result to the [min, max] range.
- * @param value String to parse as a float. Assumes base 10, parses with `Number.parseInt(value, 10)`.
- * @param min Minimum value, inclusive.
- * @param max Maximum value, inclusive.
- * @returns
- * - The parsed number, clamped to the [min, max] range.
- * - `undefined` if the string is undefined or NaN.
- */
-export function parseStringInt(value: string | undefined, min: number, max: number): number | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  const number = Number.parseInt(value, 10);
-  if (Number.isNaN(number)) {
-    return undefined;
-  }
-  return clamp(number, min, max);
-}
-
-/**
  * Parses a string to an enum value; if the string is not in the enum, returns the default value.
  * @param value String to parse.
  * @param enumValues Enum. Cannot be a `const enum`, as these are removed at compile time.
@@ -160,12 +122,12 @@ export function parseHexColorAsColorArray(hexColor: unknown): ColorArray | undef
   return [r, g, b];
 }
 
-const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
-  return typeof value === "number" ? clamp(value, min, max) : undefined;
+export const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
+  return typeof value === "number" && !Number.isNaN(value) ? clamp(value, min, max) : undefined;
 };
 
-const validateInt = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
-  return typeof value === "number" ? clamp(Math.floor(value), min, max) : undefined;
+export const validateInt = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
+  return typeof value === "number" && !Number.isNaN(value) ? clamp(Math.trunc(value), min, max) : undefined;
 };
 
 const validateBoolean = (value: unknown): boolean | undefined => (typeof value === "boolean" ? value : undefined);
@@ -214,7 +176,7 @@ const validateSortedPair = (value: unknown, min?: number, max?: number): [number
 };
 
 const validateRecord = (value: unknown): Record<string, unknown> | undefined => {
-  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+  if (typeof value !== "object" || Array.isArray(value) || value === null) {
     return undefined;
   }
   if (!Object.keys(value as object).every((key) => typeof key === "string")) {
@@ -293,8 +255,8 @@ function parseControlPointSnapshots(controlPoints: string | undefined): ControlP
   const newControlPoints = controlPointStrings.map((cp) => {
     const [x, opacity, color] = cp;
     return {
-      x: parseStringFloat(x, -Infinity, Infinity) ?? 0,
-      opacity: parseStringFloat(opacity, 0, 1) ?? 1.0,
+      x: Number.parseFloat(x),
+      opacity: Number.parseFloat(opacity),
       color,
     };
   });

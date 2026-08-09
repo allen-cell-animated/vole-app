@@ -9,8 +9,8 @@ import {
   parseHexColorAsColorArray,
   parseKeyValueList,
   parseStringEnum,
-  parseStringFloat,
-  parseStringInt,
+  validateInt,
+  validateNumber,
 } from "../deserialize";
 import { viewerStateToStringSnapshot } from "../serialize";
 import { RenderMode, type ViewerState, ViewMode } from "../types";
@@ -155,58 +155,41 @@ describe("parseStringEnum", () => {
   });
 });
 
-describe("parseStringInt", () => {
-  it("parses int and undefined values", () => {
-    expect(parseStringInt("0", 0, 1000)).toEqual(0);
-    expect(parseStringInt("1", 0, 1000)).toEqual(1);
-    expect(parseStringInt("100", 0, 1000)).toEqual(100);
-    expect(parseStringInt("255", 0, 1000)).toEqual(255);
-    expect(parseStringInt("-1", -1000, 1000)).toEqual(-1);
-  });
-
+describe("validateInt", () => {
   it("returns undefined for undefined and NaN values", () => {
-    expect(parseStringInt("bad", -1000, 1000)).toEqual(undefined);
-    expect(parseStringInt("NaN", -1000, 1000)).toEqual(undefined);
-    expect(parseStringInt(undefined, -1000, 1000)).toEqual(undefined);
+    expect(validateInt("bad", -1000, 1000)).toEqual(undefined);
+    expect(validateInt(NaN, -1000, 1000)).toEqual(undefined);
+    expect(validateInt(undefined, -1000, 1000)).toEqual(undefined);
   });
 
   it("casts float values to integers", () => {
-    expect(parseStringInt("0.5", 0, 1000)).toEqual(0);
-    expect(parseStringInt("99.5", 0, 1000)).toEqual(99);
-    expect(parseStringInt("-10.5", -1000, 1000)).toEqual(-10);
+    expect(validateInt(0.5, 0, 1000)).toEqual(0);
+    expect(validateInt(99.5, 0, 1000)).toEqual(99);
+    expect(validateInt(-10.5, -1000, 1000)).toEqual(-10);
   });
 
   it("applies clamping", () => {
-    expect(parseStringInt("0", 0, 255)).toEqual(0);
-    expect(parseStringInt("-1", 0, 255)).toEqual(0);
-    expect(parseStringInt("128", 0, 255)).toEqual(128);
-    expect(parseStringInt("255", 0, 255)).toEqual(255);
-    expect(parseStringInt("256", 0, 255)).toEqual(255);
+    expect(validateInt(0, 0, 255)).toEqual(0);
+    expect(validateInt(-1, 0, 255)).toEqual(0);
+    expect(validateInt(128, 0, 255)).toEqual(128);
+    expect(validateInt(255, 0, 255)).toEqual(255);
+    expect(validateInt(256, 0, 255)).toEqual(255);
   });
 });
 
-describe("parseStringFloat", () => {
-  it("parses strings to float values", () => {
-    expect(parseStringFloat("0", -1000, 1000)).toEqual(0);
-    expect(parseStringFloat("1.0", -1000, 1000)).toEqual(1.0);
-    expect(parseStringFloat("0.5", -1000, 1000)).toEqual(0.5);
-    expect(parseStringFloat("128.5", -1000, 1000)).toEqual(128.5);
-    expect(parseStringFloat("495.344", -1000, 1000)).toEqual(495.344);
-    expect(parseStringFloat("-1", -1000, 1000)).toEqual(-1);
-  });
-
+describe("validateNumber", () => {
   it("returns undefined for NaN or undefined values", () => {
-    expect(parseStringFloat("bad", -1000, 1000)).toEqual(undefined);
-    expect(parseStringFloat("NaN", -1000, 1000)).toEqual(undefined);
-    expect(parseStringFloat(undefined, -1000, 1000)).toEqual(undefined);
+    expect(validateNumber("bad", -1000, 1000)).toEqual(undefined);
+    expect(validateNumber(NaN, -1000, 1000)).toEqual(undefined);
+    expect(validateNumber(undefined, -1000, 1000)).toEqual(undefined);
   });
 
   it("applies clamping", () => {
-    expect(parseStringFloat("0.5", 0, 1.0)).toEqual(0.5);
-    expect(parseStringFloat("1.0", 0, 1.0)).toEqual(1.0);
-    expect(parseStringFloat("1.1", 0, 1.0)).toEqual(1.0);
-    expect(parseStringFloat("0", 0, 1.0)).toEqual(0);
-    expect(parseStringFloat("-0.1", 0, 1.0)).toEqual(0);
+    expect(validateNumber(0.5, 0, 1.0)).toEqual(0.5);
+    expect(validateNumber(1.0, 0, 1.0)).toEqual(1.0);
+    expect(validateNumber(1.1, 0, 1.0)).toEqual(1.0);
+    expect(validateNumber(0, 0, 1.0)).toEqual(0);
+    expect(validateNumber(-0.1, 0, 1.0)).toEqual(0);
   });
 });
 
