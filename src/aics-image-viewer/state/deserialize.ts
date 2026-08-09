@@ -33,19 +33,6 @@ const LUT_REGEX = /^-?[a-z0-9.]*:[ ]*-?[a-z0-9.]*$/;
  */
 const RAMP_REGEX = new RegExp(`^${FLOAT_REGEX.source}:${FLOAT_REGEX.source}$`);
 
-/**
- * Match comma-separated triplet of numeric strings.
- */
-const SLICE_REGEX = new RegExp(`^${FLOAT_REGEX.source},${FLOAT_REGEX.source},${FLOAT_REGEX.source}$`);
-
-/**
- * Matches a sequence of three comma-separated min:max number pairs, representing
- * the x, y, and z axes.
- */
-const REGION_REGEX = new RegExp(
-  `^(${FLOAT_REGEX.source}:${FLOAT_REGEX.source})(,${FLOAT_REGEX.source}:${FLOAT_REGEX.source}){2}$`
-);
-
 const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${DEFAULT_CONTROL_POINT_COLOR_CODE})`);
 
 /** Represents control points specified by bin indices. */
@@ -187,83 +174,6 @@ export function parseHexColorAsColorArray(hexColor: string | undefined): ColorAr
   return [r, g, b];
 }
 
-function parseStringSlice(region: string | undefined): XYZ<number> | undefined {
-  if (!region || !SLICE_REGEX.test(region)) {
-    return undefined;
-  }
-  const [x, y, z] = region.split(",").map((val) => parseStringFloat(val, 0, 1));
-  if (x === undefined || y === undefined || z === undefined) {
-    return undefined;
-  }
-  return { x, y, z };
-}
-
-/**
- * Parses an array of three numbers from a string.
- * @param stringArr The string to parse. Should be three numbers separated by a separator.
- * @param options Optional parameters for parsing:
- * - `min`: Minimum value for each number. Default is negative infinity.
- * - `max`: Maximum value for each number. Default is positive infinity.
- * - `separator`: Separator between numbers. Default is `,`.
- * @returns
- * - undefined if the string is undefined or could not be parsed.
- * - An array of three numbers, clamped to the [min, max] range.
- */
-function parseThreeNumberArray(
-  stringArr: string | undefined,
-  options?: { min?: number; max?: number; separator?: string }
-): [number, number, number] | undefined {
-  if (!stringArr) {
-    return undefined;
-  }
-
-  const min = options?.min ?? Number.NEGATIVE_INFINITY;
-  const max = options?.max ?? Number.POSITIVE_INFINITY;
-  const separator = options?.separator ?? ",";
-
-  const [x, y, z] = stringArr.split(separator).map((val) => parseStringFloat(val, min, max));
-  if (x === undefined || y === undefined || z === undefined) {
-    return undefined;
-  }
-  return [x, y, z];
-}
-
-function parseStringRegion(region: string | undefined): XYZ<[number, number]> | undefined {
-  if (!region || !REGION_REGEX.test(region)) {
-    return undefined;
-  }
-  const [x, y, z] = region.split(",").map((axis): [number, number] | undefined => {
-    // each is a min/max pair
-    const [min, max] = axis.split(":").map((val) => parseStringFloat(val, 0, 1));
-    if (min === undefined || max === undefined) {
-      return undefined;
-    }
-    // Ensure sorted order
-    return min < max ? [min, max] : [max, min];
-  });
-  // Check for undefined values
-  if (x === undefined || y === undefined || z === undefined) {
-    return undefined;
-  }
-  return { x, y, z };
-}
-
-function parseCameraState(cameraSettings: string | undefined): Partial<CameraState> | undefined {
-  if (!cameraSettings) {
-    return undefined;
-  }
-  const parsedCameraSettings = parseKeyValueList(cameraSettings);
-  const result: Partial<CameraState> = {
-    position: parseThreeNumberArray(parsedCameraSettings[CameraTransformKeys.Position], { separator: ":" }),
-    target: parseThreeNumberArray(parsedCameraSettings[CameraTransformKeys.Target], { separator: ":" }),
-    up: parseThreeNumberArray(parsedCameraSettings[CameraTransformKeys.Up], { separator: ":" }),
-    // Orthographic scales cannot be negative
-    orthoScale: parseStringFloat(parsedCameraSettings[CameraTransformKeys.OrthoScale], 0, Infinity),
-    fov: parseStringFloat(parsedCameraSettings[CameraTransformKeys.Fov], 0, 180),
-  };
-  return removeUndefinedProperties(result);
-}
-
 const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
   return typeof value === "number" ? clamp(value, min, max) : undefined;
 };
@@ -307,7 +217,7 @@ const validateXYZ = <T>(value: unknown, validator: (entry: unknown) => T | undef
 };
 
 const validateSortedPair = (value: unknown, min?: number, max?: number): [number, number] | undefined => {
-  const tuple = validateTuple(value, 2, (number) => validateNumber(value, min, max));
+  const tuple = validateTuple(value, 2, (number) => validateNumber(number, min, max));
 
   if (tuple === undefined) {
     return undefined;
@@ -333,55 +243,9 @@ function snapshotToCameraState(snapshot: CameraStateSnapshot | undefined): Parti
   return removeUndefinedProperties(result);
 }
 
-export function deserializeViewerState(params: ViewerStateStringified): Partial<ViewerState> {
-  const result: Partial<ViewerState> = {
-    maskAlpha: parseStringInt(params[ViewerStateKeys.Mask], 0, 100),
-    imageType: parseStringEnum(params[ViewerStateKeys.Image], ImageType),
-    showAxes: parseStringBoolean(params[ViewerStateKeys.Axes]),
-    showBoundingBox: parseStringBoolean(params[ViewerStateKeys.BoundingBox]),
-    boundingBoxColor: parseHexColorAsColorArray(params[ViewerStateKeys.BoundingBoxColor]),
-    backgroundColor: parseHexColorAsColorArray(params[ViewerStateKeys.BackgroundColor]),
-    autorotate: parseStringBoolean(params[ViewerStateKeys.Autorotate]),
-    brightness: parseStringFloat(params[ViewerStateKeys.Brightness], 0, 100),
-    density: parseStringFloat(params[ViewerStateKeys.Density], 0, 100),
-    levels: parseThreeNumberArray(params[ViewerStateKeys.Levels], { min: 0, max: 255 }),
-    interpolationEnabled: parseStringBoolean(params[ViewerStateKeys.Interpolation]),
-    region: parseStringRegion(params[ViewerStateKeys.Region]),
-    slice: parseStringSlice(params[ViewerStateKeys.Slice]),
-    time: parseStringInt(params[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
-    scene: parseStringInt(params[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
-    renderMode: parseStringEnum(params[ViewerStateKeys.Mode], RenderMode),
-    singleChannelMode: parseStringBoolean(params[ViewerStateKeys.SingleChannelMode]),
-    singleChannelIndex: parseStringInt(params[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
-    useExactScaleLevel: parseStringBoolean(params[ViewerStateKeys.UseExactScaleLevel]),
-    scaleLevelIndex: parseStringInt(params[ViewerStateKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
-    cameraState: parseCameraState(params[ViewerStateKeys.CameraState]),
-  };
-
-  // Handle viewmode, since they use different mappings
-  // TODO: Allow lowercase
-  if (params.view) {
-    const viewParamToViewMode = {
-      "3D": ViewMode.threeD,
-      Z: ViewMode.xy,
-      Y: ViewMode.xz,
-      X: ViewMode.yz,
-    };
-    const allowedViews = Object.keys(viewParamToViewMode);
-    let view: "3D" | "X" | "Y" | "Z";
-    if (allowedViews.includes(params.view.toUpperCase())) {
-      view = params.view.toUpperCase() as "3D" | "X" | "Y" | "Z";
-    } else {
-      view = "3D";
-    }
-    result.viewMode = viewParamToViewMode[view];
-  }
-
-  return removeUndefinedProperties(result);
-}
-
 export function snapshotToViewerState(snapshot: ViewerStateSnapshot): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
+    viewMode: parseStringEnum(snapshot[ViewerStateKeys.View], ViewMode),
     maskAlpha: validateNumber(snapshot[ViewerStateKeys.Mask], 0, 100),
     imageType: parseStringEnum(snapshot[ViewerStateKeys.Image], ImageType),
     showAxes: validateBoolean(snapshot[ViewerStateKeys.Axes]),
@@ -712,3 +576,6 @@ export const parseChannelStateSnapshot = (stringified: ChannelStateStringified):
     [ChannelStateKeys.IsosurfaceValue]: Number.parseFloat,
     [ChannelStateKeys.KeepRange]: parseBoolean,
   });
+
+export const deserializeViewerState = (stringified: ViewerStateStringified): Partial<ViewerState> =>
+  snapshotToViewerState(parseViewerStateSnapshot(stringified));
