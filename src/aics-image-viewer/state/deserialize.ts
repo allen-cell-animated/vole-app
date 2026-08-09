@@ -19,6 +19,8 @@ import type {
   ViewerStateStringified,
 } from "./types";
 
+type Untrusted<T> = { [K in keyof T]?: unknown };
+
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
@@ -130,11 +132,11 @@ export function parseStringInt(value: string | undefined, min: number, max: numb
  * if the `defaultValue` is `undefined`.
  */
 export function parseStringEnum<E extends string, T extends E | undefined>(
-  value: string | undefined,
+  value: unknown,
   enumValues: Record<string | number | symbol, E>,
   defaultValue: T = undefined as T
 ): T {
-  if (value === undefined || !Object.values(enumValues).includes(value as E)) {
+  if (typeof value !== "string" || !Object.values(enumValues).includes(value as E)) {
     return defaultValue;
   }
   return value as T;
@@ -211,7 +213,17 @@ const validateSortedPair = (value: unknown, min?: number, max?: number): [number
   return minVal > maxVal ? [maxVal, minVal] : [minVal, maxVal];
 };
 
-function snapshotToCameraState(snapshot: CameraStateSnapshot | undefined): Partial<CameraState> | undefined {
+const validateRecord = (value: unknown): Record<string, unknown> | undefined => {
+  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+    return undefined;
+  }
+  if (!Object.keys(value as object).every((key) => typeof key === "string")) {
+    return undefined;
+  }
+  return value as Record<string, unknown>;
+};
+
+function snapshotToCameraState(snapshot: Untrusted<CameraStateSnapshot> | undefined): Partial<CameraState> | undefined {
   if (snapshot === undefined) {
     return undefined;
   }
@@ -227,7 +239,7 @@ function snapshotToCameraState(snapshot: CameraStateSnapshot | undefined): Parti
   return removeUndefinedProperties(result);
 }
 
-export function snapshotToViewerState(snapshot: ViewerStateSnapshot): Partial<ViewerState> {
+export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
     viewMode: parseStringEnum(snapshot[ViewerStateKeys.View], ViewMode),
     maskAlpha: validateNumber(snapshot[ViewerStateKeys.Mask], 0, 100),
@@ -250,7 +262,7 @@ export function snapshotToViewerState(snapshot: ViewerStateSnapshot): Partial<Vi
     singleChannelIndex: validateInt(snapshot[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
     useExactScaleLevel: validateBoolean(snapshot[ViewerStateKeys.UseExactScaleLevel]),
     scaleLevelIndex: validateInt(snapshot[ViewerStateKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
-    cameraState: snapshotToCameraState(snapshot[ViewerStateKeys.CameraState]),
+    cameraState: snapshotToCameraState(validateRecord(snapshot[ViewerStateKeys.CameraState])),
   };
 
   return removeUndefinedProperties(result);
