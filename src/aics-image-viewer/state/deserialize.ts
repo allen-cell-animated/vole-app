@@ -65,7 +65,7 @@ type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R 
 
 /**
  * Creates a function that parses a string into a list of exactly `length` items split by `delimiter`,
- * with each item further parsed by `itemParser`, or returns `undefined` if parsing failed.
+ * with each item further parsed by `itemParser`; or returns `undefined` if parsing failed.
  */
 const tupleParser = <N extends number, T = string>(
   length: N,
@@ -126,10 +126,14 @@ function parseControlPointSnapshots(controlPoints: string | undefined): ControlP
   return newControlPoints;
 }
 
+const parseBoolean = (value: string): boolean | undefined => (value === "1" ? true : value === "0" ? false : undefined);
+
 /**
- * Helper function for parsing all keys of a stringified object back to their proper types.
+ * Helper function for parsing all keys of a stringified object back to their
+ * proper types.
  *
- * Accepts an object with string keys, and a map of parsers that convert the keys to their proper types.
+ * Accepts an object with string keys, and a map of parsers that convert the
+ * keys to their proper types, or return `undefined` when parsing fails.
  */
 const destringify = <T extends Record<string, unknown>>(
   stringified: Partial<Record<keyof T, string>>,
@@ -274,8 +278,6 @@ export function parseStringEnum<E extends string, T extends E | undefined>(
   }
   return value as T;
 }
-
-const parseBoolean = (value: string): boolean | undefined => (value === "1" ? true : value === "0" ? false : undefined);
 
 export function parseHexColorAsColorArray(hexColor: unknown): ColorArray | undefined {
   if (typeof hexColor !== "string" || !HEX_COLOR_STR_REGEX.test(hexColor)) {
