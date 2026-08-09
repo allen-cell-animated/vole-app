@@ -2,13 +2,13 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   CONTROL_POINTS_REGEX,
-  deserializeChannelState,
-  deserializeViewerChannelSetting,
-  deserializeViewerState,
   LEGACY_CONTROL_POINTS_REGEX,
   parseHexColorAsColorArray,
   parseKeyValueList,
   parseStringEnum,
+  stringSnapshotToChannelState,
+  stringSnapshotToViewerChannelSetting,
+  stringSnapshotToViewerState,
   validateInt,
   validateNumber,
 } from "../deserialize";
@@ -203,16 +203,16 @@ describe("validateNumber", () => {
 // input into the viewer and support grouping/matching to multiple channels.
 // TODO: refactor these to all be the same state?
 
-describe("deserializeViewerChannelSetting", () => {
+describe("stringSnapshotToViewerChannelSetting", () => {
   it("returns default settings for empty objects", () => {
     const data = {};
-    const result = deserializeViewerChannelSetting(0, data);
+    const result = stringSnapshotToViewerChannelSetting(0, data);
     expect(result).toEqual(DEFAULT_TEST_VIEWER_CHANNEL_SETTING);
   });
 
   it("ignores unexpected keys", () => {
     const data = { badKey: "badValue", ven: "1", sen: "1" } as const;
-    const result = deserializeViewerChannelSetting(0, data);
+    const result = stringSnapshotToViewerChannelSetting(0, data);
     expect(result).toEqual({ ...DEFAULT_TEST_VIEWER_CHANNEL_SETTING, enabled: true, surfaceEnabled: true });
   });
 
@@ -227,7 +227,7 @@ describe("deserializeViewerChannelSetting", () => {
       isv: "128",
       lut: "0:255",
     } as const;
-    expect(deserializeViewerChannelSetting(0, data)).toEqual({
+    expect(stringSnapshotToViewerChannelSetting(0, data)).toEqual({
       match: 0,
       color: "FF0000",
       enabled: true,
@@ -255,7 +255,7 @@ describe("deserializeViewerChannelSetting", () => {
     ] as const;
     for (const [encodedLut, decodedLut] of luts) {
       const data = { lut: encodedLut } as const;
-      const result = deserializeViewerChannelSetting(0, data);
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.intensity?.lut).toEqual(decodedLut);
     }
   });
@@ -264,7 +264,7 @@ describe("deserializeViewerChannelSetting", () => {
     const luts = ["!:0", "0:9:93", "255", ""];
     for (const lut of luts) {
       const data = { lut } as const;
-      const result = deserializeViewerChannelSetting(0, data);
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.lut).toBeUndefined();
     }
   });
@@ -273,7 +273,7 @@ describe("deserializeViewerChannelSetting", () => {
     const colors = ["000000", "FFFFFF", "ffffff", "012345", "6789AB", "CDEF01", "abcdef"];
     for (const color of colors) {
       const data = { col: color } as const;
-      const result = deserializeViewerChannelSetting(0, data);
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.color).toEqual(color);
     }
   });
@@ -282,23 +282,23 @@ describe("deserializeViewerChannelSetting", () => {
     const badColors = ["f", "ff00", "red", "rgb(255,0,0)"];
     for (const color of badColors) {
       const data = { col: color } as const;
-      const result = deserializeViewerChannelSetting(0, data);
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.color).toBeUndefined();
     }
   });
 
   it("ignores bad float data", () => {
     const data = { cza: "NaN", isa: "bad", isv: "f8" } as const;
-    const result = deserializeViewerChannelSetting(0, data);
+    const result = stringSnapshotToViewerChannelSetting(0, data);
     expect(result.colorizeAlpha).toBeUndefined();
     expect(result.surfaceOpacity).toBeUndefined();
     expect(result.isovalue).toBeUndefined();
   });
 });
 
-describe("deserializeChannelState", () => {
+describe("stringSnapshotToViewerState", () => {
   it("returns an empty object for empty input", () => {
-    expect(deserializeChannelState({})).toEqual({});
+    expect(stringSnapshotToViewerState({})).toEqual({});
   });
 
   it("parses channel state fields", () => {
@@ -315,7 +315,7 @@ describe("deserializeChannelState", () => {
       pin: "1",
     } as const;
 
-    expect(deserializeChannelState(data)).toEqual({
+    expect(stringSnapshotToChannelState(data)).toEqual({
       color: [255, 0, 0],
       colorizeEnabled: true,
       colorizeAlpha: 0.5,
@@ -337,7 +337,7 @@ describe("deserializeChannelState", () => {
       rmp: "3:4",
     } as const;
 
-    expect(deserializeChannelState(data)).toEqual({
+    expect(stringSnapshotToChannelState(data)).toEqual({
       controlPoints: [
         { x: 0, opacity: 0, color: [0, 0, 0] },
         { x: 255, opacity: 1, color: [255, 255, 255] },
@@ -347,26 +347,26 @@ describe("deserializeChannelState", () => {
   });
 });
 
-describe("deserializeViewerState", () => {
+describe("stringSnapshotToViewerState", () => {
   it("returns an empty object for empty input", () => {
-    expect(deserializeViewerState({})).toEqual({});
+    expect(stringSnapshotToViewerState({})).toEqual({});
   });
 
   it("deserializes the default viewer settings", () => {
     const params = STRINGIFIED_DEFAULT_TEST_VIEWER_STATE;
-    expect(deserializeViewerState(params)).toEqual(DEFAULT_TEST_VIEWER_STATE);
+    expect(stringSnapshotToViewerState(params)).toEqual(DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("deserializes custom viewer settings", () => {
     const params = STRINGIFIED_CUSTOM_TEST_VIEWER_STATE;
-    expect(deserializeViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
+    expect(stringSnapshotToViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("handles all ViewMode values", () => {
     const viewModes = Object.values(ViewMode);
     for (const viewMode of viewModes) {
       const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, viewMode };
-      expect(deserializeViewerState(viewerStateToStringSnapshot(state, false)).viewMode).toEqual(viewMode);
+      expect(stringSnapshotToViewerState(viewerStateToStringSnapshot(state, false)).viewMode).toEqual(viewMode);
     }
   });
 
@@ -374,7 +374,7 @@ describe("deserializeViewerState", () => {
     const renderModes = Object.values(RenderMode);
     for (const renderMode of renderModes) {
       const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, renderMode };
-      expect(deserializeViewerState(viewerStateToStringSnapshot(state, false)).renderMode).toEqual(renderMode);
+      expect(stringSnapshotToViewerState(viewerStateToStringSnapshot(state, false)).renderMode).toEqual(renderMode);
     }
   });
 
@@ -387,7 +387,7 @@ describe("deserializeViewerState", () => {
       },
     };
     const serializedState = "pos:1:-1.4:45,up:0:1:0,fov:43.5";
-    expect(deserializeViewerState({ cam: serializedState })).toEqual(state);
+    expect(stringSnapshotToViewerState({ cam: serializedState })).toEqual(state);
   });
 });
 
@@ -401,21 +401,21 @@ const DEFAULT_CONTROL_POINTS = [
 
 describe("legacy control points", () => {
   it("parses comma-separated control points", () => {
-    const result = deserializeViewerChannelSetting(0, {
+    const result = stringSnapshotToViewerChannelSetting(0, {
       cps: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
     });
     expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
   });
 
   it("parses colon-separated control points", () => {
-    const result = deserializeViewerChannelSetting(0, {
+    const result = stringSnapshotToViewerChannelSetting(0, {
       cps: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
     });
     expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
   });
 
   it("replaces '1' color strings with default color #ffffff", () => {
-    const result = deserializeViewerChannelSetting(0, {
+    const result = stringSnapshotToViewerChannelSetting(0, {
       cps: "0:0:1:50:1:1",
     });
     expect(result.controlPoints).toEqual([
@@ -426,21 +426,21 @@ describe("legacy control points", () => {
 });
 
 it("parses comma-separated control points", () => {
-  const result = deserializeViewerChannelSetting(0, {
+  const result = stringSnapshotToViewerChannelSetting(0, {
     cpt: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
   });
   expect(result.intensity?.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
 });
 
 it("parses colon-separated control points", () => {
-  const result = deserializeViewerChannelSetting(0, {
+  const result = stringSnapshotToViewerChannelSetting(0, {
     cpt: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
   });
   expect(result.intensity?.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
 });
 
 it("replaces '1' color strings with default color #ffffff", () => {
-  const result = deserializeViewerChannelSetting(0, {
+  const result = stringSnapshotToViewerChannelSetting(0, {
     cpt: "0:0:1:50:1:1",
   });
   expect(result.intensity?.controlPoints).toEqual([
