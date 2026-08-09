@@ -489,8 +489,8 @@ type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R 
 
 const tupleParser = <N extends number, T = string>(
   length: N,
-  delimiter = ":",
-  itemParser: (item: string) => T | undefined = identity
+  itemParser: (item: string) => T | undefined = identity,
+  delimiter = ":"
 ): ((stringified: string) => Tuple<T, N> | undefined) => {
   return (stringified) => {
     const split = stringified.split(delimiter);
@@ -515,9 +515,9 @@ const tupleParser = <N extends number, T = string>(
 
 export const parseCameraStateSnapshot = (stringified: CameraStateStringified): CameraStateSnapshot =>
   parse<CameraStateSnapshot>(stringified, {
-    [CameraTransformKeys.Position]: tupleParser(3, ":", Number.parseFloat),
-    [CameraTransformKeys.Target]: tupleParser(3, ":", Number.parseFloat),
-    [CameraTransformKeys.Up]: tupleParser(3, ":", Number.parseFloat),
+    [CameraTransformKeys.Position]: tupleParser(3, Number.parseFloat),
+    [CameraTransformKeys.Target]: tupleParser(3, Number.parseFloat),
+    [CameraTransformKeys.Up]: tupleParser(3, Number.parseFloat),
     [CameraTransformKeys.OrthoScale]: Number.parseFloat,
     [CameraTransformKeys.Fov]: Number.parseFloat,
   });
@@ -543,10 +543,10 @@ export const parseViewerStateSnapshot = (stringified: ViewerStateStringified): V
     [ViewerStateKeys.Autorotate]: parseBoolean,
     [ViewerStateKeys.Brightness]: Number.parseFloat,
     [ViewerStateKeys.Density]: Number.parseFloat,
-    [ViewerStateKeys.Levels]: tupleParser(3, ",", Number.parseFloat),
+    [ViewerStateKeys.Levels]: tupleParser(3, Number.parseFloat, ","),
     [ViewerStateKeys.Interpolation]: parseBoolean,
-    [ViewerStateKeys.Region]: tupleParser(3, ",", tupleParser(2, ":", Number.parseFloat)),
-    [ViewerStateKeys.Slice]: tupleParser(3, ",", Number.parseFloat),
+    [ViewerStateKeys.Region]: tupleParser(3, tupleParser(2, Number.parseFloat), ","),
+    [ViewerStateKeys.Slice]: tupleParser(3, Number.parseFloat, ","),
     [ViewerStateKeys.Time]: Number.parseInt,
     [ViewerStateKeys.Scene]: Number.parseInt,
     [ViewerStateKeys.CameraState]: (cameraString) => parseCameraStateSnapshot(parseKeyValueList(cameraString)),
@@ -565,8 +565,8 @@ export const parseChannelStateSnapshot = (stringified: ChannelStateStringified):
     [ChannelStateKeys.Lut]: tupleParser(2),
     [ChannelStateKeys.ControlPoints]: parseControlPointSnapshots,
     [ChannelStateKeys.ControlPointsLegacy]: parseControlPointSnapshots,
-    [ChannelStateKeys.Ramp]: tupleParser(2, ":", Number.parseFloat),
-    [ChannelStateKeys.RampLegacy]: tupleParser(2, ":", Number.parseFloat),
+    [ChannelStateKeys.Ramp]: tupleParser(2, Number.parseFloat),
+    [ChannelStateKeys.RampLegacy]: tupleParser(2, Number.parseFloat),
     [ChannelStateKeys.ControlPointsEnabled]: parseBoolean,
     [ChannelStateKeys.VolumeEnabled]: parseBoolean,
     [ChannelStateKeys.SurfaceEnabled]: parseBoolean,
