@@ -1,7 +1,11 @@
 import type { FirebaseFirestore } from "@firebase/firestore-types";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
-import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueList } from "../../state/deserialize";
+import {
+  parseKeyValueList,
+  stringSnapshotToViewerChannelSetting,
+  stringSnapshotToViewerState,
+} from "../../state/deserialize";
 import { channelStateToStringSnapshot, objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
 import { ViewerStateKeys } from "../../state/types";
@@ -211,7 +215,10 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
       const channelIndex = Number.parseInt(key.slice(1), 10);
       try {
         const channelData = parseKeyValueList(params[key]!);
-        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ChannelStateStringified);
+        const channelSetting = stringSnapshotToViewerChannelSetting(
+          channelIndex,
+          channelData as ChannelStateStringified
+        );
         channelIndexToSettings.set(channelIndex, channelSetting);
       } catch (e) {
         console.warn(
@@ -345,7 +352,7 @@ export async function parseViewerUrlParams(
   const params = getAllowedParams(searchParams);
   let args: Partial<AppProps> = {};
   // Parse viewer state
-  const viewerSettings: Partial<ViewerState> = deserializeViewerState(params);
+  const viewerSettings: Partial<ViewerState> = stringSnapshotToViewerState(params);
 
   // Parse channel settings. If per-channel settings are provided, they will override
   // the old `ch` query parameter.

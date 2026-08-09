@@ -19,8 +19,6 @@ import type {
   ViewerStateStringified,
 } from "./types";
 
-type Untrusted<T> = { [K in keyof T]?: unknown };
-
 const DEFAULT_CONTROL_POINT_COLOR: [number, number, number] = [255, 255, 255];
 const DEFAULT_CONTROL_POINT_COLOR_CODE = "1";
 
@@ -59,6 +57,176 @@ export const LEGACY_CONTROL_POINTS_REGEX = new RegExp(
  *   with `1` to represent white (`ffffff`).
  */
 export const CONTROL_POINTS_REGEX = new RegExp(`^${CONTROL_POINT_REGEX.source}(:${CONTROL_POINT_REGEX.source})*$`);
+
+// adapted from https://github.com/microsoft/TypeScript/pull/40002
+type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : Tuple<T, N, [T, ...R]>;
+
+// MARK: Destringifiers
+
+/**
+ * Creates a function that parses a string into a list of exactly `length` items split by `delimiter`,
+ * with each item further parsed by `itemParser`, or returns `undefined` if parsing failed.
+ */
+const tupleParser = <N extends number, T = string>(
+  length: N,
+  itemParser: (item: string) => T | undefined = identity,
+  delimiter = ":"
+): ((stringified: string) => Tuple<T, N> | undefined) => {
+  return (stringified) => {
+    const split = stringified.split(delimiter);
+
+    if (split.length !== length) {
+      return undefined;
+    }
+
+    const result = [];
+    for (const value of split) {
+      const parsedValue = itemParser(value.trim());
+      if (parsedValue === undefined || Number.isNaN(parsedValue)) {
+        return undefined;
+      }
+
+      result.push(parsedValue);
+    }
+
+    return result as Tuple<T, N>;
+  };
+};
+
+function parseControlPointSnapshots(controlPoints: string | undefined): ControlPointSnapshot[] | undefined {
+  if (
+    !(controlPoints && (CONTROL_POINTS_REGEX.test(controlPoints) || LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)))
+  ) {
+    return undefined;
+  }
+
+  // Parse raw control point data from the string into an array of [x, opacity, color] triplets.
+  let controlPointStrings: string[][];
+  if (LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)) {
+    // Legacy format uses commas to separate control points.
+    controlPointStrings = controlPoints.split(",").map((cp) => cp.split(":"));
+  } else {
+    // New format is all colon-separated, where every three elements represent a control point.
+    controlPointStrings = controlPoints.split(":").reduce((acc, _val, i, array) => {
+      if ((i + 1) % 3 === 0) {
+        acc.push([array[i - 2], array[i - 1], array[i]]);
+      }
+      return acc;
+    }, [] as string[][]);
+  }
+
+  const newControlPoints = controlPointStrings.map((cp) => {
+    const [x, opacity, color] = cp;
+    return {
+      x: Number.parseFloat(x),
+      opacity: Number.parseFloat(opacity),
+      color,
+    };
+  });
+  return newControlPoints;
+}
+
+/**
+ * Helper function for parsing all keys of a stringified object back to their proper types.
+ *
+ * Accepts an object with string keys, and a map of parsers that convert the keys to their proper types.
+ */
+const destringify = <T extends Record<string, unknown>>(
+  stringified: Partial<Record<keyof T, string>>,
+  parsers: { [K in keyof Required<T>]: (value: string) => T[K] | undefined }
+): Partial<T> => {
+  const result: Partial<T> = {};
+
+  for (const k of Object.keys(parsers)) {
+    const key = k as keyof T;
+    const parser = parsers[key];
+    const stringValue = stringified[key];
+
+    if (stringValue !== undefined) {
+      const parsed = parser(stringValue);
+      if (parsed !== undefined && !Number.isNaN(parsed)) {
+        result[key] = parsed;
+      }
+    }
+  }
+
+  return result;
+};
+
+/**
+ * Converts a `CameraStateStringified` into a `CameraStateSnapshot` by parsing each key from its stringified
+ * representation to its type in `CameraStateSnapshot`.
+ */
+export const destringifyCameraStateSnapshot = (stringified: CameraStateStringified): CameraStateSnapshot =>
+  destringify<CameraStateSnapshot>(stringified, {
+    [CameraTransformKeys.Position]: tupleParser(3, Number.parseFloat),
+    [CameraTransformKeys.Target]: tupleParser(3, Number.parseFloat),
+    [CameraTransformKeys.Up]: tupleParser(3, Number.parseFloat),
+    [CameraTransformKeys.OrthoScale]: Number.parseFloat,
+    [CameraTransformKeys.Fov]: Number.parseFloat,
+  });
+
+const VIEW_PARAM_TO_VIEW_MODE = {
+  "3d": ViewMode.threeD,
+  x: ViewMode.yz,
+  y: ViewMode.xz,
+  z: ViewMode.xy,
+};
+
+/**
+ * Converts a `ViewerStateStringified` into a `ViewerStateSnapshot` by parsing each key from its stringified
+ * representation to its type in `ViewerStateSnapshot`.
+ */
+export const destringifyViewerStateSnapshot = (stringified: ViewerStateStringified): ViewerStateSnapshot =>
+  destringify<ViewerStateSnapshot>(stringified, {
+    [ViewerStateKeys.View]: (value) =>
+      VIEW_PARAM_TO_VIEW_MODE[value.toLowerCase() as keyof typeof VIEW_PARAM_TO_VIEW_MODE],
+    [ViewerStateKeys.Mode]: (value) => parseStringEnum(value, RenderMode),
+    [ViewerStateKeys.Mask]: Number.parseFloat,
+    [ViewerStateKeys.Image]: (value) => parseStringEnum(value, ImageType),
+    [ViewerStateKeys.Axes]: parseBoolean,
+    [ViewerStateKeys.BoundingBox]: parseBoolean,
+    [ViewerStateKeys.BoundingBoxColor]: identity,
+    [ViewerStateKeys.BackgroundColor]: identity,
+    [ViewerStateKeys.Autorotate]: parseBoolean,
+    [ViewerStateKeys.Brightness]: Number.parseFloat,
+    [ViewerStateKeys.Density]: Number.parseFloat,
+    [ViewerStateKeys.Levels]: tupleParser(3, Number.parseFloat, ","),
+    [ViewerStateKeys.Interpolation]: parseBoolean,
+    [ViewerStateKeys.Region]: tupleParser(3, tupleParser(2, Number.parseFloat), ","),
+    [ViewerStateKeys.Slice]: tupleParser(3, Number.parseFloat, ","),
+    [ViewerStateKeys.Time]: Number.parseInt,
+    [ViewerStateKeys.Scene]: Number.parseInt,
+    [ViewerStateKeys.CameraState]: (cameraString) => destringifyCameraStateSnapshot(parseKeyValueList(cameraString)),
+    [ViewerStateKeys.SingleChannelMode]: parseBoolean,
+    [ViewerStateKeys.SingleChannelIndex]: Number.parseInt,
+    [ViewerStateKeys.UseExactScaleLevel]: parseBoolean,
+    [ViewerStateKeys.ScaleLevelIndex]: Number.parseInt,
+  });
+
+/**
+ * Converts a `ChannelStateStringified` into a `ChannelStateSnapshot` by parsing each key from its stringified
+ * representation to its type in `ChannelStateSnapshot`.
+ */
+export const destringifyChannelStateSnapshot = (stringified: ChannelStateStringified): ChannelStateSnapshot =>
+  destringify<ChannelStateSnapshot>(stringified, {
+    [ChannelStateKeys.Color]: identity,
+    [ChannelStateKeys.Colorize]: parseBoolean,
+    [ChannelStateKeys.ColorizeAlpha]: Number.parseFloat,
+    [ChannelStateKeys.IsosurfaceAlpha]: Number.parseFloat,
+    [ChannelStateKeys.Lut]: tupleParser(2),
+    [ChannelStateKeys.ControlPoints]: parseControlPointSnapshots,
+    [ChannelStateKeys.ControlPointsLegacy]: parseControlPointSnapshots,
+    [ChannelStateKeys.Ramp]: tupleParser(2, Number.parseFloat),
+    [ChannelStateKeys.RampLegacy]: tupleParser(2, Number.parseFloat),
+    [ChannelStateKeys.ControlPointsEnabled]: parseBoolean,
+    [ChannelStateKeys.VolumeEnabled]: parseBoolean,
+    [ChannelStateKeys.SurfaceEnabled]: parseBoolean,
+    [ChannelStateKeys.IsosurfaceValue]: Number.parseFloat,
+    [ChannelStateKeys.KeepRange]: parseBoolean,
+  });
+
+// MARK: Parsing Helpers
 
 /**
  * Parse a string list of comma-separated key:value pairs into
@@ -125,16 +293,20 @@ export function parseHexColorAsColorArray(hexColor: unknown): ColorArray | undef
   return [r, g, b];
 }
 
+/** Verifies that a value is a number; if it is, clamps it between `min` and `max`. */
 export const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
   return typeof value === "number" && !Number.isNaN(value) ? clamp(value, min, max) : undefined;
 };
 
+/** Verifies that a value is a number; if it is, truncates it to an integer and clamps it between `min` and `max`. */
 export const validateInt = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
   return typeof value === "number" && !Number.isNaN(value) ? clamp(Math.trunc(value), min, max) : undefined;
 };
 
+/** Verifies that a value is a `boolean`. */
 const validateBoolean = (value: unknown): boolean | undefined => (typeof value === "boolean" ? value : undefined);
 
+/** Verifies that `value` is a list of length `length` and that all its items are valid per `validator`. */
 const validateTuple = <T, N extends number>(
   value: unknown,
   length: N,
@@ -156,6 +328,10 @@ const validateTuple = <T, N extends number>(
   return result as Tuple<T, N>;
 };
 
+/**
+ * Verifies that `value` is a three-element array whose items are valid per `validator`;
+ * if it is, converts it to an object with the form `{ x, y, z }`
+ */
 const validateXYZ = <T>(value: unknown, validator: (entry: unknown) => T | undefined): XYZ<T> | undefined => {
   const tuple = validateTuple(value, 3, validator);
 
@@ -167,6 +343,10 @@ const validateXYZ = <T>(value: unknown, validator: (entry: unknown) => T | undef
   return { x, y, z };
 };
 
+/**
+ * Verifies that `value` is a two-element array of numbers, clamps both numbers between `min` and `max`,
+ * then sorts the numbers.
+ */
 const validateSortedPair = (value: unknown, min?: number, max?: number): [number, number] | undefined => {
   const tuple = validateTuple(value, 2, (number) => validateNumber(number, min, max));
 
@@ -178,6 +358,7 @@ const validateSortedPair = (value: unknown, min?: number, max?: number): [number
   return minVal > maxVal ? [maxVal, minVal] : [minVal, maxVal];
 };
 
+/** Verifies that `value` is an object with `string` keys. */
 const validateRecord = (value: unknown): Record<string, unknown> | undefined => {
   if (typeof value !== "object" || Array.isArray(value) || value === null) {
     return undefined;
@@ -188,6 +369,7 @@ const validateRecord = (value: unknown): Record<string, unknown> | undefined => 
   return value as Record<string, unknown>;
 };
 
+/** Verifies that `value` is a valid lut specifier per `ViewerChannelSettings`. */
 const validateLutValue = (value: unknown): string | number | undefined => {
   if (typeof value === "number") {
     return clamp(value, 0, 255);
@@ -205,6 +387,11 @@ const validateLutValue = (value: unknown): string | number | undefined => {
   return undefined;
 };
 
+// MARK: Parsers
+
+type Untrusted<T> = { [K in keyof T]?: unknown };
+
+/** Parses a `CameraStateSnapshot` to a `CameraState`. */
 function snapshotToCameraState(snapshot: Untrusted<CameraStateSnapshot> | undefined): Partial<CameraState> | undefined {
   if (snapshot === undefined) {
     return undefined;
@@ -221,6 +408,7 @@ function snapshotToCameraState(snapshot: Untrusted<CameraStateSnapshot> | undefi
   return removeUndefinedProperties(result);
 }
 
+/** Parses a `ViewerStateSnapshot` to a `ViewerState`. */
 export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
     viewMode: parseStringEnum(snapshot[ViewerStateKeys.View], ViewMode),
@@ -250,39 +438,7 @@ export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>):
   return removeUndefinedProperties(result);
 }
 
-function parseControlPointSnapshots(controlPoints: string | undefined): ControlPointSnapshot[] | undefined {
-  if (
-    !(controlPoints && (CONTROL_POINTS_REGEX.test(controlPoints) || LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)))
-  ) {
-    return undefined;
-  }
-
-  // Parse raw control point data from the string into an array of [x, opacity, color] triplets.
-  let controlPointStrings: string[][];
-  if (LEGACY_CONTROL_POINTS_REGEX.test(controlPoints)) {
-    // Legacy format uses commas to separate control points.
-    controlPointStrings = controlPoints.split(",").map((cp) => cp.split(":"));
-  } else {
-    // New format is all colon-separated, where every three elements represent a control point.
-    controlPointStrings = controlPoints.split(":").reduce((acc, _val, i, array) => {
-      if ((i + 1) % 3 === 0) {
-        acc.push([array[i - 2], array[i - 1], array[i]]);
-      }
-      return acc;
-    }, [] as string[][]);
-  }
-
-  const newControlPoints = controlPointStrings.map((cp) => {
-    const [x, opacity, color] = cp;
-    return {
-      x: Number.parseFloat(x),
-      opacity: Number.parseFloat(opacity),
-      color,
-    };
-  });
-  return newControlPoints;
-}
-
+/** Attempts to parse an array of `ControlPointSnapshot`s to an array of `ControlPoint`s. */
 function snapshotToControlPoints(controlPoints: Untrusted<ControlPointSnapshot>[]): ControlPoint[] | undefined {
   const result: ControlPoint[] = [];
   for (const point of controlPoints) {
@@ -299,10 +455,10 @@ function snapshotToControlPoints(controlPoints: Untrusted<ControlPointSnapshot>[
 }
 
 /**
- * Parses a ViewerChannelSetting from a JSON object.
+ * Parses a `ChannelStateSnapshot` to a `ViewerChannelSetting`.
  * @param channelIndex Index of the channel, to be turned into a `match` value.
- * @param jsonState The serialized ViewerChannelSetting to parse, as an object.
- * @returns A ViewerChannelSetting object.
+ * @param jsonState The serialized `ViewerChannelSetting` to parse, as an object.
+ * @returns A `ViewerChannelSetting` object.
  */
 export function snapshotToViewerChannelSetting(
   channelIndex: number,
@@ -356,10 +512,10 @@ export function snapshotToViewerChannelSetting(
 }
 
 /**
- * Parses a `ViewerChannelStateParams` object into a partial `ChannelState`.
+ * Parses a `ChannelStateSnapshot` object into a partial `ChannelState`.
  *
- * This is used to convert raw URL params into internal channel state fields,
- * leaving absent or invalid values undefined.
+ * This is used to convert from serialized formats (URL params, JSON) into
+ * internal channel state fields, leaving absent or invalid values undefined.
  *
  * This function optionally accepts the target channel's `Histogram`. This
  * argument is required to parse the following params correctly:
@@ -440,131 +596,51 @@ export function snapshotToChannelState(
 }
 
 /**
- * Helper function for parsing all keys of a stringified object back to their proper types.
+ * Parses a stringified viewer state snapshot (`ViewerStateStringified`) to a
+ * `ViewerState`.
  *
- * Accepts an object with string keys, and a map of parsers that convert the keys to their proper types.
+ * This is equivalent to (and implemented by) calling
+ * `destringifyViewerStateSnapshot`, then `snapshotToViewerState`.
  */
-const parse = <T extends Record<string, unknown>>(
-  stringified: Partial<Record<keyof T, string>>,
-  parsers: { [K in keyof Required<T>]: (value: string) => T[K] | undefined }
-): Partial<T> => {
-  const result: Partial<T> = {};
+export const stringSnapshotToViewerState = (stringified: ViewerStateStringified): Partial<ViewerState> =>
+  snapshotToViewerState(destringifyViewerStateSnapshot(stringified));
 
-  for (const k of Object.keys(parsers)) {
-    const key = k as keyof T;
-    const parser = parsers[key];
-    const stringValue = stringified[key];
-
-    if (stringValue !== undefined) {
-      const parsed = parser(stringValue);
-      if (parsed !== undefined && !Number.isNaN(parsed)) {
-        result[key] = parsed;
-      }
-    }
-  }
-
-  return result;
-};
-
-// adapted from https://github.com/microsoft/TypeScript/pull/40002
-type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : Tuple<T, N, [T, ...R]>;
-
-const tupleParser = <N extends number, T = string>(
-  length: N,
-  itemParser: (item: string) => T | undefined = identity,
-  delimiter = ":"
-): ((stringified: string) => Tuple<T, N> | undefined) => {
-  return (stringified) => {
-    const split = stringified.split(delimiter);
-
-    if (split.length !== length) {
-      return undefined;
-    }
-
-    const result = [];
-    for (const value of split) {
-      const parsedValue = itemParser(value.trim());
-      if (parsedValue === undefined || Number.isNaN(parsedValue)) {
-        return undefined;
-      }
-
-      result.push(parsedValue);
-    }
-
-    return result as Tuple<T, N>;
-  };
-};
-
-export const parseCameraStateSnapshot = (stringified: CameraStateStringified): CameraStateSnapshot =>
-  parse<CameraStateSnapshot>(stringified, {
-    [CameraTransformKeys.Position]: tupleParser(3, Number.parseFloat),
-    [CameraTransformKeys.Target]: tupleParser(3, Number.parseFloat),
-    [CameraTransformKeys.Up]: tupleParser(3, Number.parseFloat),
-    [CameraTransformKeys.OrthoScale]: Number.parseFloat,
-    [CameraTransformKeys.Fov]: Number.parseFloat,
-  });
-
-const VIEW_PARAM_TO_VIEW_MODE = {
-  "3d": ViewMode.threeD,
-  x: ViewMode.yz,
-  y: ViewMode.xz,
-  z: ViewMode.xy,
-};
-
-export const parseViewerStateSnapshot = (stringified: ViewerStateStringified): ViewerStateSnapshot =>
-  parse<ViewerStateSnapshot>(stringified, {
-    [ViewerStateKeys.View]: (value) =>
-      VIEW_PARAM_TO_VIEW_MODE[value.toLowerCase() as keyof typeof VIEW_PARAM_TO_VIEW_MODE],
-    [ViewerStateKeys.Mode]: (value) => parseStringEnum(value, RenderMode),
-    [ViewerStateKeys.Mask]: Number.parseFloat,
-    [ViewerStateKeys.Image]: (value) => parseStringEnum(value, ImageType),
-    [ViewerStateKeys.Axes]: parseBoolean,
-    [ViewerStateKeys.BoundingBox]: parseBoolean,
-    [ViewerStateKeys.BoundingBoxColor]: identity,
-    [ViewerStateKeys.BackgroundColor]: identity,
-    [ViewerStateKeys.Autorotate]: parseBoolean,
-    [ViewerStateKeys.Brightness]: Number.parseFloat,
-    [ViewerStateKeys.Density]: Number.parseFloat,
-    [ViewerStateKeys.Levels]: tupleParser(3, Number.parseFloat, ","),
-    [ViewerStateKeys.Interpolation]: parseBoolean,
-    [ViewerStateKeys.Region]: tupleParser(3, tupleParser(2, Number.parseFloat), ","),
-    [ViewerStateKeys.Slice]: tupleParser(3, Number.parseFloat, ","),
-    [ViewerStateKeys.Time]: Number.parseInt,
-    [ViewerStateKeys.Scene]: Number.parseInt,
-    [ViewerStateKeys.CameraState]: (cameraString) => parseCameraStateSnapshot(parseKeyValueList(cameraString)),
-    [ViewerStateKeys.SingleChannelMode]: parseBoolean,
-    [ViewerStateKeys.SingleChannelIndex]: Number.parseInt,
-    [ViewerStateKeys.UseExactScaleLevel]: parseBoolean,
-    [ViewerStateKeys.ScaleLevelIndex]: Number.parseInt,
-  });
-
-export const parseChannelStateSnapshot = (stringified: ChannelStateStringified): ChannelStateSnapshot =>
-  parse<ChannelStateSnapshot>(stringified, {
-    [ChannelStateKeys.Color]: identity,
-    [ChannelStateKeys.Colorize]: parseBoolean,
-    [ChannelStateKeys.ColorizeAlpha]: Number.parseFloat,
-    [ChannelStateKeys.IsosurfaceAlpha]: Number.parseFloat,
-    [ChannelStateKeys.Lut]: tupleParser(2),
-    [ChannelStateKeys.ControlPoints]: parseControlPointSnapshots,
-    [ChannelStateKeys.ControlPointsLegacy]: parseControlPointSnapshots,
-    [ChannelStateKeys.Ramp]: tupleParser(2, Number.parseFloat),
-    [ChannelStateKeys.RampLegacy]: tupleParser(2, Number.parseFloat),
-    [ChannelStateKeys.ControlPointsEnabled]: parseBoolean,
-    [ChannelStateKeys.VolumeEnabled]: parseBoolean,
-    [ChannelStateKeys.SurfaceEnabled]: parseBoolean,
-    [ChannelStateKeys.IsosurfaceValue]: Number.parseFloat,
-    [ChannelStateKeys.KeepRange]: parseBoolean,
-  });
-
-export const deserializeViewerState = (stringified: ViewerStateStringified): Partial<ViewerState> =>
-  snapshotToViewerState(parseViewerStateSnapshot(stringified));
-
-export const deserializeChannelState = (
-  jsonState: ChannelStateStringified,
-  histogram?: Histogram
-): Partial<ChannelState> => snapshotToChannelState(parseChannelStateSnapshot(jsonState), histogram);
-
-export const deserializeViewerChannelSetting = (
+/**
+ * Parses a stringified channel state snapshot (`ChannelStateStringified`) to a
+ * `ViewerChannelSetting`.
+ *
+ * This is equivalent to (and implemented by) calling
+ * `destringifyChannelStateSnapshot`, then `snapshotToViewerChannelSetting`.
+ *
+ * @param channelIndex Index of the channel, to be turned into a `match` value.
+ * @param jsonState The serialized `ViewerChannelSetting` to parse, as an object.
+ * @returns A `ViewerChannelSetting` object.
+ */
+export const stringSnapshotToViewerChannelSetting = (
   channelIndex: number,
   jsonState: ChannelStateStringified
-): ViewerChannelSetting => snapshotToViewerChannelSetting(channelIndex, parseChannelStateSnapshot(jsonState));
+): ViewerChannelSetting => snapshotToViewerChannelSetting(channelIndex, destringifyChannelStateSnapshot(jsonState));
+
+/**
+ * Parses a stringified channel state snapshot (`ChannelStateStringified`)
+ * into a partial `ChannelState`.
+ *
+ * This is equivalent to (and implemented by) calling
+ * `destringifyChannelStateSnapshot`, then `snapshotToChannelState`.
+ *
+ * This function optionally accepts the target channel's `Histogram`. This
+ * argument is required to parse the following params correctly:
+ *
+ * - `lut`, which contains instructions for how to set the channel's
+ *   intensities *relative to its intensity distribution*.
+ * - `rmp`, the legacy ramp parameter represented as histogram bin indices
+ * - `cps`, the legacy control points parameter where `x` values are
+ *   represented as histogram bin indices
+ *
+ * If `histogram` is left undefined, e.g. because the channel has not yet been
+ * loaded, these params are ignored.
+ */
+export const stringSnapshotToChannelState = (
+  jsonState: ChannelStateStringified,
+  histogram?: Histogram
+): Partial<ChannelState> => snapshotToChannelState(destringifyChannelStateSnapshot(jsonState), histogram);
