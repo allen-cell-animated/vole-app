@@ -171,7 +171,7 @@ export enum ViewerStateKeys {
 
 /**
  * Property keys for the "snapshot" variants of `ChannelState`/`ViewerChannelSettings`. These keys are shorter, for
- * contexts that need brevity (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
+ * contexts that need brevity (like URLs), and have a stronger guarantee of stability than the keys of `ChannelState`.
  */
 export enum ChannelStateKeys {
   /** Color, as a 6-digit hex color.  */
