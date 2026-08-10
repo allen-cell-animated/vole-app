@@ -13,7 +13,7 @@ import {
   parseStringInt,
 } from "../deserialize";
 import { viewerStateToStringSnapshot } from "../serialize";
-import { type ChannelStateStringified, RenderMode, type ViewerState, ViewMode } from "../types";
+import { RenderMode, type ViewerState, ViewMode } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_VIEWER_CHANNEL_SETTING,
