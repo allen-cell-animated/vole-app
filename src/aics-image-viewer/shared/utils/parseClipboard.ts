@@ -1,4 +1,4 @@
-import { parseKeyValueList, stringSnapshotToViewerState } from "../../state/deserialize";
+import { parseKeyValueList, stringSnapshotToChannelState } from "../../state/deserialize";
 import { channelStateToStringSnapshot, objectToKeyValueList } from "../../state/serialize";
 import type { ChannelState } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
@@ -45,7 +45,7 @@ export const channelStateToClipboard = (
 export const clipboardToChannelState = (serialized: ClipboardChannelStates): Record<string, Partial<ChannelState>> => {
   const result: Record<string, Partial<ChannelState>> = {};
   for (const [name, state] of Object.entries(serialized.channels)) {
-    result[name] = { ...stringSnapshotToViewerState(parseKeyValueList(state)), name };
+    result[name] = { ...stringSnapshotToChannelState(parseKeyValueList(state)), name };
   }
   return result;
 };
