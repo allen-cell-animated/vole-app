@@ -117,6 +117,8 @@ const useVolume = (
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
+  const [highResLoaded, setHighResLoaded] = useState<boolean>(false);
+  const [isScrubbing, setIsScrubbing] = useState<boolean>(false);
   useEffect(() => {
     playControls.onPlayingAxisChanged = (axis) => {
       const isPlaying = axis !== null;
@@ -126,14 +128,26 @@ const useVolume = (
       sceneLoader.updateFetchOptions({ onlyPriorityDirections: isPlaying });
       // sync multichannel loading so we don't show loaded channels one at a time
       sceneLoader.syncMultichannelLoading(isPlaying);
-      if (image) {
-        // If we're playing and entire axis is not in memory (T always, Z likely), downlevel to speed things up
-        const { volumeSize, subregionSize } = image.imageInfo;
-        const shouldDownlevel = isPlaying && (axis === "t" || volumeSize[axis] !== subregionSize[axis]);
-        image.updateRequiredData({ scaleLevelBias: shouldDownlevel ? 1 : 0 });
-      }
     };
   }, [sceneLoader, playControls, image]);
+
+  const scaleLevelBias = useMemo(() => {
+    if (!image || highResLoaded) return 0;
+
+    if (isScrubbing) return image.imageInfo.numMultiscaleLevels;
+    if (playingAxis !== null) {
+      // If we're playing and entire axis is not in memory, downlevel to speed things up
+      const { volumeSize, subregionSize } = image.imageInfo;
+      if (playingAxis === "t" || volumeSize[playingAxis] !== subregionSize[playingAxis]) {
+        return 1;
+      }
+    }
+    return 0;
+  }, [image, playingAxis, highResLoaded, isScrubbing])
+
+  useEffect(() => {
+    image?.updateRequiredData({ scaleLevelBias }).catch(onError);
+  }, [scaleLevelBias]);
 
   // track which channels have been loaded
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
@@ -381,10 +395,10 @@ const useVolume = (
 
   const beginScrubPreview = useCallback(
     (highResLoaded: boolean): void => {
+      setIsScrubbing(true);
+      setHighResLoaded(highResLoaded);
       if (image && !inInitialLoadRef.current) {
         sceneLoader.syncMultichannelLoading(false);
-        const scaleLevelBias = highResLoaded ? 0 : image.imageInfo.numMultiscaleLevels;
-        image.updateRequiredData({ scaleLevelBias }).catch(onError);
       }
     },
     [image, onError, sceneLoader]
@@ -392,19 +406,13 @@ const useVolume = (
 
   const endScrubPreview = useCallback(
     (): void => {
+      setIsScrubbing(false);
+      setHighResLoaded(false); // We can't be sure that the full level at scaleLevelBias: 0 is loaded
       if (image && !inInitialLoadRef.current) {
-        if (playingAxis !== null) {
-          // playControls.play will trigger playControls.onPlayingAxisChanged,
-          // which will reset scaleLevelBias to 1
-          playControls.play(playingAxis);
-          return;
-        }
-
-        image.updateRequiredData({ scaleLevelBias: 0 }).catch(onError);
         setIsLoading(LoadType.RELOAD);
       }
     },
-    [image, onError, playControls, playingAxis, setIsLoading]
+    [image, setIsScrubbing, setIsLoading]
   );
 
 
