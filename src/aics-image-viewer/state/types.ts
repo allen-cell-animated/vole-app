@@ -144,7 +144,7 @@ export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
  * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
  * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
-export enum ViewerStateKeys {
+export enum ViewerStateSnapshotKeys {
   /** Axis to view. Snapshot values are `3D`, `Z`, `Y`, `X` (from `ViewModeSnapshot`). */
   View = "view",
   /** Render mode. Possible values are `volumetric`, `maxproject`, or `pathtrace` (from `RenderModeSnapshot`). */
@@ -213,7 +213,7 @@ export enum ViewerStateKeys {
  * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
  * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
-export enum ChannelStateKeys {
+export enum ChannelStateSnapshotKeys {
   /** Color, as a 6-digit hex color.  */
   Color = "col",
   /** Whether colorize is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
@@ -302,28 +302,28 @@ export enum ChannelStateKeys {
 // a mapped type ensures that if a variant is added to `ViewerStateKeys`, `ViewerStateSnapshot` will type error until
 // that key's value is added to this type.
 type ViewerStateSnapshotTypes = {
-  [ViewerStateKeys.View]: ViewModeSnapshot;
-  [ViewerStateKeys.Mode]: RenderModeSnapshot;
-  [ViewerStateKeys.Mask]: number;
-  [ViewerStateKeys.Image]: ImageTypeSnapshot;
-  [ViewerStateKeys.Axes]: boolean;
-  [ViewerStateKeys.BoundingBox]: boolean;
-  [ViewerStateKeys.BoundingBoxColor]: string;
-  [ViewerStateKeys.BackgroundColor]: string;
-  [ViewerStateKeys.Autorotate]: boolean;
-  [ViewerStateKeys.Brightness]: number;
-  [ViewerStateKeys.Density]: number;
-  [ViewerStateKeys.Levels]: [number, number, number];
-  [ViewerStateKeys.Interpolation]: boolean;
-  [ViewerStateKeys.Region]: [[number, number], [number, number], [number, number]];
-  [ViewerStateKeys.Slice]: [number, number, number];
-  [ViewerStateKeys.Time]: number;
-  [ViewerStateKeys.Scene]: number;
-  [ViewerStateKeys.CameraState]: CameraStateSnapshot;
-  [ViewerStateKeys.SingleChannelMode]: boolean;
-  [ViewerStateKeys.SingleChannelIndex]: number;
-  [ViewerStateKeys.UseExactScaleLevel]: boolean;
-  [ViewerStateKeys.ScaleLevelIndex]: number;
+  [ViewerStateSnapshotKeys.View]: ViewModeSnapshot;
+  [ViewerStateSnapshotKeys.Mode]: RenderModeSnapshot;
+  [ViewerStateSnapshotKeys.Mask]: number;
+  [ViewerStateSnapshotKeys.Image]: ImageTypeSnapshot;
+  [ViewerStateSnapshotKeys.Axes]: boolean;
+  [ViewerStateSnapshotKeys.BoundingBox]: boolean;
+  [ViewerStateSnapshotKeys.BoundingBoxColor]: string;
+  [ViewerStateSnapshotKeys.BackgroundColor]: string;
+  [ViewerStateSnapshotKeys.Autorotate]: boolean;
+  [ViewerStateSnapshotKeys.Brightness]: number;
+  [ViewerStateSnapshotKeys.Density]: number;
+  [ViewerStateSnapshotKeys.Levels]: [number, number, number];
+  [ViewerStateSnapshotKeys.Interpolation]: boolean;
+  [ViewerStateSnapshotKeys.Region]: [[number, number], [number, number], [number, number]];
+  [ViewerStateSnapshotKeys.Slice]: [number, number, number];
+  [ViewerStateSnapshotKeys.Time]: number;
+  [ViewerStateSnapshotKeys.Scene]: number;
+  [ViewerStateSnapshotKeys.CameraState]: CameraStateSnapshot;
+  [ViewerStateSnapshotKeys.SingleChannelMode]: boolean;
+  [ViewerStateSnapshotKeys.SingleChannelIndex]: number;
+  [ViewerStateSnapshotKeys.UseExactScaleLevel]: boolean;
+  [ViewerStateSnapshotKeys.ScaleLevelIndex]: number;
 };
 
 /**
@@ -335,13 +335,13 @@ type ViewerStateSnapshotTypes = {
  * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
  * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
  */
-export type ViewerStateSnapshot = { [K in ViewerStateKeys]?: ViewerStateSnapshotTypes[K] };
+export type ViewerStateSnapshot = { [K in ViewerStateSnapshotKeys]?: ViewerStateSnapshotTypes[K] };
 
 /**
  * A `ViewerStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
  * viewer state to/from URL parameters.
  */
-export type ViewerStateStringified = { [K in ViewerStateKeys]?: string };
+export type ViewerStateStringified = { [K in ViewerStateSnapshotKeys]?: string };
 
 /**
  * A `ControlPoint` where `color` is a six-digit hex string, or gets shortened to `"1"` in the overwhelming majority of
@@ -358,20 +358,20 @@ export type ControlPointSnapshot = {
 // a mapped type ensures that if a variant is added to `ChannelStateKeys`, `ChannelStateSnapshot` will type error until
 // that key's value is added to this type.
 type ChannelStateSnapshotTypes = {
-  [ChannelStateKeys.Color]: string;
-  [ChannelStateKeys.Colorize]: boolean;
-  [ChannelStateKeys.ColorizeAlpha]: number;
-  [ChannelStateKeys.IsosurfaceAlpha]: number;
-  [ChannelStateKeys.Lut]: [string | number, string | number];
-  [ChannelStateKeys.ControlPointsLegacy]: ControlPointSnapshot[];
-  [ChannelStateKeys.ControlPoints]: ControlPointSnapshot[];
-  [ChannelStateKeys.ControlPointsEnabled]: boolean;
-  [ChannelStateKeys.RampLegacy]: [number, number];
-  [ChannelStateKeys.Ramp]: [number, number];
-  [ChannelStateKeys.VolumeEnabled]: boolean;
-  [ChannelStateKeys.SurfaceEnabled]: boolean;
-  [ChannelStateKeys.IsosurfaceValue]: number;
-  [ChannelStateKeys.KeepRange]: boolean;
+  [ChannelStateSnapshotKeys.Color]: string;
+  [ChannelStateSnapshotKeys.Colorize]: boolean;
+  [ChannelStateSnapshotKeys.ColorizeAlpha]: number;
+  [ChannelStateSnapshotKeys.IsosurfaceAlpha]: number;
+  [ChannelStateSnapshotKeys.Lut]: [string | number, string | number];
+  [ChannelStateSnapshotKeys.ControlPointsLegacy]: ControlPointSnapshot[];
+  [ChannelStateSnapshotKeys.ControlPoints]: ControlPointSnapshot[];
+  [ChannelStateSnapshotKeys.ControlPointsEnabled]: boolean;
+  [ChannelStateSnapshotKeys.RampLegacy]: [number, number];
+  [ChannelStateSnapshotKeys.Ramp]: [number, number];
+  [ChannelStateSnapshotKeys.VolumeEnabled]: boolean;
+  [ChannelStateSnapshotKeys.SurfaceEnabled]: boolean;
+  [ChannelStateSnapshotKeys.IsosurfaceValue]: number;
+  [ChannelStateSnapshotKeys.KeepRange]: boolean;
 };
 
 /**
@@ -383,10 +383,10 @@ type ChannelStateSnapshotTypes = {
  * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
  * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
  */
-export type ChannelStateSnapshot = { [K in ChannelStateKeys]?: ChannelStateSnapshotTypes[K] };
+export type ChannelStateSnapshot = { [K in ChannelStateSnapshotKeys]?: ChannelStateSnapshotTypes[K] };
 
 /**
  * A `ChannelStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
  * channel state to/from URL parameters.
  */
-export type ChannelStateStringified = { [K in ChannelStateKeys]?: string };
+export type ChannelStateStringified = { [K in ChannelStateSnapshotKeys]?: string };

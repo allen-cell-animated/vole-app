@@ -8,7 +8,7 @@ import {
 } from "../../state/deserialize";
 import { channelStateToStringSnapshot, objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
-import { ViewerStateKeys } from "../../state/types";
+import { ViewerStateSnapshotKeys } from "../../state/types";
 import type { ChannelStateStringified, ViewerState, ViewerStateStringified } from "../../state/types";
 import type { ManifestJson, MetadataRecord } from "../types";
 import { removeUndefinedProperties } from "./datatypes";
@@ -92,7 +92,7 @@ type ViewerMessage = {
 };
 
 const allowedParamKeys: Array<keyof AppParams> = [
-  ...Object.values(ViewerStateKeys),
+  ...Object.values(ViewerStateSnapshotKeys),
   ...Object.keys(new DataParams()),
   ...Object.keys(new DeprecatedParams()),
 ] as Array<keyof AppParams>;
