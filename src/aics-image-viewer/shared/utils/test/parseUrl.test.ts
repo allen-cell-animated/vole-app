@@ -346,13 +346,11 @@ describe("serializeViewerUrlParams", () => {
       true
     ) as Record<string, string>;
     const urlParams = new URLSearchParams(serializedParams);
-    // Pos is 1.2:3.4:5.6 but escaped
-    const expectedCameraPosition = encodeURIComponent("pos:1.2:3.4:5.6");
     expect(Object.fromEntries(urlParams.entries())).toEqual({
       view: "Z",
       dens: "100",
       t: "40",
-      cam: expectedCameraPosition,
+      cam: "pos:1.2:3.4:5.6",
     });
   });
 
