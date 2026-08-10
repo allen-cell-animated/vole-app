@@ -312,7 +312,7 @@ export type ControlPointSnapshot = {
 // Maps `ChannelStateKeys` to the type of each key in `ChannelStateSnapshot`.
 // This is not the exported "snapshot" type: that's `ChannelStateSnapshot`, below.  Defining `ChannelStateSnapshot` as
 // a mapped type means it will type error unless this type is exhaustive over all variants of `ChannelStateKeys`.
-type ChannelStateParamTypes = {
+type ChannelStateSnapshotTypes = {
   [ChannelStateKeys.Color]: string;
   [ChannelStateKeys.Colorize]: boolean;
   [ChannelStateKeys.ColorizeAlpha]: number;
@@ -338,7 +338,7 @@ type ChannelStateParamTypes = {
  * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
  * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
  */
-export type ChannelStateSnapshot = { [K in ChannelStateKeys]?: ChannelStateParamTypes[K] };
+export type ChannelStateSnapshot = { [K in ChannelStateKeys]?: ChannelStateSnapshotTypes[K] };
 
 /**
  * A `ChannelStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
