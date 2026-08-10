@@ -478,8 +478,9 @@ export function snapshotToViewerChannelSetting(
     colorizeAlpha: validateNumber(jsonState[ChannelStateKeys.ColorizeAlpha], 0, 1),
     controlPointsEnabled: validateBoolean(jsonState[ChannelStateKeys.ControlPointsEnabled]),
   };
-  if (typeof jsonState[ChannelStateKeys.Color] === "string" && HEX_COLOR_STR_REGEX.test(jsonState.col)) {
-    result.color = jsonState[ChannelStateKeys.Color];
+  const color = jsonState[ChannelStateKeys.Color];
+  if (typeof color === "string" && HEX_COLOR_STR_REGEX.test(color)) {
+    result.color = color;
   }
 
   const lut = validateTuple<string | number, 2>(jsonState[ChannelStateKeys.Lut], 2, identity);
