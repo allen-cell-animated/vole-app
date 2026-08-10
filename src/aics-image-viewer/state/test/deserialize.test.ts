@@ -296,9 +296,9 @@ describe("stringSnapshotToViewerChannelSetting", () => {
   });
 });
 
-describe("stringSnapshotToViewerState", () => {
+describe("stringSnapshotToChannelState", () => {
   it("returns an empty object for empty input", () => {
-    expect(stringSnapshotToViewerState({})).toEqual({});
+    expect(stringSnapshotToChannelState({})).toEqual({});
   });
 
   it("parses channel state fields", () => {
