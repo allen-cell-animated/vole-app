@@ -394,6 +394,8 @@ const useVolume = (
     (): void => {
       if (image && !inInitialLoadRef.current) {
         if (playingAxis !== null) {
+          // playControls.play will trigger playControls.onPlayingAxisChanged,
+          // which will reset scaleLevelBias to 1
           playControls.play(playingAxis);
           return;
         }
