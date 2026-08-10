@@ -131,24 +131,6 @@ const useVolume = (
     };
   }, [sceneLoader, playControls, image]);
 
-  const scaleLevelBias = useMemo(() => {
-    if (!image || highResLoaded) return 0;
-
-    if (isScrubbing) return image.imageInfo.numMultiscaleLevels;
-    if (playingAxis !== null) {
-      // If we're playing and entire axis is not in memory, downlevel to speed things up
-      const { volumeSize, subregionSize } = image.imageInfo;
-      if (playingAxis === "t" || volumeSize[playingAxis] !== subregionSize[playingAxis]) {
-        return 1;
-      }
-    }
-    return 0;
-  }, [image, playingAxis, highResLoaded, isScrubbing])
-
-  useEffect(() => {
-    image?.updateRequiredData({ scaleLevelBias }).catch(onError);
-  }, [scaleLevelBias]);
-
   // track which channels have been loaded
   const [channelVersions, _setChannelVersions] = useState<number[]>([]);
   const [channelVersionsRef, setChannelVersions] = useRefWithSetter(_setChannelVersions, channelVersions);
@@ -203,6 +185,24 @@ const useVolume = (
     },
     [onErrorRef]
   );
+
+  const scaleLevelBias = useMemo(() => {
+    if (!image || highResLoaded) return 0;
+
+    if (isScrubbing) return image.imageInfo.numMultiscaleLevels;
+    if (playingAxis !== null) {
+      // If we're playing and entire axis is not in memory, downlevel to speed things up
+      const { volumeSize, subregionSize } = image.imageInfo;
+      if (playingAxis === "t" || volumeSize[playingAxis] !== subregionSize[playingAxis]) {
+        return 1;
+      }
+    }
+    return 0;
+  }, [image, playingAxis, highResLoaded, isScrubbing]);
+
+  useEffect(() => {
+    image?.updateRequiredData({ scaleLevelBias }).catch(onError);
+  }, [scaleLevelBias, image, onError]);
 
   // channelGroupedByType groups channel indexes by their category.
   // It depends on `viewerChannelSettings` and the channel names in the current image.
@@ -401,7 +401,7 @@ const useVolume = (
         sceneLoader.syncMultichannelLoading(false);
       }
     },
-    [image, onError, sceneLoader]
+    [image, sceneLoader]
   );
 
   const endScrubPreview = useCallback(
