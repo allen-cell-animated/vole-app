@@ -103,9 +103,8 @@ export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
 export enum ViewerStateKeys {
-  /** Axis to view. Valid values are `3D`, `X`, `Y`, and `Z`. Defaults to `3D`. */
+  /** Axis to view. Snapshot values are `3D`, `XY`, `XZ`, `YZ` (from `ViewMode`); when stringified these map to `3D`, `Z`, `Y`, `X`. */
   View = "view",
-  /** Render mode. Valid values are `volumetric`, `maxproject`, and `pathtrace`. Defaults to `volumetric`. */
   Mode = "mode",
   /** The opacity of the mask channel, an integer in the range `[0, 100]`. Defaults to `50`. */
   Mask = "mask",
