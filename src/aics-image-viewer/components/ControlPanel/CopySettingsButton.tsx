@@ -131,6 +131,24 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     </Tooltip>
   );
 
+  const onClickExport = React.useCallback(() => {
+    setDropdownOpen(false);
+    const { channelSettings } = useViewerState.getState();
+    const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
+    const stateText = JSON.stringify(serialized);
+    const link = document.createElement("a");
+
+    link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(stateText));
+    const isoDate = new Date().toISOString().split("T")[0];
+    const imgName = imageName ?? "settings";
+    link.setAttribute("download", `${isoDate}_${imgName}.json`);
+    link.style.display = "none";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [imageName, includeColor]);
+
   const onClickPaste = React.useCallback(async () => {
     setDropdownOpen(false);
 
@@ -179,73 +197,6 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       }
     }
   }, [showContextualAlert]);
-
-  const onClickExport = React.useCallback(() => {
-    setDropdownOpen(false);
-    const { channelSettings } = useViewerState.getState();
-    const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
-    const stateText = JSON.stringify(serialized);
-    const link = document.createElement("a");
-
-    link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(stateText));
-    const isoDate = new Date().toISOString().split("T")[0];
-    const imgName = imageName ?? "settings";
-    link.setAttribute("download", `${isoDate}_${imgName}.json`);
-    link.style.display = "none";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, [imageName, includeColor]);
-
-  const onClickPaste = React.useCallback(async () => {
-    setDropdownOpen(false);
-
-    // Try to read the clipboard
-    let clipboard: string | undefined = undefined;
-    try {
-      clipboard = await navigator.clipboard.readText();
-    } catch {
-      showContextualAlert("Could not read clipboard", "error");
-      // If paste failed, check if it was because the user was asked to grant clipboard access and said no
-      queryPasteState();
-      return;
-    }
-
-    const importResult = importSettings(clipboard);
-    if (!importResult.success) {
-      showContextualAlert("Clipboard does not contain channel settings", "error");
-      return;
-    }
-
-    const { unmatched, matchedCount } = importResult;
-    const unmatchedCount = unmatched.length;
-    const undo = (): void => {
-      importResult.undo();
-      showContextualAlert(undefined);
-    };
-
-    if (unmatchedCount > 0) {
-      if (matchedCount > 0) {
-        showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
-      } else {
-        showContextualAlert("Channel names in clipboard did not match names in image", "error");
-      }
-    } else {
-      if (matchedCount > 0) {
-        showContextualAlert(
-          <>
-            Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-            <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-              Undo
-            </Button>
-          </>
-        );
-      } else {
-        showContextualAlert("Clipboard does not contain channel settings", "error");
-      }
-    }
-  }, [queryPasteState, showContextualAlert]);
 
   const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
     async ({ file, onSuccess, onError }) => {
