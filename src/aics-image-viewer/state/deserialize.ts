@@ -6,7 +6,14 @@ import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
 import { removeUndefinedProperties } from "../shared/utils/datatypes";
 import type { ViewerChannelSetting } from "../shared/utils/viewerChannelSettings";
-import { CameraTransformKeys, ChannelStateKeys, ImageType, RenderMode, ViewerStateKeys, ViewMode } from "./types";
+import {
+  CameraTransformKeys,
+  ChannelStateSnapshotKeys,
+  ImageType,
+  RenderMode,
+  ViewerStateSnapshotKeys,
+  ViewMode,
+} from "./types";
 import type {
   CameraStateSnapshot,
   CameraStateStringified,
@@ -183,29 +190,30 @@ const VIEW_PARAM_TO_VIEW_MODE = {
  */
 export const destringifyViewerStateSnapshot = (stringified: ViewerStateStringified): ViewerStateSnapshot =>
   destringify<ViewerStateSnapshot>(stringified, {
-    [ViewerStateKeys.View]: (value) =>
+    [ViewerStateSnapshotKeys.View]: (value) =>
       VIEW_PARAM_TO_VIEW_MODE[value.toLowerCase() as keyof typeof VIEW_PARAM_TO_VIEW_MODE],
-    [ViewerStateKeys.Mode]: (value) => parseStringEnum(value, RenderMode),
-    [ViewerStateKeys.Mask]: Number.parseFloat,
-    [ViewerStateKeys.Image]: (value) => parseStringEnum(value, ImageType),
-    [ViewerStateKeys.Axes]: parseBoolean,
-    [ViewerStateKeys.BoundingBox]: parseBoolean,
-    [ViewerStateKeys.BoundingBoxColor]: identity,
-    [ViewerStateKeys.BackgroundColor]: identity,
-    [ViewerStateKeys.Autorotate]: parseBoolean,
-    [ViewerStateKeys.Brightness]: Number.parseFloat,
-    [ViewerStateKeys.Density]: Number.parseFloat,
-    [ViewerStateKeys.Levels]: tupleParser(3, Number.parseFloat, ","),
-    [ViewerStateKeys.Interpolation]: parseBoolean,
-    [ViewerStateKeys.Region]: tupleParser(3, tupleParser(2, Number.parseFloat), ","),
-    [ViewerStateKeys.Slice]: tupleParser(3, Number.parseFloat, ","),
-    [ViewerStateKeys.Time]: Number.parseInt,
-    [ViewerStateKeys.Scene]: Number.parseInt,
-    [ViewerStateKeys.CameraState]: (cameraString) => destringifyCameraStateSnapshot(parseKeyValueList(cameraString)),
-    [ViewerStateKeys.SingleChannelMode]: parseBoolean,
-    [ViewerStateKeys.SingleChannelIndex]: Number.parseInt,
-    [ViewerStateKeys.UseExactScaleLevel]: parseBoolean,
-    [ViewerStateKeys.ScaleLevelIndex]: Number.parseInt,
+    [ViewerStateSnapshotKeys.Mode]: (value) => parseStringEnum(value, RenderMode),
+    [ViewerStateSnapshotKeys.Mask]: Number.parseFloat,
+    [ViewerStateSnapshotKeys.Image]: (value) => parseStringEnum(value, ImageType),
+    [ViewerStateSnapshotKeys.Axes]: parseBoolean,
+    [ViewerStateSnapshotKeys.BoundingBox]: parseBoolean,
+    [ViewerStateSnapshotKeys.BoundingBoxColor]: identity,
+    [ViewerStateSnapshotKeys.BackgroundColor]: identity,
+    [ViewerStateSnapshotKeys.Autorotate]: parseBoolean,
+    [ViewerStateSnapshotKeys.Brightness]: Number.parseFloat,
+    [ViewerStateSnapshotKeys.Density]: Number.parseFloat,
+    [ViewerStateSnapshotKeys.Levels]: tupleParser(3, Number.parseFloat, ","),
+    [ViewerStateSnapshotKeys.Interpolation]: parseBoolean,
+    [ViewerStateSnapshotKeys.Region]: tupleParser(3, tupleParser(2, Number.parseFloat), ","),
+    [ViewerStateSnapshotKeys.Slice]: tupleParser(3, Number.parseFloat, ","),
+    [ViewerStateSnapshotKeys.Time]: Number.parseInt,
+    [ViewerStateSnapshotKeys.Scene]: Number.parseInt,
+    [ViewerStateSnapshotKeys.CameraState]: (cameraString) =>
+      destringifyCameraStateSnapshot(parseKeyValueList(cameraString)),
+    [ViewerStateSnapshotKeys.SingleChannelMode]: parseBoolean,
+    [ViewerStateSnapshotKeys.SingleChannelIndex]: Number.parseInt,
+    [ViewerStateSnapshotKeys.UseExactScaleLevel]: parseBoolean,
+    [ViewerStateSnapshotKeys.ScaleLevelIndex]: Number.parseInt,
   });
 
 /**
@@ -214,20 +222,20 @@ export const destringifyViewerStateSnapshot = (stringified: ViewerStateStringifi
  */
 export const destringifyChannelStateSnapshot = (stringified: ChannelStateStringified): ChannelStateSnapshot =>
   destringify<ChannelStateSnapshot>(stringified, {
-    [ChannelStateKeys.Color]: identity,
-    [ChannelStateKeys.Colorize]: parseBoolean,
-    [ChannelStateKeys.ColorizeAlpha]: Number.parseFloat,
-    [ChannelStateKeys.IsosurfaceAlpha]: Number.parseFloat,
-    [ChannelStateKeys.Lut]: tupleParser(2),
-    [ChannelStateKeys.ControlPoints]: parseControlPointSnapshots,
-    [ChannelStateKeys.ControlPointsLegacy]: parseControlPointSnapshots,
-    [ChannelStateKeys.Ramp]: tupleParser(2, Number.parseFloat),
-    [ChannelStateKeys.RampLegacy]: tupleParser(2, Number.parseFloat),
-    [ChannelStateKeys.ControlPointsEnabled]: parseBoolean,
-    [ChannelStateKeys.VolumeEnabled]: parseBoolean,
-    [ChannelStateKeys.SurfaceEnabled]: parseBoolean,
-    [ChannelStateKeys.IsosurfaceValue]: Number.parseFloat,
-    [ChannelStateKeys.KeepRange]: parseBoolean,
+    [ChannelStateSnapshotKeys.Color]: identity,
+    [ChannelStateSnapshotKeys.Colorize]: parseBoolean,
+    [ChannelStateSnapshotKeys.ColorizeAlpha]: Number.parseFloat,
+    [ChannelStateSnapshotKeys.IsosurfaceAlpha]: Number.parseFloat,
+    [ChannelStateSnapshotKeys.Lut]: tupleParser(2),
+    [ChannelStateSnapshotKeys.ControlPoints]: parseControlPointSnapshots,
+    [ChannelStateSnapshotKeys.ControlPointsLegacy]: parseControlPointSnapshots,
+    [ChannelStateSnapshotKeys.Ramp]: tupleParser(2, Number.parseFloat),
+    [ChannelStateSnapshotKeys.RampLegacy]: tupleParser(2, Number.parseFloat),
+    [ChannelStateSnapshotKeys.ControlPointsEnabled]: parseBoolean,
+    [ChannelStateSnapshotKeys.VolumeEnabled]: parseBoolean,
+    [ChannelStateSnapshotKeys.SurfaceEnabled]: parseBoolean,
+    [ChannelStateSnapshotKeys.IsosurfaceValue]: Number.parseFloat,
+    [ChannelStateSnapshotKeys.KeepRange]: parseBoolean,
   });
 
 // MARK: Parsing Helpers
@@ -413,28 +421,28 @@ function snapshotToCameraState(snapshot: Untrusted<CameraStateSnapshot> | undefi
 /** Parses a `ViewerStateSnapshot` to a `ViewerState`. */
 export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
-    viewMode: parseStringEnum(snapshot[ViewerStateKeys.View], ViewMode),
-    maskAlpha: validateNumber(snapshot[ViewerStateKeys.Mask], 0, 100),
-    imageType: parseStringEnum(snapshot[ViewerStateKeys.Image], ImageType),
-    showAxes: validateBoolean(snapshot[ViewerStateKeys.Axes]),
-    showBoundingBox: validateBoolean(snapshot[ViewerStateKeys.BoundingBox]),
-    boundingBoxColor: parseHexColorAsColorArray(snapshot[ViewerStateKeys.BoundingBoxColor]),
-    backgroundColor: parseHexColorAsColorArray(snapshot[ViewerStateKeys.BackgroundColor]),
-    autorotate: validateBoolean(snapshot[ViewerStateKeys.Autorotate]),
-    brightness: validateNumber(snapshot[ViewerStateKeys.Brightness], 0, 100),
-    density: validateNumber(snapshot[ViewerStateKeys.Density], 0, 100),
-    levels: validateTuple(snapshot[ViewerStateKeys.Levels], 3, (value) => validateNumber(value, 0, 255)),
-    interpolationEnabled: validateBoolean(snapshot[ViewerStateKeys.Interpolation]),
-    region: validateXYZ(snapshot[ViewerStateKeys.Region], (value) => validateSortedPair(value, 0, 1)),
-    slice: validateXYZ(snapshot[ViewerStateKeys.Slice], (value) => validateNumber(value, 0, 1)),
-    time: validateInt(snapshot[ViewerStateKeys.Time], 0, Number.POSITIVE_INFINITY),
-    scene: validateInt(snapshot[ViewerStateKeys.Scene], 0, Number.POSITIVE_INFINITY),
-    renderMode: parseStringEnum(snapshot[ViewerStateKeys.Mode], RenderMode),
-    singleChannelMode: validateBoolean(snapshot[ViewerStateKeys.SingleChannelMode]),
-    singleChannelIndex: validateInt(snapshot[ViewerStateKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
-    useExactScaleLevel: validateBoolean(snapshot[ViewerStateKeys.UseExactScaleLevel]),
-    scaleLevelIndex: validateInt(snapshot[ViewerStateKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
-    cameraState: snapshotToCameraState(validateRecord(snapshot[ViewerStateKeys.CameraState])),
+    viewMode: parseStringEnum(snapshot[ViewerStateSnapshotKeys.View], ViewMode),
+    maskAlpha: validateNumber(snapshot[ViewerStateSnapshotKeys.Mask], 0, 100),
+    imageType: parseStringEnum(snapshot[ViewerStateSnapshotKeys.Image], ImageType),
+    showAxes: validateBoolean(snapshot[ViewerStateSnapshotKeys.Axes]),
+    showBoundingBox: validateBoolean(snapshot[ViewerStateSnapshotKeys.BoundingBox]),
+    boundingBoxColor: parseHexColorAsColorArray(snapshot[ViewerStateSnapshotKeys.BoundingBoxColor]),
+    backgroundColor: parseHexColorAsColorArray(snapshot[ViewerStateSnapshotKeys.BackgroundColor]),
+    autorotate: validateBoolean(snapshot[ViewerStateSnapshotKeys.Autorotate]),
+    brightness: validateNumber(snapshot[ViewerStateSnapshotKeys.Brightness], 0, 100),
+    density: validateNumber(snapshot[ViewerStateSnapshotKeys.Density], 0, 100),
+    levels: validateTuple(snapshot[ViewerStateSnapshotKeys.Levels], 3, (value) => validateNumber(value, 0, 255)),
+    interpolationEnabled: validateBoolean(snapshot[ViewerStateSnapshotKeys.Interpolation]),
+    region: validateXYZ(snapshot[ViewerStateSnapshotKeys.Region], (value) => validateSortedPair(value, 0, 1)),
+    slice: validateXYZ(snapshot[ViewerStateSnapshotKeys.Slice], (value) => validateNumber(value, 0, 1)),
+    time: validateInt(snapshot[ViewerStateSnapshotKeys.Time], 0, Number.POSITIVE_INFINITY),
+    scene: validateInt(snapshot[ViewerStateSnapshotKeys.Scene], 0, Number.POSITIVE_INFINITY),
+    renderMode: parseStringEnum(snapshot[ViewerStateSnapshotKeys.Mode], RenderMode),
+    singleChannelMode: validateBoolean(snapshot[ViewerStateSnapshotKeys.SingleChannelMode]),
+    singleChannelIndex: validateInt(snapshot[ViewerStateSnapshotKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
+    useExactScaleLevel: validateBoolean(snapshot[ViewerStateSnapshotKeys.UseExactScaleLevel]),
+    scaleLevelIndex: validateInt(snapshot[ViewerStateSnapshotKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
+    cameraState: snapshotToCameraState(validateRecord(snapshot[ViewerStateSnapshotKeys.CameraState])),
   };
 
   return removeUndefinedProperties(result);
@@ -469,44 +477,44 @@ export function snapshotToViewerChannelSetting(
   // Missing/undefined fields should be handled downstream.
   const result: ViewerChannelSetting = {
     match: channelIndex,
-    enabled: validateBoolean(jsonState[ChannelStateKeys.VolumeEnabled]),
-    surfaceEnabled: validateBoolean(jsonState[ChannelStateKeys.SurfaceEnabled]),
-    isovalue: validateNumber(jsonState[ChannelStateKeys.IsosurfaceValue], -Infinity, Infinity),
-    keepIntensityRange: validateBoolean(jsonState[ChannelStateKeys.KeepRange]),
-    surfaceOpacity: validateNumber(jsonState[ChannelStateKeys.IsosurfaceAlpha], 0, 1),
-    colorizeEnabled: validateBoolean(jsonState[ChannelStateKeys.Colorize]),
-    colorizeAlpha: validateNumber(jsonState[ChannelStateKeys.ColorizeAlpha], 0, 1),
-    controlPointsEnabled: validateBoolean(jsonState[ChannelStateKeys.ControlPointsEnabled]),
+    enabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.VolumeEnabled]),
+    surfaceEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.SurfaceEnabled]),
+    isovalue: validateNumber(jsonState[ChannelStateSnapshotKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: validateBoolean(jsonState[ChannelStateSnapshotKeys.KeepRange]),
+    surfaceOpacity: validateNumber(jsonState[ChannelStateSnapshotKeys.IsosurfaceAlpha], 0, 1),
+    colorizeEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.Colorize]),
+    colorizeAlpha: validateNumber(jsonState[ChannelStateSnapshotKeys.ColorizeAlpha], 0, 1),
+    controlPointsEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.ControlPointsEnabled]),
   };
-  const color = jsonState[ChannelStateKeys.Color];
+  const color = jsonState[ChannelStateSnapshotKeys.Color];
   if (typeof color === "string" && HEX_COLOR_STR_REGEX.test(color)) {
     result.color = color;
   }
 
-  const lut = validateTuple<string | number, 2>(jsonState[ChannelStateKeys.Lut], 2, identity);
+  const lut = validateTuple<string | number, 2>(jsonState[ChannelStateSnapshotKeys.Lut], 2, identity);
   if (lut !== undefined) {
     result.intensity = { ...result.intensity, lut };
   }
 
-  if (jsonState[ChannelStateKeys.Ramp]) {
-    const ramp = validateSortedPair(jsonState[ChannelStateKeys.Ramp]);
+  if (jsonState[ChannelStateSnapshotKeys.Ramp]) {
+    const ramp = validateSortedPair(jsonState[ChannelStateSnapshotKeys.Ramp]);
     if (ramp !== undefined) {
       result.intensity = { ...result.intensity, ramp };
     }
-  } else if (jsonState[ChannelStateKeys.RampLegacy]) {
-    const ramp = validateSortedPair(jsonState[ChannelStateKeys.Ramp]);
+  } else if (jsonState[ChannelStateSnapshotKeys.RampLegacy]) {
+    const ramp = validateSortedPair(jsonState[ChannelStateSnapshotKeys.Ramp]);
     if (ramp !== undefined) {
       result.ramp = ramp;
     }
   }
 
-  if (Array.isArray(jsonState[ChannelStateKeys.ControlPoints])) {
-    const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPoints]);
+  if (Array.isArray(jsonState[ChannelStateSnapshotKeys.ControlPoints])) {
+    const parsedResult = snapshotToControlPoints(jsonState[ChannelStateSnapshotKeys.ControlPoints]);
     if (parsedResult) {
       result.intensity = { ...result.intensity, controlPoints: parsedResult };
     }
-  } else if (Array.isArray(jsonState[ChannelStateKeys.ControlPointsLegacy])) {
-    const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPointsLegacy]);
+  } else if (Array.isArray(jsonState[ChannelStateSnapshotKeys.ControlPointsLegacy])) {
+    const parsedResult = snapshotToControlPoints(jsonState[ChannelStateSnapshotKeys.ControlPointsLegacy]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
@@ -537,18 +545,18 @@ export function snapshotToChannelState(
   histogram?: Histogram
 ): Partial<ChannelState> {
   const result: Partial<ChannelState> = {
-    volumeEnabled: validateBoolean(jsonState[ChannelStateKeys.VolumeEnabled]),
-    isosurfaceEnabled: validateBoolean(jsonState[ChannelStateKeys.SurfaceEnabled]),
-    isovalue: validateNumber(jsonState[ChannelStateKeys.IsosurfaceValue], -Infinity, Infinity),
-    keepIntensityRange: validateBoolean(jsonState[ChannelStateKeys.KeepRange]),
-    opacity: validateNumber(jsonState[ChannelStateKeys.IsosurfaceAlpha], 0, 1),
-    colorizeEnabled: validateBoolean(jsonState[ChannelStateKeys.Colorize]),
-    colorizeAlpha: validateNumber(jsonState[ChannelStateKeys.ColorizeAlpha], 0, 1),
-    useControlPoints: validateBoolean(jsonState[ChannelStateKeys.ControlPointsEnabled]),
-    color: parseHexColorAsColorArray(jsonState[ChannelStateKeys.Color]),
+    volumeEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.VolumeEnabled]),
+    isosurfaceEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.SurfaceEnabled]),
+    isovalue: validateNumber(jsonState[ChannelStateSnapshotKeys.IsosurfaceValue], -Infinity, Infinity),
+    keepIntensityRange: validateBoolean(jsonState[ChannelStateSnapshotKeys.KeepRange]),
+    opacity: validateNumber(jsonState[ChannelStateSnapshotKeys.IsosurfaceAlpha], 0, 1),
+    colorizeEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.Colorize]),
+    colorizeAlpha: validateNumber(jsonState[ChannelStateSnapshotKeys.ColorizeAlpha], 0, 1),
+    useControlPoints: validateBoolean(jsonState[ChannelStateSnapshotKeys.ControlPointsEnabled]),
+    color: parseHexColorAsColorArray(jsonState[ChannelStateSnapshotKeys.Color]),
   };
 
-  const lutRaw = validateTuple(jsonState[ChannelStateKeys.Lut], 2, validateLutValue);
+  const lutRaw = validateTuple(jsonState[ChannelStateSnapshotKeys.Lut], 2, validateLutValue);
   let pointsFromLut: ControlPoint[] | undefined = undefined;
   if (histogram !== undefined && lutRaw !== undefined) {
     const lut = parseLutSetting(histogram, lutRaw);
@@ -558,13 +566,13 @@ export function snapshotToChannelState(
     }));
   }
 
-  if (jsonState[ChannelStateKeys.Ramp]) {
-    const ramp = validateSortedPair(jsonState[ChannelStateKeys.Ramp]);
+  if (jsonState[ChannelStateSnapshotKeys.Ramp]) {
+    const ramp = validateSortedPair(jsonState[ChannelStateSnapshotKeys.Ramp]);
     if (ramp !== undefined) {
       result.ramp = ramp;
     }
-  } else if (jsonState[ChannelStateKeys.RampLegacy]) {
-    const ramp = validateSortedPair(jsonState[ChannelStateKeys.RampLegacy]);
+  } else if (jsonState[ChannelStateSnapshotKeys.RampLegacy]) {
+    const ramp = validateSortedPair(jsonState[ChannelStateSnapshotKeys.RampLegacy]);
     if (histogram !== undefined && ramp !== undefined) {
       const [rawMin, rawMax] = ramp;
       const min = histogram.getValueFromBinIndex(rawMin);
@@ -575,14 +583,14 @@ export function snapshotToChannelState(
     result.ramp = controlPointsToRamp(pointsFromLut);
   }
 
-  if (Array.isArray(jsonState[ChannelStateKeys.ControlPoints])) {
-    const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPoints]);
+  if (Array.isArray(jsonState[ChannelStateSnapshotKeys.ControlPoints])) {
+    const parsedResult = snapshotToControlPoints(jsonState[ChannelStateSnapshotKeys.ControlPoints]);
     if (parsedResult) {
       result.controlPoints = parsedResult;
     }
-  } else if (Array.isArray(jsonState[ChannelStateKeys.ControlPointsLegacy])) {
+  } else if (Array.isArray(jsonState[ChannelStateSnapshotKeys.ControlPointsLegacy])) {
     if (histogram !== undefined) {
-      const parsedResult = snapshotToControlPoints(jsonState[ChannelStateKeys.ControlPointsLegacy]);
+      const parsedResult = snapshotToControlPoints(jsonState[ChannelStateSnapshotKeys.ControlPointsLegacy]);
       if (parsedResult) {
         result.controlPoints = parsedResult.map(({ opacity, color, x }) => ({
           opacity,
