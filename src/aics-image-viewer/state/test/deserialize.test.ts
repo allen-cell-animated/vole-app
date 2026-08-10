@@ -228,7 +228,7 @@ describe("deserializeViewerChannelSetting", () => {
   });
 
   it("ignores unexpected keys", () => {
-    const data = { badKey: "badValue", ven: "1", sen: "1" } as ChannelStateStringified;
+    const data = { badKey: "badValue", ven: "1", sen: "1" } as const;
     const result = deserializeViewerChannelSetting(0, data);
     expect(result).toEqual({ ...DEFAULT_TEST_VIEWER_CHANNEL_SETTING, enabled: true, surfaceEnabled: true });
   });
@@ -243,7 +243,7 @@ describe("deserializeViewerChannelSetting", () => {
       sen: "1",
       isv: "128",
       lut: "0:255",
-    } as ChannelStateStringified;
+    } as const;
     expect(deserializeViewerChannelSetting(0, data)).toEqual({
       match: 0,
       color: "FF0000",
@@ -269,9 +269,9 @@ describe("deserializeViewerChannelSetting", () => {
       ["m99:m100", ["m99", "m100"]],
       ["p10:p90", ["p10", "p90"]],
       ["p10: p90", ["p10", "p90"]], // handle spaces
-    ];
+    ] as const;
     for (const [encodedLut, decodedLut] of luts) {
-      const data = { lut: encodedLut } as ChannelStateStringified;
+      const data = { lut: encodedLut } as const;
       const result = deserializeViewerChannelSetting(0, data);
       expect(result.intensity?.lut).toEqual(decodedLut);
     }
@@ -280,7 +280,7 @@ describe("deserializeViewerChannelSetting", () => {
   it("ignores unexpected lut formats", () => {
     const luts = ["!:0", "0:9:93", "255", ""];
     for (const lut of luts) {
-      const data = { lut } as ChannelStateStringified;
+      const data = { lut } as const;
       const result = deserializeViewerChannelSetting(0, data);
       expect(result.lut).toBeUndefined();
     }
@@ -289,7 +289,7 @@ describe("deserializeViewerChannelSetting", () => {
   it("handles hex color formats", () => {
     const colors = ["000000", "FFFFFF", "ffffff", "012345", "6789AB", "CDEF01", "abcdef"];
     for (const color of colors) {
-      const data = { col: color } as ChannelStateStringified;
+      const data = { col: color } as const;
       const result = deserializeViewerChannelSetting(0, data);
       expect(result.color).toEqual(color);
     }
@@ -298,14 +298,14 @@ describe("deserializeViewerChannelSetting", () => {
   it("ignores bad color formats", () => {
     const badColors = ["f", "ff00", "red", "rgb(255,0,0)"];
     for (const color of badColors) {
-      const data = { col: color } as ChannelStateStringified;
+      const data = { col: color } as const;
       const result = deserializeViewerChannelSetting(0, data);
       expect(result.color).toBeUndefined();
     }
   });
 
   it("ignores bad float data", () => {
-    const data = { cza: "NaN", isa: "bad", isv: "f8" } as ChannelStateStringified;
+    const data = { cza: "NaN", isa: "bad", isv: "f8" } as const;
     const result = deserializeViewerChannelSetting(0, data);
     expect(result.colorizeAlpha).toBeUndefined();
     expect(result.surfaceOpacity).toBeUndefined();
@@ -330,7 +330,7 @@ describe("deserializeChannelState", () => {
       ram: "0:255",
       cpe: "1",
       pin: "1",
-    } as ChannelStateStringified;
+    } as const;
 
     expect(deserializeChannelState(data)).toEqual({
       color: [255, 0, 0],
@@ -352,7 +352,7 @@ describe("deserializeChannelState", () => {
       cps: "0:0:ff0000:255:1:00ff00",
       ram: "1:2",
       rmp: "3:4",
-    } as ChannelStateStringified;
+    } as const;
 
     expect(deserializeChannelState(data)).toEqual({
       controlPoints: [
