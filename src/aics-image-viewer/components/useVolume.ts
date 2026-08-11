@@ -180,11 +180,8 @@ const useVolume = (
   );
 
   useEffect(() => {
-    if (!image) {
-      return;
-    }
-
-    const onLoadStart = () => setIsLoading(LoadType.RELOAD);
+    if (!image) return;
+    const onLoadStart = (): void => setIsLoading(LoadType.RELOAD);
     image.addEventListener("loadStart", onLoadStart);
     return () => image.removeEventListener("loadStart", onLoadStart);
   }, [image, setIsLoading]);
