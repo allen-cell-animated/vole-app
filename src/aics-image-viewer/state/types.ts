@@ -75,6 +75,45 @@ export type ChannelState = {
   keepIntensityRange: boolean;
 };
 
+/**
+ * The variants of `ViewMode` that appear in serialized representations of state
+ * (`ViewerStateSnapshot`, `ViewerStateStringified`).
+ *
+ * IMPORTANT: Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values.
+ */
+export enum ViewModeSnapshot {
+  threeD = "3D",
+  xy = "Z",
+  xz = "Y",
+  yz = "X",
+}
+
+/**
+ * The variants of `RenderMode` that appear in serialized representations of state
+ * (`ViewerStateSnapshot`, `ViewerStateStringified`).
+ *
+ * IMPORTANT: Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values.
+ */
+export enum RenderModeSnapshot {
+  volumetric = "volumetric",
+  maxProject = "maxproject",
+  pathTrace = "pathtrace",
+}
+
+/**
+ * The variants of `ImageType` that appear in serialized representations of state
+ * (`ViewerStateSnapshot`, `ViewerStateStringified`).
+ *
+ * IMPORTANT: Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values.
+ */
+export enum ImageTypeSnapshot {
+  segmentedCell = "cell",
+  fullField = "fov",
+}
+
 export enum CameraTransformKeys {
   /** Camera position in 3D coordinates. */
   Position = "pos",
