@@ -63,10 +63,9 @@ export type ReactiveVolume = {
   imageLoadStatus: ImageLoadStatus;
   setTime: (view3d: View3d, time: number) => void;
   setScene: (scene: number) => void;
+  setScrubbingAxis: (axis: AxisName | "t" | null) => void;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
-  beginScrubPreview: (highResLoaded: boolean) => void;
-  endScrubPreview: () => void;
   channelGroupedByType: ChannelGrouping;
 };
 
@@ -117,8 +116,7 @@ const useVolume = (
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
-  const [highResLoaded, setHighResLoaded] = useState<boolean>(false);
-  const [isScrubbing, setIsScrubbing] = useState<boolean>(false);
+  const [scrubbingAxis, setScrubbingAxis] = useState<AxisName | "t" | null>(null);
   useEffect(() => {
     playControls.onPlayingAxisChanged = (axis) => {
       const isPlaying = axis !== null;
@@ -187,18 +185,18 @@ const useVolume = (
   );
 
   const scaleLevelBias = useMemo(() => {
-    if (!image || highResLoaded) return 0;
+    if (!image) return 0;
 
-    if (isScrubbing) return image.imageInfo.numMultiscaleLevels;
-    if (playingAxis !== null) {
-      // If we're playing and entire axis is not in memory, downlevel to speed things up
-      const { volumeSize, subregionSize } = image.imageInfo;
-      if (playingAxis === "t" || volumeSize[playingAxis] !== subregionSize[playingAxis]) {
-        return 1;
-      }
+    // If we're playing/scrubbing and entire axis is not in memory, downlevel to speed things up
+    const { volumeSize, subregionSize, numMultiscaleLevels } = image.imageInfo;
+    const axis = scrubbingAxis ?? playingAxis;
+    if (axis && (axis === "t" || volumeSize[axis] !== subregionSize[axis])) {
+      const isPlayback = scrubbingAxis !== null;
+      return isPlayback ? numMultiscaleLevels : 1;
     }
+
     return 0;
-  }, [image, playingAxis, highResLoaded, isScrubbing]);
+  }, [image, playingAxis, scrubbingAxis]);
 
   useEffect(() => {
     image?.updateRequiredData({ scaleLevelBias }).catch(onError);
@@ -393,28 +391,18 @@ const useVolume = (
     ]
   );
 
-  const beginScrubPreview = useCallback(
-    (highResLoaded: boolean): void => {
-      setIsScrubbing(true);
-      setHighResLoaded(highResLoaded);
-      if (image && !inInitialLoadRef.current) {
-        sceneLoader.syncMultichannelLoading(false);
-      }
-    },
-    [image, sceneLoader]
-  );
+  useEffect(() => {
+    if (image && !inInitialLoadRef.current && scrubbingAxis === null) {
+      setIsLoading(LoadType.RELOAD);
+    }
+  }, [image, scrubbingAxis, setIsLoading]);
 
-  const endScrubPreview = useCallback(
-    (): void => {
-      setIsScrubbing(false);
-      setHighResLoaded(false); // We can't be sure that the full level at scaleLevelBias: 0 is loaded
-      if (image && !inInitialLoadRef.current) {
-        setIsLoading(LoadType.RELOAD);
-      }
-    },
-    [image, setIsScrubbing, setIsLoading]
-  );
-
+  useEffect(() => {
+    if (image && !inInitialLoadRef.current && scrubbingAxis !== null) {
+      // Ensure consistent scrub experience, whether there is also playback active or not
+      sceneLoader.syncMultichannelLoading(false);
+    }
+  }, [image, scrubbingAxis, sceneLoader]);
 
   return useMemo(
     () => ({
@@ -423,8 +411,7 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
-      beginScrubPreview,
-      endScrubPreview,
+      setScrubbingAxis,
       playControls,
       playingAxis,
       channelGroupedByType,
@@ -435,8 +422,7 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
-      beginScrubPreview,
-      endScrubPreview,
+      setScrubbingAxis,
       playControls,
       playingAxis,
       channelGroupedByType,

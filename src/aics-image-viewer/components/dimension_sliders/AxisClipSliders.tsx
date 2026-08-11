@@ -1,5 +1,5 @@
 import type { Volume } from "@aics/vole-core";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 
 import { activeAxisMap, type AxisName, type XYZ } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
@@ -24,13 +24,11 @@ type AxisClipSlidersProps = {
   scene: number;
   playingAxis: AxisName | "t" | null;
   playControls: PlayControls;
-  beginScrubPreview: (highResLoaded: boolean) => void;
-  endScrubPreview: () => void;
+  setScrubbingAxis: (axis: AxisName | "t" | null) => void;
 };
 
 export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   const activeAxis = activeAxisMap[props.mode];
-  const scrubStarted = useRef(false); // ref instead of useState to avoid unnecessary re-renders
 
   const pauseOnInput = (axis: AxisName | "t"): void => {
     // Pause on slider input unless user is scrubbing along the playing axis (playback is held while this is happening)
@@ -50,18 +48,10 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
     changeViewerSetting("region", { [axis]: [start, end] });
   };
 
-  const startScrub = (): void => {
-    if (!scrubStarted.current) {
-      scrubStarted.current = true;
-      const highResLoaded = props.numSlices === props.numSlicesLoaded;
-      props.beginScrubPreview(highResLoaded);
-    }
-  };
-
   const updateSlice = (axis: AxisName, slice: number, isScrubbing = false): void => {
     pauseOnInput(axis);
     if (isScrubbing) {
-      startScrub();
+      props.setScrubbingAxis(axis);
     }
     props.changeViewerSetting("slice", { [axis]: slice / props.numSlices[axis] });
   };
@@ -69,16 +59,13 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   const updateTime = (time: number, isScrubbing = false): void => {
     pauseOnInput("t");
     if (isScrubbing) {
-      startScrub();
+      props.setScrubbingAxis("t");
     }
     props.changeViewerSetting("time", time);
   };
 
   const endScrub = (): void => {
-    if (scrubStarted.current) {
-      scrubStarted.current = false;
-      props.endScrubPreview();
-    }
+    props.setScrubbingAxis(null);
     props.playControls.endHold();
   };
 
