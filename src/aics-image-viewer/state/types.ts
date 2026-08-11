@@ -150,13 +150,13 @@ export enum ViewerStateSnapshotKeys {
   /** Render mode. Possible values are `volumetric`, `maxproject`, or `pathtrace` (from `RenderModeSnapshot`). */
   Mode = "mode",
   /** The opacity of the mask channel, an integer in the range `[0, 100]`. Defaults to `50`. */
-  Mask = "mask",
+  MaskOpacity = "mask",
   /** The type of image to display. Valid values are `cell` and `fov` (from `ImageTypeSnapshot`). Default `cell`. */
-  Image = "image",
+  ImageType = "image",
   /** Whether to show the axes helper. Boolean, or `0`/`1` when stringified. Default `false`. */
-  Axes = "axes",
+  ShowAxes = "axes",
   /** Whether to show the bounding box. Boolean, or `0`/`1` when stringified. Default `false`. */
-  BoundingBox = "bb",
+  ShowBoundingBox = "bb",
   /** The color of the bounding box, as a 6-digit hex color. */
   BoundingBoxColor = "bbcol",
   /** The background color, as a 6-digit hex color. */
@@ -304,10 +304,10 @@ export enum ChannelStateSnapshotKeys {
 type ViewerStateSnapshotTypes = {
   [ViewerStateSnapshotKeys.View]: ViewModeSnapshot;
   [ViewerStateSnapshotKeys.Mode]: RenderModeSnapshot;
-  [ViewerStateSnapshotKeys.Mask]: number;
-  [ViewerStateSnapshotKeys.Image]: ImageTypeSnapshot;
-  [ViewerStateSnapshotKeys.Axes]: boolean;
-  [ViewerStateSnapshotKeys.BoundingBox]: boolean;
+  [ViewerStateSnapshotKeys.MaskOpacity]: number;
+  [ViewerStateSnapshotKeys.ImageType]: ImageTypeSnapshot;
+  [ViewerStateSnapshotKeys.ShowAxes]: boolean;
+  [ViewerStateSnapshotKeys.ShowBoundingBox]: boolean;
   [ViewerStateSnapshotKeys.BoundingBoxColor]: string;
   [ViewerStateSnapshotKeys.BackgroundColor]: string;
   [ViewerStateSnapshotKeys.Autorotate]: boolean;
