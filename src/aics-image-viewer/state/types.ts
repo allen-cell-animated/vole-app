@@ -297,7 +297,10 @@ export type ViewerStateSnapshot = { [K in ViewerStateKeys]?: ViewerStateSnapshot
  */
 export type ViewerStateStringified = { [K in ViewerStateKeys]?: string };
 
-/** A `ControlPoint` where `color` is a six-digit hex string, or `"1"` for white. Used by `ChannelStateSnapshot`. */
+/**
+ * A `ControlPoint` where `color` is a six-digit hex string, or gets shortened to `"1"` in the overwhelming majority of
+ * cases where the control point is white to save space in sharing URLs. Used by `ChannelStateSnapshot`.
+ */
 export type ControlPointSnapshot = {
   x: number;
   opacity: number;
