@@ -124,8 +124,6 @@ const useVolume = (
       // prioritize prefetching along the playing axis
       sceneLoader.setPrefetchPriority(axis ? [AXIS_TO_LOADER_PRIORITY[axis]] : []);
       sceneLoader.updateFetchOptions({ onlyPriorityDirections: isPlaying });
-      // sync multichannel loading so we don't show loaded channels one at a time
-      sceneLoader.syncMultichannelLoading(isPlaying);
     };
   }, [sceneLoader, playControls, image]);
 
@@ -398,11 +396,12 @@ const useVolume = (
   }, [image, scrubbingAxis, setIsLoading]);
 
   useEffect(() => {
-    if (image && !inInitialLoadRef.current && scrubbingAxis !== null) {
-      // Ensure consistent scrub experience, whether there is also playback active or not
-      sceneLoader.syncMultichannelLoading(false);
+    if (image && !inInitialLoadRef.current) {
+      // When playing, wait for all channels to load before displaying
+      // When scrubbing, show channels as they arrive, for speed
+      sceneLoader.syncMultichannelLoading(scrubbingAxis === null && playingAxis !== null);
     }
-  }, [image, scrubbingAxis, sceneLoader]);
+  }, [image, scrubbingAxis, playingAxis, sceneLoader]);
 
   return useMemo(
     () => ({
