@@ -148,13 +148,7 @@ export enum ViewerStateKeys {
   /** Scene number, for multiscene images. `0` by default. */
   Scene = "scene",
   /**
-   * Camera transform settings. An object with the following keys, as defined in `CameraTransformKeys`:
-   * Valid keys are defined in `CameraTransformKeys`:
-   * - `pos`: position
-   * - `tar`: target
-   * - `up`: up
-   * - `ort`: orthographic scale
-   * - `fov`: field of view
+   * Camera transform settings. An object with type `CameraTransformSnapshot`; see `CameraTransformKeys` for more.
    *
    * Stringifies to a list of `key:value` pairs separated by commas. Vector values are encoded as three floats
    * separated by colons (e.g. `1:2:3`) and encoded using `encodeURIComponent`.
