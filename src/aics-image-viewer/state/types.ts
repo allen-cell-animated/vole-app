@@ -142,13 +142,13 @@ export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
  */
 export enum ViewerStateKeys {
-  /** Axis to view. Snapshot values are `3D`, `XY`, `XZ`, `YZ` (from `ViewMode`); when stringified these map to `3D`, `Z`, `Y`, `X`. */
+  /** Axis to view. Snapshot values are `3D`, `Z`, `Y`, `X` (from `ViewModeSnapshot`). */
   View = "view",
-  /** Render mode. Possible values are `volumetric`, `maxproject`, or `pathtrace`. */
+  /** Render mode. Possible values are `volumetric`, `maxproject`, or `pathtrace` (from `RenderModeSnapshot`). */
   Mode = "mode",
   /** The opacity of the mask channel, an integer in the range `[0, 100]`. Defaults to `50`. */
   Mask = "mask",
-  /** The type of image to display. Valid values are `cell` and `fov`. Defaults to `cell`. */
+  /** The type of image to display. Valid values are `cell` and `fov` (from `ImageTypeSnapshot`). Default `cell`. */
   Image = "image",
   /** Whether to show the axes helper. Boolean, or `0`/`1` when stringified. Default `false`. */
   Axes = "axes",
@@ -295,10 +295,10 @@ export enum ChannelStateKeys {
 // This is not the exported "snapshot" type: that's `ViewerStateSnapshot`, below.  Defining `ViewerStateSnapshot` as a
 // mapped type means it will type error unless this type is exhaustive over all variants of `ViewerStateKeys`.
 type ViewerStateSnapshotTypes = {
-  [ViewerStateKeys.View]: ViewMode;
-  [ViewerStateKeys.Mode]: RenderMode;
+  [ViewerStateKeys.View]: ViewModeSnapshot;
+  [ViewerStateKeys.Mode]: RenderModeSnapshot;
   [ViewerStateKeys.Mask]: number;
-  [ViewerStateKeys.Image]: ImageType;
+  [ViewerStateKeys.Image]: ImageTypeSnapshot;
   [ViewerStateKeys.Axes]: boolean;
   [ViewerStateKeys.BoundingBox]: boolean;
   [ViewerStateKeys.BoundingBoxColor]: string;

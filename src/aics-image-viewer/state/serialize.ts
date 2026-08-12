@@ -16,7 +16,15 @@ import type {
   ViewerStateSnapshot,
   ViewerStateStringified,
 } from "./types";
-import { CameraTransformKeys, ChannelStateKeys, ViewerStateKeys, ViewMode } from "./types";
+import { ImageType, ImageTypeSnapshot, RenderModeSnapshot } from "./types";
+import {
+  CameraTransformKeys,
+  ChannelStateKeys,
+  RenderMode,
+  ViewerStateKeys,
+  ViewMode,
+  ViewModeSnapshot,
+} from "./types";
 
 const ENCODED_COLON_REGEX = /%3A/g;
 
@@ -98,6 +106,24 @@ function controlPointToSnapshot(controlPoint: ControlPoint): ControlPointSnapsho
   };
 }
 
+const VIEW_MODE_TO_SNAPSHOT: { [K in ViewMode]: ViewModeSnapshot } = {
+  [ViewMode.threeD]: ViewModeSnapshot.threeD,
+  [ViewMode.xy]: ViewModeSnapshot.xy,
+  [ViewMode.xz]: ViewModeSnapshot.xz,
+  [ViewMode.yz]: ViewModeSnapshot.yz,
+};
+
+const RENDER_MODE_TO_SNAPSHOT: { [K in RenderMode]: RenderModeSnapshot } = {
+  [RenderMode.volumetric]: RenderModeSnapshot.volumetric,
+  [RenderMode.maxProject]: RenderModeSnapshot.maxProject,
+  [RenderMode.pathTrace]: RenderModeSnapshot.pathTrace,
+};
+
+const IMAGE_TYPE_TO_SNAPSHOT: { [K in ImageType]: ImageTypeSnapshot } = {
+  [ImageType.segmentedCell]: ImageTypeSnapshot.segmentedCell,
+  [ImageType.fullField]: ImageTypeSnapshot.fullField,
+};
+
 /**
  * Converts a `ViewerState` to a `ViewerStateSnapshot`, suitable for serialization.
  */
@@ -112,10 +138,10 @@ export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefault
   }
 
   const result: ViewerStateSnapshot = {
-    [ViewerStateKeys.View]: s.viewMode,
-    [ViewerStateKeys.Mode]: s.renderMode,
+    [ViewerStateKeys.View]: s.viewMode && VIEW_MODE_TO_SNAPSHOT[s.viewMode],
+    [ViewerStateKeys.Mode]: s.renderMode && RENDER_MODE_TO_SNAPSHOT[s.renderMode],
     [ViewerStateKeys.Mask]: s.maskAlpha,
-    [ViewerStateKeys.Image]: s.imageType,
+    [ViewerStateKeys.Image]: s.imageType && IMAGE_TYPE_TO_SNAPSHOT[s.imageType],
     [ViewerStateKeys.Axes]: s.showAxes,
     [ViewerStateKeys.BoundingBox]: s.showBoundingBox,
     [ViewerStateKeys.BoundingBoxColor]: s.boundingBoxColor && colorArrayToHex(s.boundingBoxColor),
@@ -216,13 +242,6 @@ function stringifyControlPointSnapshots(controlPoints: ControlPointSnapshot[]): 
   return controlPoints.map((cp) => `${formatFloat(cp.x)}:${formatFloat(cp.opacity)}:${cp.color}`).join(":");
 }
 
-const VIEW_MODE_TO_VIEW_PARAM = {
-  [ViewMode.threeD]: "3D",
-  [ViewMode.xy]: "Z",
-  [ViewMode.xz]: "Y",
-  [ViewMode.yz]: "X",
-};
-
 /**
  * Converts all keys of a `CameraStateSnapshot` to compact `string` representations,
  * for serialization to `string` formats.
@@ -242,7 +261,7 @@ export const stringifyCameraStateSnapshot = (snapshot: CameraStateSnapshot): Cam
  */
 export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): ViewerStateStringified =>
   stringify(snapshot, {
-    [ViewerStateKeys.View]: (mode) => VIEW_MODE_TO_VIEW_PARAM[mode],
+    [ViewerStateKeys.View]: identity,
     [ViewerStateKeys.Mode]: identity,
     [ViewerStateKeys.Mask]: formatFloat,
     [ViewerStateKeys.Image]: identity,
