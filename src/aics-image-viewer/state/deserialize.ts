@@ -491,7 +491,7 @@ export function snapshotToViewerChannelSetting(
     result.color = color;
   }
 
-  const lut = validateTuple<string | number, 2>(jsonState[ChannelStateSnapshotKeys.Lut], 2, identity);
+  const lut = validateTuple<string | number, 2>(jsonState[ChannelStateSnapshotKeys.Lut], 2, validateLutValue);
   if (lut !== undefined) {
     result.intensity = { ...result.intensity, lut };
   }
