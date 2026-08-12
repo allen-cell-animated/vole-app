@@ -515,7 +515,7 @@ export function snapshotToViewerChannelSetting(
       result.intensity = { ...result.intensity, ramp };
     }
   } else if (jsonState[ChannelStateSnapshotKeys.RampLegacy]) {
-    const ramp = validateSortedPair(jsonState[ChannelStateSnapshotKeys.Ramp]);
+    const ramp = validateSortedPair(jsonState[ChannelStateSnapshotKeys.RampLegacy]);
     if (ramp !== undefined) {
       result.ramp = ramp;
     }
