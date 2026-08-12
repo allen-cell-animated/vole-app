@@ -51,6 +51,8 @@ export function objectToKeyValueList(obj: Record<string, string | undefined>): s
   return keyValuePairs.join(",");
 }
 
+// MARK: Snapshot
+
 function colorArrayToHex(color: ColorArray): string {
   return color
     .map((c) => c.toString(16).padStart(2, "0"))
@@ -186,6 +188,8 @@ export function channelStateToSnapshot(state: Partial<ChannelState>, removeDefau
 
   return removeUndefinedProperties(result);
 }
+
+// MARK: Stringify
 
 /**
  * Helper function for converting all keys of an object to `string` representations.
