@@ -79,8 +79,9 @@ export type ChannelState = {
  * The variants of `ViewMode` that appear in serialized representations of state
  * (`ViewerStateSnapshot`, `ViewerStateStringified`).
  *
- * IMPORTANT: Changing the values of this enum will BREAK existing image sharing links and exported app state.
- * It should not be done without introducing code to handle the previous values.
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values. This enum must not have values that
+ * collide when `toLowerCase` is applied to them.
  */
 export enum ViewModeSnapshot {
   threeD = "3D",
@@ -93,8 +94,9 @@ export enum ViewModeSnapshot {
  * The variants of `RenderMode` that appear in serialized representations of state
  * (`ViewerStateSnapshot`, `ViewerStateStringified`).
  *
- * IMPORTANT: Changing the values of this enum will BREAK existing image sharing links and exported app state.
- * It should not be done without introducing code to handle the previous values.
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values. This enum must not have values that
+ * collide when `toLowerCase` is applied to them.
  */
 export enum RenderModeSnapshot {
   volumetric = "volumetric",
@@ -106,8 +108,9 @@ export enum RenderModeSnapshot {
  * The variants of `ImageType` that appear in serialized representations of state
  * (`ViewerStateSnapshot`, `ViewerStateStringified`).
  *
- * IMPORTANT: Changing the values of this enum will BREAK existing image sharing links and exported app state.
- * It should not be done without introducing code to handle the previous values.
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values. This enum must not have values that
+ * collide when `toLowerCase` is applied to them.
  */
 export enum ImageTypeSnapshot {
   segmentedCell = "cell",
