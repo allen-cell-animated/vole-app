@@ -10,9 +10,12 @@ import {
   CameraTransformKeys,
   ChannelStateSnapshotKeys,
   ImageType,
+  ImageTypeSnapshot,
   RenderMode,
+  RenderModeSnapshot,
   ViewerStateSnapshotKeys,
   ViewMode,
+  ViewModeSnapshot,
 } from "./types";
 import type {
   CameraStateSnapshot,
@@ -35,7 +38,7 @@ const FLOAT_REGEX = /-?[0-9]*\.?[0-9]+/;
  * A valid lut specifier for `ViewerChannelSettings` is a float optionally prefixed with one of `v`, `p`, or `m`, or
  * the string `autoij`.
  */
-const LUT_VALUE_REGEX = new RegExp(`^([vpm]?${FLOAT_REGEX.source}|autoij)$`);
+const LUT_VALUE_REGEX = new RegExp(`^([vpm]?${FLOAT_REGEX.source}|autoij)?$`);
 
 const HEX_COLOR_REGEX = new RegExp(`(([0-9a-fA-F]{6})|${DEFAULT_CONTROL_POINT_COLOR_CODE})`);
 
@@ -65,6 +68,7 @@ export const LEGACY_CONTROL_POINTS_REGEX = new RegExp(
  */
 export const CONTROL_POINTS_REGEX = new RegExp(`^${CONTROL_POINT_REGEX.source}(:${CONTROL_POINT_REGEX.source})*$`);
 
+/** An array of exactly `N` `T`s. */
 // adapted from https://github.com/microsoft/TypeScript/pull/40002
 type Tuple<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : Tuple<T, N, [T, ...R]>;
 
@@ -135,6 +139,16 @@ function parseControlPointSnapshots(controlPoints: string | undefined): ControlP
 
 const parseBoolean = (value: string): boolean | undefined => (value === "1" ? true : value === "0" ? false : undefined);
 
+export const enumParser = <E extends string>(enumValues: Record<string, E>): ((value: string) => E | undefined) => {
+  const variants = Object.values(enumValues);
+  const variantsLowercase = Object.fromEntries(variants.map((v) => [v.toLowerCase(), v]));
+  return (value) => (typeof value === "string" ? variantsLowercase[value.toLowerCase()] : undefined);
+};
+
+const parseViewMode = enumParser(ViewModeSnapshot);
+const parseRenderMode = enumParser(RenderModeSnapshot);
+const parseImageType = enumParser(ImageTypeSnapshot);
+
 /**
  * Helper function for parsing all keys of a stringified object back to their
  * proper types.
@@ -177,24 +191,16 @@ export const destringifyCameraStateSnapshot = (stringified: CameraStateStringifi
     [CameraTransformKeys.Fov]: Number.parseFloat,
   });
 
-const VIEW_PARAM_TO_VIEW_MODE = {
-  "3d": ViewMode.threeD,
-  x: ViewMode.yz,
-  y: ViewMode.xz,
-  z: ViewMode.xy,
-};
-
 /**
  * Converts a `ViewerStateStringified` into a `ViewerStateSnapshot` by parsing each key from its stringified
  * representation to its type in `ViewerStateSnapshot`.
  */
 export const destringifyViewerStateSnapshot = (stringified: ViewerStateStringified): ViewerStateSnapshot =>
   destringify<ViewerStateSnapshot>(stringified, {
-    [ViewerStateSnapshotKeys.View]: (value) =>
-      VIEW_PARAM_TO_VIEW_MODE[value.toLowerCase() as keyof typeof VIEW_PARAM_TO_VIEW_MODE],
-    [ViewerStateSnapshotKeys.Mode]: (value) => parseStringEnum(value, RenderMode),
+    [ViewerStateSnapshotKeys.View]: parseViewMode,
+    [ViewerStateSnapshotKeys.Mode]: parseRenderMode,
     [ViewerStateSnapshotKeys.MaskOpacity]: Number.parseFloat,
-    [ViewerStateSnapshotKeys.ImageType]: (value) => parseStringEnum(value, ImageType),
+    [ViewerStateSnapshotKeys.ImageType]: parseImageType,
     [ViewerStateSnapshotKeys.ShowAxes]: parseBoolean,
     [ViewerStateSnapshotKeys.ShowBoundingBox]: parseBoolean,
     [ViewerStateSnapshotKeys.BoundingBoxColor]: identity,
@@ -268,25 +274,6 @@ export function parseKeyValueList(data: string): Record<string, string> {
   return result;
 }
 
-/**
- * Parses a string to an enum value; if the string is not in the enum, returns the default value.
- * @param value String to parse.
- * @param enumValues Enum. Cannot be a `const enum`, as these are removed at compile time.
- * @param defaultValue Default value to return if the string is not in the enum.
- * @returns A value from the enum or the default value. Note that the return type includes `undefined`
- * if the `defaultValue` is `undefined`.
- */
-export function parseStringEnum<E extends string, T extends E | undefined>(
-  value: unknown,
-  enumValues: Record<string | number | symbol, E>,
-  defaultValue: T = undefined as T
-): T {
-  if (typeof value !== "string" || !Object.values(enumValues).includes(value as E)) {
-    return defaultValue;
-  }
-  return value as T;
-}
-
 export function parseHexColorAsColorArray(hexColor: unknown): ColorArray | undefined {
   if (typeof hexColor !== "string" || !HEX_COLOR_STR_REGEX.test(hexColor)) {
     return undefined;
@@ -303,12 +290,12 @@ export function parseHexColorAsColorArray(hexColor: unknown): ColorArray | undef
   return [r, g, b];
 }
 
-/** Verifies that a value is a number; if it is, clamps it between `min` and `max`. */
+/** Verifies that `value` is a `number`; if it is, clamps it between `min` and `max`. */
 export const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
   return typeof value === "number" && !Number.isNaN(value) ? clamp(value, min, max) : undefined;
 };
 
-/** Verifies that a value is a number; if it is, truncates it to an integer and clamps it between `min` and `max`. */
+/** Verifies that `value` is a `number`; if it is, truncates it to an integer and clamps it between `min` and `max`. */
 export const validateInt = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
   return typeof value === "number" && !Number.isNaN(value) ? clamp(Math.trunc(value), min, max) : undefined;
 };
@@ -397,6 +384,32 @@ const validateLutValue = (value: unknown): string | number | undefined => {
   return undefined;
 };
 
+const enumSnapshotConverter = <S extends string, E extends string>(map: { [K in S]: E }): ((
+  value: unknown
+) => E | undefined) => {
+  const entries = Object.entries<E>(map);
+  const lowercaseMap = Object.fromEntries(entries.map(([s, e]) => [s.toLowerCase(), e]));
+  return (value) => (typeof value === "string" ? lowercaseMap[value.toLowerCase()] : undefined);
+};
+
+const snapshotToViewMode = enumSnapshotConverter<ViewModeSnapshot, ViewMode>({
+  [ViewModeSnapshot.threeD]: ViewMode.threeD,
+  [ViewModeSnapshot.xy]: ViewMode.xy,
+  [ViewModeSnapshot.xz]: ViewMode.xz,
+  [ViewModeSnapshot.yz]: ViewMode.yz,
+});
+
+const snapshotToRenderMode = enumSnapshotConverter<RenderModeSnapshot, RenderMode>({
+  [RenderModeSnapshot.volumetric]: RenderMode.volumetric,
+  [RenderModeSnapshot.maxProject]: RenderMode.maxProject,
+  [RenderModeSnapshot.pathTrace]: RenderMode.pathTrace,
+});
+
+const snapshotToImageType = enumSnapshotConverter<ImageTypeSnapshot, ImageType>({
+  [ImageTypeSnapshot.segmentedCell]: ImageType.segmentedCell,
+  [ImageTypeSnapshot.fullField]: ImageType.fullField,
+});
+
 // MARK: Parsers
 
 type Untrusted<T> = { [K in keyof T]?: unknown };
@@ -421,9 +434,9 @@ function snapshotToCameraState(snapshot: Untrusted<CameraStateSnapshot> | undefi
 /** Parses a `ViewerStateSnapshot` to a `ViewerState`. */
 export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>): Partial<ViewerState> {
   const result: Partial<ViewerState> = {
-    viewMode: parseStringEnum(snapshot[ViewerStateSnapshotKeys.View], ViewMode),
+    viewMode: snapshotToViewMode(snapshot[ViewerStateSnapshotKeys.View]),
     maskAlpha: validateNumber(snapshot[ViewerStateSnapshotKeys.MaskOpacity], 0, 100),
-    imageType: parseStringEnum(snapshot[ViewerStateSnapshotKeys.ImageType], ImageType),
+    imageType: snapshotToImageType(snapshot[ViewerStateSnapshotKeys.ImageType]),
     showAxes: validateBoolean(snapshot[ViewerStateSnapshotKeys.ShowAxes]),
     showBoundingBox: validateBoolean(snapshot[ViewerStateSnapshotKeys.ShowBoundingBox]),
     boundingBoxColor: parseHexColorAsColorArray(snapshot[ViewerStateSnapshotKeys.BoundingBoxColor]),
@@ -437,7 +450,7 @@ export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>):
     slice: validateXYZ(snapshot[ViewerStateSnapshotKeys.Slice], (value) => validateNumber(value, 0, 1)),
     time: validateInt(snapshot[ViewerStateSnapshotKeys.Time], 0, Number.POSITIVE_INFINITY),
     scene: validateInt(snapshot[ViewerStateSnapshotKeys.Scene], 0, Number.POSITIVE_INFINITY),
-    renderMode: parseStringEnum(snapshot[ViewerStateSnapshotKeys.Mode], RenderMode),
+    renderMode: snapshotToRenderMode(snapshot[ViewerStateSnapshotKeys.Mode]),
     singleChannelMode: validateBoolean(snapshot[ViewerStateSnapshotKeys.SingleChannelMode]),
     singleChannelIndex: validateInt(snapshot[ViewerStateSnapshotKeys.SingleChannelIndex], 0, Number.POSITIVE_INFINITY),
     useExactScaleLevel: validateBoolean(snapshot[ViewerStateSnapshotKeys.UseExactScaleLevel]),

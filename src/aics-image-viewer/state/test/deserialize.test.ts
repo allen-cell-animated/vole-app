@@ -2,10 +2,10 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   CONTROL_POINTS_REGEX,
+  enumParser,
   LEGACY_CONTROL_POINTS_REGEX,
   parseHexColorAsColorArray,
   parseKeyValueList,
-  parseStringEnum,
   stringSnapshotToChannelState,
   stringSnapshotToViewerChannelSetting,
   stringSnapshotToViewerState,
@@ -138,20 +138,21 @@ describe("parseHexColorAsColorArray", () => {
   });
 });
 
-describe("parseStringEnum", () => {
+describe("enumParser", () => {
   enum TestEnum {
-    SOME_VALUE = "some_value",
-    ANOTHER_VALUE = "another_value",
+    SOME_VALUE = "someValue",
+    ANOTHER_VALUE = "anotherValue",
   }
+  const parseTestEnum = enumParser(TestEnum);
 
   it("recognizes enum values", () => {
-    expect(parseStringEnum("some_value", TestEnum)).toEqual(TestEnum.SOME_VALUE);
-    expect(parseStringEnum("another_value", TestEnum)).toEqual(TestEnum.ANOTHER_VALUE);
+    expect(parseTestEnum("someValue")).toEqual(TestEnum.SOME_VALUE);
+    expect(parseTestEnum("anotherValue")).toEqual(TestEnum.ANOTHER_VALUE);
   });
 
-  it("returns default values for unrecognized enum values", () => {
-    expect(parseStringEnum("unexpected", TestEnum, undefined)).toEqual(undefined);
-    expect(parseStringEnum("unexpected", TestEnum, TestEnum.SOME_VALUE)).toEqual(TestEnum.SOME_VALUE);
+  it("recognizes lowercase enum values", () => {
+    expect(parseTestEnum("somevalue")).toEqual(TestEnum.SOME_VALUE);
+    expect(parseTestEnum("anothervalue")).toEqual(TestEnum.ANOTHER_VALUE);
   });
 });
 
