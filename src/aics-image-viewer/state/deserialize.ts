@@ -479,17 +479,17 @@ function snapshotToControlPoints(controlPoints: Untrusted<ControlPointSnapshot>[
 
 /**
  * Parses a `ChannelStateSnapshot` to a `ViewerChannelSetting`.
- * @param channelIndex Index of the channel, to be turned into a `match` value.
+ * @param channelId Either the index or the name of the channel, to be turned into a `match` value.
  * @param jsonState The serialized `ViewerChannelSetting` to parse, as an object.
  * @returns A `ViewerChannelSetting` object.
  */
 export function snapshotToViewerChannelSetting(
-  channelIndex: number,
+  channelId: number | string,
   jsonState: Untrusted<ChannelStateSnapshot>
 ): ViewerChannelSetting {
   // Missing/undefined fields should be handled downstream.
   const result: ViewerChannelSetting = {
-    match: channelIndex,
+    match: channelId,
     enabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.VolumeEnabled]),
     surfaceEnabled: validateBoolean(jsonState[ChannelStateSnapshotKeys.SurfaceEnabled]),
     isovalue: validateNumber(jsonState[ChannelStateSnapshotKeys.IsosurfaceValue], -Infinity, Infinity),
