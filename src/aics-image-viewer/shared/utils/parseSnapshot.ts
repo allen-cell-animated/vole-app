@@ -1,4 +1,4 @@
-import type { AppProps } from "../../components/App/types";
+import type { MultisceneUrls } from "../../components/App/types";
 import { snapshotToChannelState, snapshotToViewerChannelSetting } from "../../state/deserialize";
 import { channelStateToSnapshot } from "../../state/serialize";
 import type { ChannelState, ChannelStateSnapshot, ViewerStateSnapshot } from "../../state/types";
@@ -75,20 +75,27 @@ export const snapshotToViewerChannelSettings = (serialized: StoreSnapshot): View
   return { groups: [{ name: "Channels", channels }] };
 };
 
-/** Adds the data in a newly-arrived `ViewerMessage` to an existing stored `AppProps` instance. */
-export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" | "metadata">>(
-  args: P,
-  message: ViewerMessage
-): P {
+/**
+ * Parses a `ViewerMessage` into the relevant entries in `AppProps`.
+ *
+ * Optionally accepts the current value of the `imageUrl` prop, for the case where the message contains only metadata
+ * and the image URLs that correspond to the metadata were passed in by other means.
+ */
+export function viewerMessageToParams(
+  message: ViewerMessage,
+  propUrl?: string | MultisceneUrls
+): { imageUrl?: string | MultisceneUrls; metadata?: (MetadataRecord | undefined)[] } {
   // get scenes
-  const { imageUrl } = args;
-  const scenes = message.scenes ?? (typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes);
+  const scenes = message.scenes ?? (propUrl && (typeof propUrl === "string" ? [propUrl] : propUrl.scenes));
+  if (scenes === undefined || scenes === "") {
+    return {};
+  }
   const firstScene = scenes[0];
-  const newImageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
+  const imageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
 
   // get metadata
   const { meta } = message;
-  const messageMeta =
+  const metadata =
     meta &&
     scenes.map((scene) => {
       if (Array.isArray(scene)) {
@@ -98,11 +105,6 @@ export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" |
 
       return meta[scene] as MetadataRecord | undefined;
     });
-  const newMetadata = messageMeta ?? args.metadata;
 
-  if (newMetadata === undefined) {
-    return { ...args, imageUrl: newImageUrl };
-  } else {
-    return { ...args, imageUrl: newImageUrl, metadata: newMetadata };
-  }
+  return { imageUrl, metadata };
 }
