@@ -78,19 +78,6 @@ class DeprecatedParams {
 
 type AppParams = Partial<ViewerStateStringified & DataParams & DeprecatedParams & ChannelParams>;
 
-/**
- * A message sent from an external application after this app was opened,
- * containing data that was too large to pack into the URL.
- */
-type ViewerMessage = {
-  /** A (possibly very long) list of scene URLs. */
-  scenes?: string[];
-  /** A (likely very large) list of metadata records for each scene. */
-  meta?: Record<string, MetadataRecord>;
-  /** The scene to open once this message arrives. */
-  sceneIndex?: number;
-};
-
 const allowedParamKeys: Array<keyof AppParams> = [
   ...Object.values(ViewerStateSnapshotKeys),
   ...Object.keys(new DataParams()),
@@ -414,38 +401,6 @@ export async function parseViewerUrlParams(
   }
 
   return { args: removeUndefinedProperties(args), viewerSettings: removeUndefinedProperties(viewerSettings) };
-}
-
-/** Adds the data in a newly-arrived `ViewerMessage` to an existing stored `AppProps` instance. */
-export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" | "metadata">>(
-  args: P,
-  message: ViewerMessage
-): P {
-  // get scenes
-  const { imageUrl } = args;
-  const scenes = message.scenes ?? (typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes);
-  const firstScene = scenes[0];
-  const newImageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
-
-  // get metadata
-  const { meta } = message;
-  const messageMeta =
-    meta &&
-    scenes.map((scene) => {
-      if (Array.isArray(scene)) {
-        // can't handle multi-source scenes (yet)
-        return undefined;
-      }
-
-      return meta[scene] as MetadataRecord | undefined;
-    });
-  const newMetadata = messageMeta ?? args.metadata;
-
-  if (newMetadata === undefined) {
-    return { ...args, imageUrl: newImageUrl };
-  } else {
-    return { ...args, imageUrl: newImageUrl, metadata: newMetadata };
-  }
 }
 
 /**
