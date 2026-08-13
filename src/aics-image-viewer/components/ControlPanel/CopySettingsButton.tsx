@@ -21,6 +21,12 @@ export type CopySettingsButtonProps = {
   getDropdownContainer?: () => HTMLElement;
 };
 
+const enum ImportModalState {
+  Closed,
+  Import,
+  Warning,
+}
+
 type ImportResult =
   | { success: false }
   | {
@@ -67,20 +73,15 @@ const importSettings = (settingsString: string): ImportResult => {
   return { success: true, matchedCount, unmatched, undo };
 };
 
-const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[]; undo: () => void }> = (props) => {
-  const { matchedCount, unmatched, undo } = props;
+const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[] }> = (props) => {
+  const { matchedCount, unmatched } = props;
   const unmatchedCount = unmatched.length;
   return (
     <>
       <div>
-        Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-        <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-          Undo
-        </Button>
+        Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""}. Could not find a match for{" "}
+        {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""}:
       </div>
-      <p>
-        {unmatchedCount} channel name{unmatchedCount > 1 ? "s" : ""} from clipboard did not match:
-      </p>
       <ul>
         {unmatched.map((channelName, index) => (
           <li key={index}>{channelName}</li>
@@ -107,7 +108,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const [pasteDenied, setPasteDenied] = React.useState(false);
 
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [importModalOpen, setImportModalOpen] = React.useState(false);
+  const [importModalState, setImportModalState] = React.useState(ImportModalState.Closed);
 
   const [alert, showContextualAlert] = useContextualAlert(buttonRef.current, { scrollContainer, hide, timeout: 8_000 });
   const [modalAlert, setModalAlert] = React.useState<React.ReactNode>(undefined);
@@ -117,6 +118,14 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     setModalAlert(content);
     setModalAlertType(alertType);
   }, []);
+
+  const undoRef = React.useRef<() => void>();
+
+  const undo = React.useCallback(() => {
+    undoRef.current?.();
+    showModalAlert(undefined);
+    showContextualAlert(undefined);
+  }, [showContextualAlert, showModalAlert]);
 
   // On first render, check if the user has disabled clipboard access
   const firstRenderRef = React.useRef(false);
@@ -171,14 +180,16 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
     const { unmatched, matchedCount } = importResult;
     const unmatchedCount = unmatched.length;
-    const undo = (): void => {
+    undoRef.current = (): void => {
       importResult.undo();
       showContextualAlert(undefined);
+      showModalAlert(undefined);
     };
 
     if (unmatchedCount > 0) {
       if (matchedCount > 0) {
-        showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
+        showModalAlert(<PartialMatchMessage {...importResult} />, "warning");
+        setImportModalState(ImportModalState.Warning);
       } else {
         showContextualAlert("Channel names in clipboard did not match names in image", "error");
       }
@@ -196,7 +207,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         showContextualAlert("Clipboard does not contain channel settings", "error");
       }
     }
-  }, [showContextualAlert]);
+  }, [showContextualAlert, showModalAlert, undo]);
 
   const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
     async ({ file, onSuccess, onError }) => {
@@ -211,7 +222,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
       const { matchedCount, unmatched } = importResult;
       const unmatchedCount = unmatched.length;
-      const undo = (): void => {
+      undoRef.current = (): void => {
         importResult.undo();
         showContextualAlert(undefined);
         showModalAlert(undefined);
@@ -220,8 +231,8 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       if (unmatchedCount > 0) {
         if (matchedCount > 0) {
           // Some channels in the file matched, some did not
-          setImportModalOpen(false);
-          showContextualAlert(<PartialMatchMessage {...importResult} undo={undo} />, "warning");
+          setImportModalState(ImportModalState.Warning);
+          showModalAlert(<PartialMatchMessage {...importResult} />, "warning");
         } else {
           // No channels in the file matched channels in the current image
           showModalAlert("Channel names in file did not match names in image", "error");
@@ -229,7 +240,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       } else {
         if (matchedCount > 0) {
           // All channels matched!
-          setImportModalOpen(false);
+          setImportModalState(ImportModalState.Closed);
           showContextualAlert(<SuccessMessage channelCount={matchedCount} undo={undo} />);
         } else {
           // There were no channels in the file at all!
@@ -238,7 +249,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       }
       onSuccess?.(undefined);
     },
-    [showContextualAlert, showModalAlert]
+    [showContextualAlert, showModalAlert, undo]
   );
 
   const items: MenuProps["items"] = [
@@ -278,7 +289,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       label: "Import",
       onClick: () => {
         setDropdownOpen(false);
-        setImportModalOpen(true);
+        setImportModalState(ImportModalState.Import);
         showModalAlert(undefined);
       },
     },
@@ -315,17 +326,39 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       </Dropdown>
       <Modal
         closable
-        title="Import channel settings"
+        title={
+          importModalState === ImportModalState.Warning ? "Settings applied with exceptions" : "Import channel settings"
+        }
         className="modal-settings-import"
-        open={importModalOpen}
-        onCancel={() => setImportModalOpen(false)}
-        footer={null}
+        open={importModalState !== ImportModalState.Closed}
+        onCancel={() => setImportModalState(ImportModalState.Closed)}
+        footer={
+          importModalState === ImportModalState.Warning && (
+            <>
+              <Button
+                onClick={() => {
+                  undo();
+                  setImportModalState(ImportModalState.Closed);
+                }}
+              >
+                Undo all
+              </Button>
+              <Button type="primary" onClick={() => setImportModalState(ImportModalState.Closed)}>
+                Ok
+              </Button>
+            </>
+          )
+        }
         getContainer={getDropdownContainer}
       >
-        <p>Upload a saved .json settings file</p>
-        <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
-          <DragOutlined /> Drag and drop here or click to browse
-        </Upload.Dragger>
+        {importModalState === ImportModalState.Import && (
+          <>
+            <p>Upload a saved .json settings file</p>
+            <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
+              <DragOutlined /> Drag and drop here or click to browse
+            </Upload.Dragger>
+          </>
+        )}
         {modalAlert !== undefined && (
           <Alert
             showIcon
