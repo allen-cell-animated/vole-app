@@ -1,16 +1,16 @@
 import { snapshotToChannelState } from "../../state/deserialize";
 import { channelStateToSnapshot } from "../../state/serialize";
-import type { ChannelState, ChannelStateSnapshot } from "../../state/types";
+import type { ChannelState, ChannelStateSnapshot, ViewerStateSnapshot } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
 
-export type ClipboardChannelStates = {
+export type StoreSnapshot = ViewerStateSnapshot & {
   version: string;
-  channels: Record<string, ChannelStateSnapshot>;
+  channels: Record<string, ChannelStateSnapshot & { index?: number }>;
 };
 
 /** Verifies that the given object is (likely) a `ClipboardChannelStates` */
-export const isClipboardChannelState = (settings: unknown): settings is ClipboardChannelStates => {
-  const castSettings = settings as ClipboardChannelStates;
+export const isStoreSnapshot = (settings: unknown): settings is StoreSnapshot => {
+  const castSettings = settings as StoreSnapshot;
   return (
     settings !== null &&
     settings !== undefined &&
@@ -22,10 +22,10 @@ export const isClipboardChannelState = (settings: unknown): settings is Clipboar
 };
 
 /** Converts an array of `ChannelState`s to a compact JSON representation that can be stringified into the clipboard. */
-export const channelStateToClipboard = (
+export const channelStatesToSnapshot = (
   channelStates: ChannelState[],
   excludeKeys?: (keyof ChannelState)[]
-): ClipboardChannelStates => {
+): StoreSnapshot => {
   const channels: Record<string, ChannelStateSnapshot> = {};
   for (const ch of channelStates) {
     const setting = cloneChannelState(ch);
@@ -42,7 +42,7 @@ export const channelStateToClipboard = (
 };
 
 /** Converts a compacted set of `ChannelState`s from the clipboard into a record of channel names and their states. */
-export const clipboardToChannelState = (serialized: ClipboardChannelStates): Record<string, Partial<ChannelState>> => {
+export const snapshotToChannelStates = (serialized: StoreSnapshot): Record<string, Partial<ChannelState>> => {
   const result: Record<string, Partial<ChannelState>> = {};
   for (const [name, state] of Object.entries(serialized.channels)) {
     result[name] = { ...snapshotToChannelState(state), name };
