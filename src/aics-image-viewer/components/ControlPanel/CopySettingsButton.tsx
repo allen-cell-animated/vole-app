@@ -3,11 +3,7 @@ import { Alert, Button, Checkbox, Dropdown, Modal, Tooltip, Upload } from "antd"
 import type { AlertProps, DraggerProps, MenuProps } from "antd";
 import React from "react";
 
-import {
-  channelStateToClipboard,
-  clipboardToChannelState,
-  isClipboardChannelState,
-} from "../../shared/utils/parseClipboard";
+import { channelStatesToSnapshot, isStoreSnapshot, snapshotToChannelStates } from "../../shared/utils/parseClipboard";
 import { queryPasteDenied } from "../../shared/utils/permissions";
 import { useViewerState } from "../../state/store";
 import { cloneChannelState } from "../../state/util";
@@ -48,11 +44,11 @@ const importSettings = (settingsString: string): ImportResult => {
   } catch {
     parsed = undefined;
   }
-  if (!isClipboardChannelState(parsed)) {
+  if (!isStoreSnapshot(parsed)) {
     return { success: false };
   }
 
-  const channelStates = clipboardToChannelState(parsed);
+  const channelStates = snapshotToChannelStates(parsed);
   const channelCount = Object.keys(channelStates).length;
   const currentStates = channelSettings.map(cloneChannelState);
   const nextStates = channelSettings.map((state) => {
@@ -143,7 +139,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const onClickExport = React.useCallback(() => {
     setDropdownOpen(false);
     const { channelSettings } = useViewerState.getState();
-    const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
+    const serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
     const stateText = JSON.stringify(serialized);
     const link = document.createElement("a");
 
@@ -260,7 +256,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         setDropdownOpen(false);
         try {
           const { channelSettings } = useViewerState.getState();
-          const serialized = channelStateToClipboard(channelSettings, includeColor ? undefined : ["color"]);
+          const serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
           navigator.clipboard.writeText(JSON.stringify(serialized));
           showContextualAlert("Settings copied");
         } catch {
