@@ -1,11 +1,12 @@
-import { snapshotToChannelState } from "../../state/deserialize";
+import { snapshotToChannelState, snapshotToViewerChannelSetting } from "../../state/deserialize";
 import { channelStateToSnapshot } from "../../state/serialize";
 import type { ChannelState, ChannelStateSnapshot, ViewerStateSnapshot } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
+import type { ViewerChannelSettings } from "./viewerChannelSettings";
 
 export type StoreSnapshot = ViewerStateSnapshot & {
   version: string;
-  channels: Record<string, ChannelStateSnapshot & { index?: number }>;
+  channels: Record<string, ChannelStateSnapshot>;
 };
 
 /** Verifies that the given object is (likely) a `ClipboardChannelStates` */
@@ -48,4 +49,13 @@ export const snapshotToChannelStates = (serialized: StoreSnapshot): Record<strin
     result[name] = { ...snapshotToChannelState(state), name };
   }
   return result;
+};
+
+export const snapshotToViewerChannelSettings = (serialized: StoreSnapshot): ViewerChannelSettings | undefined => {
+  const snapshots = Object.entries(serialized.channels);
+  if (snapshots.length === 0) {
+    return undefined;
+  }
+  const channels = snapshots.map(([name, snap]) => snapshotToViewerChannelSetting(name, snap));
+  return { groups: [{ name: "Channels", channels }] };
 };
