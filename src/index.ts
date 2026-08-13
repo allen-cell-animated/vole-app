@@ -5,7 +5,7 @@ export { writeMetadata, writeScenes } from "./aics-image-viewer/shared/utils/sto
 export {
   type ViewerMessage,
   type StoreSnapshot,
-  addViewerParamsFromMessage,
+  viewerMessageToParams,
   isStoreSnapshot,
   snapshotToViewerChannelSettings,
 } from "./aics-image-viewer/shared/utils/parseSnapshot";
