@@ -1,6 +1,6 @@
 import type { View3d } from "@aics/vole-core";
 import { InfoCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Alert, Button, Input, Modal, notification, Radio } from "antd";
+import { Alert, Button, Input, Modal, notification, Radio, Tabs } from "antd";
 import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
@@ -96,31 +96,20 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
   const shareUrl = urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
 
-  const onClickCopy = (): void => {
+  const onClickCopy = React.useCallback((): void => {
     navigator.clipboard.writeText(shareUrl);
     notificationApi.success({
       message: "URL copied",
     });
-  };
+  }, [notificationApi, shareUrl]);
 
-  return (
-    <ModalContainer ref={modalContainerRef}>
-      {notificationContextHolder}
+  const onClickExport = React.useCallback((): void => {}, []);
 
-      <Button type="link" onClick={() => setShowModal(!showModal)}>
-        <ShareAltOutlined />
-        Share
-      </Button>
-      <Modal
-        open={showModal}
-        title={"Share URL"}
-        onCancel={() => {
-          setShowModal(false);
-        }}
-        getContainer={modalContainerRef.current || undefined}
-        destroyOnClose={true}
-        footer={null}
-      >
+  const urlTab = {
+    label: "URL",
+    key: "URL",
+    children: (
+      <>
         {urls.length > 1 && (
           <Radio.Group
             value={showAllScenes}
@@ -159,6 +148,41 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene." : ""}`}
           />
         )}
+      </>
+    ),
+  };
+
+  const jsonTab = {
+    label: "JSON",
+    key: "JSON",
+    children: (
+      <>
+        <Button type="primary" onClick={onClickExport}>
+          Export
+        </Button>
+      </>
+    ),
+  };
+
+  return (
+    <ModalContainer ref={modalContainerRef}>
+      {notificationContextHolder}
+
+      <Button type="link" onClick={() => setShowModal(!showModal)}>
+        <ShareAltOutlined />
+        Share
+      </Button>
+      <Modal
+        open={showModal}
+        title={"Share URL"}
+        onCancel={() => {
+          setShowModal(false);
+        }}
+        getContainer={modalContainerRef.current || undefined}
+        destroyOnClose={true}
+        footer={null}
+      >
+        <Tabs type="card" items={[urlTab, jsonTab]} />
       </Modal>
     </ModalContainer>
   );
