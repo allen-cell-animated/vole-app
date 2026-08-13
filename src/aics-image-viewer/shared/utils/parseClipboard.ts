@@ -1,11 +1,11 @@
-import { parseKeyValueList, stringSnapshotToChannelState } from "../../state/deserialize";
-import { channelStateToStringSnapshot, objectToKeyValueList } from "../../state/serialize";
-import type { ChannelState } from "../../state/types";
+import { snapshotToChannelState } from "../../state/deserialize";
+import { channelStateToSnapshot } from "../../state/serialize";
+import type { ChannelState, ChannelStateSnapshot } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
 
 export type ClipboardChannelStates = {
   version: string;
-  channels: Record<string, string>;
+  channels: Record<string, ChannelStateSnapshot>;
 };
 
 /** Verifies that the given object is (likely) a `ClipboardChannelStates` */
@@ -26,7 +26,7 @@ export const channelStateToClipboard = (
   channelStates: ChannelState[],
   excludeKeys?: (keyof ChannelState)[]
 ): ClipboardChannelStates => {
-  const channels: Record<string, string> = {};
+  const channels: Record<string, ChannelStateSnapshot> = {};
   for (const ch of channelStates) {
     const setting = cloneChannelState(ch);
     if (excludeKeys !== undefined) {
@@ -34,8 +34,8 @@ export const channelStateToClipboard = (
         delete setting[key];
       }
     }
-    const stateString = objectToKeyValueList(channelStateToStringSnapshot(setting, false));
-    channels[ch.name] = stateString;
+    const state = channelStateToSnapshot(setting, false);
+    channels[ch.name] = state;
   }
 
   return { version: VOLEAPP_VERSION, channels };
@@ -45,7 +45,7 @@ export const channelStateToClipboard = (
 export const clipboardToChannelState = (serialized: ClipboardChannelStates): Record<string, Partial<ChannelState>> => {
   const result: Record<string, Partial<ChannelState>> = {};
   for (const [name, state] of Object.entries(serialized.channels)) {
-    result[name] = { ...stringSnapshotToChannelState(parseKeyValueList(state)), name };
+    result[name] = { ...snapshotToChannelState(state), name };
   }
   return result;
 };
