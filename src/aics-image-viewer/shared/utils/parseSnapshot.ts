@@ -1,8 +1,23 @@
+import type { AppProps } from "../../components/App/types";
 import { snapshotToChannelState, snapshotToViewerChannelSetting } from "../../state/deserialize";
 import { channelStateToSnapshot } from "../../state/serialize";
 import type { ChannelState, ChannelStateSnapshot, ViewerStateSnapshot } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
+import type { MetadataRecord } from "../types";
 import type { ViewerChannelSettings } from "./viewerChannelSettings";
+
+/**
+ * A message sent from an external application after this app was opened,
+ * containing data that was too large to pack into the URL.
+ */
+export type ViewerMessage = {
+  /** A (possibly very long) list of scene URLs. */
+  scenes?: string[];
+  /** A (likely very large) list of metadata records for each scene. */
+  meta?: Record<string, MetadataRecord>;
+  /** The scene to open once this message arrives. */
+  sceneIndex?: number;
+};
 
 export type StoreSnapshot = ViewerStateSnapshot & {
   version: string;
@@ -59,3 +74,35 @@ export const snapshotToViewerChannelSettings = (serialized: StoreSnapshot): View
   const channels = snapshots.map(([name, snap]) => snapshotToViewerChannelSetting(name, snap));
   return { groups: [{ name: "Channels", channels }] };
 };
+
+/** Adds the data in a newly-arrived `ViewerMessage` to an existing stored `AppProps` instance. */
+export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" | "metadata">>(
+  args: P,
+  message: ViewerMessage
+): P {
+  // get scenes
+  const { imageUrl } = args;
+  const scenes = message.scenes ?? (typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes);
+  const firstScene = scenes[0];
+  const newImageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
+
+  // get metadata
+  const { meta } = message;
+  const messageMeta =
+    meta &&
+    scenes.map((scene) => {
+      if (Array.isArray(scene)) {
+        // can't handle multi-source scenes (yet)
+        return undefined;
+      }
+
+      return meta[scene] as MetadataRecord | undefined;
+    });
+  const newMetadata = messageMeta ?? args.metadata;
+
+  if (newMetadata === undefined) {
+    return { ...args, imageUrl: newImageUrl };
+  } else {
+    return { ...args, imageUrl: newImageUrl, metadata: newMetadata };
+  }
+}
