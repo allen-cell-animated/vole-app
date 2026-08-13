@@ -12,7 +12,7 @@ import type { ViewerChannelSettings } from "./viewerChannelSettings";
  */
 export type ViewerMessage = {
   /** A (possibly very long) list of scene URLs. */
-  scenes?: string[];
+  scenes?: (string | string[])[];
   /** A (likely very large) list of metadata records for each scene. */
   meta?: Record<string, MetadataRecord>;
   /** The scene to open once this message arrives. */
@@ -107,4 +107,20 @@ export function viewerMessageToParams(
     });
 
   return { imageUrl, metadata };
+}
+
+/** Formats the values of the `imageUrl` and `metadata` props to `App` as a `ViewerMessage`. */
+export function paramsToViewerMessage(
+  imageUrl: string | MultisceneUrls,
+  metadata?: (MetadataRecord | undefined)[]
+): ViewerMessage {
+  const scenes = typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes;
+
+  if (metadata === undefined) {
+    return { scenes };
+  }
+
+  const metaEntries = scenes.map((url, index) => [url, Array.isArray(url) ? undefined : metadata[index]]);
+  const meta = Object.fromEntries(metaEntries.filter(([_url, meta]) => meta !== undefined));
+  return { scenes, meta };
 }
