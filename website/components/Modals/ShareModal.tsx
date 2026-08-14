@@ -5,9 +5,15 @@ import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
+// TODO fix some of these imports!
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import {
+  channelStatesToSnapshot,
+  paramsToViewerMessage,
+} from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/parseUrl";
 import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
+import { viewerStateToSnapshot } from "../../../src/aics-image-viewer/state/serialize";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
@@ -47,7 +53,7 @@ const encodeSceneUrl = (scene: string | string[]): string => {
 };
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
-  const { imageUrl } = props.appProps;
+  const { imageUrl, metadata } = props.appProps;
   const urls = useMemo(
     () => (imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : []),
     [imageUrl]
@@ -103,7 +109,28 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     });
   }, [notificationApi, shareUrl]);
 
-  const onClickExport = React.useCallback((): void => {}, []);
+  const onClickExport = React.useCallback((): void => {
+    const store = useViewerState.getState();
+    const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
+    const result = {
+      ...channelStatesToSnapshot(store.channelSettings),
+      ...viewerStateToSnapshot(store, false),
+      ...paramsToViewerMessage(imageUrl, meta),
+    };
+
+    const stateText = JSON.stringify(result);
+    const link = document.createElement("a");
+
+    link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(stateText));
+    const isoDate = new Date().toISOString().split("T")[0];
+    const imgName = props.imageTitle ?? "settings";
+    link.setAttribute("download", `${isoDate}_${imgName}.json`);
+    link.style.display = "none";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [imageUrl, metadata, props.imageTitle]);
 
   const urlTab = {
     label: "URL",
