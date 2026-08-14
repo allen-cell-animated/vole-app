@@ -24,7 +24,7 @@ export type StoreSnapshot = ViewerStateSnapshot & {
   channels: Record<string, ChannelStateSnapshot>;
 };
 
-/** Verifies that the given object is (likely) a `ClipboardChannelStates` */
+/** Verifies that the given object is (likely) a `StoreSnapshot` */
 export const isStoreSnapshot = (settings: unknown): settings is StoreSnapshot => {
   const castSettings = settings as StoreSnapshot;
   return (
@@ -120,7 +120,15 @@ export function paramsToViewerMessage(
     return { scenes };
   }
 
-  const metaEntries = scenes.map((url, index) => [url, Array.isArray(url) ? undefined : metadata[index]]);
-  const meta = Object.fromEntries(metaEntries.filter(([_url, meta]) => meta !== undefined));
+  const meta: Record<string, MetadataRecord> = {};
+  scenes.forEach((scene, index) => {
+    const value = metadata[index];
+    // Can't save a metadata record if there isn't any metadata or the image is multi-source
+    if (value === undefined || (Array.isArray(scene) && scene.length > 1)) {
+      return;
+    }
+    meta[Array.isArray(scene) ? scene[0] : scene] = value;
+  });
+
   return { scenes, meta };
 }
