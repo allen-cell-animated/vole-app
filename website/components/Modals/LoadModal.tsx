@@ -149,7 +149,7 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
             getPopupContainer={getAutoCompletePopupContainer}
             placeholder="Enter a URL..."
             autoFocus={true}
-          ></AutoComplete>
+          />
           <Button type="primary" onClick={onClickLoad}>
             Load
           </Button>
