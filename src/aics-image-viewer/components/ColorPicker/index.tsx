@@ -1,7 +1,7 @@
 import { map } from "lodash";
 import React from "react";
 import { type ColorResult, SketchPicker } from "react-color";
-import { PresetColor } from "react-color/lib/components/sketch/Sketch";
+import type { PresetColor } from "react-color/lib/components/sketch/Sketch";
 
 import type { ColorObject } from "../../shared/utils/colorRepresentations";
 
