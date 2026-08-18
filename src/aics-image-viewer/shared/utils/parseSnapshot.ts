@@ -19,12 +19,19 @@ export type ViewerMessage = {
   sceneIndex?: number;
 };
 
+/** A snapshot of app state, containing (optional) global and per-channel settings. */
 export type StoreSnapshot = ViewerStateSnapshot & {
   version: string;
   channels: Record<string, ChannelStateSnapshot>;
 };
 
-/** Verifies that the given object is (likely) a `StoreSnapshot` */
+/**
+ * A complete description of a viewer session, containing image URLs, global
+ * and per-channel settings, and optional image metadata.
+ */
+export type SessionSnapshot = StoreSnapshot & ViewerMessage & Required<Pick<ViewerMessage, "scenes">>;
+
+/** Verifies that the given object is (likely) a `StoreSnapshot`. */
 export const isStoreSnapshot = (settings: unknown): settings is StoreSnapshot => {
   const castSettings = settings as StoreSnapshot;
   return (
@@ -33,7 +40,21 @@ export const isStoreSnapshot = (settings: unknown): settings is StoreSnapshot =>
     typeof castSettings.version === "string" &&
     typeof castSettings.channels === "object" &&
     !Array.isArray(castSettings.channels) &&
-    Object.keys(castSettings.channels).every((key) => typeof key === "string")
+    Object.entries(castSettings.channels).every(
+      ([key, value]) => typeof key === "string" && typeof value === "object" && !Array.isArray(value)
+    )
+  );
+};
+
+/** Verifies that the given object is (likely) a `SessionSnapshot`. */
+export const isSessionSnapshot = (settings: unknown): settings is SessionSnapshot => {
+  const { scenes } = settings as SessionSnapshot;
+  return (
+    isStoreSnapshot(settings) &&
+    Array.isArray(scenes) &&
+    scenes.every(
+      (scene) => typeof scene === "string" || (Array.isArray(scene) && scene.every((url) => typeof url === "string"))
+    )
   );
 };
 
