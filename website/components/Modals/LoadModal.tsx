@@ -1,9 +1,11 @@
-import { UploadOutlined } from "@ant-design/icons";
-import { AutoComplete, Button, Modal, Tabs } from "antd";
+import { DragOutlined, UploadOutlined } from "@ant-design/icons";
+import { AutoComplete, Button, type DraggerProps, Modal, Tabs, Upload } from "antd";
 import Fuse from "fuse.js";
 import React, { type ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
+import { snapshotToViewerChannelSettings, snapshotToViewerState, viewerMessageToParams } from "../../../src";
+import { isSessionSnapshot } from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import type { AppDataProps } from "../../types";
 import { type RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
 import { isValidUrl } from "../../utils/urls";
@@ -29,7 +31,7 @@ const ModalContainer = styled.div`
   }
 `;
 
-export default function LoadModal(props: LoadModalProps): ReactElement {
+export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
   const [showModal, _setShowModal] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [errorText, setErrorText] = useState<string>("");
@@ -46,7 +48,7 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
     _setShowModal(show);
   };
 
-  const onClickLoad = (): void => {
+  const onClickLoad = React.useCallback((): void => {
     // TODO: Handle multiple URLs?
 
     // Note: S3 URIs, GCS URIs, and Vast file paths are handled by vole-core.
@@ -75,10 +77,10 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
         ],
       },
     };
-    props.onLoad(appProps);
+    onLoad(appProps);
     addRecentDataUrl({ url: urlInput, label: urlInput });
     setShowModal(false);
-  };
+  }, [addRecentDataUrl, onLoad, urlInput]);
 
   // Set up fuse for fuzzy searching on the labels of recent datasets
   const fuse = useMemo(() => {
@@ -115,6 +117,47 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
 
   const getAutoCompletePopupContainer = modalContainerRef.current ? () => modalContainerRef.current! : undefined;
 
+  const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
+    async ({ file, onSuccess, onError }) => {
+      const text = await (file as Blob).text();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        parsed = undefined;
+      }
+
+      if (!isSessionSnapshot(parsed)) {
+        // TODO trigger an alert here!
+        onError?.(new Error());
+        return;
+      }
+
+      const viewerSettings = snapshotToViewerState(parsed);
+      const viewerChannelSettings = snapshotToViewerChannelSettings(parsed);
+      const { imageUrl, metadata } = viewerMessageToParams(parsed);
+      if (imageUrl === undefined) {
+        // TODO trigger alert!
+        onError?.(new Error());
+        return;
+      }
+
+      onLoad({
+        viewerSettings,
+        viewerChannelSettings,
+        imageUrl,
+        metadata,
+        // TODO what to do with these?
+        cellId: "1",
+        imageDownloadHref: "",
+        parentImageDownloadHref: "",
+      });
+      onSuccess?.(undefined);
+      setShowModal(false);
+    },
+    [onLoad]
+  );
+
   const urlTab = {
     label: "URL",
     key: "URL",
@@ -148,7 +191,14 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
   const jsonTab = {
     label: "JSON",
     key: "JSON",
-    children: <></>,
+    children: (
+      <>
+        <p>Drag an exported JSON session description below to load.</p>
+        <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
+          <DragOutlined /> Drag and drop here or click to browse
+        </Upload.Dragger>
+      </>
+    ),
   };
 
   return (
