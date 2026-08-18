@@ -1,5 +1,5 @@
 import { UploadOutlined } from "@ant-design/icons";
-import { AutoComplete, Button, Modal } from "antd";
+import { AutoComplete, Button, Modal, Tabs } from "antd";
 import Fuse from "fuse.js";
 import React, { type ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
@@ -115,25 +115,11 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
 
   const getAutoCompletePopupContainer = modalContainerRef.current ? () => modalContainerRef.current! : undefined;
 
-  return (
-    <ModalContainer ref={modalContainerRef}>
-      <Button type="link" onClick={() => setShowModal(!showModal)}>
-        <UploadOutlined />
-        Load
-      </Button>
-      <Modal
-        open={showModal}
-        title={"Load"}
-        onCancel={() => setShowModal(false)}
-        getContainer={modalContainerRef.current || undefined}
-        okButtonProps={{}}
-        footer={
-          <Button type="default" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-        }
-        destroyOnClose={true}
-      >
+  const urlTab = {
+    label: "URL",
+    key: "URL",
+    children: (
+      <>
         <p style={{ fontSize: "16px" }}>Provide the URL to load your OME-Zarr or OME-TIFF* data.</p>
         <p style={{ fontSize: "12px" }}>
           <i>*Note: this tool is intended for OME-Zarr use. Large {"(> 100 MB)"} OME-TIFF files are not supported.</i>
@@ -155,6 +141,36 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
           </Button>
         </FlexRow>
         {errorText !== "" && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
+      </>
+    ),
+  };
+
+  const jsonTab = {
+    label: "JSON",
+    key: "JSON",
+    children: <></>,
+  };
+
+  return (
+    <ModalContainer ref={modalContainerRef}>
+      <Button type="link" onClick={() => setShowModal(!showModal)}>
+        <UploadOutlined />
+        Load
+      </Button>
+      <Modal
+        open={showModal}
+        title={"Load"}
+        onCancel={() => setShowModal(false)}
+        getContainer={modalContainerRef.current || undefined}
+        okButtonProps={{}}
+        footer={
+          <Button type="default" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+        }
+        destroyOnClose={true}
+      >
+        <Tabs type="card" items={[urlTab, jsonTab]} />
       </Modal>
     </ModalContainer>
   );
