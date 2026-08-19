@@ -48,9 +48,11 @@ export const isStoreSnapshot = (settings: unknown): settings is StoreSnapshot =>
 
 /** Verifies that the given object is (likely) a `SessionSnapshot`. */
 export const isSessionSnapshot = (settings: unknown): settings is SessionSnapshot => {
+  if (!isStoreSnapshot(settings)) {
+    return false;
+  }
   const { scenes } = settings as SessionSnapshot;
   return (
-    isStoreSnapshot(settings) &&
     Array.isArray(scenes) &&
     scenes.every(
       (scene) => typeof scene === "string" || (Array.isArray(scene) && scene.every((url) => typeof url === "string"))
