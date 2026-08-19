@@ -68,6 +68,8 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
   const [showAllScenes, setShowAllScenes] = useState(false);
 
+  const [tab, setTab] = useState<"URL" | "JSON">("URL");
+
   const [notificationApi, notificationContextHolder] = notification.useNotification({
     getContainer: modalContainerRef.current ? () => modalContainerRef.current! : undefined,
     placement: "bottomLeft",
@@ -164,7 +166,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             showIcon
             icon={<InfoCircleOutlined />}
             type="info"
-            message="Image metadata from external apps (like BFF) can't be shared."
+            message="Image metadata from external apps (like BFF) can't be shared in a URL."
           />
         )}
         {shareUrl.length > MAX_URL_CHARACTERS && (
@@ -172,7 +174,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             showIcon
             icon={<InfoCircleOutlined />}
             type="info"
-            message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene." : ""}`}
+            message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene, or exporting your session as JSON." : ""}`}
           />
         )}
       </>
@@ -184,6 +186,10 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     key: "JSON",
     children: (
       <>
+        <p style={{ fontSize: "16px" }}>Export your current viewer session as a JSON file.</p>
+        <p style={{ fontSize: "12px" }}>
+          JSON files can hold large image collections and metadata that won&apos;t fit in a URL.
+        </p>
         <Button type="primary" onClick={onClickExport}>
           Export
         </Button>
@@ -209,7 +215,13 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
         destroyOnClose={true}
         footer={null}
       >
-        <Tabs type="card" items={[urlTab, jsonTab]} />
+        <Tabs
+          activeKey={tab}
+          type="line"
+          items={[urlTab, jsonTab]}
+          size="large"
+          onTabClick={(key) => setTab(key as "URL" | "JSON")}
+        />
       </Modal>
     </ModalContainer>
   );
