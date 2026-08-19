@@ -34,7 +34,7 @@ const ModalContainer = styled.div`
 export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
   const [showModal, _setShowModal] = useState(false);
   const [urlInput, setUrlInput] = useState("");
-  const [errorText, setErrorText] = useState<string>("");
+  const [errorText, setErrorText] = useState<string | undefined>(undefined);
 
   const [recentDataUrls, addRecentDataUrl] = useRecentDataUrls();
 
@@ -43,7 +43,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
   const setShowModal = (show: boolean): void => {
     if (show) {
       setUrlInput("");
-      setErrorText("");
+      setErrorText(undefined);
     }
     _setShowModal(show);
   };
@@ -215,8 +215,8 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
         footer={null}
         destroyOnClose={true}
       >
-        <Tabs type="line" size="large" items={[urlTab, jsonTab]} onTabClick={() => setErrorText("")} />
-        {errorText !== "" && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
+        <Tabs type="line" size="large" items={[urlTab, jsonTab]} onTabClick={() => setErrorText(undefined)} />
+        {errorText !== undefined && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
       </Modal>
     </ModalContainer>
   );
