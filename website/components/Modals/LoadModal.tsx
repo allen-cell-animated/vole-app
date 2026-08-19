@@ -1,5 +1,5 @@
-import { DragOutlined, UploadOutlined } from "@ant-design/icons";
-import { AutoComplete, Button, type DraggerProps, Modal, Tabs, Upload } from "antd";
+import { DragOutlined, UploadOutlined, WarningOutlined } from "@ant-design/icons";
+import { Alert, AutoComplete, Button, type DraggerProps, Modal, Tabs, Upload } from "antd";
 import Fuse from "fuse.js";
 import React, { type ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
@@ -216,7 +216,11 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
         destroyOnClose={true}
       >
         <Tabs type="line" size="large" items={[urlTab, jsonTab]} onTabClick={() => setErrorText(undefined)} />
-        {errorText !== undefined && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
+        <div style={{ marginTop: 10 }}>
+          {errorText !== undefined && (
+            <Alert showIcon type="error" message={errorText} icon={<WarningOutlined style={{ fontSize: 21 }} />} />
+          )}
+        </div>
       </Modal>
     </ModalContainer>
   );
