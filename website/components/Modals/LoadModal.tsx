@@ -192,7 +192,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
     key: "JSON",
     children: (
       <>
-        <p>Drag an exported JSON session description below to load.</p>
+        <p style={{ fontSize: "16px" }}>Drag an exported JSON session description below to load.</p>
         <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
           <DragOutlined /> Drag and drop here or click to browse
         </Upload.Dragger>
@@ -212,14 +212,10 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
         onCancel={() => setShowModal(false)}
         getContainer={modalContainerRef.current || undefined}
         okButtonProps={{}}
-        footer={
-          <Button type="default" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-        }
+        footer={null}
         destroyOnClose={true}
       >
-        <Tabs type="line" items={[urlTab, jsonTab]} onTabClick={() => setErrorText("")} />
+        <Tabs type="line" size="large" items={[urlTab, jsonTab]} onTabClick={() => setErrorText("")} />
         {errorText !== "" && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
       </Modal>
     </ModalContainer>

@@ -547,11 +547,17 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             colorTextPlaceholder: theme.colors.button.tertiary.hoverText,
             colorBgContainerDisabled: "transparent",
           },
+          Tabs: {
+            horizontalItemPaddingLG: "5px 0",
+          },
           // Additional tooltip overrides (font-weight, box-shadow, layout) are in GlobalTooltipStyle below,
           // which is required because antd renders tooltips in portals outside the scoped CssProvider.
           Tooltip: {
             colorBgSpotlight: theme.colors.tooltip.bg,
             fontSize: 12,
+          },
+          Upload: {
+            padding: 32,
           },
         },
       }}
