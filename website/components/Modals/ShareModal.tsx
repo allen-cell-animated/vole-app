@@ -187,12 +187,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     children: (
       <>
         <p style={{ fontSize: "16px" }}>Export your current viewer session as a JSON file.</p>
-        <p style={{ fontSize: "12px" }}>
-          JSON files can hold large image collections and metadata that won&apos;t fit in a URL.
-        </p>
-        <Button type="primary" onClick={onClickExport}>
-          Export
-        </Button>
+        <p>JSON files can hold large image collections and metadata that won&apos;t fit in a URL.</p>
       </>
     ),
   };
@@ -207,13 +202,19 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
       </Button>
       <Modal
         open={showModal}
-        title={"Share URL"}
+        title={"Share"}
         onCancel={() => {
           setShowModal(false);
         }}
         getContainer={modalContainerRef.current || undefined}
         destroyOnClose={true}
-        footer={null}
+        footer={
+          tab === "JSON" ? (
+            <Button type="primary" onClick={onClickExport}>
+              Export
+            </Button>
+          ) : null
+        }
       >
         <Tabs
           activeKey={tab}
