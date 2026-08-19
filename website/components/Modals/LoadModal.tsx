@@ -128,7 +128,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
       }
 
       if (!isSessionSnapshot(parsed)) {
-        // TODO trigger an alert here!
+        setErrorText("This file does not contain a Vol-E session.");
         onError?.(new Error());
         return;
       }
@@ -137,7 +137,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
       const viewerChannelSettings = snapshotToViewerChannelSettings(parsed);
       const { imageUrl, metadata } = viewerMessageToParams(parsed);
       if (imageUrl === undefined) {
-        // TODO trigger alert!
+        setErrorText("This file does not contain a Vol-E session.");
         onError?.(new Error());
         return;
       }
@@ -183,7 +183,6 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
             Load
           </Button>
         </FlexRow>
-        {errorText !== "" && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
       </>
     ),
   };
@@ -220,7 +219,8 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
         }
         destroyOnClose={true}
       >
-        <Tabs type="card" items={[urlTab, jsonTab]} />
+        <Tabs type="line" items={[urlTab, jsonTab]} onTabClick={() => setErrorText("")} />
+        {errorText !== "" && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
       </Modal>
     </ModalContainer>
   );
