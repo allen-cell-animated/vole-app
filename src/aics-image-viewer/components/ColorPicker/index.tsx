@@ -1,6 +1,7 @@
 import { map } from "lodash";
 import React from "react";
 import { type ColorResult, SketchPicker } from "react-color";
+import type { PresetColor } from "react-color/lib/components/sketch/Sketch";
 
 import type { ColorObject } from "../../shared/utils/colorRepresentations";
 
@@ -25,6 +26,10 @@ const DEFAULT_COLOR = {
   b: "19",
   a: "1",
 };
+
+const PRESET_COLOR_HEX = ["#ffffff", "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#c0c0c0"];
+
+const PRESET_COLORS: PresetColor[] = PRESET_COLOR_HEX.map((color) => ({ color, title: color.toUpperCase() }));
 
 const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -75,6 +80,7 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
               onChange={handleChange}
               onChangeComplete={handleChangeComplete}
               disableAlpha={props.disableAlpha}
+              presetColors={PRESET_COLORS}
             />
           </div>
         ) : null}
