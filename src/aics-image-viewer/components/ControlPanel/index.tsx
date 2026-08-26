@@ -12,6 +12,7 @@ import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalV
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
 import CopySettingsButton from "./CopySettingsButton";
+import PlaybackSettings from "../PlaybackSettings";
 
 import "./styles.css";
 
@@ -141,15 +142,21 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       });
     }
 
+    items.push({
+      key: 2,
+      label: "Playback",
+      children: <PlaybackSettings />,
+    });
+
     return (
       <Flex gap={10} vertical>
-        <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1] : 0} items={items} />
+        <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1, 2] : [0, 2]} items={items} />
         <div style={{ margin: "0 10px", width: "fit-content" }}>
           <Tooltip
             trigger={["hover", "focus"]}
             placement="right"
             title="Clears ALL rendering settings and channel configuration to the default viewer state.
-            This will replace any edits to channel settings, color presets, and rendering adjustments."
+            This will replace any edits to channel settings, color presets, rendering adjustments, and playback settings."
           >
             <Button onClick={resetToDefaultViewerState}>Clear all settings</Button>
           </Tooltip>

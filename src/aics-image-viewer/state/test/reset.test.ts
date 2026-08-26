@@ -17,6 +17,7 @@ const arbitraryViewerState = (): ViewerState => ({
   maskAlpha: 255,
   brightness: 0,
   density: 0,
+  targetFramerate: 24,
   levels: [253, 254, 255],
   interpolationEnabled: false,
   region: { x: [0, 0], y: [0, 0], z: [0, 0] },
