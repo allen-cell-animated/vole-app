@@ -3,7 +3,7 @@ import { Alert, Button, Checkbox, Dropdown, Modal, Tooltip, Upload } from "antd"
 import type { AlertProps, DraggerProps, MenuProps } from "antd";
 import React from "react";
 
-import { channelStatesToSnapshot, isStoreSnapshot, snapshotToChannelStates } from "../../shared/utils/parseSnapshot";
+import { channelStatesToSnapshot, isStoreSnapshot, snapshotToChannelStates } from "../../shared/utils/parseClipboard";
 import { queryPasteDenied } from "../../shared/utils/permissions";
 import { useViewerState } from "../../state/store";
 import { cloneChannelState } from "../../state/util";
