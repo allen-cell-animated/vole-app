@@ -8,7 +8,7 @@ export {
   viewerMessageToParams,
   isStoreSnapshot,
   snapshotToViewerChannelSettings,
-} from "./aics-image-viewer/shared/utils/parseClipboard";
+} from "./aics-image-viewer/shared/utils/parseSnapshot";
 export { snapshotToViewerState } from "./aics-image-viewer/state/deserialize";
 
 export type {
