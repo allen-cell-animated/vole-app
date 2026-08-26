@@ -1,3 +1,4 @@
+import { isValidFramerate } from "../shared/framerate";
 import type { ChannelState, ViewerState } from "../state/types";
 import { RenderMode, ViewMode } from "./types";
 
@@ -36,6 +37,9 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
   autorotate: (autorotate, { renderMode }) => ({
     autorotate: autorotate && renderMode !== RenderMode.pathTrace,
   }),
+
+  targetFramerate: (targetFramerate) =>
+    isValidFramerate(targetFramerate) ? { targetFramerate } : {},
 };
 
 /**

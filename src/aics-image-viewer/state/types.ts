@@ -34,6 +34,7 @@ export type ViewerState = {
   maskAlpha: number;
   brightness: number;
   density: number;
+  targetFramerate: number;
   levels: [number, number, number];
   interpolationEnabled: boolean;
   // `region` values are in the range [0, 1]. We derive from this the format that the sliders expect
