@@ -1,35 +1,53 @@
 # Developing
 
-## Local Dev Setup
-#### For functionality changes
-- make sure node.js is installed
-- make sure aicsimage python lib is installed
-- npm install
-- npm run dev
-- entry points:
--- localhost:9020/public
-- supports ome.tif, .tif, and .czi provided they are self contained z stacks.
-- note: the files will be placed in a temporary "cache" folder which should be periodically cleaned out.
+## Local Development
 
-### Running as a package within another app
-- npm run build
-- install the app as a sym link through npm
-- import the app as `import { ImageViewerApp } from "ac-3d-viewer"`
-- send in props as is shown in public/index.jsx
-```
-    <ImageViewerApp
-        cellId={23618}
-        baseUrl="http://dev-aics-dtp-001.corp.alleninstitute.org/cellviewer-1-4-0/Cell-Viewer_Thumbnails/"
-        cellPath="AICS-17/AICS-17_4187_23618_atlas.json"
-        fovPath="AICS-17/AICS-17_4187_atlas.json"
-        defaultVolumesOn={[0, 1, 2]}
-        defaultSurfacesOn={[]}
-    />
-```
-## Deployment
-publish to npm package 
+Run the following commands and start a local instance of Vol-E.
 
-static build:
-use branch feature/show_static_data
-npm run build-static
-will build into /imageviewer directory.  Load index.html from there. No webpack-dev-server.
+```cmd
+npm install
+npm run start
+```
+
+### Configuration
+
+Vol-E reads environment configuration from the `.env` file, or
+`.env.development` when in development mode.
+
+You can override the default environment configurations by creating a
+`.env.local` file when building for production, or a `.env.development.local`
+file when in development mode.
+
+### Installing the local package within another app
+
+Build the `vole-app` package by running the following command.
+
+```cmd
+npm run build
+```
+
+Navigate to your other project repository. Run the following command to install
+the local `vole-app` package.
+
+```cmd
+npm install {path-to-vole-app-repo}
+```
+
+Import components from `vole-app` as normal.
+
+To reinstall the latest version of `vole-app`, run the following command in your
+other project repository
+
+```cmd
+npm install @aics/vole-app
+```
+
+### Static build
+
+To make a static build of the Vol-E viewer for deployment on a web server (S3, Apache, etc.), run the following command:
+
+```cmd
+npm run s3-build
+```
+
+Built files will be placed in the `imageviewer/` directory.
