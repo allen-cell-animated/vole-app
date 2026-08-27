@@ -32,7 +32,7 @@ if (missingProperties.length === 0) {
 } else if (missingProperties.length === Object.keys(firebaseConfig).length) {
   console.log("No Firebase configuration found, Firebase will not be initialized.");
 } else {
-  console.log(
+  console.warn(
     "Missing the following Firebase configuration properties, Firebase will not be initialized:",
     missingProperties
   );
