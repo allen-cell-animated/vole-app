@@ -1,9 +1,17 @@
+# Dependencies
 node_modules
+
+# IDE and system files
 .idea/
-imageviewer/
-environment.txt
 .DS_Store
-es/
-type-declarations/
-coverage/
 .vscode/
+coverage/
+environment.txt
+
+# Built files
+es/
+imageviewer/
+type-declarations/
+
+# Local environment configuration
+.env*.local
