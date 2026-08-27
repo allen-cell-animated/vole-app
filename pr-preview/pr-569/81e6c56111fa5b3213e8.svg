@@ -1,0 +1,2337 @@
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+import * as React from "react";
+var SvgComponent = function SvgComponent(props) {
+  return /*#__PURE__*/React.createElement("svg", _extends({
+    xmlns: "http://www.w3.org/2000/svg",
+    role: "img"
+  }, props), /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("font", {
+    id: "open_sanssemibold",
+    horizAdvX: 1169
+  }, /*#__PURE__*/React.createElement("fontFace", {
+    ascent: 1638,
+    descent: -410,
+    unitsPerEm: 2048
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 0
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 1044
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 532
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 532
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 532
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M133 125q0 74 39 112.5T283 276q71 0 109-40t38-111-38.5-112.5T283-29q-71 0-110.5 40T133 125m12 1337h277L371 444H197z",
+    horizAdvX: 565,
+    unicode: "!"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M133 1462h232l-41-528H174zm395 0h232l-41-528H569z",
+    horizAdvX: 893,
+    unicode: "\""
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M47 418v168h283l57 284H123v168h293l80 422h180l-80-422h252l80 422h174l-80-422h252V870H989l-55-284h270V418H901L821 0H643l80 418H475L395 0H221l76 418zm459 168h250l57 284H563z",
+    horizAdvX: 1323,
+    unicode: "#"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M111 168v211q86-42 201-70.5T518 279v374l-84 31q-164 63-239.5 150.5T119 1051q0 138 107.5 227T518 1386v168h133v-165q203-7 385-82l-73-183q-157 62-312 74V834l76-29q190-73 263-154t73-198q0-145-106-239T651 98v-217H518V92q-248 4-407 76m243 885q0-57 35.5-95T518 883v311q-80-12-122-49t-42-92m297-766q176 27 176 151 0 58-40.5 95.5T651 606z",
+    unicode: "$"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M84 1026q0 457 319 457 157 0 241.5-118.5T729 1026q0-230-82.5-345.5T403 565q-152 0-235.5 119.5T84 1026m195-2q0-149 29-222t95-73q132 0 132 295t-132 295q-66 0-95-73t-29-222M379 0l811 1462h194L573 0zm657 440q0 457 320 457 154 0 239.5-118t85.5-339q0-230-83-345T1356-20q-152 0-236 118.5T1036 440m195 0q0-149 29.5-223t95.5-74q131 0 131 297 0 293-131 293-66 0-95.5-72T1231 440",
+    horizAdvX: 1765,
+    unicode: "%"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M96 387q0 131 64 228.5T391 809q-95 111-129.5 187.5T227 1155q0 152 108.5 240t291.5 88q177 0 278-85.5t101-230.5q0-114-67.5-207T713 774l346-334q81 107 135 314h242q-70-284-224-463L1513 0h-303l-149 145Q959 63 843.5 21.5T588-20Q358-20 227 89T96 387m248 16q0-98 69.5-159.5T600 182q183 0 313 107L530 666q-106-68-146-127.5T344 403m107 744q0-63 33.5-119T578 909q113 64 158.5 119.5T782 1153q0 65-43.5 104T623 1296q-79 0-125.5-40.5T451 1147",
+    horizAdvX: 1516,
+    unicode: "&"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M133 1462h232l-41-528H174z",
+    horizAdvX: 498,
+    unicode: "'"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M82 561q0 265 77.5 496T383 1462h205q-139-188-213-421.5T301 563t74-473 211-414H383Q236-154 159 73T82 561",
+    horizAdvX: 649,
+    unicode: "("
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M61 1462h205q147-175 224-406.5T567 561 489.5 71 266-324H63Q201-137 274.5 91T348 563q0 245-74 477.5T61 1462",
+    horizAdvX: 649,
+    unicode: ")"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m74 1065 35 217 376-108-41 382h228l-41-382 385 108 28-217-360-29 236-311-199-107-166 338-149-338-205 107 231 311z",
+    horizAdvX: 1122,
+    unicode: "*"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M96 633v178h398v408h180V811h399V633H674V227H494v406z",
+    unicode: "+"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M63-264Q132 6 166 238h231l15-23Q364 29 236-264z",
+    horizAdvX: 547,
+    unicode: ","
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M72 449v200h514V449z",
+    horizAdvX: 659,
+    unicode: "-"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M133 125q0 73 38 112t110 39q73 0 111-40.5T430 125q0-71-38.5-112.5T281-29 171 12t-38 113",
+    horizAdvX: 563,
+    unicode: "."
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m16 0 545 1462h221L238 0z",
+    horizAdvX: 799,
+    unicode: "/"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M88 731q0 387 122.5 570.5T584 1485q245 0 371-192t126-562q0-381-122.5-566T584-20q-244 0-370 191T88 731m238 0q0-299 61.5-427T584 176t197.5 130T844 731q0 294-62.5 425.5T584 1288t-196.5-129T326 731",
+    unicode: 0
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m154 1124 430 338h196V0H545v944q0 169 8 268-23-24-56.5-53T272 975z",
+    unicode: 1
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M90 0v178l377 379q167 171 221.5 242.5T768 934t25 135q0 99-59.5 156T569 1282q-84 0-162.5-31T225 1139L98 1294q122 103 237 146t245 43q204 0 327-106.5t123-286.5q0-99-35.5-188t-109-183.5T641 463L387 217v-10h694V0z",
+    unicode: 2
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M86 59v209q93-46 197-71t200-25q170 0 254 63t84 195q0 117-93 172t-292 55H309v191h129q350 0 350 242 0 94-61 145t-180 51q-83 0-160-23.5T205 1171L90 1335q201 148 467 148 221 0 345-95t124-262q0-139-81-231.5T717 770v-8q176-22 264-109.5t88-232.5q0-211-149-325.5T496-20Q253-20 86 59",
+    unicode: 3
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M39 319v181l668 966h229V514h197V319H936V0H707v319zm219 195h449v367q0 196 10 321h-8q-28-66-88-160z",
+    unicode: 4
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M117 59v213q81-46 186-71t195-25q159 0 242 71t83 208q0 262-334 262-47 0-116-9.5T252 686l-105 62 56 714h760v-209H410l-33-362q35 6 85.5 14t123.5 8q221 0 350-117t129-319q0-234-146.5-365.5T502-20q-245 0-385 79",
+    unicode: 5
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M94 623q0 858 699 858 110 0 186-17v-196q-76 22-176 22-235 0-353-126T322 760h12q47 81 132 125.5T666 930q199 0 310-122t111-331q0-230-128.5-363.5T608-20q-157 0-273 75.5t-178.5 220T94 623m238-115q0-141 76.5-237.5T604 174q121 0 186.5 78T856 475q0 126-61.5 198T610 745q-76 0-140-32.5t-101-89T332 508",
+    unicode: 6
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M74 1253v207h1011v-164L510 0H256l578 1253z",
+    unicode: 7
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M88 371q0 122 68.5 219.5T381 764q-134 80-191 169t-57 200q0 159 125 253.5t326 94.5q208 0 329-95.5t121-255.5q0-225-270-358 172-86 244.5-181t72.5-212q0-181-133-290T588-20Q350-20 219 82T88 371m225 8q0-104 73-161.5T584 160q129 0 200.5 59.5T856 381q0 81-66 148T590 653l-29 13q-132-58-190-127.5T313 379m47 737q0-52 22-93t64-74.5T588 868q120 53 169.5 111.5T807 1116q0 85-61.5 134.5T582 1300q-100 0-161-49.5T360 1116",
+    unicode: 8
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M86 981q0 229 128.5 364.5T565 1481q156 0 272-76t179-220.5 63-346.5q0-432-174-645T381-20Q248-20 190-4v197q89-25 179-25 238 0 355 128t128 402h-12q-59-90-142.5-130T502 528q-194 0-305 121T86 981m231 2q0-125 60.5-196.5T561 715q119 0 200 71t81 166q0 89-34.5 166.5T711 1241t-142 45q-122 0-187-79.5T317 983",
+    unicode: 9
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M133 125q0 73 38 112t110 39q73 0 111-40.5T430 125q0-71-38.5-112.5T281-29 171 12t-38 113m0 854q0 151 148 151 75 0 112-40t37-111-38.5-112.5T281 825t-110 41-38 113",
+    horizAdvX: 563,
+    unicode: ":"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M63-264Q132 6 166 238h231l15-23Q364 29 236-264zm68 1243q0 151 148 151 75 0 112-40t37-111-38.5-112.5T279 825t-110 41-38 113",
+    horizAdvX: 569,
+    unicode: ";"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M96 651v121l977 488v-195L340 721l733-303V221z",
+    unicode: "<"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M102 432v178h963V432zm0 399v179h963V831z",
+    unicode: "="
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M96 221v197l733 303-733 344v195l977-488V651z",
+    unicode: ">"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M16 1370q203 113 435 113 196 0 311-96t115-265q0-75-22-133.5T788.5 877 635 739q-93-73-124.5-121T479 489v-45H283v64q0 110 40 183t140 151q119 94 153.5 146t34.5 124q0 84-56 129t-161 45q-95 0-176-27t-158-65zM242 125q0 151 147 151 72 0 110-39.5T537 125q0-71-38.5-112.5T389-29 280 11.5 242 125",
+    horizAdvX: 928,
+    unicode: "?"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M111 586q0 261 112 464.5T533.5 1362 983 1470q217 0 386.5-90t263-256.5T1726 739q0-143-45-261.5T1554.5 293 1366 227q-79 0-137 42t-78 114h-12q-49-78-121-117t-162-39q-163 0-256.5 105T506 616q0 206 124 334.5T963 1079q76 0 168.5-13.5T1296 1028l-22-465v-24q0-160 104-160 79 0 125.5 102t46.5 260q0 171-70 300.5T1281 1241t-296 70q-213 0-370.5-88T374 971.5 291 592q0-290 155-446T891-10q221 0 461 90V-84q-210-86-457-86-370 0-577 199.5T111 586m587 26q0-233 183-233 193 0 211 293l12 239q-63 17-135 17-128 0-199.5-85T698 612",
+    horizAdvX: 1839,
+    unicode: "@"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m0 0 547 1468h260L1354 0h-254L954 406H395L252 0zm465 612h426l-137 398q-15 40-41.5 126T676 1262q-27-123-79-269z",
+    horizAdvX: 1354,
+    unicode: "A"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h434q302 0 436.5-88t134.5-278q0-128-66-213T942 776v-10q154-29 226.5-114.5T1241 420q0-197-137.5-308.5T721 0zm239 201h254q150 0 226.5 57.5T989 440q0 114-78 169t-237 55H432zm0 657h230q150 0 219 47.5t69 161.5q0 103-74.5 149T639 1262H432z",
+    horizAdvX: 1352,
+    unicode: "B"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M121 731q0 228 83.5 399T446 1392t371 91q224 0 414-94l-86-199q-74 35-156.5 61.5T815 1278q-206 0-324-146T373 729q0-269 113.5-407T815 184q93 0 180 18.5t181 47.5V45q-172-65-390-65-321 0-493 194.5T121 731",
+    horizAdvX: 1298,
+    unicode: "C"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h452q349 0 543-188t194-529q0-362-201-553.5T602 0zm239 201h170q528 0 528 536 0 525-491 525H432z",
+    horizAdvX: 1503,
+    unicode: "D"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h827v-202H432V862h551V662H432V203h588V0z",
+    horizAdvX: 1143,
+    unicode: "E"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h825v-202H430V803h551V600H430V0z",
+    horizAdvX: 1090,
+    unicode: "F"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M121 731q0 353 203 552.5T883 1483q229 0 434-88l-84-199q-178 82-356 82-234 0-370-147T371 729q0-268 122.5-407.5T846 182q116 0 248 29v377H791v205h538V59q-132-43-253.5-61T813-20q-332 0-512 196.5T121 731",
+    horizAdvX: 1487,
+    unicode: "G"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h239V864h674v598h240V0h-240v659H432V0z",
+    horizAdvX: 1538,
+    unicode: "H"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h239V0z",
+    horizAdvX: 625,
+    unicode: "I"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M-156-182q84-21 146-21 196 0 196 248v1417h240V53q0-224-106.5-342.5T8-408q-98 0-164 25z",
+    horizAdvX: 612,
+    unicode: "J"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h239V764q98 120 195 231l395 467h272q-383-450-549-641L1309 0h-277L573 662 432 547V0z",
+    horizAdvX: 1309,
+    unicode: "K"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h239V205h619V0z",
+    horizAdvX: 1110,
+    unicode: "L"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h337L936 299h6l418 1163h338V0h-230v723q0 109 5.5 284t9.5 212h-8L1036 0H825L401 1221h-8q17-272 17-510V0z",
+    horizAdvX: 1890,
+    unicode: "M"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h290l717-1159h6q-2 23-8 167.5t-6 225.5v766h219V0h-293L399 1165h-8l5-65q14-186 14-340V0z",
+    horizAdvX: 1604,
+    unicode: "N"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M121 735q0 362 178.5 556T809 1485q326 0 504-197t178-555q0-357-178.5-555T807-20q-331 0-508.5 196.5T121 735m254-2q0-270 109-409.5T807 184q213 0 321.5 138T1237 733q0 269-107.5 408T809 1280q-215 0-324.5-139T375 733",
+    horizAdvX: 1612,
+    unicode: "O"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h421q274 0 410.5-112t136.5-330q0-229-150-351T584 547H432V0zm239 748h127q184 0 270 64t86 200q0 126-77 188t-240 62H432z",
+    horizAdvX: 1260,
+    unicode: "P"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M121 735q0 362 178.5 556T809 1485q326 0 504-197t178-555q0-266-101.5-448T1094 29l350-377h-322L846-20h-39q-331 0-508.5 196.5T121 735m254-2q0-270 109-409.5T807 184q213 0 321.5 138T1237 733q0 269-107.5 408T809 1280q-215 0-324.5-139T375 733",
+    horizAdvX: 1612,
+    unicode: "Q"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M193 0v1462h413q283 0 419-106t136-320q0-273-284-389L1290 0h-272L668 584H432V0zm239 782h166q167 0 242 62t75 184q0 124-81 178t-244 54H432z",
+    horizAdvX: 1309,
+    unicode: "R"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M100 57v226q100-47 212.5-74T522 182q142 0 209.5 54T799 381q0 82-62 139T481 655q-200 81-282 185t-82 250q0 183 130 288t349 105q210 0 418-92l-76-195q-195 82-348 82-116 0-176-50.5T354 1094q0-57 24-97.5t79-76.5 198-95q161-67 236-125t110-131 35-172q0-195-141-306T506-20 100 57",
+    horizAdvX: 1126,
+    unicode: "S"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M29 1257v205h1099v-205H698V0H459v1257z",
+    horizAdvX: 1159,
+    unicode: "T"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M180 520v942h240V537q0-181 84-267t258-86q338 0 338 355v923h239V516q0-162-69.5-283.5t-201-187T754-20q-272 0-423 144T180 520",
+    horizAdvX: 1520,
+    unicode: "U"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M0 1462h246l305-909q24-65 51-167.5T637 233q13 76 40 176t44 148l305 905h248L762 0H510z",
+    horizAdvX: 1274,
+    unicode: "V"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M12 1462h244l209-852q49-205 70-362 11 85 33 190t40 170l238 854h237l244-858q35-119 74-356 15 143 72 364l208 850h242L1542 0h-260l-248 872q-16 57-40 164.5T965 1186q-10-64-32.5-166T895 868L653 0H393L204 732z",
+    horizAdvX: 1937,
+    unicode: "W"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m4 0 485 758-454 704h266l338-553 338 553h258L778 754 1270 0H995L629 598 260 0z",
+    horizAdvX: 1274,
+    unicode: "X"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M0 1462h260l346-667 346 667h260L725 567V0H485v559z",
+    horizAdvX: 1212,
+    unicode: "Y"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M66 0v166l737 1091H86v205h1006v-168L352 205h760V0z",
+    horizAdvX: 1178,
+    unicode: "Z"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M154-324v1786h471v-176H369V-147h256v-177z",
+    horizAdvX: 676,
+    unicode: "["
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M16 1462h222L782 0H561z",
+    horizAdvX: 799,
+    unicode: "\\\\\\\\"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M51-147h256v1433H51v176h469V-324H51z",
+    horizAdvX: 676,
+    unicode: "]"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m29 535 436 935h121l485-935H877l-349 694-307-694z",
+    horizAdvX: 1100,
+    unicode: "^"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M-4-184h887v-135H-4z",
+    horizAdvX: 879,
+    unicode: "_"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M362 1548v21h273q38-70 103.5-161T848 1266v-25H690q-69 52-174.5 150.5T362 1548",
+    horizAdvX: 1212,
+    unicode: "`"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M90 317q0 171 127 258t387 95l191 6v59q0 106-49.5 158.5T592 946q-85 0-163-25t-150-59l-76 168q90 47 197 71.5t202 24.5q211 0 318.5-92T1028 745V0H860l-47 154h-8Q725 53 644 16.5T436-20q-163 0-254.5 88T90 317m244-2q0-74 44-114.5T510 160q128 0 205.5 71.5T793 432v96l-142-6q-166-6-241.5-55.5T334 315",
+    horizAdvX: 1188,
+    unicode: "a"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1556h235v-370q0-41-4-122t-6-103h10q112 165 330 165 207 0 322.5-150T1171 555q0-272-117-423.5T729-20q-210 0-326 151h-16L344 0zm235 555q0-202 64-292.5T676 172q125 0 189.5 99T930 557q0 377-258 377-142 0-204.5-83.5T403 571z",
+    horizAdvX: 1276,
+    unicode: "b"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M102 547q0 279 136.5 429T633 1126q175 0 315-65l-71-189q-149 58-246 58-287 0-287-381 0-186 71.5-279.5T625 176q157 0 297 78V49Q859 12 787.5-4T614-20q-251 0-381.5 146.5T102 547",
+    horizAdvX: 1014,
+    unicode: "c"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M102 551q0 272 117.5 423.5T545 1126q218 0 332-161h12q-17 119-17 188v403h236V0H924l-41 145h-11Q759-20 541-20q-207 0-323 150T102 551m242-4q0-184 65-280.5T604 170q145 0 211 81.5T883 516v33q0 209-68 297t-213 88q-124 0-191-100.5T344 547",
+    horizAdvX: 1276,
+    unicode: "d"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M102 545q0 271 135 426t371 155q219 0 346-133t127-366V500H344q5-161 87-247.5T662 166q98 0 182.5 18.5T1026 246V55Q940 14 852-3T651-20q-258 0-403.5 150.5T102 545m246 125h502q-2 137-66 207.5T608 948t-179.5-71T348 670",
+    horizAdvX: 1180,
+    unicode: "e"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M35 928v110l182 72v72q0 196 92 290.5t281 94.5q124 0 244-41l-62-178q-87 28-166 28-80 0-116.5-49.5T453 1178v-72h270V928H453V0H217v928z",
+    horizAdvX: 743,
+    unicode: "f"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M23-184Q23-82 87.5-12.5T268 84q-47 20-77.5 64.5T160 242q0 62 35 105t104 85q-86 37-139.5 120.5T106 748q0 180 113.5 279t323.5 99q47 0 98.5-6.5T719 1106h383V977l-189-35q26-35 43-86t17-108q0-171-118-269t-325-98q-53 0-96 8-76-47-76-110 0-38 35.5-57T524 203h193q183 0 278-78t95-225q0-188-155-290T487-492q-226 0-345 80T23-184m210 12q0-76 68.5-117T494-330q192 0 286 55t94 146q0 72-51.5 102.5T631 4H453Q352 4 292.5-43.5T233-172m101 920q0-104 53.5-160T541 532q204 0 204 218 0 108-50.5 166.5T541 975q-102 0-154.5-58T334 748",
+    horizAdvX: 1139,
+    unicode: "g"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1556h235v-395q0-95-12-203h15q48 80 133.5 124t199.5 44q402 0 402-405V0H905v680q0 128-51.5 191T690 934q-148 0-217.5-88.5T403 549V0z",
+    horizAdvX: 1300,
+    unicode: "h"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M154 1399q0 63 34.5 97t98.5 34q62 0 96.5-34t34.5-97q0-60-34.5-94.5T287 1270q-64 0-98.5 34.5T154 1399M168 0v1106h235V0z",
+    horizAdvX: 571,
+    unicode: "i"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M-121-281q68-18 139-18 150 0 150 170v1235h235V-145q0-171-89.5-259T55-492q-106 0-176 25zm275 1680q0 63 34.5 97t98.5 34q62 0 96.5-34t34.5-97q0-60-34.5-94.5T287 1270q-64 0-98.5 34.5T154 1399",
+    horizAdvX: 571,
+    unicode: "j"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1556h233V797l-12-213h6l133 166 334 356h271L688 631 1161 0H885L530 485 401 379V0z",
+    horizAdvX: 1171,
+    unicode: "k"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1556h235V0z",
+    horizAdvX: 571,
+    unicode: "l"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1106h184l33-145h12q46 79 133.5 122t192.5 43q255 0 338-174h16q49 82 138 128t204 46q198 0 288.5-100t90.5-305V0h-235v682q0 127-48.5 189.5T1364 934q-137 0-200.5-85.5T1100 586V0H864v682q0 127-48 189.5T666 934q-136 0-199.5-88.5T403 551V0z",
+    horizAdvX: 1958,
+    unicode: "m"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1106h184l33-145h12q50 79 142 122t204 43q398 0 398-405V0H905v680q0 128-51.5 191T690 934q-149 0-218-88t-69-295V0z",
+    horizAdvX: 1300,
+    unicode: "n"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M102 555q0 269 138 420t389 151q240 0 380-154.5T1149 555q0-271-139-423T623-20q-155 0-274 70T166 251t-64 304m242 0q0-383 283-383 280 0 280 383 0 379-282 379-148 0-214.5-98T344 555",
+    horizAdvX: 1251,
+    unicode: "o"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168-492v1598h190q8-31 33-148h12q110 168 330 168 207 0 322.5-150T1171 555t-117.5-423T729-20q-210 0-326 151h-14Q403-9 403-39v-453zM403 555q0-202 64-292.5T676 172q122 0 188 100t66 285q0 186-65.5 281.5T672 934q-140 0-204.5-82T403 590z",
+    horizAdvX: 1276,
+    unicode: "p"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M102 551q0 270 118 422.5T545 1126q104 0 186.5-38.5T879 961h8l26 145h195V-492H872v469q0 44 4 93t7 75h-13Q766-20 539-20q-205 0-321 150.5T102 551m242-4q0-379 262-379 148 0 212.5 85.5T883 512v37q0 205-66.5 295T602 934q-126 0-192-100t-66-287",
+    horizAdvX: 1276,
+    unicode: "q"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M168 0v1106h184l31-195h12q55 99 143.5 157t190.5 58q71 0 117-10l-23-219q-50 12-104 12-141 0-228.5-92T403 578V0z",
+    horizAdvX: 883,
+    unicode: "r"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M98 827q0 142 114.5 220.5T524 1126q195 0 369-79l-76-177q-179 74-301 74-186 0-186-106 0-52 48.5-88T590 651q137-53 199-97t92-101.5T911 315q0-162-118-248.5T455-20q-221 0-355 67v203q195-90 363-90 217 0 217 131 0 42-24 70t-79 58-153 68q-191 74-258.5 148T98 827",
+    horizAdvX: 997,
+    unicode: "s"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M39 928v104l162 86 80 234h145v-246h315V928H426V336q0-85 42.5-125.5T580 170q86 0 172 27V20Q713 3 651.5-8.5T524-20q-334 0-334 352v596z",
+    horizAdvX: 805,
+    unicode: "t"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M158 383v723h237V424q0-127 52-190.5T610 170q148 0 217.5 88.5T897 555v551h236V0H948l-33 145h-12Q854 68 763.5 24T557-20Q356-20 257 80t-99 303",
+    horizAdvX: 1300,
+    unicode: "u"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M0 1106h248l225-643q58-162 70-262h8q9 72 70 262l225 643h250L674 0H420z",
+    horizAdvX: 1096,
+    unicode: "v"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M20 1106h240l141-545q48-202 68-346h6q10 73 30.5 167.5T541 524l168 582h258l163-582q15-49 37.5-150t26.5-157h8q15 123 70 344l143 545h236L1339 0h-264L932 516q-26 82-94 381h-9q-58-270-92-383L590 0H330z",
+    horizAdvX: 1673,
+    unicode: "w"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m25 0 389 565-371 541h268l252-387 254 387h266L711 565 1102 0H836L563 414 291 0z",
+    horizAdvX: 1128,
+    unicode: "x"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M0 1106h256l225-627q51-134 68-252h8q9 55 33 133.5T844 1106h254L625-147Q496-492 195-492q-78 0-152 17v186q53-12 121-12 170 0 239 197L444 0z",
+    horizAdvX: 1098,
+    unicode: "y"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M68 0v145l559 781H102v180h789V942L344 180h563V0z",
+    horizAdvX: 979,
+    unicode: "z"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M45 473v191q135 0 200.5 45.5T311 848v311q0 156 108.5 229.5T745 1462v-182q-114-5-165.5-46.5T528 1110V813q0-199-229-238v-12q229-36 229-237V27q0-82 51-124t166-44v-183q-231 2-332.5 78.5T311 2v285q0 186-266 186",
+    horizAdvX: 791,
+    unicode: "{"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M473-481v2033h180V-481z",
+    horizAdvX: 1128,
+    unicode: "|"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M45-141q95 1 148 38.5T246 27v262q0 121 53 187t176 87v12q-229 39-229 238v297q0 82-45.5 123.5T45 1280v182q223 0 320.5-76.5T463 1135V848q0-100 63.5-142T715 664V473q-123 0-187.5-42.5T463 287V-20q0-156-99.5-229T45-324z",
+    horizAdvX: 760,
+    unicode: "}"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M96 571v191q99 108 250 108 66 0 125-13t147-50q131-55 220-55 52 0 114.5 31t120.5 89V682Q968 571 823 571q-65 0-127.5 15.5T549 637q-127 55-219 55-50 0-111.5-30T96 571",
+    unicode: "~"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M166 741q0 254 100.5 397T573 1313v170h158v-162q152-5 283-66l-70-188q-146 59-250 59-146 0-216-95t-70-288q0-194 72-283t210-89q75 0 142.5 15T987 438V238q-119-59-258-64V-20H573v200q-207 31-307 171T166 741",
+    unicode: "\\xA2"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M72 0v195q98 30 145 96t47 178v184H76v172h188v256q0 188 113.5 294T690 1481q194 0 375-82l-76-182q-162 71-284 71-205 0-205-219V825h397V653H500V471q0-91-33-155T354 207h756V0z",
+    unicode: "\\xA3"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M18 1462h246l320-665 321 665h244L750 702h227V551H696V397h281V244H696V0H471v244H188v153h283v154H188v151h224z",
+    unicode: "\\xA5"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M293 1399q0 62 33.5 89.5T408 1516q53 0 84.5-31t31.5-86q0-53-32-85t-84-32q-48 0-81.5 29t-33.5 88m393 0q0 62 33.5 89.5T801 1516q53 0 85-31t32-86q0-54-33-85.5t-84-31.5q-48 0-81.5 29t-33.5 88",
+    horizAdvX: 1212,
+    unicode: "\\xA8"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M100 731q0 200 100 375t275 276 377 101q200 0 375-100t276-275 101-377q0-197-97-370T1235 84 852-20Q645-20 470 83.5T197.5 360 100 731m123 0q0-170 84.5-315.5T538 186t314-84q170 0 316 85.5t229.5 230T1481 731q0 168-84.5 314.5t-231 230.5-313.5 84q-168 0-312.5-83T309 1048t-86-317m248 0q0 214 110 337.5T887 1192q138 0 274-70l-65-143q-106 55-203 55-111 0-171-80.5T662 731q0-147 54-226t177-79q55 0 118 15t109 36V319q-115-51-235-51-197 0-305.5 120.5T471 731",
+    horizAdvX: 1704,
+    unicode: "\\xA9"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M82 535v26l356 432 168-94-282-350 282-348-168-97zm450 0v26l357 432 168-94-283-350 283-348-168-97z",
+    horizAdvX: 1139,
+    unicode: "\\xAB"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M72 449v200h514V449z",
+    horizAdvX: 659,
+    unicode: "\\xAD"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M100 731q0 200 100 375t275 276 377 101q200 0 375-100t276-275 101-377q0-197-97-370T1235 84 852-20Q645-20 470 83.5T197.5 360 100 731m123 0q0-170 84.5-315.5T538 186t314-84q170 0 316 85.5t229.5 230T1481 731q0 168-84.5 314.5t-231 230.5-313.5 84q-168 0-312.5-83T309 1048t-86-317m336-452v903h262q174 0 255-68t81-205q0-171-153-233l237-397h-211L838 625h-90V279zm189 491h69q74 0 112 35t38 100q0 72-36.5 100.5T815 1034h-67z",
+    horizAdvX: 1704,
+    unicode: "\\xAE"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M362 1241v25q57 70 117.5 156t95.5 147h273v-21q-52-61-155.5-157.5T518 1241z",
+    horizAdvX: 1212,
+    unicode: "\\xB4"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M0-340q54-14 123-14 54 0 85.5 16.5T240-276q0 85-179 110L145 0h152l-41-88q80-21 125-68.5T426-270q0-222-305-222-66 0-121 15z",
+    horizAdvX: 442,
+    unicode: "\\xB8"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m80 201 282 348L80 899l168 94 358-432v-26L248 104zm450 0 283 348-283 350 168 94 359-432v-26L698 104z",
+    horizAdvX: 1139,
+    unicode: "\\xBB"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M227 1241v25q191 198 254 303h260q63-110 256-303v-25H838q-123 73-228 180-103-103-225-180z",
+    horizAdvX: 1227,
+    unicode: "\\u02C6"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M352 1466q0 101 63.5 163.5T588 1692q104 0 171.5-62t67.5-162q0-102-65.5-165.5T588 1239t-172 62.5-64 164.5m129 0q0-106 107-106 46 0 76 27.5t30 78.5q0 50-30 78.5t-76 28.5q-47 0-77-28.5t-30-78.5",
+    horizAdvX: 1182,
+    unicode: "\\u02DA"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M236 1239q12 139 77.5 212t167.5 73q43 0 84-17.5t80-39 75.5-39T791 1411q79 0 106 115h125q-12-134-77-209.5T776 1241q-42 0-82.5 17.5t-79.5 39-76 39-71 17.5q-81 0-109-115z",
+    horizAdvX: 1227,
+    unicode: "\\u02DC"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 846
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 1692
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 846
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 1692
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 564
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 423
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 282
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 282
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 211
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 338
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 94
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M72 449v200h514V449z",
+    horizAdvX: 659,
+    unicode: "\\u2010"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M72 449v200h514V449z",
+    horizAdvX: 659,
+    unicode: "\\u2011"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M72 449v200h514V449z",
+    horizAdvX: 659,
+    unicode: "\\u2012"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M82 455v190h860V455z",
+    horizAdvX: 1024,
+    unicode: "\\u2013"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M82 455v190h1884V455z",
+    horizAdvX: 2048,
+    unicode: "\\u2014"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M25 983q20 83 71 224t105 255h170q-64-256-101-501H37z",
+    horizAdvX: 395,
+    unicode: "\\u2018"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M25 961q69 289 100 501h231l15-22q-53-209-176-479z",
+    horizAdvX: 395,
+    unicode: "\\u2019"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M63-264Q132 6 166 238h231l15-23Q364 29 236-264z",
+    horizAdvX: 549,
+    unicode: "\\u201A"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M25 983q20 83 71 224t105 255h170q-64-256-101-501H37zm415 0q53 203 178 479h170q-69-296-100-501H455z",
+    horizAdvX: 813,
+    unicode: "\\u201C"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M25 961q69 289 100 501h231l15-22q-53-209-176-479zm415 0q69 271 103 501h231l14-22q-53-209-176-479z",
+    horizAdvX: 813,
+    unicode: "\\u201D"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M43-264Q109-4 145 238h232l14-23Q336 1 215-264zm418 0Q527-4 563 238h232l14-23Q761 29 633-264z",
+    horizAdvX: 944,
+    unicode: "\\u201E"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M133 125q0 73 38 112t110 39q73 0 111-40.5T430 125q0-71-38.5-112.5T281-29 171 12t-38 113m557 0q0 73 38 112t110 39q73 0 111-40.5T987 125q0-71-38.5-112.5T838-29 728 12t-38 113m557 0q0 73 38 112t110 39q73 0 111-40.5t38-110.5q0-71-38.5-112.5T1395-29t-110 41-38 113",
+    horizAdvX: 1677,
+    unicode: "\\u2026"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 338
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M82 535v26l356 432 168-94-282-350 282-348-168-97z",
+    horizAdvX: 688,
+    unicode: "\\u2039"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "m80 201 282 348L80 899l168 94 358-432v-26L248 104z",
+    horizAdvX: 688,
+    unicode: "\\u203A"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    horizAdvX: 423
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M63 494v153h136l-2 37v37l2 65H63v154h150q38 251 191 394t395 143q200 0 358-88l-84-187q-154 76-274 76-141 0-230.5-84T449 940h456V786H434l-2-45v-55l2-39h408V494H451q64-312 364-312 143 0 293 62V41Q977-20 803-20q-241 0-391.5 132T215 494z",
+    horizAdvX: 1188,
+    unicode: "\\u20AC"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M27 1333v129h553v-129H375V741H229v592zm608-592v721h217l178-534 187 534h210V741h-147v414l4 129h-6l-193-543H963l-185 543h-6l4-119V741z",
+    horizAdvX: 1561,
+    unicode: "\\u2122"
+  }), /*#__PURE__*/React.createElement("glyph", {
+    d: "M0 0v1105h1105V0z",
+    horizAdvX: 1105,
+    unicode: "\\u25FC"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\"",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\"",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\"",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\"",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\"",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\"",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "\"",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -20,
+    u1: "\"",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\"",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\"",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\"",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "\"",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "'",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "'",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "'",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "'",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "'",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "'",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "'",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -20,
+    u1: "'",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "'",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "'",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "'",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "'",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -184,
+    u1: "(",
+    u2: "J"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: ",",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: ",",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: ",",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: ",",
+    u2: "U"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: ",",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ",",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ",",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ",",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ",",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "-",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: ".",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: ".",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: ".",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: ".",
+    u2: "U"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: ".",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ".",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ".",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ".",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: ".",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "A",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "A",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "A",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "A",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "A",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "A",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "A",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "A",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -266,
+    u1: "A",
+    u2: "J"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "A",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "A",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "A",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "A",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "B",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "B",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "B",
+    u2: "Z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "B",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "B",
+    u2: "X"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "B",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "B",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "B",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "B",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "B",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "B",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "C",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "C",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "C",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "C",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "D",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "D",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "D",
+    u2: "Z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "D",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "D",
+    u2: "X"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "D",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "D",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "D",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "D",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "D",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "D",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -123,
+    u1: "E",
+    u2: "J"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "F",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "F",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "F",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "F",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "F",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "F",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "K",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "K",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "K",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "K",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 164,
+    u1: "L",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 164,
+    u1: "L",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "L",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "L",
+    u2: "U"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "L",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 164,
+    u1: "L",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 164,
+    u1: "L",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "O",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "O",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "O",
+    u2: "Z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "O",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "O",
+    u2: "X"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "O",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "O",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "O",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "O",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "O",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "O",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 266,
+    u1: "P",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 266,
+    u1: "P",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "P",
+    u2: "Z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "P",
+    u2: "X"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "P",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 266,
+    u1: "P",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 266,
+    u1: "P",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "Q",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "Q",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Q",
+    u2: "Z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Q",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Q",
+    u2: "X"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Q",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Q",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "Q",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Q",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "Q",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "Q",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "T",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "T",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "T",
+    u2: "\\u2014"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "T",
+    u2: "\\u2013"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "T",
+    u2: "z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "x"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "w"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "v"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "T",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "T",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "T",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "T",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "T",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "T",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 164,
+    u1: "T",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "T",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "T",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "T",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "T",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "T",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "T",
+    u2: "-"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "T",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "U",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "U",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "U",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "U",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "U",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "V",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "V",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "V",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "V",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "V",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "V",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "V",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "V",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "V",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "V",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "V",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "V",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "V",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "W",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "W",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "W",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "W",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "W",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "W",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "W",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "W",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "W",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "W",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "W",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "W",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "W",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "X",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "X",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "X",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "X",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "Y",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "Y",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Y",
+    u2: "z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "Y",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "Y",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "Y",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "Y",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "Y",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "Y",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "Y",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "Y",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Y",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "Y",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "Y",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "Y",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "Y",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Y",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Y",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Y",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "Y",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "Y",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "Y",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "Y",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "Y",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Z",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Z",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Z",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "Z",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -184,
+    u1: "[",
+    u2: "J"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "a",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "a",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "a",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "a",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "b",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "b",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "b",
+    u2: "z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "b",
+    u2: "y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "b",
+    u2: "x"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "b",
+    u2: "w"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "b",
+    u2: "v"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "b",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "b",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "c",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "c",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "c",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "c",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "e",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "e",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "e",
+    u2: "z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "e",
+    u2: "y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "e",
+    u2: "x"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "e",
+    u2: "w"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "e",
+    u2: "v"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "e",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "e",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -123,
+    u1: "f",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -123,
+    u1: "f",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -123,
+    u1: "f",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -123,
+    u1: "f",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "h",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "h",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "h",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "h",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "k",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "k",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "k",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "k",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "k",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "m",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "m",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "m",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "m",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "n",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "n",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "n",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "n",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "o",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "o",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "o",
+    u2: "z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "o",
+    u2: "y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "o",
+    u2: "x"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "o",
+    u2: "w"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "o",
+    u2: "v"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "o",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "o",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "p",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "p",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "p",
+    u2: "z"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "p",
+    u2: "y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "p",
+    u2: "x"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "p",
+    u2: "w"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "p",
+    u2: "v"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "p",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "p",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "r",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "r",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "r",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "r",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 20,
+    u1: "r",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "r",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "r",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "r",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "r",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "r",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "r",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "t",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "t",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "t",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "t",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "v",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "v",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "v",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "v",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "v",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "v",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "v",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "v",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "v",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "w",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "w",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "w",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "w",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "w",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "w",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "w",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "w",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "w",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "x",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "x",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "x",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "x",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "x",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "y",
+    u2: "\\u201E"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "y",
+    u2: "\\u201D"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "y",
+    u2: "\\u201A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "y",
+    u2: "\\u2019"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "y",
+    u2: "?"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "y",
+    u2: "."
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "y",
+    u2: ","
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "y",
+    u2: "'"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -82,
+    u1: "y",
+    u2: "\""
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -184,
+    u1: "{",
+    u2: "J"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "\\u2013",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "\\u2014",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2018",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2018",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2018",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2018",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2018",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2018",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "\\u2018",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -20,
+    u1: "\\u2018",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u2018",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u2018",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u2018",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "\\u2018",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2019",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2019",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u2019",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2019",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2019",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u2019",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "\\u2019",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -20,
+    u1: "\\u2019",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u2019",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u2019",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u2019",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "\\u2019",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201A",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201A",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201A",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "\\u201A",
+    u2: "U"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "\\u201A",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201A",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201A",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201A",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201A",
+    u2: "C"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "u"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "s"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "r"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201C",
+    u2: "q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "p"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201C",
+    u2: "o"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "n"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "m"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 61,
+    u1: "\\u201C",
+    u2: "g"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201C",
+    u2: "e"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201C",
+    u2: "d"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201C",
+    u2: "c"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 82,
+    u1: "\\u201C",
+    u2: "a"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -20,
+    u1: "\\u201C",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u201C",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u201C",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: -41,
+    u1: "\\u201C",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "\\u201C",
+    u2: "A"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201E",
+    u2: "Y"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201E",
+    u2: "W"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 123,
+    u1: "\\u201E",
+    u2: "V"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 41,
+    u1: "\\u201E",
+    u2: "U"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 143,
+    u1: "\\u201E",
+    u2: "T"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201E",
+    u2: "Q"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201E",
+    u2: "O"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201E",
+    u2: "G"
+  }), /*#__PURE__*/React.createElement("hkern", {
+    k: 102,
+    u1: "\\u201E",
+    u2: "C"
+  }))));
+};
+export default SvgComponent;
