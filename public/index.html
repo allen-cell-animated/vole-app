@@ -3,7 +3,7 @@
   <head>
     <!-- Google Tag Manager -->
     <script>
-      const gtmId = "<%= process.env.WEBPACK_GTM_ID %>";
+      const gtmId = "<%= JSON.stringify(process.env.WEBPACK_GTM_ID) %>";
       (function (w, d, s, l, i) {
         if (!i) {
           return;
