@@ -14,16 +14,29 @@ const firebaseConfig = {
   storageBucket: process.env.WEBPACK_FIREBASE_STORAGE_BUCKET,
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+let firestore: FirebaseFirestore | undefined;
+// Check for any missing Firebase configuration values; if so, do not initialize
+const missingProperties = Object.entries(firebaseConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => key);
 
-analytics.isSupported().then((supported) => {
-  if (supported) {
-    firebase.analytics();
-  }
-});
-
-const firestore: FirebaseFirestore = firebase.firestore();
+if (missingProperties.length === 0) {
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  analytics.isSupported().then((supported) => {
+    if (supported) {
+      firebase.analytics();
+    }
+  });
+  firestore = firebase.firestore();
+} else if (missingProperties.length === Object.keys(firebaseConfig).length) {
+  console.log("No Firebase configuration found, Firebase will not be initialized.");
+} else {
+  console.log(
+    "Missing the following Firebase configuration properties, Firebase will not be initialized:",
+    missingProperties
+  );
+}
 
 export { firebase, firestore };
 
