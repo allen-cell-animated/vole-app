@@ -2,7 +2,8 @@
 
 ## Local Development
 
-Run the following commands and start a local instance of Vol-E.
+Run the following commands to install the project dependencies and start a local
+instance of Vol-E.
 
 ```cmd
 npm install
@@ -33,10 +34,11 @@ the local `vole-app` package.
 npm install {path-to-vole-app-repo}
 ```
 
-Import components from `vole-app` as normal.
+Import components from `vole-app` as normal. If you make changes in `vole-app`,
+rerun the build command to update the local package.
 
 To reinstall the latest version of `vole-app`, run the following command in your
-other project repository
+other project repository.
 
 ```cmd
 npm install @aics/vole-app
@@ -44,7 +46,8 @@ npm install @aics/vole-app
 
 ### Static build
 
-To make a static build of the Vol-E viewer for deployment on a web server (S3, Apache, etc.), run the following command:
+To make a static build of the Vol-E viewer for deployment on a web server (S3,
+Apache, etc.), run the following command:
 
 ```cmd
 npm run s3-build
