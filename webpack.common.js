@@ -69,5 +69,8 @@ module.exports = (env) => {
         },
       ],
     },
+    dotenv: {
+      prefix: "WEBPACK_",
+    },
   };
 };

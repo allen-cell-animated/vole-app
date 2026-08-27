@@ -3,7 +3,11 @@
   <head>
     <!-- Google Tag Manager -->
     <script>
+      const gtmId = "<%= process.env.WEBPACK_GTM_ID %>";
       (function (w, d, s, l, i) {
+        if (!i) {
+          return;
+        }
         w[l] = w[l] || [];
         w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
         var f = d.getElementsByTagName(s)[0],
@@ -12,7 +16,7 @@
         j.async = true;
         j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
         f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-5J7562WW");
+      })(window, document, "script", "dataLayer", gtmId);
     </script>
     <!-- End Google Tag Manager -->
 
