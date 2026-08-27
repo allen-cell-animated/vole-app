@@ -1,28 +1,19 @@
 import "@firebase/analytics";
+import { FirebaseFirestore } from "@firebase/firestore-types";
 import firebase, { analytics } from "firebase/app";
 import "firebase/firestore";
-import { FirebaseFirestore } from "@firebase/firestore-types";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD691xhXsWl-8QU_9htjZnMUd7siWVCTAE",
-  appId: "1:40711248674:web:511cb4cede47191274237b",
-  authDomain: "allen-cell-resource.firebaseapp.com",
-  databaseURL: "https://allen-cell-resource.firebaseio.com",
-  measurementId: "G-8553S8ESS7",
-  messagingSenderId: "40711248674",
-  projectId: "allen-cell-resource",
-  storageBucket: "allen-cell-resource.appspot.com",
+  apiKey: process.env.WEBPACK_FIREBASE_API_KEY,
+  appId: process.env.WEBPACK_FIREBASE_APP_ID,
+  authDomain: process.env.WEBPACK_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.WEBPACK_FIREBASE_DATABASE_URL,
+  measurementId: process.env.WEBPACK_FIREBASE_MEASUREMENT_ID,
+  messagingSenderId: process.env.WEBPACK_FIREBASE_MESSAGING_SENDER_ID,
+  projectId: process.env.WEBPACK_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.WEBPACK_FIREBASE_STORAGE_BUCKET,
 };
 
-const firebaseDevConfig = {
-  apiKey: "AIzaSyBJvPTPnYWmp5arSFzhNDlqWTsWIqmiyeE",
-  authDomain: "allen-cell-resource-staging.firebaseapp.com",
-  projectId: "allen-cell-resource-staging",
-  storageBucket: "allen-cell-resource-staging.appspot.com",
-  messagingSenderId: "999314085745",
-  appId: "1:999314085745:web:98af391a384adab7d6c8d0",
-  measurementId: "G-9J5TY9YYVE",
-};
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
