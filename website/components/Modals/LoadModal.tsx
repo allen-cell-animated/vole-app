@@ -193,7 +193,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
     children: (
       <>
         <p style={{ fontSize: "16px" }}>Drag an exported JSON session description below to load.</p>
-        <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
+        <Upload.Dragger showUploadList={false} customRequest={onImportFile} accept=".json">
           <DragOutlined /> Drag and drop here or click to browse
         </Upload.Dragger>
       </>
