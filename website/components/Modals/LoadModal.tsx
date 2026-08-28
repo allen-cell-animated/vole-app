@@ -147,10 +147,6 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
         viewerChannelSettings,
         imageUrl,
         metadata,
-        // TODO what to do with these?
-        cellId: "1",
-        imageDownloadHref: "",
-        parentImageDownloadHref: "",
       });
       onSuccess?.(undefined);
       setShowModal(false);
