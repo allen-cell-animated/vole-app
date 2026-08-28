@@ -350,7 +350,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         {importModalState === ImportModalState.Import && (
           <>
             <p>Upload a saved .json settings file</p>
-            <Upload.Dragger showUploadList={false} customRequest={onImportFile}>
+            <Upload.Dragger showUploadList={false} customRequest={onImportFile} accept=".json">
               <DragOutlined /> Drag and drop here or click to browse
             </Upload.Dragger>
           </>
