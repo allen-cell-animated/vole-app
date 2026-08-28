@@ -1,4 +1,3 @@
-import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { Button, Divider } from "antd";
 import React, { type ReactElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -139,9 +138,7 @@ const CookieSettingsButton = styled(Button)`
   }
 `;
 
-type LandingPageProps = {
-  firestore?: FirebaseFirestore;
-};
+type LandingPageProps = {};
 
 export default function LandingPage(props: LandingPageProps): ReactElement {
   // Rendering
@@ -152,7 +149,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
     // Check if the URL used to open the landing page has arguments;
     // if so, assume that this is an old URL intended to go to the viewer.
     // Navigate to the viewer while preserving URL arguments.
-    parseViewerUrlParams(window.location.search, props.firestore).then(({ args }) => {
+    parseViewerUrlParams(window.location.search).then(({ args }) => {
       if (Object.keys(args).length > 0) {
         console.log("Detected URL parameters. Redirecting from landing page to viewer.");
         navigation("viewer" + "?" + searchParams.toString(), {
@@ -161,7 +158,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
         });
       }
     });
-  }, [navigation, searchParams, props.firestore]);
+  }, [navigation, searchParams]);
 
   const onClickLoad = (appProps: AppDataProps, hideTitle?: boolean): void => {
     // TODO: Make URL search params from the appProps and append it to the viewer URL so the URL can be shared directly.
