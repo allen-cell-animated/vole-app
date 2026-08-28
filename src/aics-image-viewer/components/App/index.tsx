@@ -57,7 +57,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   scaleLevelControls: true,
 };
 
-const defaultProps: AppProps = {
+const defaultProps = {
   // rawData has a "dtype" which is expected to be "uint8", a "shape":[c,z,y,x] and a "buffer" which is a DataView
   rawData: undefined,
   // rawDims is the volume dims that normally come from a json file
@@ -75,7 +75,7 @@ const defaultProps: AppProps = {
   canvasMargin: "0 0 0 0",
   view3dRef: undefined,
   showError: undefined,
-};
+} satisfies AppProps;
 
 const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
 
@@ -115,7 +115,7 @@ const setIndicatorPositions = (
 };
 
 const App: React.FC<AppProps> = (props) => {
-  props = { ...defaultProps, ...props };
+  props = { ...defaultProps, ...props } as AppProps;
 
   // State management /////////////////////////////////////////////////////////
   const imageType = useViewerState(select("imageType"));
@@ -574,8 +574,8 @@ const App: React.FC<AppProps> = (props) => {
         <Layout className="cell-viewer-wrapper" style={{ margin: props.canvasMargin }}>
           <Content>
             <Toolbar
-              fovDownloadHref={props.parentImageDownloadHref}
-              cellDownloadHref={props.imageDownloadHref}
+              cellDownloadHref={props.imageDownloadHref ?? defaultProps.imageDownloadHref}
+              fovDownloadHref={props.parentImageDownloadHref ?? defaultProps.parentImageDownloadHref}
               hasParentImage={!!props.parentImageUrl}
               hasCellId={!!props.cellId}
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
