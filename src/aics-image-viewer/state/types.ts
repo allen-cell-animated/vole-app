@@ -82,7 +82,7 @@ export type ChannelState = {
  * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
  * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
-export enum ViewModeSnapshot {
+export const enum ViewModeSnapshot {
   threeD = "3D",
   xy = "Z",
   xz = "Y",
@@ -96,7 +96,7 @@ export enum ViewModeSnapshot {
  * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
  * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
-export enum RenderModeSnapshot {
+export const enum RenderModeSnapshot {
   volumetric = "volumetric",
   maxProject = "maxproject",
   pathTrace = "pathtrace",
@@ -109,7 +109,7 @@ export enum RenderModeSnapshot {
  * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
  * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
-export enum ImageTypeSnapshot {
+export const enum ImageTypeSnapshot {
   segmentedCell = "cell",
   fullField = "fov",
 }

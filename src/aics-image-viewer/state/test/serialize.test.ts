@@ -3,73 +3,74 @@ import type { CameraState } from "@aics/vole-core";
 import { getDefaultCameraState } from "../../shared/constants";
 import {
   cameraStateToSnapshot,
+  channelStateToSnapshot,
   channelStateToStringSnapshot,
   objectToKeyValueList,
   stringifyCameraStateSnapshot,
+  viewerStateToSnapshot,
   viewerStateToStringSnapshot,
 } from "../serialize";
-import type { ChannelState, ChannelStateStringified, ViewerState } from "../types";
+import type { ViewerState } from "../types";
 import {
+  CUSTOM_TEST_CHANNEL_STATE,
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_CHANNEL_STATE,
   DEFAULT_TEST_VIEWER_STATE,
+  SERIALIZED_CUSTOM_TEST_CHANNEL_STATE,
   SERIALIZED_CUSTOM_TEST_VIEWER_STATE,
   SERIALIZED_DEFAULT_TEST_CHANNEL_STATE,
   SERIALIZED_DEFAULT_TEST_VIEWER_STATE,
+  STRINGIFIED_CUSTOM_TEST_CHANNEL_STATE,
+  STRINGIFIED_CUSTOM_TEST_VIEWER_STATE,
+  STRINGIFIED_DEFAULT_TEST_CHANNEL_STATE,
+  STRINGIFIED_DEFAULT_TEST_VIEWER_STATE,
 } from "./test_data";
 
-describe("channelStateToStringSnapshot", () => {
+describe("channelStateToSnapshot", () => {
   it("serializes channel settings", () => {
-    const serialized = channelStateToStringSnapshot(DEFAULT_TEST_CHANNEL_STATE, false);
+    const serialized = channelStateToSnapshot(DEFAULT_TEST_CHANNEL_STATE, false);
     expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_CHANNEL_STATE);
   });
 
   it("serializes custom channel settings", () => {
-    const customChannelState: ChannelState = {
-      name: "a",
-      displayName: "a",
-      color: [3, 255, 157],
-      volumeEnabled: false,
-      isosurfaceEnabled: false,
-      isovalue: 0,
-      opacity: 0.54,
-      colorizeEnabled: false,
-      colorizeAlpha: 1.0,
-      useControlPoints: false,
-      controlPoints: [],
-      ramp: [0, 255],
-      // TODO: the settings below are not serialized. should they be? (see #384)
-      plotMin: 0,
-      plotMax: 255,
-      keepIntensityRange: false,
-    };
-    const serializedCustomChannelState: Required<Omit<ChannelStateStringified, "lut" | "rmp" | "cps">> = {
-      col: "03ff9d",
-      ven: "0",
-      sen: "0",
-      isv: "0",
-      isa: "0.54",
-      clz: "0",
-      cza: "1",
-      cpe: "0",
-      cpt: "",
-      ram: "0:255",
-      pin: "0",
-    };
-    const serialized = channelStateToStringSnapshot(customChannelState, false);
-    expect(serialized).toEqual(serializedCustomChannelState);
+    const serialized = channelStateToSnapshot(CUSTOM_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_CUSTOM_TEST_CHANNEL_STATE);
+  });
+});
+
+describe("channelStateToStringSnapshot", () => {
+  it("serializes channel settings", () => {
+    const serialized = channelStateToStringSnapshot(DEFAULT_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(STRINGIFIED_DEFAULT_TEST_CHANNEL_STATE);
+  });
+
+  it("serializes custom channel settings", () => {
+    const serialized = channelStateToStringSnapshot(CUSTOM_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(STRINGIFIED_CUSTOM_TEST_CHANNEL_STATE);
+  });
+});
+
+describe("viewerStateToSnapshot", () => {
+  it("serializes the default viewer settings", () => {
+    const serialized = viewerStateToSnapshot(DEFAULT_TEST_VIEWER_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
+  });
+
+  it("serializes custom viewer settings", () => {
+    const serialized = viewerStateToSnapshot(CUSTOM_TEST_VIEWER_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
   });
 });
 
 describe("viewerStateToStringSnapshot", () => {
   it("serializes the default viewer settings", () => {
     const serialized = viewerStateToStringSnapshot(DEFAULT_TEST_VIEWER_STATE, false);
-    expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
+    expect(serialized).toEqual(STRINGIFIED_DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("serializes custom viewer settings", () => {
     const serialized = viewerStateToStringSnapshot(CUSTOM_TEST_VIEWER_STATE, false);
-    expect(serialized).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
+    expect(serialized).toEqual(STRINGIFIED_CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("shortens long numbers in the slice and region parameters", () => {
@@ -91,7 +92,9 @@ describe("Camera state", () => {
     expect(cameraStateToSnapshot(cameraState, true)).toEqual(undefined);
 
     cameraState = { ...cameraState, position: [1, 2, 3] };
-    const stringified = stringifyCameraStateSnapshot(cameraStateToSnapshot(cameraState, true)!);
+    const snapshot = cameraStateToSnapshot(cameraState, true)!;
+    expect(snapshot).toEqual({ pos: [1, 2, 3] });
+    const stringified = stringifyCameraStateSnapshot(snapshot);
     expect(objectToKeyValueList(stringified)).toEqual("pos:1:2:3");
   });
 

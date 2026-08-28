@@ -18,8 +18,8 @@ import {
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_VIEWER_CHANNEL_SETTING,
   DEFAULT_TEST_VIEWER_STATE,
-  SERIALIZED_CUSTOM_TEST_VIEWER_STATE,
-  SERIALIZED_DEFAULT_TEST_VIEWER_STATE,
+  STRINGIFIED_CUSTOM_TEST_VIEWER_STATE,
+  STRINGIFIED_DEFAULT_TEST_VIEWER_STATE,
 } from "./test_data";
 
 //// VALUE PARSING ////////////////////////////////////////
@@ -370,12 +370,12 @@ describe("deserializeViewerState", () => {
   });
 
   it("deserializes the default viewer settings", () => {
-    const params = SERIALIZED_DEFAULT_TEST_VIEWER_STATE;
+    const params = STRINGIFIED_DEFAULT_TEST_VIEWER_STATE;
     expect(deserializeViewerState(params)).toEqual(DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("deserializes custom viewer settings", () => {
-    const params = SERIALIZED_CUSTOM_TEST_VIEWER_STATE;
+    const params = STRINGIFIED_CUSTOM_TEST_VIEWER_STATE;
     expect(deserializeViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
   });
 
