@@ -140,6 +140,9 @@ export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
 /**
  * Property keys for the "snapshot" variants of `ViewerState`. These keys are shorter, for contexts that need brevity
  * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
 export enum ViewerStateKeys {
   /** Axis to view. Snapshot values are `3D`, `Z`, `Y`, `X` (from `ViewModeSnapshot`). */
@@ -206,6 +209,9 @@ export enum ViewerStateKeys {
 /**
  * Property keys for the "snapshot" variants of `ChannelState`/`ViewerChannelSettings`. These keys are shorter, for
  * contexts that need brevity (like URLs), and have a stronger guarantee of stability than the keys of `ChannelState`.
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
 export enum ChannelStateKeys {
   /** Color, as a 6-digit hex color.  */
