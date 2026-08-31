@@ -21,13 +21,13 @@
     "url": "git+https://github.com/allen-cell-animated/vole-app.git"
   },
   "scripts": {
-    "start": "webpack serve --config webpack.dev.js  --env env=dev",
+    "start": "webpack serve --config webpack.dev.js  --env env=development",
     "gh-build-nightly": "webpack --config webpack.dev.js --env env=production basename=/vole-app/",
     "gh-build-release": "webpack --config webpack.dev.js --env env=production basename=/website-3d-cell-viewer-release/",
     "s3-build": "webpack --config webpack.dev.js --env env=production",
     "release-build": "webpack --config webpack.dev.js --env env=production",
     "docker-build": "webpack --config webpack.common.js --env env=production",
-    "dev": "webpack --config webpack.dev.js --env env=dev",
+    "dev": "webpack --config webpack.dev.js --env env=development",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
     "test": "jest --coverage --passWithNoTests",
     "test:github-action": "jest --silent --passWithNoTests --ci --coverage --coverageReporters=\"text\" --coverageReporters=\"text-summary\" --outputFile=\"report.json\"",
