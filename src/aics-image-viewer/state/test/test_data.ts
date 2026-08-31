@@ -47,6 +47,7 @@ export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateSnapshot = {
   mask: 0,
   bright: 70,
   dens: 50,
+  fps: 8,
   lvl: [35, 140, 255],
   interp: true,
   reg: [
@@ -75,6 +76,7 @@ export const STRINGIFIED_DEFAULT_TEST_VIEWER_STATE: ViewerStateStringified = {
   mask: "0",
   bright: "70",
   dens: "50",
+  fps: "8",
   lvl: "35,140,255",
   interp: "1",
   reg: "0:1,0:1,0:1",
@@ -131,6 +133,7 @@ export const SERIALIZED_CUSTOM_TEST_VIEWER_STATE: ViewerStateSnapshot = {
   mask: 55,
   bright: 100,
   dens: 75,
+  fps: 24,
   lvl: [0, 250, 251],
   interp: false,
   reg: [
@@ -160,6 +163,7 @@ export const STRINGIFIED_CUSTOM_TEST_VIEWER_STATE: ViewerStateStringified = {
   mask: "55",
   bright: "100",
   dens: "75",
+  fps: "24",
   lvl: "0,250,251",
   interp: "0",
   reg: "0:0.5,0:1,0:1",
