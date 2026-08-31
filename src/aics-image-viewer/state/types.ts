@@ -298,8 +298,9 @@ export enum ChannelStateKeys {
 }
 
 // Maps `ViewerStateKeys` to the type of each key in `ViewerStateSnapshot`.
-// This is not the exported "snapshot" type: that's `ViewerStateSnapshot`, below.  Defining `ViewerStateSnapshot` as a
-// mapped type means it will type error unless this type is exhaustive over all variants of `ViewerStateKeys`.
+// This is not the exported "snapshot" type: that's `ViewerStateSnapshot`, below. Defining `ViewerStateSnapshot` as
+// a mapped type ensures that if a variant is added to `ViewerStateKeys`, `ViewerStateSnapshot` will type error until
+// that key's value is added to this type.
 type ViewerStateSnapshotTypes = {
   [ViewerStateKeys.View]: ViewModeSnapshot;
   [ViewerStateKeys.Mode]: RenderModeSnapshot;
@@ -353,8 +354,9 @@ export type ControlPointSnapshot = {
 };
 
 // Maps `ChannelStateKeys` to the type of each key in `ChannelStateSnapshot`.
-// This is not the exported "snapshot" type: that's `ChannelStateSnapshot`, below.  Defining `ChannelStateSnapshot` as
-// a mapped type means it will type error unless this type is exhaustive over all variants of `ChannelStateKeys`.
+// This is not the exported "snapshot" type: that's `ChannelStateSnapshot`, below. Defining `ChannelStateSnapshot` as
+// a mapped type ensures that if a variant is added to `ChannelStateKeys`, `ChannelStateSnapshot` will type error until
+// that key's value is added to this type.
 type ChannelStateSnapshotTypes = {
   [ChannelStateKeys.Color]: string;
   [ChannelStateKeys.Colorize]: boolean;
