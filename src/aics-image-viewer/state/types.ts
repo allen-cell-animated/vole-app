@@ -34,6 +34,7 @@ export type ViewerState = {
   maskAlpha: number;
   brightness: number;
   density: number;
+  targetFramerate: number;
   levels: [number, number, number];
   interpolationEnabled: boolean;
   // `region` values are in the range [0, 1]. We derive from this the format that the sliders expect
@@ -170,6 +171,8 @@ export enum ViewerStateSnapshotKeys {
   Brightness = "bright",
   /** Density, a float in the range `[0, 100]`. Default `50`. */
   Density = "dens",
+  /** Target playback frame rate in frames per second. Must be greater than `0`. Default `8`. */
+  TargetFramerate = "fps",
   /**
    * Levels for image intensity adjustment. Should be a three-element array of numbers (comma-separated when
    * stringified), representing the low, middle, and high values in the range `[0, 255]`. Values will be sorted in
@@ -315,6 +318,7 @@ type ViewerStateSnapshotTypes = {
   [ViewerStateSnapshotKeys.Autorotate]: boolean;
   [ViewerStateSnapshotKeys.Brightness]: number;
   [ViewerStateSnapshotKeys.Density]: number;
+  [ViewerStateSnapshotKeys.TargetFramerate]: number;
   [ViewerStateSnapshotKeys.Levels]: [number, number, number];
   [ViewerStateSnapshotKeys.Interpolation]: boolean;
   [ViewerStateSnapshotKeys.Region]: [[number, number], [number, number], [number, number]];

@@ -98,6 +98,7 @@ const useVolume = (
   options?: UseVolumeOptions
 ): ReactiveVolume => {
   const channelSettings = useViewerState(select("channelSettings"));
+  const targetFramerate = useViewerState(select("targetFramerate"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
   const initChannelSettings = useViewerState(select("initChannelSettings"));
 
@@ -114,6 +115,7 @@ const useVolume = (
   );
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
+  useEffect(() => playControls.setTargetFramerate(targetFramerate), [playControls, targetFramerate]);
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
   useEffect(() => {
     playControls.onPlayingAxisChanged = (axis) => {

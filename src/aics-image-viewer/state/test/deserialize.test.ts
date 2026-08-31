@@ -363,6 +363,11 @@ describe("stringSnapshotToViewerState", () => {
     expect(stringSnapshotToViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
   });
 
+  it("ignores invalid target frame rates", () => {
+    expect(stringSnapshotToViewerState({ fps: "0" })).toEqual({});
+    expect(stringSnapshotToViewerState({ fps: "Infinity" })).toEqual({});
+  });
+
   it("handles all ViewMode values", () => {
     const viewModes = Object.values(ViewMode);
     for (const viewMode of viewModes) {
