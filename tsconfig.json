@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.base",
-  "include": ["src/**/*", "website/**/*", "__mocks__"],
+  "include": ["src/**/*", "website/**/*", "__mocks__", "vitest.config.ts"],
   "compilerOptions": {
     "module": "ES6",
     "outDir": "./dist"
