@@ -4,7 +4,7 @@ import React from "react";
 
 import { ViewMode } from "../../shared/enums";
 
-const viewModes = [ViewMode.threeD, ViewMode.xy, ViewMode.xz, ViewMode.yz];
+const viewModes = [ViewMode.threeD, ViewMode.xy, ViewMode.xz, ViewMode.yz, ViewMode.tripleProj];
 
 interface ViewModeRadioButtonsProps {
   mode: ViewMode;

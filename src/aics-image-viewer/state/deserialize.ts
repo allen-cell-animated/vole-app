@@ -293,11 +293,12 @@ export function deserializeViewerState(params: ViewerStateParams): Partial<Viewe
       Z: ViewMode.xy,
       Y: ViewMode.xz,
       X: ViewMode.yz,
+      TRIPLE: ViewMode.tripleProj,
     };
     const allowedViews = Object.keys(viewParamToViewMode);
-    let view: "3D" | "X" | "Y" | "Z";
+    let view: "3D" | "X" | "Y" | "Z" | "TRIPLE";
     if (allowedViews.includes(params.view.toUpperCase())) {
-      view = params.view.toUpperCase() as "3D" | "X" | "Y" | "Z";
+      view = params.view.toUpperCase() as "3D" | "X" | "Y" | "Z" | "TRIPLE";
     } else {
       view = "3D";
     }
