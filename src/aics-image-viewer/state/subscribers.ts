@@ -77,6 +77,11 @@ const selectAxisClipUpdateInfo = (axis: AxisName): ((store: ViewerStore) => Axis
 export const subscribeImageToState = (store: typeof useViewerState, view3d: View3d, image: Volume): (() => void) => {
   const axisClipUpdater = (axis: AxisName) => {
     return ({ region: [minval, maxval], slice, viewMode }: AxisClipUpdateInfo) => {
+      if (viewMode === ViewMode.tripleProj) {
+        const index = Math.round(slice * image.imageInfo.volumeSize[axis]);
+        view3d.setTripleSliceIndex(axis as VCAxisName, index);
+        return;
+      }
       let isOrthoAxis = false;
       let axismin = 0.0;
       let axismax = 1.0;
@@ -193,5 +198,19 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
     // TODO reset channels, time, scene?
   ];
 
-  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+  // Update state when the user drags crosshairs in triple-slice mode.
+  // vole-core only fires this callback during triple-slice rendering so it is safe to register unconditionally.
+  view3d.setTripleSliceCallback((indices) => {
+    const { x, y, z } = image.imageInfo.volumeSize;
+    store.getState().changeViewerSetting("slice", {
+      x: indices.x / x,
+      y: indices.y / y,
+      z: indices.z / z,
+    });
+  });
+
+  return () => {
+    view3d.setTripleSliceCallback(null);
+    unsubscribers.forEach((unsubscribe) => unsubscribe());
+  };
 };
