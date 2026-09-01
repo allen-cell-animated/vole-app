@@ -108,7 +108,7 @@ export function viewerMessageToParams(
 ): { imageUrl?: string | MultisceneUrls; metadata?: (MetadataRecord | undefined)[] } {
   // get scenes
   const scenes = message.scenes ?? (propUrl && (typeof propUrl === "string" ? [propUrl] : propUrl.scenes));
-  if (scenes === undefined || scenes === "" || scenes.length === 0) {
+  if (scenes === undefined || scenes === "" || scenes.length === 0 || (scenes.length === 1 && scenes[0] === "")) {
     return {};
   }
   const firstScene = scenes[0];
