@@ -146,7 +146,7 @@ export function paramsToViewerMessage(
   scenes.forEach((scene, index) => {
     const value = metadata[index];
     // Can't save a metadata record if there isn't any metadata or the image is multi-source
-    if (value === undefined || (Array.isArray(scene) && scene.length > 1)) {
+    if (value === undefined || (Array.isArray(scene) && scene.length !== 1)) {
       return;
     }
     meta[Array.isArray(scene) ? scene[0] : scene] = value;
