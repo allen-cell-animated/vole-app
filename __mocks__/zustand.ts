@@ -1,4 +1,5 @@
 // Adapted from https://github.com/pmndrs/zustand/blob/main/docs/guides/testing.md
+import { afterEach, vi } from "vitest";
 import type { create as Create, createStore as CreateStore, StateCreator, StoreApi } from "zustand";
 
 export * from "zustand";
@@ -9,7 +10,7 @@ type ZustandActual = {
   createStore: typeof CreateStore;
 };
 
-const { create: actualCreate, createStore: actualCreateStore } = jest.requireActual<ZustandActual>("zustand");
+const { create: actualCreate, createStore: actualCreateStore } = await vi.importActual<ZustandActual>("zustand");
 
 export const storeResetFns = new Set<() => void>();
 

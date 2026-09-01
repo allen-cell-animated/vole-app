@@ -1,6 +1,6 @@
 import type { ControlPoint } from "@aics/vole-core";
-import { describe, expect, it } from "@jest/globals";
 import { isEqual } from "lodash";
+import { describe, expect, it } from "vitest";
 
 describe("isEqual", () => {
   it("can determine equality for control points", () => {
