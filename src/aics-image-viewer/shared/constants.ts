@@ -11,6 +11,9 @@ export const // Control panel will automatically close if viewport is less than 
   CONTROL_PANEL_CLOSE_WIDTH = 970,
   CLIPPING_PANEL_HEIGHT_DEFAULT = 200,
   CLIPPING_PANEL_HEIGHT_TALL = 235,
+  // Height of the drawer's tab strip, which stays visible when the clipping panel is collapsed.
+  // Must match the 55px offset that `BottomPanel/styles.css` translates the collapsed drawer by.
+  CLIPPING_PANEL_HEIGHT_COLLAPSED = 55,
   BACKGROUND_COLOR_DEFAULT: ColorArray = [0, 0, 0],
   BOUNDING_BOX_COLOR_DEFAULT: ColorArray = [255, 255, 255],
   AXIS_MARGIN_DEFAULT: [number, number] = [16, 16],

@@ -2,7 +2,11 @@ import type { View3d, Volume } from "@aics/vole-core";
 import { LoadingOutlined } from "@ant-design/icons";
 import React from "react";
 
-import { CLIPPING_PANEL_HEIGHT_DEFAULT, CLIPPING_PANEL_HEIGHT_TALL } from "../../shared/constants";
+import {
+  CLIPPING_PANEL_HEIGHT_COLLAPSED,
+  CLIPPING_PANEL_HEIGHT_DEFAULT,
+  CLIPPING_PANEL_HEIGHT_TALL,
+} from "../../shared/constants";
 import { ViewMode } from "../../shared/enums";
 import type { AxisName, PerAxis, Styles } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
@@ -31,6 +35,8 @@ type ViewerWrapperProps = {
   };
   clippingPanelOpen?: boolean;
   onClippingPanelOpenChange?: (visible: boolean) => void;
+  /** Height of the toolbar floating over the top of the viewport. */
+  toolbarHeight: number;
 };
 
 const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
@@ -67,6 +73,23 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
   const scene = useViewerState(select("scene"));
 
   const clippingPanelTall = numTimesteps > 1 && numScenes > 1 && viewMode === ViewMode.threeD;
+  const clippingPanelHeight = clippingPanelTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
+  // `BottomPanel` defaults to open when the prop is omitted
+  const clippingPanelOpen = props.clippingPanelOpen ?? true;
+
+  // The triple projection view fills the whole viewport, so its outer rows would otherwise be hidden behind the
+  // toolbar and clipping drawer floating over the canvas. Shrink the viewport to fit between them instead.
+  const tripleProj = viewMode === ViewMode.tripleProj;
+  const viewportInsetTop = tripleProj ? props.toolbarHeight : 0;
+  const viewportInsetBottom = tripleProj
+    ? clippingPanelOpen
+      ? clippingPanelHeight
+      : CLIPPING_PANEL_HEIGHT_COLLAPSED
+    : 0;
+
+  // `View3d` sizes itself from its parent element, so it needs a nudge after an inset changes the parent's height.
+  const { view3d } = props;
+  React.useEffect(() => view3d.resize(null), [view3d, viewportInsetTop, viewportInsetBottom]);
 
   const bottomPanelContents = [];
 
@@ -102,11 +125,14 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
 
   return (
     <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
-      <div ref={view3dviewerRef} style={STYLES.view3d}></div>
+      <div
+        ref={view3dviewerRef}
+        style={{ ...STYLES.view3d, marginTop: viewportInsetTop, marginBottom: viewportInsetBottom }}
+      ></div>
       <BottomPanel
         open={props.clippingPanelOpen}
         onPageChange={(open) => props.onClippingPanelOpenChange?.(open !== null)}
-        height={clippingPanelTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT}
+        height={clippingPanelHeight}
         contents={bottomPanelContents}
       ></BottomPanel>
       {renderOverlay()}

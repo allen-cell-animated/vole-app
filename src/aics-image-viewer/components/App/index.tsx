@@ -82,7 +82,8 @@ const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
 
 const setIndicatorPositions = (
   view3d: View3d,
-  panelOpen: boolean,
+  /** Whether the open clipping panel covers the bottom of the viewport (false if the viewport is inset above it) */
+  panelOverlapsViewport: boolean,
   hasTime: boolean,
   hasScenes: boolean,
   isMode3d: boolean
@@ -94,7 +95,7 @@ const setIndicatorPositions = (
 
   let axisY = AXIS_MARGIN_DEFAULT[1];
   let [scaleBarX, scaleBarY] = SCALE_BAR_MARGIN_DEFAULT;
-  if (panelOpen) {
+  if (panelOverlapsViewport) {
     // If we have Time, Scene, X, Y, and Z sliders, the drawer will need to be a bit taller
     let isTall = hasTime && hasScenes && isMode3d;
     let clippingPanelFullHeight = isTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
@@ -370,6 +371,9 @@ const App: React.FC<AppProps> = (props) => {
   // Only allow auto-close once while the screen is too narrow.
   const [hasAutoClosedControlPanel, setHasAutoClosedControlPanel] = useState(false);
 
+  // Height of the toolbar floating over the top of the viewport, so views can avoid rendering underneath it
+  const [toolbarHeight, setToolbarHeight] = useState(0);
+
   const [clippingPanelOpen, setClippingPanelOpen] = useState(true);
   const clippingPanelOpenTimeout = useRef<number>(0);
 
@@ -422,8 +426,11 @@ const App: React.FC<AppProps> = (props) => {
     const hasTime = numTimesteps > 1;
     const hasScenes = numScenes > 1;
     const mode3d = viewMode === ViewMode.threeD;
+    // In triple projection mode the viewport is inset above the clipping panel rather than running underneath it,
+    // so the indicators don't need to be moved up out of the panel's way.
+    const panelOverlapsViewport = clippingPanelOpen && viewMode !== ViewMode.tripleProj;
 
-    setIndicatorPositions(view3d, clippingPanelOpen, hasTime, hasScenes, mode3d);
+    setIndicatorPositions(view3d, panelOverlapsViewport, hasTime, hasScenes, mode3d);
 
     // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
     if (clippingPanelOpen) {
@@ -586,6 +593,7 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
               multiscaleIndex={image?.imageInfo.multiscaleLevel}
+              onHeightChange={setToolbarHeight}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}
@@ -601,6 +609,7 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               clippingPanelOpen={clippingPanelOpen}
               onClippingPanelOpenChange={setClippingPanelOpen}
+              toolbarHeight={toolbarHeight}
             />
           </Content>
         </Layout>
