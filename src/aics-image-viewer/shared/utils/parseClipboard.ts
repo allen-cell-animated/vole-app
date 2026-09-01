@@ -121,6 +121,7 @@ export function viewerMessageToParams(
     scenes.map((scene) => {
       if (Array.isArray(scene)) {
         // can't handle multi-source scenes (yet)
+        console.warn("Can't apply metadata to multi-source scene", scene);
         return undefined;
       }
 
