@@ -1,7 +1,7 @@
 import type { Volume } from "@aics/vole-core";
 import React, { useEffect } from "react";
 
-import type { ViewMode } from "../../shared/enums";
+import { ViewMode } from "../../shared/enums";
 import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
@@ -28,6 +28,7 @@ type AxisClipSlidersProps = {
 
 export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   const activeAxis = activeAxisMap[props.mode];
+  const isTripleMode = props.mode === ViewMode.tripleProj;
 
   const pauseOnInput = (axis: AxisName | "t"): void => {
     // Pause on slider input unless user is scrubbing along the playing axis (playback is held while this is happening)
@@ -112,11 +113,15 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
   };
 
   return (
-    <div className={activeAxis ? "clip-sliders clip-sliders-2d" : "clip-sliders"}>
+    <div className={(activeAxis || isTripleMode) ? "clip-sliders clip-sliders-2d" : "clip-sliders"}>
       <span className="slider-group">
         <span className="slider-group-title">ROI</span>
         <span className="slider-group-rows">
-          {activeAxis ? create2dAxisSlider(activeAxis) : AXES.map(create3dAxisSlider)}
+          {isTripleMode
+            ? AXES.map(create2dAxisSlider)
+            : activeAxis
+            ? create2dAxisSlider(activeAxis)
+            : AXES.map(create3dAxisSlider)}
         </span>
       </span>
 
