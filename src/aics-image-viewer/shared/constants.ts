@@ -129,6 +129,7 @@ const viewModeToDefaultCameraPosition: Record<ViewMode, [number, number, number]
   [ViewMode.xy]: [0, 0, 2],
   [ViewMode.xz]: [0, 2, 0],
   [ViewMode.yz]: [2, 0, 0],
+  [ViewMode.tripleProj]: [0, 0, 2],
 };
 
 const viewModeToDefaultCameraUp: Record<ViewMode, [number, number, number]> = {
@@ -136,6 +137,7 @@ const viewModeToDefaultCameraUp: Record<ViewMode, [number, number, number]> = {
   [ViewMode.xy]: [0, 1, 0],
   [ViewMode.xz]: [0, 0, 1],
   [ViewMode.yz]: [0, 0, 1],
+  [ViewMode.tripleProj]: [0, 1, 0],
 };
 
 /**

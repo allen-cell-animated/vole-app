@@ -200,6 +200,7 @@ export function serializeViewerState(state: Partial<ViewerState>, removeDefaults
     [ViewMode.xy]: "Z",
     [ViewMode.xz]: "Y",
     [ViewMode.yz]: "X",
+    [ViewMode.tripleProj]: "TRIPLE",
   };
   result[ViewerStateKeys.View] = state.viewMode && viewModeToViewParam[state.viewMode];
   return removeUndefinedProperties(result);
