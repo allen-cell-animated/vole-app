@@ -119,6 +119,21 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
   };
 
   const unsubscribers = [
+    // Reset axis clips to full range when entering triple projection mode.
+    // TripleSliceVolume is constructed with the current settings (which may have tight 2D clips),
+    // so we clear them here so all three panes can see the full volume extent.
+    store.subscribe(
+      select("viewMode"),
+      (viewMode) => {
+        if (viewMode === ViewMode.tripleProj) {
+          (["x", "y", "z"] as AxisName[]).forEach((axis) => {
+            view3d.setAxisClip(image, axis as VCAxisName, -0.5, 0.5, false);
+          });
+        }
+      },
+      REF_EQ
+    ),
+
     // show bounding box
     store.subscribe(
       select("showBoundingBox"),
