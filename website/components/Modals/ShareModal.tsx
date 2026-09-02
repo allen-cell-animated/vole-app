@@ -5,7 +5,7 @@ import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
-// TODO fix some of these imports!
+// TODO should these items be exported at the top level to get rid of these lengthy import paths?
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
 import {
   channelStatesToSnapshot,
