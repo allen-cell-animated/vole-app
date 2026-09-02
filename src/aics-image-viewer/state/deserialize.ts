@@ -397,6 +397,7 @@ const snapshotToViewMode = enumSnapshotConverter<ViewModeSnapshot, ViewMode>({
   [ViewModeSnapshot.xy]: ViewMode.xy,
   [ViewModeSnapshot.xz]: ViewMode.xz,
   [ViewModeSnapshot.yz]: ViewMode.yz,
+  [ViewModeSnapshot.tripleProj]: ViewMode.tripleProj,
 });
 
 const snapshotToRenderMode = enumSnapshotConverter<RenderModeSnapshot, RenderMode>({
@@ -457,26 +458,6 @@ export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>):
     scaleLevelIndex: validateInt(snapshot[ViewerStateSnapshotKeys.ScaleLevelIndex], 0, Number.MAX_SAFE_INTEGER),
     cameraState: snapshotToCameraState(validateRecord(snapshot[ViewerStateSnapshotKeys.CameraState])),
   };
-
-  // Handle viewmode, since they use different mappings
-  // TODO: Allow lowercase
-  if (params.view) {
-    const viewParamToViewMode = {
-      "3D": ViewMode.threeD,
-      Z: ViewMode.xy,
-      Y: ViewMode.xz,
-      X: ViewMode.yz,
-      TRIPLE: ViewMode.tripleProj,
-    };
-    const allowedViews = Object.keys(viewParamToViewMode);
-    let view: "3D" | "X" | "Y" | "Z" | "TRIPLE";
-    if (allowedViews.includes(params.view.toUpperCase())) {
-      view = params.view.toUpperCase() as "3D" | "X" | "Y" | "Z" | "TRIPLE";
-    } else {
-      view = "3D";
-    }
-    result.viewMode = viewParamToViewMode[view];
-  }
 
   return removeUndefinedProperties(result);
 }

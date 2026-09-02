@@ -1,11 +1,10 @@
 import type { Volume } from "@aics/vole-core";
 import React, { useEffect } from "react";
 
-import { ViewMode } from "../../shared/enums";
-import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
+import { activeAxisMap, type AxisName, type XYZ } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
-import type { ViewMode } from "../../state/types";
+import { ViewMode } from "../../state/types";
 
 import { DimensionSliderRow, IndexSliderRow, PlaySliderRow } from "./SliderRows";
 
