@@ -1,13 +1,19 @@
 import type { View3d } from "@aics/vole-core";
 import { InfoCircleOutlined, ShareAltOutlined } from "@ant-design/icons";
-import { Alert, Button, Input, Modal, notification, Radio } from "antd";
+import { Alert, Button, Input, Modal, notification, Radio, Tabs } from "antd";
 import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
+// TODO should these items be exported at the top level to get rid of these lengthy import paths?
 import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
+import {
+  channelStatesToSnapshot,
+  paramsToViewerMessage,
+} from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
+import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/parseUrl";
 import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
-import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/urlParsing";
+import { viewerStateToSnapshot } from "../../../src/aics-image-viewer/state/serialize";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
@@ -47,7 +53,7 @@ const encodeSceneUrl = (scene: string | string[]): string => {
 };
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
-  const { imageUrl } = props.appProps;
+  const { imageUrl, metadata } = props.appProps;
   const urls = useMemo(
     () => (imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : []),
     [imageUrl]
@@ -61,6 +67,8 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
   const [showAllScenes, setShowAllScenes] = useState(false);
+
+  const [tab, setTab] = useState<"URL" | "JSON">("URL");
 
   const [notificationApi, notificationContextHolder] = notification.useNotification({
     getContainer: modalContainerRef.current ? () => modalContainerRef.current! : undefined,
@@ -96,31 +104,41 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
 
   const shareUrl = urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
 
-  const onClickCopy = (): void => {
+  const onClickCopy = React.useCallback((): void => {
     navigator.clipboard.writeText(shareUrl);
     notificationApi.success({
       message: "URL copied",
     });
-  };
+  }, [notificationApi, shareUrl]);
 
-  return (
-    <ModalContainer ref={modalContainerRef}>
-      {notificationContextHolder}
+  const onClickExport = React.useCallback((): void => {
+    const store = useViewerState.getState();
+    const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
+    const result = {
+      ...channelStatesToSnapshot(store.channelSettings),
+      ...viewerStateToSnapshot(store, false),
+      ...paramsToViewerMessage(imageUrl, meta),
+    };
 
-      <Button type="link" onClick={() => setShowModal(!showModal)}>
-        <ShareAltOutlined />
-        Share
-      </Button>
-      <Modal
-        open={showModal}
-        title={"Share URL"}
-        onCancel={() => {
-          setShowModal(false);
-        }}
-        getContainer={modalContainerRef.current || undefined}
-        destroyOnClose={true}
-        footer={null}
-      >
+    const stateText = JSON.stringify(result);
+    const link = document.createElement("a");
+
+    link.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(stateText));
+    const isoDate = new Date().toISOString().split("T")[0];
+    const imgName = props.imageTitle ?? "settings";
+    link.setAttribute("download", `${isoDate}_${imgName}.json`);
+    link.style.display = "none";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [imageUrl, metadata, props.imageTitle]);
+
+  const urlTab = {
+    label: "URL",
+    key: "URL",
+    children: (
+      <>
         {urls.length > 1 && (
           <Radio.Group
             value={showAllScenes}
@@ -148,7 +166,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             showIcon
             icon={<InfoCircleOutlined />}
             type="info"
-            message="Image metadata from external apps (like BFF) can't be shared."
+            message="Image metadata from external apps (like BFF) can't be shared in a URL."
           />
         )}
         {shareUrl.length > MAX_URL_CHARACTERS && (
@@ -156,9 +174,55 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             showIcon
             icon={<InfoCircleOutlined />}
             type="info"
-            message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene." : ""}`}
+            message={`This URL is very long.${showAllScenes ? " Consider sharing only the current scene, or exporting your session as JSON." : ""}`}
           />
         )}
+      </>
+    ),
+  };
+
+  const jsonTab = {
+    label: "JSON",
+    key: "JSON",
+    children: (
+      <>
+        <p style={{ fontSize: "16px" }}>Export your current viewer session as a JSON file.</p>
+        <p>JSON files can hold large image collections and metadata that won&apos;t fit in a URL.</p>
+      </>
+    ),
+  };
+
+  return (
+    <ModalContainer ref={modalContainerRef}>
+      {notificationContextHolder}
+
+      <Button type="link" onClick={() => setShowModal(!showModal)}>
+        <ShareAltOutlined />
+        Share
+      </Button>
+      <Modal
+        open={showModal}
+        title={"Share"}
+        onCancel={() => {
+          setShowModal(false);
+        }}
+        getContainer={modalContainerRef.current || undefined}
+        destroyOnClose={true}
+        footer={
+          tab === "JSON" ? (
+            <Button type="primary" onClick={onClickExport}>
+              Export
+            </Button>
+          ) : null
+        }
+      >
+        <Tabs
+          activeKey={tab}
+          type="line"
+          items={[urlTab, jsonTab]}
+          size="large"
+          onTabClick={(key) => setTab(key as "URL" | "JSON")}
+        />
       </Modal>
     </ModalContainer>
   );

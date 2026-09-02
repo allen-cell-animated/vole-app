@@ -1,9 +1,11 @@
-import { UploadOutlined } from "@ant-design/icons";
-import { AutoComplete, Button, Modal } from "antd";
+import { DragOutlined, UploadOutlined, WarningOutlined } from "@ant-design/icons";
+import { Alert, AutoComplete, Button, type DraggerProps, Modal, Tabs, Upload } from "antd";
 import Fuse from "fuse.js";
 import React, { type ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
+import { snapshotToViewerChannelSettings, snapshotToViewerState, viewerMessageToParams } from "../../../src";
+import { isSessionSnapshot } from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import type { AppDataProps } from "../../types";
 import { type RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
 import { isValidUrl } from "../../utils/urls";
@@ -29,10 +31,10 @@ const ModalContainer = styled.div`
   }
 `;
 
-export default function LoadModal(props: LoadModalProps): ReactElement {
+export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
   const [showModal, _setShowModal] = useState(false);
   const [urlInput, setUrlInput] = useState("");
-  const [errorText, setErrorText] = useState<string>("");
+  const [errorText, setErrorText] = useState<string | undefined>(undefined);
 
   const [recentDataUrls, addRecentDataUrl] = useRecentDataUrls();
 
@@ -41,12 +43,12 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
   const setShowModal = (show: boolean): void => {
     if (show) {
       setUrlInput("");
-      setErrorText("");
+      setErrorText(undefined);
     }
     _setShowModal(show);
   };
 
-  const onClickLoad = (): void => {
+  const onClickLoad = React.useCallback((): void => {
     // TODO: Handle multiple URLs?
 
     // Note: S3 URIs, GCS URIs, and Vast file paths are handled by vole-core.
@@ -75,10 +77,10 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
         ],
       },
     };
-    props.onLoad(appProps);
+    onLoad(appProps);
     addRecentDataUrl({ url: urlInput, label: urlInput });
     setShowModal(false);
-  };
+  }, [addRecentDataUrl, onLoad, urlInput]);
 
   // Set up fuse for fuzzy searching on the labels of recent datasets
   const fuse = useMemo(() => {
@@ -115,26 +117,50 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
 
   const getAutoCompletePopupContainer = modalContainerRef.current ? () => modalContainerRef.current! : undefined;
 
-  return (
-    <ModalContainer ref={modalContainerRef}>
-      <Button type="link" onClick={() => setShowModal(!showModal)}>
-        <UploadOutlined />
-        Load
-      </Button>
-      <Modal
-        open={showModal}
-        title={"Load"}
-        onCancel={() => setShowModal(false)}
-        getContainer={modalContainerRef.current || undefined}
-        okButtonProps={{}}
-        footer={
-          <Button type="default" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-        }
-        destroyOnClose={true}
-      >
-        <p style={{ fontSize: "16px" }}>Provide the URL to load your OME-Zarr or OME-TIFF* data.</p>
+  const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
+    async ({ file, onSuccess, onError }) => {
+      const text = await (file as Blob).text();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        parsed = undefined;
+      }
+
+      if (!isSessionSnapshot(parsed)) {
+        setErrorText("This file does not contain a Vol-E session.");
+        // This is just to signal the `Upload` component that something's gone wrong. I'm not certain it does anything.
+        onError?.(new Error());
+        return;
+      }
+
+      const viewerSettings = snapshotToViewerState(parsed);
+      const viewerChannelSettings = snapshotToViewerChannelSettings(parsed);
+      const { imageUrl, metadata } = viewerMessageToParams(parsed);
+      if (imageUrl === undefined) {
+        setErrorText("This file does not contain a Vol-E session.");
+        onError?.(new Error());
+        return;
+      }
+
+      onLoad({
+        viewerSettings,
+        viewerChannelSettings,
+        imageUrl,
+        metadata,
+      });
+      onSuccess?.(undefined);
+      setShowModal(false);
+    },
+    [onLoad]
+  );
+
+  const urlTab = {
+    label: "URL",
+    key: "URL",
+    children: (
+      <>
+        <p>Provide the URL to load your OME-Zarr or OME-TIFF* data.</p>
         <p style={{ fontSize: "12px" }}>
           <i>*Note: this tool is intended for OME-Zarr use. Large {"(> 100 MB)"} OME-TIFF files are not supported.</i>
         </p>
@@ -149,12 +175,49 @@ export default function LoadModal(props: LoadModalProps): ReactElement {
             getPopupContainer={getAutoCompletePopupContainer}
             placeholder="Enter a URL..."
             autoFocus={true}
-          ></AutoComplete>
+          />
           <Button type="primary" onClick={onClickLoad}>
             Load
           </Button>
         </FlexRow>
-        {errorText !== "" && <p style={{ color: "var(--color-text-error)" }}>{errorText}</p>}
+      </>
+    ),
+  };
+
+  const jsonTab = {
+    label: "JSON",
+    key: "JSON",
+    children: (
+      <>
+        <p>Drag an exported JSON session description below to load.</p>
+        <Upload.Dragger showUploadList={false} customRequest={onImportFile} accept=".json">
+          <DragOutlined /> Drag and drop here or click to browse
+        </Upload.Dragger>
+      </>
+    ),
+  };
+
+  return (
+    <ModalContainer ref={modalContainerRef}>
+      <Button type="link" onClick={() => setShowModal(!showModal)}>
+        <UploadOutlined />
+        Load
+      </Button>
+      <Modal
+        open={showModal}
+        title={"Load"}
+        onCancel={() => setShowModal(false)}
+        getContainer={modalContainerRef.current || undefined}
+        okButtonProps={{}}
+        footer={null}
+        destroyOnClose={true}
+      >
+        <Tabs type="line" size="large" items={[urlTab, jsonTab]} onTabClick={() => setErrorText(undefined)} />
+        <div style={{ marginTop: 10 }}>
+          {errorText !== undefined && (
+            <Alert showIcon type="error" message={errorText} icon={<WarningOutlined style={{ fontSize: 21 }} />} />
+          )}
+        </div>
       </Modal>
     </ModalContainer>
   );

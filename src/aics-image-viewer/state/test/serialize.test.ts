@@ -1,65 +1,76 @@
 import type { CameraState } from "@aics/vole-core";
 
 import { getDefaultCameraState } from "../../shared/constants";
-import { serializeCameraState, serializeViewerChannelSetting, serializeViewerState } from "../serialize";
-import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../types";
 import {
+  cameraStateToSnapshot,
+  channelStateToSnapshot,
+  channelStateToStringSnapshot,
+  objectToKeyValueList,
+  stringifyCameraStateSnapshot,
+  viewerStateToSnapshot,
+  viewerStateToStringSnapshot,
+} from "../serialize";
+import type { ViewerState } from "../types";
+import {
+  CUSTOM_TEST_CHANNEL_STATE,
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_CHANNEL_STATE,
   DEFAULT_TEST_VIEWER_STATE,
+  SERIALIZED_CUSTOM_TEST_CHANNEL_STATE,
   SERIALIZED_CUSTOM_TEST_VIEWER_STATE,
   SERIALIZED_DEFAULT_TEST_CHANNEL_STATE,
   SERIALIZED_DEFAULT_TEST_VIEWER_STATE,
+  STRINGIFIED_CUSTOM_TEST_CHANNEL_STATE,
+  STRINGIFIED_CUSTOM_TEST_VIEWER_STATE,
+  STRINGIFIED_DEFAULT_TEST_CHANNEL_STATE,
+  STRINGIFIED_DEFAULT_TEST_VIEWER_STATE,
 } from "./test_data";
 
-describe("serializeViewerChannelSetting", () => {
+describe("channelStateToSnapshot", () => {
   it("serializes channel settings", () => {
-    expect(serializeViewerChannelSetting(DEFAULT_TEST_CHANNEL_STATE, false)).toEqual(SERIALIZED_DEFAULT_TEST_CHANNEL_STATE);
+    const serialized = channelStateToSnapshot(DEFAULT_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_CHANNEL_STATE);
   });
 
   it("serializes custom channel settings", () => {
-    const customChannelState: ChannelState = {
-      name: "a",
-      displayName: "a",
-      color: [3, 255, 157],
-      volumeEnabled: false,
-      isosurfaceEnabled: false,
-      isovalue: 0,
-      opacity: 0.54,
-      colorizeEnabled: false,
-      colorizeAlpha: 1.0,
-      useControlPoints: false,
-      controlPoints: [],
-      ramp: [0, 255],
-      // TODO: the settings below are not serialized. should they be? (see #384)
-      plotMin: 0,
-      plotMax: 255,
-      keepIntensityRange: false,
-    };
-    const serializedCustomChannelState: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
-      col: "03ff9d",
-      ven: "0",
-      sen: "0",
-      isv: "0",
-      isa: "0.54",
-      clz: "0",
-      cza: "1",
-      cpe: "0",
-      cpt: "",
-      ram: "0:255",
-      pin: "0",
-    };
-    expect(serializeViewerChannelSetting(customChannelState, false)).toEqual(serializedCustomChannelState);
+    const serialized = channelStateToSnapshot(CUSTOM_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_CUSTOM_TEST_CHANNEL_STATE);
   });
 });
 
-describe("serializeViewerState", () => {
+describe("channelStateToStringSnapshot", () => {
+  it("serializes channel settings", () => {
+    const serialized = channelStateToStringSnapshot(DEFAULT_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(STRINGIFIED_DEFAULT_TEST_CHANNEL_STATE);
+  });
+
+  it("serializes custom channel settings", () => {
+    const serialized = channelStateToStringSnapshot(CUSTOM_TEST_CHANNEL_STATE, false);
+    expect(serialized).toEqual(STRINGIFIED_CUSTOM_TEST_CHANNEL_STATE);
+  });
+});
+
+describe("viewerStateToSnapshot", () => {
   it("serializes the default viewer settings", () => {
-    expect(serializeViewerState(DEFAULT_TEST_VIEWER_STATE, false)).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
+    const serialized = viewerStateToSnapshot(DEFAULT_TEST_VIEWER_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("serializes custom viewer settings", () => {
-    expect(serializeViewerState(CUSTOM_TEST_VIEWER_STATE, false)).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
+    const serialized = viewerStateToSnapshot(CUSTOM_TEST_VIEWER_STATE, false);
+    expect(serialized).toEqual(SERIALIZED_CUSTOM_TEST_VIEWER_STATE);
+  });
+});
+
+describe("viewerStateToStringSnapshot", () => {
+  it("serializes the default viewer settings", () => {
+    const serialized = viewerStateToStringSnapshot(DEFAULT_TEST_VIEWER_STATE, false);
+    expect(serialized).toEqual(STRINGIFIED_DEFAULT_TEST_VIEWER_STATE);
+  });
+
+  it("serializes custom viewer settings", () => {
+    const serialized = viewerStateToStringSnapshot(CUSTOM_TEST_VIEWER_STATE, false);
+    expect(serialized).toEqual(STRINGIFIED_CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("shortens long numbers in the slice and region parameters", () => {
@@ -68,7 +79,7 @@ describe("serializeViewerState", () => {
       region: { x: [0.4566666666, 0.8667332], y: [0.49999999, 0.8999999], z: [0.3000000001, 0.16467883] },
       slice: { x: 0.41111186, y: 0.49999999, z: 0.677402 },
     };
-    let serializedState = serializeViewerState(state, true);
+    let serializedState = viewerStateToStringSnapshot(state, true);
     expect(serializedState.reg).toEqual("0.4566667:0.8667332,0.5:0.8999999,0.3:0.1646788");
     expect(serializedState.slice).toEqual("0.4111119,0.5,0.677402");
   });
@@ -76,14 +87,15 @@ describe("serializeViewerState", () => {
 
 describe("Camera state", () => {
   it("uses default camera state when choosing elements to exclude/ignore", () => {
-    let cameraState: CameraState = {
-      ...getDefaultCameraState(),
-    };
+    let cameraState: CameraState = getDefaultCameraState();
     // No changes from default
-    expect(serializeCameraState(cameraState, true)).toEqual(undefined);
+    expect(cameraStateToSnapshot(cameraState, true)).toEqual(undefined);
 
     cameraState = { ...cameraState, position: [1, 2, 3] };
-    expect(serializeCameraState(cameraState, true)).toEqual("pos:1:2:3");
+    const snapshot = cameraStateToSnapshot(cameraState, true)!;
+    expect(snapshot).toEqual({ pos: [1, 2, 3] });
+    const stringified = stringifyCameraStateSnapshot(snapshot);
+    expect(objectToKeyValueList(stringified)).toEqual("pos:1:2:3");
   });
 
   it("default camera state has not been changed", () => {

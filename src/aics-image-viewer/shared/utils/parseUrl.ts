@@ -1,10 +1,15 @@
 import type { FirebaseFirestore } from "@firebase/firestore-types";
 
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
-import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueList } from "../../state/deserialize";
-import { objectToKeyValueList, serializeViewerChannelSetting, serializeViewerState } from "../../state/serialize";
+import {
+  parseKeyValueList,
+  stringSnapshotToViewerChannelSetting,
+  stringSnapshotToViewerState,
+} from "../../state/deserialize";
+import { channelStateToStringSnapshot, objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
-import { type ViewerChannelStateParams, type ViewerState, ViewerStateParams } from "../../state/types";
+import { ViewerStateSnapshotKeys } from "../../state/types";
+import type { ChannelStateStringified, ViewerState, ViewerStateStringified } from "../../state/types";
 import type { ManifestJson, MetadataRecord } from "../types";
 import { removeUndefinedProperties } from "./datatypes";
 import FirebaseRequest, { type DatasetMetaData } from "./firebase";
@@ -71,23 +76,10 @@ class DeprecatedParams {
   colors?: string = undefined;
 }
 
-type AppParams = Partial<ViewerStateParams & DataParams & DeprecatedParams & ChannelParams>;
-
-/**
- * A message sent from an external application after this app was opened,
- * containing data that was too large to pack into the URL.
- */
-type ViewerMessage = {
-  /** A (possibly very long) list of scene URLs. */
-  scenes?: string[];
-  /** A (likely very large) list of metadata records for each scene. */
-  meta?: Record<string, MetadataRecord>;
-  /** The scene to open once this message arrives. */
-  sceneIndex?: number;
-};
+type AppParams = Partial<ViewerStateStringified & DataParams & DeprecatedParams & ChannelParams>;
 
 const allowedParamKeys: Array<keyof AppParams> = [
-  ...Object.keys(new ViewerStateParams()),
+  ...Object.values(ViewerStateSnapshotKeys),
   ...Object.keys(new DataParams()),
   ...Object.keys(new DeprecatedParams()),
 ] as Array<keyof AppParams>;
@@ -210,7 +202,10 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
       const channelIndex = Number.parseInt(key.slice(1), 10);
       try {
         const channelData = parseKeyValueList(params[key]!);
-        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ViewerChannelStateParams);
+        const channelSetting = stringSnapshotToViewerChannelSetting(
+          channelIndex,
+          channelData as ChannelStateStringified
+        );
         channelIndexToSettings.set(channelIndex, channelSetting);
       } catch (e) {
         console.warn(
@@ -344,7 +339,7 @@ export async function parseViewerUrlParams(
   const params = getAllowedParams(searchParams);
   let args: Partial<AppProps> = {};
   // Parse viewer state
-  const viewerSettings: Partial<ViewerState> = deserializeViewerState(params);
+  const viewerSettings: Partial<ViewerState> = stringSnapshotToViewerState(params);
 
   // Parse channel settings. If per-channel settings are provided, they will override
   // the old `ch` query parameter.
@@ -408,38 +403,6 @@ export async function parseViewerUrlParams(
   return { args: removeUndefinedProperties(args), viewerSettings: removeUndefinedProperties(viewerSettings) };
 }
 
-/** Adds the data in a newly-arrived `ViewerMessage` to an existing stored `AppProps` instance. */
-export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" | "metadata">>(
-  args: P,
-  message: ViewerMessage
-): P {
-  // get scenes
-  const { imageUrl } = args;
-  const scenes = message.scenes ?? (typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes);
-  const firstScene = scenes[0];
-  const newImageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
-
-  // get metadata
-  const { meta } = message;
-  const messageMeta =
-    meta &&
-    scenes.map((scene) => {
-      if (Array.isArray(scene)) {
-        // can't handle multi-source scenes (yet)
-        return undefined;
-      }
-
-      return meta[scene] as MetadataRecord | undefined;
-    });
-  const newMetadata = messageMeta ?? args.metadata;
-
-  if (newMetadata === undefined) {
-    return { ...args, imageUrl: newImageUrl };
-  } else {
-    return { ...args, imageUrl: newImageUrl, metadata: newMetadata };
-  }
-}
-
 /**
  * Serializes the ViewerState and ChannelState of a ViewerStateContext into a URLSearchParams object.
  * @param state ViewerStateContext to serialize.
@@ -447,18 +410,12 @@ export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" |
  * This includes the output of GET_DEFAULT_VIEWER_STATE and GET_DEFAULT_CHANNEL_STATE.
  */
 export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefaults: boolean = true): AppParams {
-  const params = serializeViewerState(state, removeDefaults);
+  const params = viewerStateToStringSnapshot(state, removeDefaults);
 
-  const channelParams = state.channelSettings?.reduce<Record<string, string>>(
-    (acc, channelSetting, index): Record<string, string> => {
-      const key = `c${index}`;
-      acc[key] = objectToKeyValueList(
-        serializeViewerChannelSetting(channelSetting, removeDefaults) as Record<string, string>
-      );
-      return acc;
-    },
-    {} as Record<string, string>
-  );
+  const channelParams = state.channelSettings?.reduce((acc, channelSetting, index): Record<`c${number}`, string> => {
+    acc[`c${index}`] = objectToKeyValueList(channelStateToStringSnapshot(channelSetting, removeDefaults));
+    return acc;
+  }, {});
 
   return { ...params, ...channelParams };
 }

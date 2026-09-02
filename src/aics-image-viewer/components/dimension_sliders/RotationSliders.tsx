@@ -2,7 +2,6 @@ import type { View3d } from "@aics/vole-core";
 import { Button, Space } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { ViewMode } from "../../shared/enums";
 import type { AxisName } from "../../shared/types";
 import {
   applyMatrix,
@@ -12,6 +11,7 @@ import {
   useCameraCallback,
 } from "../../shared/utils/camera";
 import { select, useViewerState } from "../../state/store";
+import { ViewMode } from "../../state/types";
 
 import { DimensionSliderRow } from "./SliderRows";
 

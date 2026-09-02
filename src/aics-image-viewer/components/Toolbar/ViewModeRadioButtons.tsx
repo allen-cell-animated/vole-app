@@ -2,7 +2,7 @@ import { Radio } from "antd";
 import type { RadioChangeEvent } from "antd/lib/radio";
 import React from "react";
 
-import { ViewMode } from "../../shared/enums";
+import { ViewMode } from "../../state/types";
 
 const viewModes = [ViewMode.threeD, ViewMode.xy, ViewMode.xz, ViewMode.yz, ViewMode.tripleProj];
 

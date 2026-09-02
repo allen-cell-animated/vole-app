@@ -1,26 +1,25 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { RenderMode, ViewMode } from "../../shared/enums";
 import {
   CONTROL_POINTS_REGEX,
-  deserializeChannelState,
-  deserializeViewerChannelSetting,
-  deserializeViewerState,
+  enumParser,
   LEGACY_CONTROL_POINTS_REGEX,
   parseHexColorAsColorArray,
   parseKeyValueList,
-  parseStringEnum,
-  parseStringFloat,
-  parseStringInt,
+  stringSnapshotToChannelState,
+  stringSnapshotToViewerChannelSetting,
+  stringSnapshotToViewerState,
+  validateInt,
+  validateNumber,
 } from "../deserialize";
-import { serializeViewerState } from "../serialize";
-import type { ViewerChannelStateParams, ViewerState } from "../types";
+import { viewerStateToStringSnapshot } from "../serialize";
+import { RenderMode, type ViewerState, ViewMode } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
   DEFAULT_TEST_VIEWER_CHANNEL_SETTING,
   DEFAULT_TEST_VIEWER_STATE,
-  SERIALIZED_CUSTOM_TEST_VIEWER_STATE,
-  SERIALIZED_DEFAULT_TEST_VIEWER_STATE,
+  STRINGIFIED_CUSTOM_TEST_VIEWER_STATE,
+  STRINGIFIED_DEFAULT_TEST_VIEWER_STATE,
 } from "./test_data";
 
 //// VALUE PARSING ////////////////////////////////////////
@@ -139,75 +138,59 @@ describe("parseHexColorAsColorArray", () => {
   });
 });
 
-describe("parseStringEnum", () => {
+describe("enumParser", () => {
   enum TestEnum {
-    SOME_VALUE = "some_value",
-    ANOTHER_VALUE = "another_value",
+    SOME_VALUE = "someValue",
+    ANOTHER_VALUE = "anotherValue",
   }
+  const parseTestEnum = enumParser(TestEnum);
 
   it("recognizes enum values", () => {
-    expect(parseStringEnum("some_value", TestEnum)).toEqual(TestEnum.SOME_VALUE);
-    expect(parseStringEnum("another_value", TestEnum)).toEqual(TestEnum.ANOTHER_VALUE);
+    expect(parseTestEnum("someValue")).toEqual(TestEnum.SOME_VALUE);
+    expect(parseTestEnum("anotherValue")).toEqual(TestEnum.ANOTHER_VALUE);
   });
 
-  it("returns default values for unrecognized enum values", () => {
-    expect(parseStringEnum("unexpected", TestEnum, undefined)).toEqual(undefined);
-    expect(parseStringEnum("unexpected", TestEnum, TestEnum.SOME_VALUE)).toEqual(TestEnum.SOME_VALUE);
+  it("recognizes lowercase enum values", () => {
+    expect(parseTestEnum("somevalue")).toEqual(TestEnum.SOME_VALUE);
+    expect(parseTestEnum("anothervalue")).toEqual(TestEnum.ANOTHER_VALUE);
   });
 });
 
-describe("parseStringInt", () => {
-  it("parses int and undefined values", () => {
-    expect(parseStringInt("0", 0, 1000)).toEqual(0);
-    expect(parseStringInt("1", 0, 1000)).toEqual(1);
-    expect(parseStringInt("100", 0, 1000)).toEqual(100);
-    expect(parseStringInt("255", 0, 1000)).toEqual(255);
-    expect(parseStringInt("-1", -1000, 1000)).toEqual(-1);
-  });
-
+describe("validateInt", () => {
   it("returns undefined for undefined and NaN values", () => {
-    expect(parseStringInt("bad", -1000, 1000)).toEqual(undefined);
-    expect(parseStringInt("NaN", -1000, 1000)).toEqual(undefined);
-    expect(parseStringInt(undefined, -1000, 1000)).toEqual(undefined);
+    expect(validateInt("bad", -1000, 1000)).toEqual(undefined);
+    expect(validateInt(NaN, -1000, 1000)).toEqual(undefined);
+    expect(validateInt(undefined, -1000, 1000)).toEqual(undefined);
   });
 
   it("casts float values to integers", () => {
-    expect(parseStringInt("0.5", 0, 1000)).toEqual(0);
-    expect(parseStringInt("99.5", 0, 1000)).toEqual(99);
-    expect(parseStringInt("-10.5", -1000, 1000)).toEqual(-10);
+    expect(validateInt(0.5, 0, 1000)).toEqual(0);
+    expect(validateInt(99.5, 0, 1000)).toEqual(99);
+    expect(validateInt(-10.5, -1000, 1000)).toEqual(-10);
   });
 
   it("applies clamping", () => {
-    expect(parseStringInt("0", 0, 255)).toEqual(0);
-    expect(parseStringInt("-1", 0, 255)).toEqual(0);
-    expect(parseStringInt("128", 0, 255)).toEqual(128);
-    expect(parseStringInt("255", 0, 255)).toEqual(255);
-    expect(parseStringInt("256", 0, 255)).toEqual(255);
+    expect(validateInt(0, 0, 255)).toEqual(0);
+    expect(validateInt(-1, 0, 255)).toEqual(0);
+    expect(validateInt(128, 0, 255)).toEqual(128);
+    expect(validateInt(255, 0, 255)).toEqual(255);
+    expect(validateInt(256, 0, 255)).toEqual(255);
   });
 });
 
-describe("parseStringFloat", () => {
-  it("parses strings to float values", () => {
-    expect(parseStringFloat("0", -1000, 1000)).toEqual(0);
-    expect(parseStringFloat("1.0", -1000, 1000)).toEqual(1.0);
-    expect(parseStringFloat("0.5", -1000, 1000)).toEqual(0.5);
-    expect(parseStringFloat("128.5", -1000, 1000)).toEqual(128.5);
-    expect(parseStringFloat("495.344", -1000, 1000)).toEqual(495.344);
-    expect(parseStringFloat("-1", -1000, 1000)).toEqual(-1);
-  });
-
+describe("validateNumber", () => {
   it("returns undefined for NaN or undefined values", () => {
-    expect(parseStringFloat("bad", -1000, 1000)).toEqual(undefined);
-    expect(parseStringFloat("NaN", -1000, 1000)).toEqual(undefined);
-    expect(parseStringFloat(undefined, -1000, 1000)).toEqual(undefined);
+    expect(validateNumber("bad", -1000, 1000)).toEqual(undefined);
+    expect(validateNumber(NaN, -1000, 1000)).toEqual(undefined);
+    expect(validateNumber(undefined, -1000, 1000)).toEqual(undefined);
   });
 
   it("applies clamping", () => {
-    expect(parseStringFloat("0.5", 0, 1.0)).toEqual(0.5);
-    expect(parseStringFloat("1.0", 0, 1.0)).toEqual(1.0);
-    expect(parseStringFloat("1.1", 0, 1.0)).toEqual(1.0);
-    expect(parseStringFloat("0", 0, 1.0)).toEqual(0);
-    expect(parseStringFloat("-0.1", 0, 1.0)).toEqual(0);
+    expect(validateNumber(0.5, 0, 1.0)).toEqual(0.5);
+    expect(validateNumber(1.0, 0, 1.0)).toEqual(1.0);
+    expect(validateNumber(1.1, 0, 1.0)).toEqual(1.0);
+    expect(validateNumber(0, 0, 1.0)).toEqual(0);
+    expect(validateNumber(-0.1, 0, 1.0)).toEqual(0);
   });
 });
 
@@ -221,16 +204,16 @@ describe("parseStringFloat", () => {
 // input into the viewer and support grouping/matching to multiple channels.
 // TODO: refactor these to all be the same state?
 
-describe("deserializeViewerChannelSetting", () => {
+describe("stringSnapshotToViewerChannelSetting", () => {
   it("returns default settings for empty objects", () => {
     const data = {};
-    const result = deserializeViewerChannelSetting(0, data);
+    const result = stringSnapshotToViewerChannelSetting(0, data);
     expect(result).toEqual(DEFAULT_TEST_VIEWER_CHANNEL_SETTING);
   });
 
   it("ignores unexpected keys", () => {
-    const data = { badKey: "badValue", ven: "1", sen: "1" } as ViewerChannelStateParams;
-    const result = deserializeViewerChannelSetting(0, data);
+    const data = { badKey: "badValue", ven: "1", sen: "1" } as const;
+    const result = stringSnapshotToViewerChannelSetting(0, data);
     expect(result).toEqual({ ...DEFAULT_TEST_VIEWER_CHANNEL_SETTING, enabled: true, surfaceEnabled: true });
   });
 
@@ -244,8 +227,8 @@ describe("deserializeViewerChannelSetting", () => {
       sen: "1",
       isv: "128",
       lut: "0:255",
-    } as ViewerChannelStateParams;
-    expect(deserializeViewerChannelSetting(0, data)).toEqual({
+    } as const;
+    expect(stringSnapshotToViewerChannelSetting(0, data)).toEqual({
       match: 0,
       color: "FF0000",
       enabled: true,
@@ -270,10 +253,10 @@ describe("deserializeViewerChannelSetting", () => {
       ["m99:m100", ["m99", "m100"]],
       ["p10:p90", ["p10", "p90"]],
       ["p10: p90", ["p10", "p90"]], // handle spaces
-    ];
+    ] as const;
     for (const [encodedLut, decodedLut] of luts) {
-      const data = { lut: encodedLut } as ViewerChannelStateParams;
-      const result = deserializeViewerChannelSetting(0, data);
+      const data = { lut: encodedLut } as const;
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.intensity?.lut).toEqual(decodedLut);
     }
   });
@@ -281,8 +264,8 @@ describe("deserializeViewerChannelSetting", () => {
   it("ignores unexpected lut formats", () => {
     const luts = ["!:0", "0:9:93", "255", ""];
     for (const lut of luts) {
-      const data = { lut } as ViewerChannelStateParams;
-      const result = deserializeViewerChannelSetting(0, data);
+      const data = { lut } as const;
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.lut).toBeUndefined();
     }
   });
@@ -290,8 +273,8 @@ describe("deserializeViewerChannelSetting", () => {
   it("handles hex color formats", () => {
     const colors = ["000000", "FFFFFF", "ffffff", "012345", "6789AB", "CDEF01", "abcdef"];
     for (const color of colors) {
-      const data = { col: color } as ViewerChannelStateParams;
-      const result = deserializeViewerChannelSetting(0, data);
+      const data = { col: color } as const;
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.color).toEqual(color);
     }
   });
@@ -299,24 +282,24 @@ describe("deserializeViewerChannelSetting", () => {
   it("ignores bad color formats", () => {
     const badColors = ["f", "ff00", "red", "rgb(255,0,0)"];
     for (const color of badColors) {
-      const data = { col: color } as ViewerChannelStateParams;
-      const result = deserializeViewerChannelSetting(0, data);
+      const data = { col: color } as const;
+      const result = stringSnapshotToViewerChannelSetting(0, data);
       expect(result.color).toBeUndefined();
     }
   });
 
   it("ignores bad float data", () => {
-    const data = { cza: "NaN", isa: "bad", isv: "f8" } as ViewerChannelStateParams;
-    const result = deserializeViewerChannelSetting(0, data);
+    const data = { cza: "NaN", isa: "bad", isv: "f8" } as const;
+    const result = stringSnapshotToViewerChannelSetting(0, data);
     expect(result.colorizeAlpha).toBeUndefined();
     expect(result.surfaceOpacity).toBeUndefined();
     expect(result.isovalue).toBeUndefined();
   });
 });
 
-describe("deserializeChannelState", () => {
+describe("stringSnapshotToChannelState", () => {
   it("returns an empty object for empty input", () => {
-    expect(deserializeChannelState({})).toEqual({});
+    expect(stringSnapshotToChannelState({})).toEqual({});
   });
 
   it("parses channel state fields", () => {
@@ -331,9 +314,9 @@ describe("deserializeChannelState", () => {
       ram: "0:255",
       cpe: "1",
       pin: "1",
-    } as ViewerChannelStateParams;
+    } as const;
 
-    expect(deserializeChannelState(data)).toEqual({
+    expect(stringSnapshotToChannelState(data)).toEqual({
       color: [255, 0, 0],
       colorizeEnabled: true,
       colorizeAlpha: 0.5,
@@ -353,9 +336,9 @@ describe("deserializeChannelState", () => {
       cps: "0:0:ff0000:255:1:00ff00",
       ram: "1:2",
       rmp: "3:4",
-    } as ViewerChannelStateParams;
+    } as const;
 
-    expect(deserializeChannelState(data)).toEqual({
+    expect(stringSnapshotToChannelState(data)).toEqual({
       controlPoints: [
         { x: 0, opacity: 0, color: [0, 0, 0] },
         { x: 255, opacity: 1, color: [255, 255, 255] },
@@ -365,26 +348,26 @@ describe("deserializeChannelState", () => {
   });
 });
 
-describe("deserializeViewerState", () => {
+describe("stringSnapshotToViewerState", () => {
   it("returns an empty object for empty input", () => {
-    expect(deserializeViewerState({})).toEqual({});
+    expect(stringSnapshotToViewerState({})).toEqual({});
   });
 
   it("deserializes the default viewer settings", () => {
-    const params = SERIALIZED_DEFAULT_TEST_VIEWER_STATE;
-    expect(deserializeViewerState(params)).toEqual(DEFAULT_TEST_VIEWER_STATE);
+    const params = STRINGIFIED_DEFAULT_TEST_VIEWER_STATE;
+    expect(stringSnapshotToViewerState(params)).toEqual(DEFAULT_TEST_VIEWER_STATE);
   });
 
   it("deserializes custom viewer settings", () => {
-    const params = SERIALIZED_CUSTOM_TEST_VIEWER_STATE;
-    expect(deserializeViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
+    const params = STRINGIFIED_CUSTOM_TEST_VIEWER_STATE;
+    expect(stringSnapshotToViewerState(params)).toEqual(CUSTOM_TEST_VIEWER_STATE);
   });
 
   it("handles all ViewMode values", () => {
     const viewModes = Object.values(ViewMode);
     for (const viewMode of viewModes) {
       const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, viewMode };
-      expect(deserializeViewerState(serializeViewerState(state, false)).viewMode).toEqual(viewMode);
+      expect(stringSnapshotToViewerState(viewerStateToStringSnapshot(state, false)).viewMode).toEqual(viewMode);
     }
   });
 
@@ -392,7 +375,7 @@ describe("deserializeViewerState", () => {
     const renderModes = Object.values(RenderMode);
     for (const renderMode of renderModes) {
       const state: ViewerState = { ...DEFAULT_TEST_VIEWER_STATE, renderMode };
-      expect(deserializeViewerState(serializeViewerState(state, false)).renderMode).toEqual(renderMode);
+      expect(stringSnapshotToViewerState(viewerStateToStringSnapshot(state, false)).renderMode).toEqual(renderMode);
     }
   });
 
@@ -405,7 +388,7 @@ describe("deserializeViewerState", () => {
       },
     };
     const serializedState = "pos:1:-1.4:45,up:0:1:0,fov:43.5";
-    expect(deserializeViewerState({ cam: serializedState })).toEqual(state);
+    expect(stringSnapshotToViewerState({ cam: serializedState })).toEqual(state);
   });
 });
 
@@ -419,21 +402,21 @@ const DEFAULT_CONTROL_POINTS = [
 
 describe("legacy control points", () => {
   it("parses comma-separated control points", () => {
-    const result = deserializeViewerChannelSetting(0, {
+    const result = stringSnapshotToViewerChannelSetting(0, {
       cps: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
     });
     expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
   });
 
   it("parses colon-separated control points", () => {
-    const result = deserializeViewerChannelSetting(0, {
+    const result = stringSnapshotToViewerChannelSetting(0, {
       cps: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
     });
     expect(result.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
   });
 
   it("replaces '1' color strings with default color #ffffff", () => {
-    const result = deserializeViewerChannelSetting(0, {
+    const result = stringSnapshotToViewerChannelSetting(0, {
       cps: "0:0:1:50:1:1",
     });
     expect(result.controlPoints).toEqual([
@@ -444,21 +427,21 @@ describe("legacy control points", () => {
 });
 
 it("parses comma-separated control points", () => {
-  const result = deserializeViewerChannelSetting(0, {
+  const result = stringSnapshotToViewerChannelSetting(0, {
     cpt: "-10:0:000000,50:0:000000,100:0.3:0010ff,140:0.8:00ffff,260:1:00ffb4",
   });
   expect(result.intensity?.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
 });
 
 it("parses colon-separated control points", () => {
-  const result = deserializeViewerChannelSetting(0, {
+  const result = stringSnapshotToViewerChannelSetting(0, {
     cpt: "-10:0:000000:50:0:000000:100:0.3:0010ff:140:0.8:00ffff:260:1:00ffb4",
   });
   expect(result.intensity?.controlPoints).toEqual(DEFAULT_CONTROL_POINTS);
 });
 
 it("replaces '1' color strings with default color #ffffff", () => {
-  const result = deserializeViewerChannelSetting(0, {
+  const result = stringSnapshotToViewerChannelSetting(0, {
     cpt: "0:0:1:50:1:1",
   });
   expect(result.intensity?.controlPoints).toEqual([

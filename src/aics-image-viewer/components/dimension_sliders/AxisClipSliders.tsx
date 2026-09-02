@@ -5,6 +5,7 @@ import { ViewMode } from "../../shared/enums";
 import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
+import type { ViewMode } from "../../state/types";
 
 import { DimensionSliderRow, IndexSliderRow, PlaySliderRow } from "./SliderRows";
 
@@ -14,11 +15,11 @@ type AxisClipSlidersProps = {
   mode: ViewMode;
   image: Volume | null;
   changeViewerSetting: ViewerStateActions["changeViewerSetting"];
-  numSlices: PerAxis<number>;
-  numSlicesLoaded: PerAxis<number>;
+  numSlices: XYZ<number>;
+  numSlicesLoaded: XYZ<number>;
   numScenes: number;
-  region: PerAxis<[number, number]>;
-  slices: PerAxis<number>;
+  region: XYZ<[number, number]>;
+  slices: XYZ<number>;
   numTimesteps: number;
   time: number;
   scene: number;

@@ -5,13 +5,7 @@ import React, { type ReactElement, useCallback, useEffect, useState } from "reac
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  addViewerParamsFromMessage,
-  ImageViewerApp,
-  parseViewerUrlParams,
-  writeMetadata,
-  writeScenes,
-} from "../../src";
+import { ImageViewerApp, parseViewerUrlParams, viewerMessageToParams, writeMetadata, writeScenes } from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { ViewerState } from "../../src/aics-image-viewer/state/types";
@@ -132,7 +126,7 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
           if (currentProps === null) {
             return null;
           }
-          return addViewerParamsFromMessage(currentProps, event.data);
+          return { ...currentProps, ...viewerMessageToParams(event.data, currentProps.imageUrl) };
         });
 
         searchParams.delete(MSG_ORIGIN_PARAM);

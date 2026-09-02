@@ -24,7 +24,11 @@ export function getDefaultLut(histogram: Histogram): Lut {
 /**
  * Parses a single LUT value from a string, where the value is either a number, a percentile, or a median multiplier.
  */
-function parseLutValue(value: string, histogram: Histogram): number {
+function parseLutValue(value: string | number, histogram: Histogram): number {
+  if (typeof value === "number") {
+    return value;
+  }
+
   // look at first char of string.
   const firstChar = value.charAt(0);
   if (firstChar === "m") {
@@ -71,7 +75,10 @@ function parseLutValue(value: string, histogram: Histogram): number {
  * "autoij:0" // use Auto-IJ to calculate min and max.
  * ```
  */
-export function parseLutSetting(histogram: Histogram, lutSetting: [string, string] | undefined): Lut | undefined {
+export function parseLutSetting(
+  histogram: Histogram,
+  lutSetting: [string | number, string | number] | undefined
+): Lut | undefined {
   if (lutSetting === undefined || lutSetting.length !== 2) {
     return undefined;
   }
