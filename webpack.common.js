@@ -69,5 +69,9 @@ module.exports = (env) => {
         },
       ],
     },
+    dotenv: {
+      prefix: "WEBPACK_",
+      template: [".env", ".env.local", ".env.[mode]", ".env.[mode].local"],
+    },
   };
 };
