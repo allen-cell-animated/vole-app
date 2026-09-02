@@ -63,10 +63,16 @@
       display: none;
     }
 
-    .control-panel-title {
+    .control-panel-title-container {
       margin: 16px;
       max-height: 24px; /* align bottom border with divider to the left */
-      font-size: 1.4em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      > * {
+        font-size: 1.4em;
+      }
     }
 
     .channel-settings-header {
@@ -127,5 +133,30 @@
 
     /*slider settings*/
     @extend %axis-override;
+  }
+
+  .ant-modal.modal-settings-import {
+    .ant-upload.ant-upload-drag {
+      transition-property: background-color, border-color;
+
+      &:hover {
+        background-color: #ffffff20;
+      }
+    }
+  }
+
+  .ant-dropdown {
+    .import-dropdown-menu-item-include-color {
+      white-space: nowrap;
+      padding-bottom: 9px;
+
+      &.ant-dropdown-menu-item-active {
+        background-color: transparent;
+      }
+    }
+
+    .ant-dropdown-menu-item-divider {
+      background-color: var(--color-controlpanel-border);
+    }
   }
 }
