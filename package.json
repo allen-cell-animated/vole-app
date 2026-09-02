@@ -87,7 +87,6 @@
     "@types/three": "0.184.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
-    "@vitest/coverage-v8": "^4.1.11",
     "antd": "^5.16.2",
     "axios": "^0.21.1",
     "babel-loader": "^8.2.2",
