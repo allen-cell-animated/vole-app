@@ -160,7 +160,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
     key: "URL",
     children: (
       <>
-        <p style={{ fontSize: "16px" }}>Provide the URL to load your OME-Zarr or OME-TIFF* data.</p>
+        <p>Provide the URL to load your OME-Zarr or OME-TIFF* data.</p>
         <p style={{ fontSize: "12px" }}>
           <i>*Note: this tool is intended for OME-Zarr use. Large {"(> 100 MB)"} OME-TIFF files are not supported.</i>
         </p>
@@ -189,7 +189,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
     key: "JSON",
     children: (
       <>
-        <p style={{ fontSize: "16px" }}>Drag an exported JSON session description below to load.</p>
+        <p>Drag an exported JSON session description below to load.</p>
         <Upload.Dragger showUploadList={false} customRequest={onImportFile} accept=".json">
           <DragOutlined /> Drag and drop here or click to browse
         </Upload.Dragger>
