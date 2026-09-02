@@ -1,6 +1,9 @@
 # Adapted from https://github.com/marketplace/actions/deploy-pr-preview.
 name: GitHub Pages PR Preview
 
+env:
+  NODE_VERSION: "24"
+
 on:
   pull_request:
     types:
