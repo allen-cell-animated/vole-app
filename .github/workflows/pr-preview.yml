@@ -13,10 +13,14 @@ on:
       - closed
 
 concurrency: preview-${{ github.ref }}
+permissions: {}
 
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to comment on PR with preview link
+      contents: write # Required for pushing to gh-pages branch
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2

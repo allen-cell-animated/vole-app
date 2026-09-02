@@ -1,7 +1,5 @@
 ---
 name: AWS Deployment
-env:
-  NODE_VERSION: "24"
 
 on:
   workflow_dispatch:
@@ -15,7 +13,10 @@ on:
         required: true
         type: choice
 
+permissions: {}
+
 env:
+  NODE_VERSION: "24"
   AWS_ACCOUNT_ID: ${{ vars.AWS_PUBLIC_DATA_RELEASES_ACCOUNT_ID }}
   AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
@@ -30,6 +31,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -56,6 +59,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for requesting the JWT and OIDC
 
     # Dynamically set the environment variable based on the input above:
     environment: ${{ github.event.inputs.environment }}

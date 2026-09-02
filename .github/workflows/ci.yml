@@ -11,6 +11,9 @@ jobs:
   lint:
     name: ✅ Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Required to comment on PR with check results
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
@@ -27,6 +30,9 @@ jobs:
   test:
     name: Unit Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Required to comment on PR with check results
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
@@ -43,6 +49,9 @@ jobs:
   typeCheck:
     name: Type Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Required to comment on PR with check results
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
