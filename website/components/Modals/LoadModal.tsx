@@ -129,6 +129,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
 
       if (!isSessionSnapshot(parsed)) {
         setErrorText("This file does not contain a Vol-E session.");
+        // This is just to signal the `Upload` component that something's gone wrong. I'm not certain it does anything.
         onError?.(new Error());
         return;
       }
