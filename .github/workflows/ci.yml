@@ -5,6 +5,8 @@ name: Node.js CI
 env:
   NODE_VERSION: "24"
 
+permissions: {}
+
 on: [push]
 
 jobs:
@@ -65,3 +67,20 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run typeCheck --if-present
+
+  static-workflow-checks:
+    name: Zizmor Static Workflow Checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
+
+      # Run zizmor for static workflow analysis
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@b1d7e1fb5de872772f31590499237e7cce841e8e # v0.5.3
