@@ -30,7 +30,6 @@
     "dev": "webpack --config webpack.dev.js --env env=dev",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
     "test": "vitest run --passWithNoTests",
-    "test:github-action": "vitest run --silent --passWithNoTests --coverage --coverage.reporter=text --coverage.reporter=text-summary --reporter=basic --outputFile=report.json",
     "typeCheck": "tsc -p tsconfig.json --noEmit",
     "generateTypes": "tsc -p tsconfig.base.json --emitDeclarationOnly",
     "transpileES": "cross-env TS_NODE_PROJECT=tsconfig.es.json BABEL_ENV=es babel src --out-dir es --extensions \".js,.jsx,.ts,.tsx,.svg\" --ignore src/**/*.test.*",
