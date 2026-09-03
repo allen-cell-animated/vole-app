@@ -364,10 +364,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     background-color: var(--color-checkbox-bg);
   }
 
-  .ant-checkbox {
-    background-color: transparent !important;
-  }
-
   // Add outlines to modals and dropdowns
   .ant-select-dropdown,
   .ant-dropdown-menu,
@@ -508,7 +504,7 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           },
           Checkbox: {
             borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
+            colorBgContainer: "transparent",
             colorPrimary: theme.colors.checkbox.bg,
             colorPrimaryHover: theme.colors.checkbox.hoverBg,
             colorText: theme.colors.checkbox.text,
