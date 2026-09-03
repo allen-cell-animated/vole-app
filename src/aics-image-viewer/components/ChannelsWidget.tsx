@@ -32,6 +32,7 @@ export type ChannelsWidgetProps = {
 
   filterFunc?: (key: string) => boolean;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
+  getControlPanel?: () => HTMLElement;
 };
 
 const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProps) => {
@@ -152,6 +153,7 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
         name={getDisplayName(channelName, channelIndex, viewerChannelSettings)}
         onColorChangeComplete={props.onColorChangeComplete}
         saveIsosurface={props.saveIsosurface}
+        getControlPanel={props.getControlPanel}
       />
     );
   };

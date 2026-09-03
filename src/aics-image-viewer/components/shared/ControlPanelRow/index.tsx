@@ -15,7 +15,6 @@ export type ControlPanelRowProps = React.PropsWithChildren<
     onClick?: React.MouseEventHandler;
     className?: string;
     highlight?: boolean;
-    ref?: React.RefObject<HTMLDivElement>;
   }
 >;
 
@@ -40,7 +39,7 @@ const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
   const className = props.className ? `${baseClass} ${props.className}` : baseClass;
 
   return (
-    <div className={className} style={style} onClick={props.onClick} ref={props.ref}>
+    <div className={className} style={style} onClick={props.onClick}>
       {createTitle && (
         <div className="control-panel-row-title">
           {props.icon && <div className="control-panel-row-icon">{props.icon}</div>}

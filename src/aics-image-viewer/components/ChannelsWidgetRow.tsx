@@ -2,7 +2,7 @@ import type { Channel } from "@aics/vole-core";
 import { RightOutlined } from "@ant-design/icons";
 import { Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import type { IsosurfaceFormat } from "../shared/types";
 import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
@@ -20,6 +20,7 @@ interface ChannelsWidgetRowProps {
 
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
+  getControlPanel?: () => HTMLElement;
 }
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
@@ -30,8 +31,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
-
-  const rowRef = useRef<HTMLDivElement>(null);
 
   const [_controlsOpen, setControlsOpen] = useState(false);
   // Don't show controls in single-channel mode
@@ -84,7 +83,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      <CopySettingsButton getDropdownContainer={() => rowRef.current ?? document.body} />
+      <CopySettingsButton getDropdownContainer={props.getControlPanel} />
     </div>
   );
 
@@ -127,7 +126,6 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const rowClass = controlsOpen ? "" : " controls-closed";
   return (
     <ControlPanelRow
-      ref={rowRef}
       key={index}
       title={
         <span onClick={toggleControlsOpen} style={{ cursor: "pointer" }}>
