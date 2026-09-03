@@ -9,6 +9,7 @@ import { ImageViewerApp, parseViewerUrlParams, viewerMessageToParams, writeMetad
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { ViewerState } from "../../src/aics-image-viewer/state/types";
+import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../../src/constants";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";

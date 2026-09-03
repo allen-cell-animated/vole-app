@@ -242,7 +242,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
       <ContentContainer style={{ paddingBottom: "400px" }}>
         <ProjectList
           projects={
-            VOLEAPP_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...TEST_DATA_CONTENT] : LANDING_PAGE_CONTENT
+            import.meta.env.VITE_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...TEST_DATA_CONTENT] : LANDING_PAGE_CONTENT
           }
           onClickLoad={onClickLoad}
         />

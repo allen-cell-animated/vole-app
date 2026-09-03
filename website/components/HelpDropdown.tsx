@@ -2,14 +2,11 @@ import { Button, Dropdown, type MenuProps, Modal } from "antd";
 import React, { type ReactElement, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../../src/constants";
 import { DropdownSVG } from "../assets/icons";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "./LandingPage/utils";
 
 import { SecondaryButton } from "./Buttons";
-
-// Defined in webpack config
-declare const VOLEAPP_VERSION: string;
-declare const VOLECORE_VERSION: string;
 
 export default function HelpDropdown(): ReactElement {
   const [container, setContainer] = useState<HTMLDivElement | null>();
