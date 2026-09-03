@@ -364,7 +364,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     background-color: var(--color-checkbox-bg);
   }
 
-  .ant-checkbox-inner {
+  .ant-checkbox {
     background-color: transparent !important;
   }
 
@@ -394,7 +394,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   .ant-select {
-    &.ant-select-disabled .ant-select-selector {
+    &.ant-select-disabled .ant-select-content {
       border-color: var(--color-button-icon-disabled-outline);
     }
 
@@ -406,7 +406,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:hover:not(.ant-select-disabled),
     &:focus-visible:not(.ant-select-disabled),
     &.ant-select.ant-select-open {
-      .ant-select-selector,
+      .ant-select-content,
       .ant-select-arrow,
       .ant-select-selection-item {
         color: var(--color-button-tertiary-hover-text);

@@ -16,7 +16,7 @@
   /* Keeps icons vertically aligned with the *first row* of text */
   .ant-alert-icon,
   .ant-alert-close-icon,
-  .ant-alert-message div {
+  .ant-alert-title div {
     min-height: 24px;
   }
 
@@ -24,7 +24,7 @@
     margin-inline-start: 14px;
   }
 
-  .ant-alert-action {
+  .ant-alert-actions {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -36,7 +36,7 @@
   }
 
   .ant-btn-text,
-  .ant-alert-action {
+  .ant-alert-actions {
     color: var(--color-text-link);
   }
 
@@ -48,7 +48,7 @@
     font-size: 21px;
   }
 
-  .ant-alert-message > div {
+  .ant-alert-title > div {
     &.error-title {
       font-weight: 600;
     }
