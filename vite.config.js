@@ -9,28 +9,18 @@ const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { pa
 // Add version number and build timestamp to the environment variables
 const DEFAULT_ENV = {
   ...process.env,
-  VITE_VOLEAPP_VERSION: require("./package.json").version,
-  VITE_VOLECORE_VERSION: require(voleCorePackagePath).version,
-  VITE_BASENAME: process.env.basename,
-  VITE_BUILD_TIME_UTC: Date.now().toString(),
+  VITE_VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
+  VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
+  VITE_BASENAME: JSON.stringify(process.env.basename),
+  VITE_BUILD_TIME_UTC: JSON.stringify(Date.now().toString()),
 };
 
 process.env = DEFAULT_ENV;
 
 const DEFAULT_CONFIG = {
   build: {
-    // This quiets the "module has been externalized for browser compatibility" warnings that
-    // vite throws when building for production.
-    // commonjsOptions: {
-    //   // Ignore built-in modules in Node.js. Fix copied from the workerpool documentation:
-    //   // https://github.com/josdejong/workerpool/blob/master/examples/vite/vite.config.ts
-    //   ignore: ["os", "child_process", "worker_threads"],
-    // },
     rollupOptions: {
       input: {
-        // TODO: Currently 404.html imports all of the same JS chunks as index.html.
-        // Can we make it so that 404.html only imports `gh_404.js` chunks?
-
         // eslint-disable-next-line no-undef
         main: resolve(__dirname, "./index.html"),
         // eslint-disable-next-line no-undef
@@ -58,9 +48,6 @@ const DEFAULT_CONFIG = {
       "@aics/vole-core > numcodecs",
       "@aics/vole-core > throttled-queue",
     ],
-  },
-  resolve: {
-    alias: [{ find: "src", replacement: resolve(__dirname, "./src") }],
   },
   worker: {
     // Fixes an invalid output format error when building
