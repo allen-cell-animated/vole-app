@@ -9,9 +9,9 @@ const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { pa
 // Add version number and build timestamp to the environment variables
 const DEFAULT_ENV = {
   ...process.env,
-  VITE_VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
-  VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
-  VITE_BASENAME: JSON.stringify(process.env.basename),
+  VITE_VOLEAPP_VERSION: require("./package.json").version,
+  VITE_VOLECORE_VERSION: require(voleCorePackagePath).version,
+  VITE_BASENAME: process.env.basename,
   VITE_BUILD_TIME_UTC: Date.now().toString(),
 };
 
