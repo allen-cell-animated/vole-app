@@ -1,5 +1,5 @@
 import type { Channel } from "@aics/vole-core";
-import { RightOutlined } from "@ant-design/icons";
+import { EllipsisOutlined, RightOutlined } from "@ant-design/icons";
 import { Button, Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
@@ -10,7 +10,6 @@ import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
 
 import ControlPanelRow from "./shared/ControlPanelRow";
-import ViewerIcon from "./shared/ViewerIcon";
 import TfEditor from "./TfEditor";
 
 interface ChannelsWidgetRowProps {
@@ -34,6 +33,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const [_controlsOpen, setControlsOpen] = useState(false);
   // Don't show controls in single-channel mode
   const controlsOpen = _controlsOpen && !singleChannelMode;
+  const toggleControlsOpen = useCallback(() => setControlsOpen((open) => !open), []);
 
   const onClickChannel = useCallback(() => {
     if (singleChannelMode) {
@@ -82,7 +82,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         Surf
       </Checkbox>
       <Button
-        icon={<ViewerIcon type="preferences" style={{ fontSize: "16px" }} />}
+        icon={<EllipsisOutlined style={{ fontSize: "16px" }} />}
         onClick={() => setControlsOpen(!controlsOpen)}
         title="Open channel settings"
         type="text"
@@ -130,7 +130,11 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   return (
     <ControlPanelRow
       key={index}
-      title={props.name}
+      title={
+        <span onClick={toggleControlsOpen} style={{ cursor: "pointer" }}>
+          {props.name}
+        </span>
+      }
       color={colorArrayToObject(channelState.color)}
       onColorChange={onColorChange}
       onColorChangeComplete={props.onColorChangeComplete}
@@ -142,7 +146,9 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
           style={{
             transition: "transform 0.3s",
             transform: controlsOpen ? "rotate(90deg)" : "rotate(0deg)",
+            cursor: "pointer",
           }}
+          onClick={toggleControlsOpen}
         />
       }
     >
