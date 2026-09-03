@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.base",
-  "include": ["src/**/*", "website/**/*", "__mocks__", "vitest.config.ts"],
+  "include": ["env.d.ts", "src", "website", "__mocks__", "vitest.config.ts"],
   "compilerOptions": {
     // Required for top-level await in `__mocks__/zustand.ts`, which is used for
     // unit tests. When transpiling and saving types, `tsconfig.es.json` and
