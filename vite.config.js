@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import glsl from "vite-plugin-glsl";
+import svgr from "vite-plugin-svgr";
 
 const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { paths: [__dirname] });
 
@@ -10,7 +11,6 @@ const DEFAULT_ENV = {
   ...process.env,
   VITE_VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
   VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
-  VITE_BUILD_ENVIRONMENT: JSON.stringify(process.env.env),
   VITE_BASENAME: JSON.stringify(process.env.basename),
   VITE_BUILD_TIME_UTC: Date.now().toString(),
 };
@@ -32,9 +32,9 @@ const DEFAULT_CONFIG = {
         // Can we make it so that 404.html only imports `gh_404.js` chunks?
 
         // eslint-disable-next-line no-undef
-        main: resolve(__dirname, "./public/index.html"),
+        main: resolve(__dirname, "./index.html"),
         // eslint-disable-next-line no-undef
-        404: resolve(__dirname, "./public/404.html"),
+        404: resolve(__dirname, "./404.html"),
       },
       output: {
         dir: resolve(__dirname, "./imageviewer"),
@@ -66,8 +66,7 @@ const DEFAULT_CONFIG = {
     // Fixes an invalid output format error when building
     format: "es",
   },
-  // plugins: [svgr(), glsl(), react()],
-  plugins: [glsl(), react()],
+  plugins: [svgr(), glsl(), react()],
 };
 
 module.exports = defineConfig(DEFAULT_CONFIG);
