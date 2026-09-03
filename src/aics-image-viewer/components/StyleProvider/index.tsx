@@ -427,10 +427,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
     &.ant-radio-button-wrapper-checked {
       color: var(--color-button-icon-active-text);
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-active-outline);
-      }
     }
 
     &:hover,
