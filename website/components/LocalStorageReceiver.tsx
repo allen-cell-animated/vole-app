@@ -1,8 +1,8 @@
 import React from "react";
 
-import { MultisceneUrls } from "../src/aics-image-viewer/components/App/types.ts";
-import { MetadataRecord } from "../src/aics-image-viewer/shared/types.ts";
-import { encodeImageUrlProp } from "../website/utils/urls.ts";
+import { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types.js";
+import { MetadataRecord } from "../../src/aics-image-viewer/shared/types.js";
+import { encodeImageUrlProp } from "../utils/urls.js";
 
 type Message = MultisceneUrls & {
   meta?: MetadataRecord | MetadataRecord[];
