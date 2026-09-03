@@ -403,11 +403,16 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:focus-visible:not(.ant-select-disabled),
     &.ant-select.ant-select-open {
       .ant-select-content,
-      .ant-select-arrow,
+      .ant-select-suffix,
       .ant-select-selection-item {
         color: var(--color-button-tertiary-hover-text);
         outline-color: var(--color-button-tertiary-hover-outline);
+        opacity: 1;
       }
+    }
+
+    .ant-select-content {
+      transition: all 0.3s;
     }
   }
 
