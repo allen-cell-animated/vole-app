@@ -12,7 +12,7 @@ import {
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
-import LocalStorageReceiver from "./LocalStorageReceiver";
+import LocalStorageReceiver from "./components/LocalStorageReceiver";
 
 import "./App.css";
 
