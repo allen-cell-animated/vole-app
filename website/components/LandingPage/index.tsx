@@ -6,8 +6,8 @@ import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { parseViewerUrlParams } from "../../../src";
-import { VOLEAPP_BUILD_ENVIRONMENT } from "../../../src/constants";
 import { BannerVideo } from "../../assets/videos";
+import { VOLEAPP_BUILD_ENVIRONMENT } from "../../constants";
 import type { AppDataProps } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
 import { LANDING_PAGE_CONTENT } from "./content";
