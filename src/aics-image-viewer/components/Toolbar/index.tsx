@@ -4,8 +4,8 @@ import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
-import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { select, useViewerState } from "../../state/store";
+import { ImageType, RenderMode, ViewMode } from "../../state/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";

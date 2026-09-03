@@ -2,10 +2,10 @@ import { describe, expect, it } from "@jest/globals";
 
 import { parseKeyValueList } from "../../../state/deserialize";
 import { DEFAULT_TEST_VIEWER_CHANNEL_SETTING } from "../../../state/test/test_data";
-import type { ChannelState, ViewerChannelStateParams, ViewerState } from "../../../state/types";
+import { ViewMode } from "../../../state/types";
+import type { ChannelState, ChannelStateStringified, ViewerState } from "../../../state/types";
 import { getDefaultChannelState, getDefaultViewerState } from "../../constants";
-import { ViewMode } from "../../enums";
-import { parseViewerUrlParams, serializeViewerUrlParams } from "../urlParsing";
+import { parseViewerUrlParams, serializeViewerUrlParams } from "../parseUrl";
 import type { ViewerChannelSetting } from "../viewerChannelSettings";
 
 //// URL parsing /////////////////////////////////
@@ -295,7 +295,7 @@ describe("serializeViewerUrlParams", () => {
     // Format should look like "ven:1,col:ff0000,clz:1,cza:0.75,isa:0.5,sen:1,isv:128", but ordering
     // is not guaranteed. Parse the string and check that the values match the expected values.
     // Note that `lut` is not included when serializing from existing viewer state.
-    const expectedChannel0: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
+    const expectedChannel0: Required<Omit<ChannelStateStringified, "lut" | "rmp" | "cps">> = {
       ven: "1",
       col: "ff0000",
       clz: "1",
@@ -308,7 +308,7 @@ describe("serializeViewerUrlParams", () => {
       cpe: "0",
       pin: "1",
     };
-    const expectedChannel1: Required<Omit<ViewerChannelStateParams, "lut" | "rmp" | "cps">> = {
+    const expectedChannel1: Required<Omit<ChannelStateStringified, "lut" | "rmp" | "cps">> = {
       ven: "0",
       col: "808080",
       clz: "0",
@@ -346,9 +346,12 @@ describe("serializeViewerUrlParams", () => {
       true
     ) as Record<string, string>;
     const urlParams = new URLSearchParams(serializedParams);
-    // Pos is 1.2:3.4:5.6 but escaped
-    const expectedCameraPosition = encodeURIComponent("pos:1.2:3.4:5.6");
-    expect(urlParams.toString()).toEqual(`dens=100&t=40&cam=${expectedCameraPosition}&view=Z`);
+    expect(Object.fromEntries(urlParams.entries())).toEqual({
+      view: "Z",
+      dens: "100",
+      t: "40",
+      cam: "pos:1.2:3.4:5.6",
+    });
   });
 
   it("can remove channel state fields that matches the default", () => {

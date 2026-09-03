@@ -1,8 +1,26 @@
 import type { CameraState, ControlPoint } from "@aics/vole-core";
 
-import type { ImageType, RenderMode, ViewMode } from "../shared/enums";
-import type { PerAxis } from "../shared/types";
+import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
+
+export enum ViewMode {
+  threeD = "3D",
+  xy = "XY",
+  xz = "XZ",
+  yz = "YZ",
+  tripleProj = "TRIPLE",
+}
+
+export enum RenderMode {
+  volumetric = "volumetric",
+  maxProject = "maxproject",
+  pathTrace = "pathtrace",
+}
+
+export enum ImageType {
+  segmentedCell = "cell",
+  fullField = "fov",
+}
 
 /** Global (not per-channel) viewer state which may be changed in the UI */
 export type ViewerState = {
@@ -22,10 +40,10 @@ export type ViewerState = {
   // `region` values are in the range [0, 1]. We derive from this the format that the sliders expect
   // (integers between 0 and num_slices - 1) and the format that view3d expects (in [-0.5, 0.5]).
   // This state is only active in 3d mode.
-  region: PerAxis<[number, number]>;
+  region: XYZ<[number, number]>;
   // Store the relative position of the slice in the range [0, 1] for each of 3 axes.
   // This state is active in x,y,z single slice modes.
-  slice: PerAxis<number>;
+  slice: XYZ<number>;
   time: number;
   scene: number;
   cameraState: Partial<CameraState> | undefined;
@@ -35,6 +53,7 @@ export type ViewerState = {
   scaleLevelIndex: number;
 };
 
+/** Settings for a single channel which may be changed in the UI */
 export type ChannelState = {
   name: string;
   displayName: string;
@@ -58,32 +77,46 @@ export type ChannelState = {
 };
 
 /**
- * Enum keys for serialized viewer settings. These are stored as enums for
- * better readability, and are mapped to types in `ViewerStateParams`.
+ * The variants of `ViewMode` that appear in serialized representations of state
+ * (`ViewerStateSnapshot`, `ViewerStateStringified`).
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values. This enum must not have values that
+ * collide when `toLowerCase` is applied to them.
  */
-export enum ViewerStateKeys {
-  View = "view",
-  Mode = "mode",
-  Mask = "mask",
-  Image = "image",
-  Axes = "axes",
-  BoundingBox = "bb",
-  BoundingBoxColor = "bbcol",
-  BackgroundColor = "bgcol",
-  Autorotate = "rot",
-  Brightness = "bright",
-  Density = "dens",
-  Levels = "lvl",
-  Interpolation = "interp",
-  Region = "reg",
-  Slice = "slice",
-  Time = "t",
-  Scene = "scene",
-  CameraState = "cam",
-  SingleChannelMode = "scm",
-  SingleChannelIndex = "sci",
-  UseExactScaleLevel = "esl",
-  ScaleLevelIndex = "scl",
+export enum ViewModeSnapshot {
+  threeD = "3D",
+  xy = "Z",
+  xz = "Y",
+  yz = "X",
+  tripleProj = "TRIPLE",
+}
+
+/**
+ * The variants of `RenderMode` that appear in serialized representations of state
+ * (`ViewerStateSnapshot`, `ViewerStateStringified`).
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values. This enum must not have values that
+ * collide when `toLowerCase` is applied to them.
+ */
+export enum RenderModeSnapshot {
+  volumetric = "volumetric",
+  maxProject = "maxproject",
+  pathTrace = "pathtrace",
+}
+
+/**
+ * The variants of `ImageType` that appear in serialized representations of state
+ * (`ViewerStateSnapshot`, `ViewerStateStringified`).
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * It should not be done without introducing code to handle the previous values. This enum must not have values that
+ * collide when `toLowerCase` is applied to them.
+ */
+export enum ImageTypeSnapshot {
+  segmentedCell = "cell",
+  fullField = "fov",
 }
 
 export enum CameraTransformKeys {
@@ -99,125 +132,115 @@ export enum CameraTransformKeys {
   Fov = "fov",
 }
 
-/** Serialized version of `ViewerState`. */
-export class ViewerStateParams {
-  /** Axis to view. Valid values are "3D", "X", "Y", and "Z". Defaults to "3D". */
-  [ViewerStateKeys.View]?: string = undefined;
-  /**
-   * Render mode. Valid values are "volumetric", "maxproject", and "pathtrace".
-   * Defaults to "volumetric".
-   */
-  [ViewerStateKeys.Mode]?: string = undefined;
-  /** The opacity of the mask channel, an integer in the range [0, 100]. Defaults to 50. */
-  [ViewerStateKeys.Mask]?: string = undefined;
-  /** The type of image to display. Valid values are "cell" and "fov". Defaults to "cell". */
-  [ViewerStateKeys.Image]?: string = undefined;
-  /** Whether to show the axes helper. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.Axes]?: string = undefined;
-  /** Whether to show the bounding box. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.BoundingBox]?: string = undefined;
-  /** Whether single-channel mode is active. "1" is active. Inactive by default. */
-  [ViewerStateKeys.SingleChannelMode]?: string = undefined;
-  /** If single-channel mode is active, which channel index is shown. Defaults to 0. */
-  [ViewerStateKeys.SingleChannelIndex]?: string = undefined;
+export type CameraStateSnapshot = {
+  [CameraTransformKeys.Position]?: [number, number, number];
+  [CameraTransformKeys.Target]?: [number, number, number];
+  [CameraTransformKeys.Up]?: [number, number, number];
+  [CameraTransformKeys.OrthoScale]?: number;
+  [CameraTransformKeys.Fov]?: number;
+};
+
+export type CameraStateStringified = { [K in CameraTransformKeys]?: string };
+
+/**
+ * Property keys for the "snapshot" variants of `ViewerState`. These keys are shorter, for contexts that need brevity
+ * (like URLs), and have a stronger guarantee of stability than the keys of `ViewerState`.
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
+ */
+export enum ViewerStateSnapshotKeys {
+  /** Axis to view. Snapshot values are `3D`, `Z`, `Y`, `X` (from `ViewModeSnapshot`). */
+  View = "view",
+  /** Render mode. Possible values are `volumetric`, `maxproject`, or `pathtrace` (from `RenderModeSnapshot`). */
+  Mode = "mode",
+  /** The opacity of the mask channel, an integer in the range `[0, 100]`. Defaults to `50`. */
+  MaskOpacity = "mask",
+  /** The type of image to display. Valid values are `cell` and `fov` (from `ImageTypeSnapshot`). Default `cell`. */
+  ImageType = "image",
+  /** Whether to show the axes helper. Boolean, or `0`/`1` when stringified. Default `false`. */
+  ShowAxes = "axes",
+  /** Whether to show the bounding box. Boolean, or `0`/`1` when stringified. Default `false`. */
+  ShowBoundingBox = "bb",
   /** The color of the bounding box, as a 6-digit hex color. */
-  [ViewerStateKeys.BoundingBoxColor]?: string = undefined;
+  BoundingBoxColor = "bbcol",
   /** The background color, as a 6-digit hex color. */
-  [ViewerStateKeys.BackgroundColor]?: string = undefined;
-  /** Whether to autorotate the view. "1" is enabled. Disabled by default. */
-  [ViewerStateKeys.Autorotate]?: string = undefined;
-  /** The brightness of the image, an float in the range [0, 100]. Defaults to 70. */
-  [ViewerStateKeys.Brightness]?: string = undefined;
-  /** Density, a float in the range [0, 100]. Defaults to 50. */
-  [ViewerStateKeys.Density]?: string = undefined;
+  BackgroundColor = "bgcol",
+  /** Whether to autorotate the view. Boolean, or `0`/`1` when stringified. Default `false`. */
+  Autorotate = "rot",
+  /** The brightness of the image, a float in the range `[0, 100]`. Default `70`. */
+  Brightness = "bright",
+  /** Density, a float in the range `[0, 100]`. Default `50`. */
+  Density = "dens",
   /**
-   * Levels for image intensity adjustment. Should be three numeric values separated
-   * by commas, representing the low, middle, and high values in a [0, 255] range.
-   * Values will be sorted in ascending order; empty values will be parsed as 0.
+   * Levels for image intensity adjustment. Should be a three-element array of numbers (comma-separated when
+   * stringified), representing the low, middle, and high values in the range `[0, 255]`. Values will be sorted in
+   * ascending order. Empty values in stringified form will be parsed as `0`.
    */
-  [ViewerStateKeys.Levels]?: string = undefined;
-  /** Whether to enable interpolation. "1" is enabled. Enabled by default. */
-  [ViewerStateKeys.Interpolation]?: string = undefined;
-  /** Subregions per axis, as min:max pairs separated by commas.
-   * Defaults to full range (`0:1`) for each axis.
-   */
-  [ViewerStateKeys.Region]?: string = undefined;
-  /** Slice position per X, Y, and Z axes, as a list of comma-separated floats.
-   * 0.5 for all axes by default (e.g. `0.5,0.5,0.5`)
-   */
-  [ViewerStateKeys.Slice]?: string = undefined;
-  /** Frame number, for time-series volumes. 0 by default. */
-  [ViewerStateKeys.Time]?: string = undefined;
-  /** Scene number, for multiscene images. 0 by default. */
-  [ViewerStateKeys.Scene]?: string = undefined;
-  /** Whether to use an exact scale level index. 0 by default. */
-  [ViewerStateKeys.UseExactScaleLevel]?: string = undefined;
-  /** The exact scale level index to use, if `UseExactScaleLevel` is 1. 0 by default. */
-  [ViewerStateKeys.ScaleLevelIndex]?: string = undefined;
+  Levels = "lvl",
+  /** Whether to enable interpolation. Boolean, or `0`/`1` when stringified. Default `true`. */
+  Interpolation = "interp",
   /**
-   * Camera transform settings, as a list of `key:value` pairs separated by commas.
-   * Valid keys are defined in `CameraTransformKeys`:
-   * - `pos`: position
-   * - `tar`: target
-   * - `up`: up
-   * - `ort`: orthographic scale
-   * - `fov`: field of view
+   * Size of the clipped subregion, in the form `[[xmin, xmax], [ymin, ymax], [zmin, zmax]]`.
+   * Stringifies to the form `xmin:xmax,ymin:ymax,zmin:zmax`. Default full range (`[0, 1]`) for each axis.
+   */
+  Region = "reg",
+  /**
+   * Slice position per X, Y, and Z axes, as a three-element array of floats (comma-separated when stringified).
+   * Default `0.5` for all axes (e.g. `[0.5, 0.5, 0.5]`).
+   */
+  Slice = "slice",
+  /** Frame number, for time-series volumes. `0` by default. */
+  Time = "t",
+  /** Scene number, for multiscene images. `0` by default. */
+  Scene = "scene",
+  /**
+   * Camera transform settings. An object with type `CameraTransformSnapshot`; see `CameraTransformKeys` for more.
    *
-   * Vector values are encoded as three floats separated by colons (e.g. `1:2:3`) and
-   * encoded using `encodeURIComponent`.
+   * Stringifies to a list of `key:value` pairs separated by commas. Vector values are encoded as three floats
+   * separated by colons (e.g. `1:2:3`) and encoded using `encodeURIComponent`.
    */
-  [ViewerStateKeys.CameraState]?: string = undefined;
+  CameraState = "cam",
+  /** Whether single-channel mode is active. Boolean, or `0`/`1` when stringified. Default `false`. */
+  SingleChannelMode = "scm",
+  /** If single-channel mode is active, which channel index is shown. Default `0`. */
+  SingleChannelIndex = "sci",
+  /** Whether to use an exact scale level index. Boolean, or `0`/`1` when stringified. Default `false`. */
+  UseExactScaleLevel = "esl",
+  /** The exact scale level index to use, if `UseExactScaleLevel` is `true`. Default `0`. */
+  ScaleLevelIndex = "scl",
 }
 
 /**
- * Mapped to types in `ViewerChannelStateParams`.
+ * Property keys for the "snapshot" variants of `ChannelState`/`ViewerChannelSettings`. These keys are shorter, for
+ * contexts that need brevity (like URLs), and have a stronger guarantee of stability than the keys of `ChannelState`.
+ *
+ * **IMPORTANT:** Changing the values of this enum will BREAK existing image sharing links and exported app state.
+ * Ideally, you should never do it. If you must, you must also add code to version-check and handle previous values.
  */
-export enum ViewerChannelSettingKeys {
-  Color = "col",
-  Colorize = "clz",
-  ColorizeAlpha = "cza",
-  IsosurfaceAlpha = "isa",
-  Lut = "lut",
-  ControlPoints = "cpt",
-  ControlPointsLegacy = "cps",
-  Ramp = "ram",
-  RampLegacy = "rmp",
-  ControlPointsEnabled = "cpe",
-  VolumeEnabled = "ven",
-  SurfaceEnabled = "sen",
-  IsosurfaceValue = "isv",
-  KeepRange = "pin",
-}
-
-/**
- * The serialized form of a ViewerChannelSetting, as a dictionary object.
- */
-export class ViewerChannelStateParams {
+export enum ChannelStateSnapshotKeys {
   /** Color, as a 6-digit hex color.  */
-  [ViewerChannelSettingKeys.Color]?: string = undefined;
-  /** Colorize. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.Colorize]?: "1" | "0" = undefined;
-  /** Colorize alpha, in the [0, 1] range. Set to `1.0` by default. */
-  [ViewerChannelSettingKeys.ColorizeAlpha]?: string = undefined;
-  /** Isosurface alpha, in the [0, 1 range]. Set to `1.0` by default.*/
-  [ViewerChannelSettingKeys.IsosurfaceAlpha]?: string = undefined;
+  Color = "col",
+  /** Whether colorize is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
+  Colorize = "clz",
+  /** Colorize alpha, in the range `[0, 1]`. Default `1.0`. */
+  ColorizeAlpha = "cza",
+  /** Isosurface alpha, in the range `[0, 1]`. Set to `1.0` by default.*/
+  IsosurfaceAlpha = "isa",
   /**
-   * Lookup table (LUT) to map from volume intensity to opacity. Should be two
-   * alphanumeric values separated by a colon, where the first value is the
-   * minimum and the second is the maximum. Defaults to [0, 255].
+   * Lookup table (LUT) to map from volume intensity to opacity. A two-element array of alphanumeric values
+   * (colon-separated when stringified), where the first value is the minimum and the second is the maximum.
+   * Default `[0, 255]`.
    *
    * Min and max values are determined as following:
-   * - Plain numbers are indices of histogram bins, typically in the range [0,
-   *   255].
+   * - Plain numbers are indices of histogram bins, typically in the range `[0, 255]`.
    * - `v{n}` represents a raw intensity value, where `n` is a number.
-   * - `p{n}` represents a percentile, where `n` is a percentile in the [0, 100]
-   *   range.
+   * - `p{n}` represents a percentile, where `n` is a percentile in the range `[0, 100]`.
    * - `m{n}` represents the median multiplied by `n / 100`.
-   * - `autoij` in either the min or max fields will use the "auto" algorithm
-   *   from ImageJ to select the min AND max.
+   * - `autoij` in either the min or max fields will use the "auto" algorithm from ImageJ to select the min AND max.
    *
-   * Values will be used to determine the initial control points and ramp if
-   * those fields are not provided.
+   * This field has no counterpart in `ChannelState`. It will be used to determine the initial values of
+   * `ControlPoints` and `Ramp` if those fields are not provided.
    *
    * @example
    * ```
@@ -227,53 +250,148 @@ export class ViewerChannelStateParams {
    * "autoij:0" // use Auto-IJ to calculate min and max.
    * ```
    */
-  [ViewerChannelSettingKeys.Lut]?: string = undefined;
+  Lut = "lut",
   /**
-   * Legacy specifier for control points for the transfer function as a list of
-   * `x:opacity:color` triplets, separated by colon. Uses histogram bin indices
-   * instead of intensity values.
-   * - `x` is a histogram bin index in the [0, 255] range.
-   * - `opacity` is a float in the [0, 1] range.
-   * - `color` is a 6-digit hex color, e.g. `ff0000`.
-   *
-   * Will be overridden by the ControlPoints field (`cpt`) if provided.
-   */
-  [ViewerChannelSettingKeys.ControlPointsLegacy]?: string = undefined;
-  /**
-   * Control points for the transfer function, formatted as a list of
-   * `x:opacity:color` triplets, separated by colons.
+   * Control points for the transfer function, formatted as a list of objects of type `ControlPointSnapshot` with the
+   * following keys:
    * - `x` is a numeric intensity value.
-   * - `opacity` is a float in the [0, 1] range.
-   * - `color` is a 6-digit hex color, e.g. `ff0000`.
+   * - `opacity` is a float in the range `[0, 1]`.
+   * - `color` is a 6-digit hex color, e.g. `"ff0000"`. For the extremely common default case where the control point is
+   *   white (`"ffffff"`), `color` is shortened to just `"1"`.
    *
-   * If provided, overrides the `lut` field when calculating the control points.
+   * Stringifies to a colon-separated list: `x1:opacity1:color1:x2:opacity2:color2:...`
+   *
+   * If provided, overrides the `lut` field when calculating control points.
    */
-  [ViewerChannelSettingKeys.ControlPoints]?: string = undefined;
+  ControlPoints = "cpt",
   /**
-   * Whether to show advanced mode, which will show control points instead of
-   * ramp values defined by the LUT. "1" is enabled, disabled by default.
+   * Legacy specifier for control points for the transfer function. Formatted exactly like `ControlPoints`,
+   * except `x` represents histogram bin indices (in the range `[0, 255]`), not raw intensities.
+   *
+   * Will be overridden by the `ControlPoints` field (`cpt`) if provided.
    */
-  [ViewerChannelSettingKeys.ControlPointsEnabled]?: "1" | "0" = undefined;
+  ControlPointsLegacy = "cps",
   /**
-   * Legacy specifier for the transfer function ramp which uses histogram bin
-   * indices instead of intensity values, formatted as `min:max`. Will be
-   * overridden by the Ramp field (`ram`) if provided.
+   * Ramp min and max intensity values. Two-element array, colon-separated when stringified (`min:max`).
+   *
+   * If provided, overrides the `lut` field when calculating the ramp.
    */
-  [ViewerChannelSettingKeys.RampLegacy]?: string = undefined;
+  Ramp = "ram",
   /**
-   * Ramp min and max intensity values (`min:max`). If provided, overrides the
-   * `lut` field when calculating the ramp.
+   * Legacy specifier for the transfer function ramp. Formatted exactly like `Ramp`, except values represent histogram
+   * bin indices (in the range `[0, 255]`), not raw intensities.
+   *
+   * Will be overridden by the Ramp field (`ram`) if provided.
    */
-  [ViewerChannelSettingKeys.Ramp]?: string = undefined;
-  /** Volume enabled. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.VolumeEnabled]?: "1" | "0" = undefined;
-  /** Isosurface enabled. "1" is enabled. Disabled by default. */
-  [ViewerChannelSettingKeys.SurfaceEnabled]?: "1" | "0" = undefined;
-  /** Isosurface value, in the [0, 255] range. Set to `128` by default. */
-  [ViewerChannelSettingKeys.IsosurfaceValue]?: string = undefined;
+  RampLegacy = "rmp",
   /**
-   * Whether to keep the current contrast settings when loading a new volume.
-   * "1" is enabled. Disabled by default.
+   * Whether this channel's settings are in "advanced mode" and using control points rather than min/max ramp to derive
+   * the transfer function. Boolean, or `0`/`1` when stringified. Default `false`.
    */
-  [ViewerChannelSettingKeys.KeepRange]?: "1" | "0" = undefined;
+  ControlPointsEnabled = "cpe",
+  /** Whether volume is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
+  VolumeEnabled = "ven",
+  /** Whether isosurface is enabled. Boolean, or `0`/`1` when stringified. Default `false`. */
+  SurfaceEnabled = "sen",
+  /** Isosurface value, in the range `[0, 255]`. Default `128`. */
+  IsosurfaceValue = "isv",
+  /**
+   * Whether to keep the current contrast settings when loading a new volume. Boolean, or `0`/`1` when stringified.
+   * Default `false`.
+   */
+  KeepRange = "pin",
 }
+
+// Maps `ViewerStateKeys` to the type of each key in `ViewerStateSnapshot`.
+// This is not the exported "snapshot" type: that's `ViewerStateSnapshot`, below. Defining `ViewerStateSnapshot` as
+// a mapped type ensures that if a variant is added to `ViewerStateKeys`, `ViewerStateSnapshot` will type error until
+// that key's value is added to this type.
+type ViewerStateSnapshotTypes = {
+  [ViewerStateSnapshotKeys.View]: ViewModeSnapshot;
+  [ViewerStateSnapshotKeys.Mode]: RenderModeSnapshot;
+  [ViewerStateSnapshotKeys.MaskOpacity]: number;
+  [ViewerStateSnapshotKeys.ImageType]: ImageTypeSnapshot;
+  [ViewerStateSnapshotKeys.ShowAxes]: boolean;
+  [ViewerStateSnapshotKeys.ShowBoundingBox]: boolean;
+  [ViewerStateSnapshotKeys.BoundingBoxColor]: string;
+  [ViewerStateSnapshotKeys.BackgroundColor]: string;
+  [ViewerStateSnapshotKeys.Autorotate]: boolean;
+  [ViewerStateSnapshotKeys.Brightness]: number;
+  [ViewerStateSnapshotKeys.Density]: number;
+  [ViewerStateSnapshotKeys.Levels]: [number, number, number];
+  [ViewerStateSnapshotKeys.Interpolation]: boolean;
+  [ViewerStateSnapshotKeys.Region]: [[number, number], [number, number], [number, number]];
+  [ViewerStateSnapshotKeys.Slice]: [number, number, number];
+  [ViewerStateSnapshotKeys.Time]: number;
+  [ViewerStateSnapshotKeys.Scene]: number;
+  [ViewerStateSnapshotKeys.CameraState]: CameraStateSnapshot;
+  [ViewerStateSnapshotKeys.SingleChannelMode]: boolean;
+  [ViewerStateSnapshotKeys.SingleChannelIndex]: number;
+  [ViewerStateSnapshotKeys.UseExactScaleLevel]: boolean;
+  [ViewerStateSnapshotKeys.ScaleLevelIndex]: number;
+};
+
+/**
+ * A "snapshot" of a `ViewerState`.
+ *
+ * This type is a variant representation of `ViewerState`, specialized for saving/restoring state to/from some
+ * serialized representation. It has the following desirable properties for this purpose:
+ * - Its keys are *shorter*, for formats where that's desirable (mostly URL parameters)
+ * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
+ * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
+ */
+export type ViewerStateSnapshot = { [K in ViewerStateSnapshotKeys]?: ViewerStateSnapshotTypes[K] };
+
+/**
+ * A `ViewerStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
+ * viewer state to/from URL parameters.
+ */
+export type ViewerStateStringified = { [K in ViewerStateSnapshotKeys]?: string };
+
+/**
+ * A `ControlPoint` where `color` is a six-digit hex string, or gets shortened to `"1"` in the overwhelming majority of
+ * cases where the control point is white to save space in sharing URLs. Used by `ChannelStateSnapshot`.
+ */
+export type ControlPointSnapshot = {
+  x: number;
+  opacity: number;
+  color: string;
+};
+
+// Maps `ChannelStateKeys` to the type of each key in `ChannelStateSnapshot`.
+// This is not the exported "snapshot" type: that's `ChannelStateSnapshot`, below. Defining `ChannelStateSnapshot` as
+// a mapped type ensures that if a variant is added to `ChannelStateKeys`, `ChannelStateSnapshot` will type error until
+// that key's value is added to this type.
+type ChannelStateSnapshotTypes = {
+  [ChannelStateSnapshotKeys.Color]: string;
+  [ChannelStateSnapshotKeys.Colorize]: boolean;
+  [ChannelStateSnapshotKeys.ColorizeAlpha]: number;
+  [ChannelStateSnapshotKeys.IsosurfaceAlpha]: number;
+  [ChannelStateSnapshotKeys.Lut]: [string | number, string | number];
+  [ChannelStateSnapshotKeys.ControlPointsLegacy]: ControlPointSnapshot[];
+  [ChannelStateSnapshotKeys.ControlPoints]: ControlPointSnapshot[];
+  [ChannelStateSnapshotKeys.ControlPointsEnabled]: boolean;
+  [ChannelStateSnapshotKeys.RampLegacy]: [number, number];
+  [ChannelStateSnapshotKeys.Ramp]: [number, number];
+  [ChannelStateSnapshotKeys.VolumeEnabled]: boolean;
+  [ChannelStateSnapshotKeys.SurfaceEnabled]: boolean;
+  [ChannelStateSnapshotKeys.IsosurfaceValue]: number;
+  [ChannelStateSnapshotKeys.KeepRange]: boolean;
+};
+
+/**
+ * A "snapshot" of a `ChannelState` or `ViewerChannelSetting`.
+ *
+ * This type is a variant representation of `ChannelState`/`ViewerChannelSetting`, specialized for saving/restoring
+ * channel state to/from some serialized representation. It has the following desirable properties for this purpose:
+ * - Its keys are *shorter*, for formats where that's desirable (mostly URL parameters)
+ * - Its keys are reasonably *stable*, so that settings exported from older app versions can be imported by newer ones
+ * - Some values, notably colors, are converted to alternate representations for compactness and/or clarity
+ */
+export type ChannelStateSnapshot = { [K in ChannelStateSnapshotKeys]?: ChannelStateSnapshotTypes[K] };
+
+/**
+ * A `ChannelStateSnapshot` with all its keys converted to compact string representations. Useful for (de)serializing
+ * channel state to/from URL parameters.
+ */
+export type ChannelStateStringified = { [K in ChannelStateSnapshotKeys]?: string };

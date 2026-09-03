@@ -13,22 +13,21 @@ import {
   getDefaultViewerChannelSettings,
   SCALE_BAR_MARGIN_DEFAULT,
 } from "../../shared/constants";
-import { ImageType, ViewMode } from "../../shared/enums";
-import type { IsosurfaceFormat, MetadataRecord, PerAxis } from "../../shared/types";
+import type { IsosurfaceFormat, MetadataRecord, XYZ } from "../../shared/types";
 import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
-import type { ViewerState } from "../../state/types";
+import { ImageType, type ViewerState, ViewMode } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
 
-import CellViewerCanvasWrapper from "../CellViewerCanvasWrapper";
 import ControlPanel from "../ControlPanel";
 import { useErrorAlert } from "../ErrorAlert";
 import StyleProvider from "../StyleProvider";
 import Toolbar from "../Toolbar";
+import CellViewerCanvasWrapper from "../ViewerCanvasWrapper";
 import ChannelUpdater from "./ChannelUpdater";
 
 import "../../assets/styles/globals.css";
@@ -58,7 +57,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   scaleLevelControls: true,
 };
 
-const defaultProps: AppProps = {
+const defaultProps = {
   // rawData has a "dtype" which is expected to be "uint8", a "shape":[c,z,y,x] and a "buffer" which is a DataView
   rawData: undefined,
   // rawDims is the volume dims that normally come from a json file
@@ -76,7 +75,7 @@ const defaultProps: AppProps = {
   canvasMargin: "0 0 0 0",
   view3dRef: undefined,
   showError: undefined,
-};
+} satisfies AppProps;
 
 const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
 
@@ -117,7 +116,7 @@ const setIndicatorPositions = (
 };
 
 const App: React.FC<AppProps> = (props) => {
-  props = { ...defaultProps, ...props };
+  props = { ...defaultProps, ...props } as AppProps;
 
   // State management /////////////////////////////////////////////////////////
   const imageType = useViewerState(select("imageType"));
@@ -362,8 +361,8 @@ const App: React.FC<AppProps> = (props) => {
 
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
-  const numSlices: PerAxis<number> = image?.imageInfo.volumeSize ?? { x: 1, y: 1, z: 1 };
-  const numSlicesLoaded: PerAxis<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
+  const numSlices: XYZ<number> = image?.imageInfo.volumeSize ?? { x: 1, y: 1, z: 1 };
+  const numSlicesLoaded: XYZ<number> = image?.imageInfo.subregionSize ?? { x: 0, y: 0, z: 0 };
   const numTimesteps = image?.imageInfo.times ?? 1;
 
   // const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
@@ -582,8 +581,8 @@ const App: React.FC<AppProps> = (props) => {
         <Layout className="cell-viewer-wrapper" style={{ margin: props.canvasMargin }}>
           <Content>
             <Toolbar
-              fovDownloadHref={props.parentImageDownloadHref}
-              cellDownloadHref={props.imageDownloadHref}
+              cellDownloadHref={props.imageDownloadHref ?? defaultProps.imageDownloadHref}
+              fovDownloadHref={props.parentImageDownloadHref ?? defaultProps.parentImageDownloadHref}
               hasParentImage={!!props.parentImageUrl}
               hasCellId={!!props.cellId}
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
