@@ -1,14 +1,15 @@
 import type { Channel } from "@aics/vole-core";
-import { EllipsisOutlined, RightOutlined } from "@ant-design/icons";
-import { Button, Checkbox } from "antd";
+import { RightOutlined } from "@ant-design/icons";
+import { Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 
 import type { IsosurfaceFormat } from "../shared/types";
 import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../shared/utils/colorRepresentations";
 import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
 
+import CopySettingsButton from "./ControlPanel/CopySettingsButton";
 import ControlPanelRow from "./shared/ControlPanelRow";
 import TfEditor from "./TfEditor";
 
@@ -29,6 +30,8 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const channelState = useViewerState(({ channelSettings }) => channelSettings[props.index]);
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
+
+  const rowRef = useRef<HTMLDivElement>(null);
 
   const [_controlsOpen, setControlsOpen] = useState(false);
   // Don't show controls in single-channel mode
@@ -81,12 +84,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      <Button
-        icon={<EllipsisOutlined style={{ fontSize: "16px" }} />}
-        onClick={() => setControlsOpen(!controlsOpen)}
-        title="Open channel settings"
-        type="text"
-      />
+      <CopySettingsButton getDropdownContainer={() => rowRef.current ?? document.body} />
     </div>
   );
 
@@ -129,6 +127,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const rowClass = controlsOpen ? "" : " controls-closed";
   return (
     <ControlPanelRow
+      ref={rowRef}
       key={index}
       title={
         <span onClick={toggleControlsOpen} style={{ cursor: "pointer" }}>
