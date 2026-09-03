@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   AXIS_MARGIN_DEFAULT,
+  CLIPPING_PANEL_BUTTON_HEIGHT,
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
@@ -18,7 +19,7 @@ import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPo
 import { useConstructor } from "../../shared/utils/hooks";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
-import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
+import { applyTripleSliceIndices, subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
 import { ImageType, type ViewerState, ViewMode } from "../../state/types";
 import useVolume, { ImageLoadStatus } from "../useVolume";
 import type { AppProps, ControlVisibilityFlags, MultisceneUrls, UseImageEffectType } from "./types";
@@ -81,19 +82,18 @@ const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
 
 const setIndicatorPositions = (
   view3d: View3d,
-  panelOpen: boolean,
+  /** Whether the open clipping panel covers the bottom of the viewport (false if the viewport is inset above it) */
+  panelOverlapsViewport: boolean,
   hasTime: boolean,
   hasScenes: boolean,
   isMode3d: boolean
 ): void => {
-  // The height of the clipping panel includes the button, but we're trying to put these elements next to the button
-  const CLIPPING_PANEL_BUTTON_HEIGHT = 40;
   // Move scale bars this far to the left when showing time series, to make room for timestep indicator
   const SCALE_BAR_TIME_SERIES_OFFSET = 120;
 
   let axisY = AXIS_MARGIN_DEFAULT[1];
   let [scaleBarX, scaleBarY] = SCALE_BAR_MARGIN_DEFAULT;
-  if (panelOpen) {
+  if (panelOverlapsViewport) {
     // If we have Time, Scene, X, Y, and Z sliders, the drawer will need to be a bit taller
     let isTall = hasTime && hasScenes && isMode3d;
     let clippingPanelFullHeight = isTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
@@ -369,6 +369,9 @@ const App: React.FC<AppProps> = (props) => {
   // Only allow auto-close once while the screen is too narrow.
   const [hasAutoClosedControlPanel, setHasAutoClosedControlPanel] = useState(false);
 
+  // Height of the toolbar floating over the top of the viewport, so views can avoid rendering underneath it
+  const [toolbarHeight, setToolbarHeight] = useState(0);
+
   const [clippingPanelOpen, setClippingPanelOpen] = useState(true);
   const clippingPanelOpenTimeout = useRef<number>(0);
 
@@ -421,8 +424,11 @@ const App: React.FC<AppProps> = (props) => {
     const hasTime = numTimesteps > 1;
     const hasScenes = numScenes > 1;
     const mode3d = viewMode === ViewMode.threeD;
+    // In triple projection mode the viewport is inset to the top of the drawer rather than running underneath it,
+    // so the indicators don't need to be moved up out of the panel's way.
+    const panelOverlapsViewport = clippingPanelOpen && viewMode !== ViewMode.tripleProj;
 
-    setIndicatorPositions(view3d, clippingPanelOpen, hasTime, hasScenes, mode3d);
+    setIndicatorPositions(view3d, panelOverlapsViewport, hasTime, hasScenes, mode3d);
 
     // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
     if (clippingPanelOpen) {
@@ -520,6 +526,24 @@ const App: React.FC<AppProps> = (props) => {
     [props.transform?.rotation, view3d]
   );
 
+  // `view3d` holds triple-view slice positions as voxel indices into the *currently loaded* scale level,
+  // while `slice` state is normalized. Entering triple view needs the whole volume, so it commonly loads a
+  // coarser level than a single-slice 2D view does. A level may resize any subset of the axes by any factor,
+  // so indices set against the previous level no longer name the same position - too large on an axis that
+  // shrank, unchanged on one that didn't. Re-derive all three from the resolution-independent `slice`.
+  //
+  // Depend on the three sizes individually: `volumeSize` is a fresh object on every access, and any one axis
+  // changing on its own has to re-fire this.
+  const { x: numSlicesX, y: numSlicesY, z: numSlicesZ } = numSlices;
+  useImageEffect(
+    (currentImage) => {
+      if (viewMode === ViewMode.tripleProj) {
+        applyTripleSliceIndices(view3d, currentImage, useViewerState.getState().slice);
+      }
+    },
+    [view3d, viewMode, numSlicesX, numSlicesY, numSlicesZ]
+  );
+
   // Rendering ////////////////////////////////////////////////////////////////
 
   const visibleControls = useMemo(
@@ -585,6 +609,7 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
               multiscaleIndex={image?.imageInfo.multiscaleLevel}
+              onHeightChange={setToolbarHeight}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}
@@ -600,6 +625,7 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               clippingPanelOpen={clippingPanelOpen}
               onClippingPanelOpenChange={setClippingPanelOpen}
+              toolbarHeight={toolbarHeight}
             />
           </Content>
         </Layout>

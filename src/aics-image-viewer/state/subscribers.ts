@@ -1,7 +1,7 @@
-import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type View3d, type Volume } from "@aics/vole-core";
+import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type AxisName as VCAxisName, type View3d, type Volume } from "@aics/vole-core";
 import { shallow } from "zustand/shallow";
 
-import { activeAxisMap, type AxisName } from "../shared/types";
+import { activeAxisMap, type AxisName, type XYZ } from "../shared/types";
 import { colorArrayToFloats } from "../shared/utils/colorRepresentations";
 import {
   alphaSliderToImageValue,
@@ -11,6 +11,8 @@ import {
 } from "../shared/utils/sliderValuesToImageValues";
 import { select, type useViewerState, type ViewerStore } from "./store";
 import { RenderMode, ViewMode } from "./types";
+
+const AXES: AxisName[] = ["x", "y", "z"];
 
 const REF_EQ = { fireImmediately: true };
 const DEEP_EQ = { fireImmediately: true, equalityFn: shallow };
@@ -64,6 +66,34 @@ export const subscribeViewToState = (store: typeof useViewerState, view3d: View3
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };
 
+/**
+ * Converts a normalized slice position in `[0, 1]` to a voxel index in `image`'s currently loaded scale level.
+ *
+ * Each axis is converted against its own `volumeSize`, so this holds whatever a level does to that axis -
+ * downsampled by any factor, or left alone. Slice state is stored normalized for exactly this reason:
+ * `volumeSize` describes the *loaded multiscale level*, not the image.
+ *
+ * The result is clamped so it is a valid index for any axis size, including an axis a deep level has
+ * reduced to a single voxel (where every position maps to index 0).
+ */
+const sliceToVoxelIndex = (image: Volume, axis: AxisName, slice: number): number => {
+  const axisSize = image.imageInfo.volumeSize[axis];
+  return Math.min(Math.max(Math.round(slice * axisSize), 0), Math.max(axisSize - 1, 0));
+};
+
+/**
+ * Pushes all three triple-view slice positions into `view3d` as voxel indices.
+ *
+ * `view3d` holds these as indices into the loaded scale level, so they must be re-asserted whenever that
+ * level changes under us - see the corresponding effect in `App`. All three axes are rewritten rather than
+ * just the ones whose size changed, since a level may resize any subset of them.
+ */
+export const applyTripleSliceIndices = (view3d: View3d, image: Volume, slice: XYZ<number>): void => {
+  for (const axis of AXES) {
+    view3d.setTripleSliceIndex(axis as VCAxisName, sliceToVoxelIndex(image, axis, slice[axis]));
+  }
+};
+
 type AxisClipUpdateInfo = {
   region: [number, number];
   slice: number;
@@ -77,6 +107,10 @@ const selectAxisClipUpdateInfo = (axis: AxisName): ((store: ViewerStore) => Axis
 export const subscribeImageToState = (store: typeof useViewerState, view3d: View3d, image: Volume): (() => void) => {
   const axisClipUpdater = (axis: AxisName) => {
     return ({ region: [minval, maxval], slice, viewMode }: AxisClipUpdateInfo) => {
+      if (viewMode === ViewMode.tripleProj) {
+        view3d.setTripleSliceIndex(axis as VCAxisName, sliceToVoxelIndex(image, axis, slice));
+        return;
+      }
       let isOrthoAxis = false;
       let axismin = 0.0;
       let axismax = 1.0;
@@ -104,7 +138,7 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
       }
 
       // view3d wants the coordinates in the -0.5 to 0.5 range
-      view3d.setAxisClip(image, axis, axismin - 0.5, axismax - 0.5, isOrthoAxis);
+      view3d.setAxisClip(image, axis as VCAxisName, axismin - 0.5, axismax - 0.5, isOrthoAxis);
       // TODO necessary?
       // view3d.setCameraMode(viewMode);
       // TODO under some circumstances, this effect will trigger a load. Ideally, this would be reflected in the load
@@ -114,6 +148,21 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
   };
 
   const unsubscribers = [
+    // Reset axis clips to full range when entering triple projection mode.
+    // TripleSliceVolume is constructed with the current settings (which may have tight 2D clips),
+    // so we clear them here so all three panes can see the full volume extent.
+    store.subscribe(
+      select("viewMode"),
+      (viewMode) => {
+        if (viewMode === ViewMode.tripleProj) {
+          AXES.forEach((axis) => {
+            view3d.setAxisClip(image, axis as VCAxisName, -0.5, 0.5, false);
+          });
+        }
+      },
+      REF_EQ
+    ),
+
     // show bounding box
     store.subscribe(
       select("showBoundingBox"),
@@ -193,5 +242,19 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
     // TODO reset channels, time, scene?
   ];
 
-  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+  // Update state when the user drags crosshairs in triple-slice mode.
+  // vole-core only fires this callback during triple-slice rendering so it is safe to register unconditionally.
+  view3d.setTripleSliceCallback((indices) => {
+    const { x, y, z } = image.imageInfo.volumeSize;
+    store.getState().changeViewerSetting("slice", {
+      x: indices.x / x,
+      y: indices.y / y,
+      z: indices.z / z,
+    });
+  });
+
+  return () => {
+    view3d.setTripleSliceCallback(null);
+    unsubscribers.forEach((unsubscribe) => unsubscribe());
+  };
 };

@@ -46,7 +46,7 @@
   "author": "Allen Institute, Cell Science",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@aics/vole-core": "^4.9.2",
+    "@aics/vole-core": "^4.10.1",
     "@ant-design/icons": "^5.2.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
@@ -135,6 +135,7 @@
     "webpack-cli": "^4.7.2",
     "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0",
-    "webpack-shell-plugin": "^0.5.0"
+    "webpack-shell-plugin": "^0.5.0",
+    "zarrita": "^0.7.2"
   }
 }
