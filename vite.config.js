@@ -66,7 +66,16 @@ const DEFAULT_CONFIG = {
     // Fixes an invalid output format error when building
     format: "es",
   },
-  plugins: [svgr(), glsl(), react()],
+  plugins: [
+    svgr({
+      // Because Vol-E is also built as a standalone library without vite, we cannot
+      // use the default SVGR `.svg?rect` import syntax in source code. This
+      // tells vite to treat all `.svg` files as React components.
+      include: "**/*.svg",
+    }),
+    glsl(),
+    react(),
+  ],
 };
 
 module.exports = defineConfig(DEFAULT_CONFIG);
