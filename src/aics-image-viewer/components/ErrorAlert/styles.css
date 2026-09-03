@@ -1,4 +1,4 @@
-.load-error-alert {
+.ant-alert.load-error-alert {
   position: fixed;
   bottom: 30px;
   left: 30px;
@@ -8,6 +8,7 @@
   border-color: var(--color-text-error);
   padding: 12px 30px;
   color: var(--color-text-section);
+  border-radius: 4px;
 
   &.error-flash {
     background-color: var(--color-text-error);
