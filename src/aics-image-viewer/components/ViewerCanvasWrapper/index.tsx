@@ -3,6 +3,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import React from "react";
 
 import {
+  CLIPPING_PANEL_BUTTON_HEIGHT,
   CLIPPING_PANEL_HEIGHT_COLLAPSED,
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
@@ -74,16 +75,14 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
 
   const clippingPanelTall = numTimesteps > 1 && numScenes > 1 && viewMode === ViewMode.threeD;
   const clippingPanelHeight = clippingPanelTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
-  // `BottomPanel` defaults to open when the prop is omitted
   const clippingPanelOpen = props.clippingPanelOpen ?? true;
-
   // The triple projection view fills the whole viewport, so its outer rows would otherwise be hidden behind the
   // toolbar and clipping drawer floating over the canvas. Shrink the viewport to fit between them instead.
   const tripleProj = viewMode === ViewMode.tripleProj;
   const viewportInsetTop = tripleProj ? props.toolbarHeight : 0;
   const viewportInsetBottom = tripleProj
     ? clippingPanelOpen
-      ? clippingPanelHeight
+      ? clippingPanelHeight - CLIPPING_PANEL_BUTTON_HEIGHT
       : CLIPPING_PANEL_HEIGHT_COLLAPSED
     : 0;
 

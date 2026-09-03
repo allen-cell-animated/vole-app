@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   AXIS_MARGIN_DEFAULT,
+  CLIPPING_PANEL_BUTTON_HEIGHT,
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
@@ -87,8 +88,6 @@ const setIndicatorPositions = (
   hasScenes: boolean,
   isMode3d: boolean
 ): void => {
-  // The height of the clipping panel includes the button, but we're trying to put these elements next to the button
-  const CLIPPING_PANEL_BUTTON_HEIGHT = 40;
   // Move scale bars this far to the left when showing time series, to make room for timestep indicator
   const SCALE_BAR_TIME_SERIES_OFFSET = 120;
 
@@ -425,7 +424,7 @@ const App: React.FC<AppProps> = (props) => {
     const hasTime = numTimesteps > 1;
     const hasScenes = numScenes > 1;
     const mode3d = viewMode === ViewMode.threeD;
-    // In triple projection mode the viewport is inset above the clipping panel rather than running underneath it,
+    // In triple projection mode the viewport is inset to the top of the drawer rather than running underneath it,
     // so the indicators don't need to be moved up out of the panel's way.
     const panelOverlapsViewport = clippingPanelOpen && viewMode !== ViewMode.tripleProj;
 
