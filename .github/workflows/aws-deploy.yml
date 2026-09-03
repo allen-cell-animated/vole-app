@@ -69,13 +69,9 @@ jobs:
       - name: Configure AWS credentials with OIDC
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
         with:
-          role-to-assume: arn:aws:iam::${AWS_ACCOUNT_ID}:role/github_website_3d_viewer
-          role-session-name: website_3d_cell_viewer-${SHORT_SHA}
-          aws-region: ${AWS_REGION}
-        env:
-          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-          SHORT_SHA: ${{ env.SHORT_SHA }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github_website_3d_viewer
+          role-session-name: website_3d_cell_viewer-${{ env.SHORT_SHA }}
+          aws-region: ${{ env.AWS_REGION }}
 
       # Setup variables based on the staging or production environment
       - name: Set deployment variables based on environment
