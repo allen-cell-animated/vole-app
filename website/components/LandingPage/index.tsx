@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { parseViewerUrlParams } from "../../../src";
+import { VOLEAPP_BUILD_ENVIRONMENT } from "../../../src/constants";
 import { BannerVideo } from "../../assets/videos";
 import { GTM_ID } from "../../constants";
 import type { AppDataProps } from "../../types";
@@ -240,7 +241,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
       <ContentContainer style={{ paddingBottom: "400px" }}>
         <ProjectList
           projects={
-            import.meta.env.VITE_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...TEST_DATA_CONTENT] : LANDING_PAGE_CONTENT
+            VOLEAPP_BUILD_ENVIRONMENT === "dev" ? [...LANDING_PAGE_CONTENT, ...TEST_DATA_CONTENT] : LANDING_PAGE_CONTENT
           }
           onClickLoad={onClickLoad}
         />

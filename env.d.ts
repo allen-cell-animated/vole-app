@@ -8,8 +8,6 @@ interface ImportMetaEnv {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   readonly VITE_BUILD_TIME_UTC: string;
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  readonly VITE_BUILD_ENVIRONMENT: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   readonly VITE_BASENAME: string;
 }
 
