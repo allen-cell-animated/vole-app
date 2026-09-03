@@ -1,4 +1,5 @@
 import type { Channel } from "@aics/vole-core";
+import { RightOutlined } from "@ant-design/icons";
 import { Button, Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
@@ -136,6 +137,14 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       onClick={onClickChannel}
       className={rowClass}
       highlight={thisChannelOnly}
+      icon={
+        <RightOutlined
+          style={{
+            transition: "transform 0.3s",
+            transform: controlsOpen ? "rotate(90deg)" : "rotate(0deg)",
+          }}
+        />
+      }
     >
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}
