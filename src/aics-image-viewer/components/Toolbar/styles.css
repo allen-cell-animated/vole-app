@@ -114,8 +114,7 @@
   }
 
   .ant-btn-icon-only {
-    padding-bottom: 4px;
-    padding-left: 1px;
+    padding: 4px 0;
   }
 
   .btn-borderless {
