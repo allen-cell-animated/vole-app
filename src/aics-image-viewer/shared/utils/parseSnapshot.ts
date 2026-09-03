@@ -1,3 +1,4 @@
+import { VOLEAPP_VERSION } from "../../../constants";
 import type { MultisceneUrls } from "../../components/App/types";
 import { snapshotToChannelState, snapshotToViewerChannelSetting } from "../../state/deserialize";
 import { channelStateToSnapshot } from "../../state/serialize";

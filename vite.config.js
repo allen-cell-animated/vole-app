@@ -8,12 +8,11 @@ const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { pa
 // Add version number and build timestamp to the environment variables
 const DEFAULT_ENV = {
   ...process.env,
-  // VITE_APP_VERSION: process.env.npm_package_version,
-  // VITE_BUILD_TIME_UTC: Date.now().toString(),
-  VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
-  VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
-  VOLEAPP_BUILD_ENVIRONMENT: JSON.stringify(process.env.env),
-  VOLEAPP_BASENAME: JSON.stringify(process.env.basename),
+  VITE_VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
+  VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
+  VITE_BUILD_ENVIRONMENT: JSON.stringify(process.env.env),
+  VITE_BASENAME: JSON.stringify(process.env.basename),
+  VITE_BUILD_TIME_UTC: Date.now().toString(),
 };
 
 process.env = DEFAULT_ENV;
@@ -41,6 +40,9 @@ const DEFAULT_CONFIG = {
         dir: resolve(__dirname, "./imageviewer"),
       },
     },
+  },
+  server: {
+    port: 9020,
   },
   optimizeDeps: {
     // vole-core uses a worker imported via local import (e.g. new
