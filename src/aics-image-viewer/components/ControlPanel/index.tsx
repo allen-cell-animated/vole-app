@@ -1,5 +1,4 @@
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
-import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
@@ -55,17 +54,14 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
 
-  // TODO key is a number, but MenuInfo assumes keys will always be strings
-  //   if future versions of antd make this type more permissive, remove ugly double-cast
-  const makeTurnOnPresetFn = ({ key }: MenuInfo): void =>
-    props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors);
-
   const renderChannelSettingsHeader = (): React.ReactNode => {
     const dropDownMenuProps: MenuProps = {
       items: PRESET_COLOR_MAP.map((preset, index) => {
         return { key: index, label: preset.name };
       }),
-      onClick: makeTurnOnPresetFn,
+      // TODO key is a number, but MenuInfo assumes keys will always be strings
+      //   if future versions of antd make this type more permissive, remove ugly double-cast
+      onClick: ({ key }): void => props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors),
     };
 
     const singleChannelTitle = singleChannelMode ? (
