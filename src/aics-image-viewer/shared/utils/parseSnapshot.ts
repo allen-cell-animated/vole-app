@@ -80,6 +80,21 @@ export const channelStatesToSnapshot = (
   return { version: VOLEAPP_VERSION, channels };
 };
 
+/** Converts a single `ChannelState` to a compact JSON representation that can be stringified into the clipboard. */
+export const singleChannelStateToSnapshot = (
+  channelState: ChannelState,
+  excludeKeys?: (keyof ChannelState)[]
+): StoreSnapshot => {
+  const setting = cloneChannelState(channelState);
+  if (excludeKeys !== undefined) {
+    for (const key of excludeKeys) {
+      delete setting[key];
+    }
+  }
+  const channels = { [setting.name]: channelStateToSnapshot(setting, false) };
+  return { version: VOLEAPP_VERSION, channels };
+};
+
 /** Converts a compacted set of `ChannelState`s from the clipboard into a record of channel names and their states. */
 export const snapshotToChannelStates = (serialized: StoreSnapshot): Record<string, Partial<ChannelState>> => {
   const result: Record<string, Partial<ChannelState>> = {};

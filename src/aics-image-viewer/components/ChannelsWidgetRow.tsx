@@ -1,5 +1,6 @@
 import type { Channel } from "@aics/vole-core";
-import { Button, Checkbox } from "antd";
+import { RightOutlined } from "@ant-design/icons";
+import { Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/lib/checkbox";
 import React, { useCallback, useState } from "react";
 
@@ -8,8 +9,8 @@ import { colorArrayToObject, type ColorObject, colorObjectToArray } from "../sha
 import { select, useViewerState } from "../state/store";
 import type { ChannelState } from "../state/types";
 
+import CopySettingsButton from "./ControlPanel/CopySettingsButton";
 import ControlPanelRow from "./shared/ControlPanelRow";
-import ViewerIcon from "./shared/ViewerIcon";
 import TfEditor from "./TfEditor";
 
 interface ChannelsWidgetRowProps {
@@ -19,6 +20,10 @@ interface ChannelsWidgetRowProps {
 
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
+
+  getDropdownContainer?: () => HTMLElement;
+  scrollContainer?: HTMLElement | null;
+  controlPanelCollapsed?: boolean;
 }
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
@@ -33,6 +38,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   const [_controlsOpen, setControlsOpen] = useState(false);
   // Don't show controls in single-channel mode
   const controlsOpen = _controlsOpen && !singleChannelMode;
+  const toggleControlsOpen = useCallback(() => setControlsOpen((open) => !open), []);
 
   const onClickChannel = useCallback(() => {
     if (singleChannelMode) {
@@ -80,11 +86,12 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      <Button
-        icon={<ViewerIcon type="preferences" style={{ fontSize: "16px" }} />}
-        onClick={() => setControlsOpen(!controlsOpen)}
-        title="Open channel settings"
-        type="text"
+      <CopySettingsButton
+        hide={props.controlPanelCollapsed}
+        getDropdownContainer={props.getDropdownContainer}
+        scrollContainer={props.scrollContainer}
+        hideImportExport={true}
+        channelIndex={props.index}
       />
     </div>
   );
@@ -129,13 +136,27 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
   return (
     <ControlPanelRow
       key={index}
-      title={props.name}
+      title={
+        <span onClick={toggleControlsOpen} style={{ cursor: "pointer" }}>
+          {props.name}
+        </span>
+      }
       color={colorArrayToObject(channelState.color)}
       onColorChange={onColorChange}
       onColorChangeComplete={props.onColorChangeComplete}
       onClick={onClickChannel}
       className={rowClass}
       highlight={thisChannelOnly}
+      icon={
+        <RightOutlined
+          style={{
+            transition: "transform 0.3s",
+            transform: controlsOpen ? "rotate(90deg)" : "rotate(0deg)",
+            cursor: "pointer",
+          }}
+          onClick={toggleControlsOpen}
+        />
+      }
     >
       {visibilityControls}
       {controlsOpen && <div style={{ width: "100%" }}>{renderControls()}</div>}

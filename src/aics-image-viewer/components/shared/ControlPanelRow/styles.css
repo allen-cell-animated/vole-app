@@ -15,8 +15,10 @@
     align-items: center;
     flex-grow: 1;
 
-    .color-picker {
-      margin-right: 16px;
+    .color-picker,
+    .control-panel-row-icon {
+      margin-right: 10px;
+      font-size: 12px;
     }
 
     h4 {
