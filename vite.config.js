@@ -9,7 +9,7 @@ const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { pa
 // Add version number and build timestamp to the environment variables
 const DEFAULT_ENV = {
   ...process.env,
-  VITE_VOLEAPP_VERSION: JSON.stringify(require("./package.json").version),
+  VITE_VOLEAPP_VERSION: JSON.stringify(process.env.npm_package_version),
   VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
   VITE_BASENAME: process.env.basename ?? "./",
   VITE_BUILD_TIME_UTC: JSON.stringify(Date.now().toString()),
@@ -48,6 +48,11 @@ const DEFAULT_CONFIG = {
       "@aics/vole-core > numcodecs",
       "@aics/vole-core > throttled-queue",
     ],
+  },
+  define: {
+    // Also expose the version number directly as a global constant for the
+    // src/aics-image-viewer, which cannot use the `import.meta.env` syntax.
+    VITE_VOLEAPP_VERSION: process.env.VITE_VOLEAPP_VERSION,
   },
   worker: {
     // Fixes an invalid output format error when building
