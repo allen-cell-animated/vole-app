@@ -27,19 +27,7 @@ const enum ImportModalState {
   Warning,
 }
 
-type ApplySnapshotResult =
-  | { success: false }
-  | {
-      success: true;
-      /** The set of channel states after application of the imported settings string. */
-      states: ChannelState[];
-      /** The number of channel names in the JSON that were also present in the current image. */
-      matchedCount: number;
-      /** A list of channel names that were present in the JSON but not in the current image. */
-      unmatched: string[];
-    };
-
-const applySnapshot = (currentStates: ChannelState[], snapshotString: string): ApplySnapshotResult => {
+const parseSnapshot = (snapshotString: string): Record<string, Partial<ChannelState>> | undefined => {
   let parsed: unknown;
   try {
     parsed = JSON.parse(snapshotString);
@@ -47,24 +35,9 @@ const applySnapshot = (currentStates: ChannelState[], snapshotString: string): A
     parsed = undefined;
   }
   if (!isStoreSnapshot(parsed)) {
-    return { success: false };
+    return undefined;
   }
-
-  const parsedStates = snapshotToChannelStates(parsed);
-  const channelCount = Object.keys(parsedStates).length;
-  const states = currentStates.map((state) => {
-    const result = {
-      ...cloneChannelState(state),
-      ...parsedStates[state.name],
-    };
-    delete parsedStates[state.name];
-    return result;
-  });
-
-  const unmatched = Object.keys(parsedStates);
-  const matchedCount = channelCount - unmatched.length;
-
-  return { success: true, matchedCount, unmatched, states };
+  return snapshotToChannelStates(parsed);
 };
 
 const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[] }> = (props) => {
@@ -139,17 +112,27 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       const showDefaultAlert = defaultModalAlerts ? showModalAlert : showContextualAlert;
       const sourceNameCapitalized = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
 
+      const parsedStates = parseSnapshot(textSnapshot);
       const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
       const currentStates = channelSettings.map(cloneChannelState);
-      const importResult = applySnapshot(channelSettings, textSnapshot);
-      console.log(importResult);
 
-      if (!importResult.success) {
+      if (parsedStates === undefined) {
         showDefaultAlert(`${sourceNameCapitalized} does not contain channel settings`, "error");
         return false;
       }
+      const channelCount = Object.keys(parsedStates).length;
+      const states = currentStates.map((state) => {
+        const result = {
+          ...cloneChannelState(state),
+          ...parsedStates[state.name],
+        };
+        delete parsedStates[state.name];
+        return result;
+      });
 
-      const { matchedCount, unmatched, states } = importResult;
+      const unmatched = Object.keys(parsedStates);
+      const matchedCount = channelCount - unmatched.length;
+
       const unmatchedCount = unmatched.length;
       replaceAllChannelSettings(states);
       undoRef.current = (): void => replaceAllChannelSettings(currentStates);
@@ -158,7 +141,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         if (matchedCount > 0) {
           // Some channels in the text snapshot matched, some did not
           setImportModalState(ImportModalState.Warning);
-          showModalAlert(<PartialMatchMessage {...importResult} />, "warning");
+          showModalAlert(<PartialMatchMessage matchedCount={matchedCount} unmatched={unmatched} />, "warning");
         } else {
           // No channels in the text snapshot matched channels in the current image
           showDefaultAlert(`Channel names in ${sourceName} did not match names in image`, "error");
