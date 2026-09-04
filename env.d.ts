@@ -10,19 +10,3 @@ interface ImportMetaEnv {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   readonly VITE_BASENAME: string;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      readonly npm_package_version: string;
-    }
-  }
-}
-
-export {};
