@@ -27,12 +27,14 @@ export type ChannelsWidgetProps = {
   channelGroupedByType: ChannelGrouping;
   viewerChannelSettings?: ViewerChannelSettings;
 
+  scrollContainer?: HTMLElement | null;
+  getDropdownContainer?: () => HTMLElement;
+
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onApplyColorPresets: (presets: ColorArray[]) => void;
 
   filterFunc?: (key: string) => boolean;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
-  getControlPanel?: () => HTMLElement;
 };
 
 const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProps) => {
@@ -153,7 +155,8 @@ const ChannelsWidget: React.FC<ChannelsWidgetProps> = (props: ChannelsWidgetProp
         name={getDisplayName(channelName, channelIndex, viewerChannelSettings)}
         onColorChangeComplete={props.onColorChangeComplete}
         saveIsosurface={props.saveIsosurface}
-        getControlPanel={props.getControlPanel}
+        getDropdownContainer={props.getDropdownContainer}
+        scrollContainer={props.scrollContainer}
       />
     );
   };

@@ -20,7 +20,9 @@ interface ChannelsWidgetRowProps {
 
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
-  getControlPanel?: () => HTMLElement;
+
+  getDropdownContainer?: () => HTMLElement;
+  scrollContainer?: HTMLElement | null;
 }
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
@@ -83,7 +85,11 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      <CopySettingsButton getDropdownContainer={props.getControlPanel} hideImportExport={true} />
+      <CopySettingsButton
+        getDropdownContainer={props.getDropdownContainer}
+        scrollContainer={props.scrollContainer}
+        hideImportExport={true}
+      />
     </div>
   );
 
