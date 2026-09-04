@@ -4,7 +4,13 @@ import type { AlertProps, DraggerProps, MenuProps } from "antd";
 import type { MenuItemType } from "antd/es/menu/interface";
 import React from "react";
 
-import { channelStatesToSnapshot, isStoreSnapshot, snapshotToChannelStates } from "../../shared/utils/parseSnapshot";
+import {
+  channelStatesToSnapshot,
+  isStoreSnapshot,
+  singleChannelStateToSnapshot,
+  snapshotToChannelStates,
+  type StoreSnapshot,
+} from "../../shared/utils/parseSnapshot";
 import { queryPasteDenied } from "../../shared/utils/permissions";
 import { useViewerState } from "../../state/store";
 import type { ChannelState } from "../../state/types";
@@ -207,7 +213,13 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   const onClickExport = React.useCallback(() => {
     setDropdownOpen(false);
     const { channelSettings } = useViewerState.getState();
-    const serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
+    let serialized: StoreSnapshot;
+    if (props.channelIndex !== undefined) {
+      const channel = channelSettings[props.channelIndex];
+      serialized = singleChannelStateToSnapshot(channel, includeColor ? undefined : ["color"]);
+    } else {
+      serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
+    }
     const stateText = JSON.stringify(serialized);
     const link = document.createElement("a");
 
@@ -220,7 +232,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [imageName, includeColor]);
+  }, [imageName, includeColor, props.channelIndex]);
 
   const onClickPaste = React.useCallback(async () => {
     setDropdownOpen(false);
@@ -269,7 +281,13 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       setDropdownOpen(false);
       try {
         const { channelSettings } = useViewerState.getState();
-        const serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
+        let serialized: StoreSnapshot;
+        if (props.channelIndex !== undefined) {
+          const channel = channelSettings[props.channelIndex];
+          serialized = singleChannelStateToSnapshot(channel, includeColor ? undefined : ["color"]);
+        } else {
+          serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
+        }
         navigator.clipboard.writeText(JSON.stringify(serialized));
         showContextualAlert("Settings copied");
       } catch {
