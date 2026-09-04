@@ -1,9 +1,9 @@
-import { VOLEAPP_VERSION } from "../../../constants";
 import type { MultisceneUrls } from "../../components/App/types";
 import { snapshotToChannelState, snapshotToViewerChannelSetting } from "../../state/deserialize";
 import { channelStateToSnapshot } from "../../state/serialize";
 import type { ChannelState, ChannelStateSnapshot, ViewerStateSnapshot } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
+import { VOLEAPP_VERSION } from "../constants";
 import type { MetadataRecord } from "../types";
 import type { ViewerChannelSettings } from "./viewerChannelSettings";
 
