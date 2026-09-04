@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 
 import { getDefaultCameraState, getDefaultChannelState, getDefaultViewerState } from "../../shared/constants";
 import type { ViewerChannelSettings } from "../../shared/utils/viewerChannelSettings";

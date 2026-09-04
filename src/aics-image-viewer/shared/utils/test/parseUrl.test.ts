@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 
 import { parseKeyValueList } from "../../../state/deserialize";
 import { DEFAULT_TEST_VIEWER_CHANNEL_SETTING } from "../../../state/test/test_data";
