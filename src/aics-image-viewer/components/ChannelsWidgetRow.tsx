@@ -83,7 +83,7 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       <Checkbox checked={channelState.isosurfaceEnabled} onChange={isosurfaceCheckHandler}>
         Surf
       </Checkbox>
-      <CopySettingsButton getDropdownContainer={props.getControlPanel} />
+      <CopySettingsButton getDropdownContainer={props.getControlPanel} hideImportExport={true} />
     </div>
   );
 

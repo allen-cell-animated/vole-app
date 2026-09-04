@@ -1,6 +1,7 @@
 import { DragOutlined, EllipsisOutlined, ExclamationCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button, Checkbox, Dropdown, Modal, Tooltip, Upload } from "antd";
 import type { AlertProps, DraggerProps, MenuProps } from "antd";
+import type { MenuItemType } from "antd/es/menu/interface";
 import React from "react";
 
 import { channelStatesToSnapshot, isStoreSnapshot, snapshotToChannelStates } from "../../shared/utils/parseSnapshot";
@@ -15,6 +16,7 @@ export type CopySettingsButtonProps = {
   scrollContainer?: HTMLElement | null;
   hide?: boolean;
   getDropdownContainer?: () => HTMLElement;
+  hideImportExport?: boolean;
 };
 
 const enum ImportModalState {
@@ -248,39 +250,54 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     [showContextualAlert, showModalAlert, undo]
   );
 
-  const items: MenuProps["items"] = [
-    {
-      key: 0,
-      label: "Copy",
-      onClick: () => {
-        setDropdownOpen(false);
-        try {
-          const { channelSettings } = useViewerState.getState();
-          const serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
-          navigator.clipboard.writeText(JSON.stringify(serialized));
-          showContextualAlert("Settings copied");
-        } catch {
-          showContextualAlert("Could not copy settings", "error");
-        }
-      },
+  const copyItem: MenuItemType = {
+    key: "Copy",
+    label: "Copy",
+    onClick: () => {
+      setDropdownOpen(false);
+      try {
+        const { channelSettings } = useViewerState.getState();
+        const serialized = channelStatesToSnapshot(channelSettings, includeColor ? undefined : ["color"]);
+        navigator.clipboard.writeText(JSON.stringify(serialized));
+        showContextualAlert("Settings copied");
+      } catch {
+        showContextualAlert("Could not copy settings", "error");
+      }
     },
-    {
+  };
+  const pasteItem: MenuItemType = {
+    key: "Paste",
+    label: (
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <span>Paste</span>
+        {pastePrompt}
+      </div>
+    ),
+    disabled: pasteDenied,
+    onClick: onClickPaste,
+  };
+
+  const includeColorItem: MenuItemType = {
+    key: "IncludeColor",
+    className: "import-dropdown-menu-item-include-color",
+    label: <Checkbox checked={includeColor}>Include color setting</Checkbox>,
+    onClick: ({ domEvent }) => {
+      domEvent.stopPropagation();
+      domEvent.preventDefault();
+      setIncludeColor((includeColor) => !includeColor);
+    },
+  };
+
+  let items: MenuProps["items"];
+  if (props.hideImportExport) {
+    items = [copyItem, pasteItem, { key: "divider", type: "divider" }, includeColorItem];
+  } else {
+    const exportItem = {
       key: 1,
       label: "Export",
       onClick: onClickExport,
-    },
-    {
-      key: 2,
-      label: (
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span>Paste</span>
-          {pastePrompt}
-        </div>
-      ),
-      disabled: pasteDenied,
-      onClick: onClickPaste,
-    },
-    {
+    };
+    const importItem = {
       key: 3,
       label: "Import",
       onClick: () => {
@@ -288,19 +305,9 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         setImportModalState(ImportModalState.Import);
         showModalAlert(undefined);
       },
-    },
-    { key: 4, type: "divider" },
-    {
-      key: 5,
-      className: "import-dropdown-menu-item-include-color",
-      label: <Checkbox checked={includeColor}>Include color setting</Checkbox>,
-      onClick: ({ domEvent }) => {
-        domEvent.stopPropagation();
-        domEvent.preventDefault();
-        setIncludeColor((includeColor) => !includeColor);
-      },
-    },
-  ];
+    };
+    items = [copyItem, exportItem, pasteItem, importItem, { key: "divider", type: "divider" }, includeColorItem];
+  }
 
   return (
     <>
