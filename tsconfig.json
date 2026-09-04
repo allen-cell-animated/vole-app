@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.base",
-  "include": ["env.d.ts", "src", "website", "__mocks__", "vitest.config.ts"],
+  "include": ["src", "website", "__mocks__", "vitest.config.ts"],
   "exclude": ["node_modules", "imageviewer"],
   "compilerOptions": {
     // Required for top-level await in `__mocks__/zustand.ts`, which is used for
