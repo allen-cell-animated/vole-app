@@ -175,17 +175,18 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
       const parsedStates = parseSnapshot(textSnapshot);
       if (parsedStates === undefined) {
-        showDefaultAlert(`${sourceNameCapitalized} does not contain a channel setting`);
+        showDefaultAlert(`${sourceNameCapitalized} does not contain a channel setting`, "error");
         return false;
       }
 
       const states = Object.values(parsedStates);
       if (states.length < 1) {
-        showDefaultAlert(`${sourceNameCapitalized} does not contain a channel setting`);
+        showDefaultAlert(`${sourceNameCapitalized} does not contain a channel setting`, "error");
         return false;
       } else if (states.length > 1) {
         showDefaultAlert(
-          `${sourceNameCapitalized} contains multiple channel settings and can't be applied to a single channel`
+          `${sourceNameCapitalized} contains multiple channel settings and can't be applied to a single channel`,
+          "error"
         );
         return false;
       }

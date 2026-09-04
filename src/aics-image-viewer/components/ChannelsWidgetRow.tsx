@@ -23,6 +23,7 @@ interface ChannelsWidgetRowProps {
 
   getDropdownContainer?: () => HTMLElement;
   scrollContainer?: HTMLElement | null;
+  controlPanelCollapsed?: boolean;
 }
 
 const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidgetRowProps) => {
@@ -86,9 +87,11 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
         Surf
       </Checkbox>
       <CopySettingsButton
+        hide={props.controlPanelCollapsed}
         getDropdownContainer={props.getDropdownContainer}
         scrollContainer={props.scrollContainer}
         hideImportExport={true}
+        channelIndex={props.index}
       />
     </div>
   );

@@ -205,6 +205,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 viewerChannelSettings={viewerChannelSettings}
                 getDropdownContainer={getDropdownContainer}
                 scrollContainer={columnRef.current}
+                controlPanelCollapsed={props.collapsed}
               />
             )}
             {tab === ControlTab.Advanced && renderAdvancedSettings()}

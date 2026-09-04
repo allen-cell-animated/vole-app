@@ -29,6 +29,7 @@ export type ChannelsWidgetProps = {
 
   scrollContainer?: HTMLElement | null;
   getDropdownContainer?: () => HTMLElement;
+  controlPanelCollapsed?: boolean;
 
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onApplyColorPresets: (presets: ColorArray[]) => void;
