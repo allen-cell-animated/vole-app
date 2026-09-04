@@ -58,9 +58,9 @@ const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[] 
   );
 };
 
-const SuccessMessage: React.FC<{ channelCount: number; undo: () => void }> = ({ channelCount, undo }) => (
+const SuccessMessage: React.FC<{ channelCount?: number; undo: () => void }> = ({ channelCount, undo }) => (
   <>
-    Settings applied to {channelCount} channel{channelCount > 1 ? "s" : ""} -{" "}
+    Settings applied{channelCount !== undefined && `to ${channelCount} channel${channelCount > 1 ? "s" : ""}`} -{" "}
     <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
       Undo
     </Button>
@@ -107,7 +107,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     </Tooltip>
   );
 
-  const onReceiveSnapshotText = React.useCallback(
+  const applySnapshotText = React.useCallback(
     (textSnapshot: string, sourceName: string, defaultModalAlerts: boolean): boolean => {
       const showDefaultAlert = defaultModalAlerts ? showModalAlert : showContextualAlert;
       const sourceNameCapitalized = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
@@ -135,7 +135,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
 
       const unmatchedCount = unmatched.length;
       replaceAllChannelSettings(states);
-      undoRef.current = (): void => replaceAllChannelSettings(currentStates);
+      undoRef.current = () => replaceAllChannelSettings(currentStates);
 
       if (unmatchedCount > 0) {
         if (matchedCount > 0) {
@@ -157,6 +157,48 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         }
       }
 
+      return true;
+    },
+    [showContextualAlert, showModalAlert, undo]
+  );
+
+  const applySingleChannelSnapshotText = React.useCallback(
+    (textSnapshot: string, sourceName: string, defaultModalAlerts: boolean, channelIndex: number): boolean => {
+      const showDefaultAlert = defaultModalAlerts ? showModalAlert : showContextualAlert;
+      const sourceNameCapitalized = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
+
+      const parsedStates = parseSnapshot(textSnapshot);
+      if (parsedStates === undefined) {
+        showDefaultAlert(`${sourceNameCapitalized} does not contain a channel setting`);
+        return false;
+      }
+
+      const states = Object.values(parsedStates);
+      if (states.length < 1) {
+        showDefaultAlert(`${sourceNameCapitalized} does not contain a channel setting`);
+        return false;
+      } else if (states.length > 1) {
+        showDefaultAlert(
+          `${sourceNameCapitalized} contains multiple channel settings and can't be applied to a single channel`
+        );
+        return false;
+      }
+
+      const [state] = states;
+      const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
+      const currentStates = channelSettings.map(cloneChannelState);
+      const newStates = channelSettings.map((currentState, index) => {
+        if (index === channelIndex) {
+          return { ...cloneChannelState(currentState), ...state };
+        } else {
+          return cloneChannelState(currentState);
+        }
+      });
+
+      replaceAllChannelSettings(newStates);
+      undoRef.current = () => replaceAllChannelSettings(currentStates);
+
+      showContextualAlert(<SuccessMessage undo={undo} />);
       return true;
     },
     [showContextualAlert, showModalAlert, undo]
@@ -194,13 +236,22 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       return;
     }
 
-    onReceiveSnapshotText(clipboard, "clipboard", false);
-  }, [onReceiveSnapshotText, showContextualAlert]);
+    if (props.channelIndex !== undefined) {
+      applySingleChannelSnapshotText(clipboard, "clipboard", false, props.channelIndex);
+    } else {
+      applySnapshotText(clipboard, "clipboard", false);
+    }
+  }, [applySingleChannelSnapshotText, applySnapshotText, props.channelIndex, showContextualAlert]);
 
   const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
     async ({ file, onSuccess, onError }) => {
       const text = await (file as Blob).text();
-      const result = onReceiveSnapshotText(text, "file", true);
+      let result: boolean;
+      if (props.channelIndex !== undefined) {
+        result = applySingleChannelSnapshotText(text, "file", true, props.channelIndex);
+      } else {
+        result = applySnapshotText(text, "file", true);
+      }
 
       if (result) {
         onSuccess?.(undefined);
@@ -208,7 +259,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
         onError?.(new Error());
       }
     },
-    [onReceiveSnapshotText]
+    [applySingleChannelSnapshotText, applySnapshotText, props.channelIndex]
   );
 
   const copyItem: MenuItemType = {
