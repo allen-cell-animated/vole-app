@@ -7,6 +7,7 @@ import React from "react";
 import { channelStatesToSnapshot, isStoreSnapshot, snapshotToChannelStates } from "../../shared/utils/parseSnapshot";
 import { queryPasteDenied } from "../../shared/utils/permissions";
 import { useViewerState } from "../../state/store";
+import type { ChannelState } from "../../state/types";
 import { cloneChannelState } from "../../state/util";
 
 import { useContextualAlert } from "../shared/ContextualAlert";
@@ -17,6 +18,7 @@ export type CopySettingsButtonProps = {
   hide?: boolean;
   getDropdownContainer?: () => HTMLElement;
   hideImportExport?: boolean;
+  channelIndex?: number;
 };
 
 const enum ImportModalState {
@@ -25,24 +27,22 @@ const enum ImportModalState {
   Warning,
 }
 
-type ImportResult =
+type ApplySnapshotResult =
   | { success: false }
   | {
       success: true;
+      /** The set of channel states after application of the imported settings string. */
+      states: ChannelState[];
       /** The number of channel names in the JSON that were also present in the current image. */
       matchedCount: number;
       /** A list of channel names that were present in the JSON but not in the current image. */
       unmatched: string[];
-      /** Function to restore all channel states from before the new settings were imported. */
-      undo: () => void;
     };
 
-const importSettings = (settingsString: string): ImportResult => {
-  const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
-
+const applySnapshot = (currentStates: ChannelState[], snapshotString: string): ApplySnapshotResult => {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(settingsString);
+    parsed = JSON.parse(snapshotString);
   } catch {
     parsed = undefined;
   }
@@ -50,25 +50,21 @@ const importSettings = (settingsString: string): ImportResult => {
     return { success: false };
   }
 
-  const channelStates = snapshotToChannelStates(parsed);
-  const channelCount = Object.keys(channelStates).length;
-  const currentStates = channelSettings.map(cloneChannelState);
-  const nextStates = channelSettings.map((state) => {
+  const parsedStates = snapshotToChannelStates(parsed);
+  const channelCount = Object.keys(parsedStates).length;
+  const states = currentStates.map((state) => {
     const result = {
       ...cloneChannelState(state),
-      ...channelStates[state.name],
+      ...parsedStates[state.name],
     };
-    delete channelStates[state.name];
+    delete parsedStates[state.name];
     return result;
   });
 
-  replaceAllChannelSettings(nextStates);
-  const undo = (): void => replaceAllChannelSettings(currentStates);
-
-  const unmatched = Object.keys(channelStates);
+  const unmatched = Object.keys(parsedStates);
   const matchedCount = channelCount - unmatched.length;
 
-  return { success: true, matchedCount, unmatched, undo };
+  return { success: true, matchedCount, unmatched, states };
 };
 
 const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[] }> = (props) => {
@@ -138,6 +134,51 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     </Tooltip>
   );
 
+  const onReceiveSnapshotText = React.useCallback(
+    (textSnapshot: string, sourceName: string, defaultModalAlerts: boolean): boolean => {
+      const showDefaultAlert = defaultModalAlerts ? showModalAlert : showContextualAlert;
+      const sourceNameCapitalized = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
+
+      const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
+      const currentStates = channelSettings.map(cloneChannelState);
+      const importResult = applySnapshot(channelSettings, textSnapshot);
+      console.log(importResult);
+
+      if (!importResult.success) {
+        showDefaultAlert(`${sourceNameCapitalized} does not contain channel settings`, "error");
+        return false;
+      }
+
+      const { matchedCount, unmatched, states } = importResult;
+      const unmatchedCount = unmatched.length;
+      replaceAllChannelSettings(states);
+      undoRef.current = (): void => replaceAllChannelSettings(currentStates);
+
+      if (unmatchedCount > 0) {
+        if (matchedCount > 0) {
+          // Some channels in the text snapshot matched, some did not
+          setImportModalState(ImportModalState.Warning);
+          showModalAlert(<PartialMatchMessage {...importResult} />, "warning");
+        } else {
+          // No channels in the text snapshot matched channels in the current image
+          showDefaultAlert(`Channel names in ${sourceName} did not match names in image`, "error");
+        }
+      } else {
+        if (matchedCount > 0) {
+          // All channels matched!
+          setImportModalState(ImportModalState.Closed);
+          showContextualAlert(<SuccessMessage channelCount={matchedCount} undo={undo} />);
+        } else {
+          // There were no channels in the text snapshot at all!
+          showDefaultAlert(`${sourceNameCapitalized} does not contain channel settings`, "error");
+        }
+      }
+
+      return true;
+    },
+    [showContextualAlert, showModalAlert, undo]
+  );
+
   const onClickExport = React.useCallback(() => {
     setDropdownOpen(false);
     const { channelSettings } = useViewerState.getState();
@@ -170,84 +211,21 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
       return;
     }
 
-    const importResult = importSettings(clipboard);
-    if (!importResult.success) {
-      showContextualAlert("Clipboard does not contain channel settings", "error");
-      return;
-    }
-
-    const { unmatched, matchedCount } = importResult;
-    const unmatchedCount = unmatched.length;
-    undoRef.current = (): void => {
-      importResult.undo();
-      showContextualAlert(undefined);
-      showModalAlert(undefined);
-    };
-
-    if (unmatchedCount > 0) {
-      if (matchedCount > 0) {
-        showModalAlert(<PartialMatchMessage {...importResult} />, "warning");
-        setImportModalState(ImportModalState.Warning);
-      } else {
-        showContextualAlert("Channel names in clipboard did not match names in image", "error");
-      }
-    } else {
-      if (matchedCount > 0) {
-        showContextualAlert(
-          <>
-            Settings applied to {matchedCount} channel{matchedCount > 1 ? "s" : ""} -{" "}
-            <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
-              Undo
-            </Button>
-          </>
-        );
-      } else {
-        showContextualAlert("Clipboard does not contain channel settings", "error");
-      }
-    }
-  }, [showContextualAlert, showModalAlert, undo]);
+    onReceiveSnapshotText(clipboard, "clipboard", false);
+  }, [onReceiveSnapshotText, showContextualAlert]);
 
   const onImportFile = React.useCallback<DraggerProps["customRequest"] & {}>(
     async ({ file, onSuccess, onError }) => {
       const text = await (file as Blob).text();
-      const importResult = importSettings(text);
+      const result = onReceiveSnapshotText(text, "file", true);
 
-      if (!importResult.success) {
-        showModalAlert("File does not contain channel settings", "error");
-        onError?.(new Error());
-        return;
-      }
-
-      const { matchedCount, unmatched } = importResult;
-      const unmatchedCount = unmatched.length;
-      undoRef.current = (): void => {
-        importResult.undo();
-        showContextualAlert(undefined);
-        showModalAlert(undefined);
-      };
-
-      if (unmatchedCount > 0) {
-        if (matchedCount > 0) {
-          // Some channels in the file matched, some did not
-          setImportModalState(ImportModalState.Warning);
-          showModalAlert(<PartialMatchMessage {...importResult} />, "warning");
-        } else {
-          // No channels in the file matched channels in the current image
-          showModalAlert("Channel names in file did not match names in image", "error");
-        }
+      if (result) {
+        onSuccess?.(undefined);
       } else {
-        if (matchedCount > 0) {
-          // All channels matched!
-          setImportModalState(ImportModalState.Closed);
-          showContextualAlert(<SuccessMessage channelCount={matchedCount} undo={undo} />);
-        } else {
-          // There were no channels in the file at all!
-          showModalAlert("File does not contain channel settings", "error");
-        }
+        onError?.(new Error());
       }
-      onSuccess?.(undefined);
     },
-    [showContextualAlert, showModalAlert, undo]
+    [onReceiveSnapshotText]
   );
 
   const copyItem: MenuItemType = {
