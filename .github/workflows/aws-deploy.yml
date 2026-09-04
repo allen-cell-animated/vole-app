@@ -1,7 +1,5 @@
 ---
 name: AWS Deployment
-env:
-  NODE_VERSION: "24"
 
 on:
   workflow_dispatch:
@@ -16,6 +14,7 @@ on:
         type: choice
 
 env:
+  NODE_VERSION: "24"
   AWS_ACCOUNT_ID: ${{ vars.AWS_PUBLIC_DATA_RELEASES_ACCOUNT_ID }}
   AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
@@ -23,20 +22,20 @@ env:
   PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}
   PRODUCTION_S3_BUCKET: s3://volumeviewer.allencell.org
 
-permissions:
-  id-token: write # Required for requesting the JWT and OIDC
-  contents: write # Required for actions/checkout and OIDC tokens
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
         with:
           persist-credentials: false
-          
+
       - name: Setup Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
@@ -56,6 +55,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for requesting the JWT and OIDC
 
     # Dynamically set the environment variable based on the input above:
     environment: ${{ github.event.inputs.environment }}
@@ -75,16 +76,22 @@ jobs:
       # Setup variables based on the staging or production environment
       - name: Set deployment variables based on environment
         run: |
-          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
-            echo "S3_BUCKET=${{ env.PRODUCTION_S3_BUCKET }}" >> $GITHUB_ENV
-            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.environment }}" == "staging" ]; then
-            echo "S3_BUCKET=${{ env.STAGING_S3_BUCKET }}" >> $GITHUB_ENV
-            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          if [ "${ENVIRONMENT}" == "production" ]; then
+            echo "S3_BUCKET=${PRODUCTION_S3_BUCKET}" >> $GITHUB_ENV
+            echo "CLOUDFRONT_DISTRIBUTION_ID=${PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID}" >> $GITHUB_ENV
+          elif [ "${ENVIRONMENT}" == "staging" ]; then
+            echo "S3_BUCKET=${STAGING_S3_BUCKET}" >> $GITHUB_ENV
+            echo "CLOUDFRONT_DISTRIBUTION_ID=${STAGING_CLOUDFRONT_DISTRIBUTION_ID}" >> $GITHUB_ENV
           else
             echo "Invalid environment specified"
             exit 1
           fi
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          STAGING_S3_BUCKET: ${{ env.STAGING_S3_BUCKET }}
+          STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ env.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
+          PRODUCTION_S3_BUCKET: ${{ env.PRODUCTION_S3_BUCKET }}
+          PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID: ${{ env.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427
@@ -95,7 +102,11 @@ jobs:
       # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://volumeviewer.allencell.org/
       # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.S3_BUCKET }}/your_prefix below
       - name: Copy build files to S3 root
-        run: aws s3 sync ./dist ${{ env.S3_BUCKET }}
+        run: aws s3 sync ./dist ${S3_BUCKET}
+        env:
+          S3_BUCKET: ${{ env.S3_BUCKET }}
 
       - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths "/*"
+        env:
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ env.CLOUDFRONT_DISTRIBUTION_ID }}
