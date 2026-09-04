@@ -85,6 +85,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
+      contents: read # Required for actions/checkout
       # Required for OIDC token for NPM Trusted Publishers.
       # See https://docs.github.com/en/actions/concepts/security/openid-connect
       # and https://docs.npmjs.com/trusted-publishers.
