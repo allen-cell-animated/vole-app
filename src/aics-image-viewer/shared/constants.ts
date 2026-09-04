@@ -5,8 +5,18 @@ import type { AxisName } from "./types";
 import type { ColorArray } from "./utils/colorRepresentations";
 import type { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
-const VITE_VOLEAPP_VERSION = process.env.VITE_VOLEAPP_VERSION;
-const BABEL_BUILD_VOLEAPP_VERSION = process.env.VOLEAPP_VERSION;
+function getBabelBuildVersion(): string | undefined {
+  try {
+    // When built with Babel, the version is injected at build time here:
+    return process.env.VOLEAPP_VERSION;
+  } catch {
+    return undefined;
+  }
+}
+
+// When built with Vite, the current version is accessible here:
+const VITE_VOLEAPP_VERSION = import.meta.env.VITE_VOLEAPP_VERSION;
+const BABEL_BUILD_VOLEAPP_VERSION = getBabelBuildVersion();
 export const VOLEAPP_VERSION: string = VITE_VOLEAPP_VERSION ?? BABEL_BUILD_VOLEAPP_VERSION ?? "3.5.0";
 
 // Add all exported constants here to prevent circular dependencies

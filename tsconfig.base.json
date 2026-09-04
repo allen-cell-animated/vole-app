@@ -1,4 +1,3 @@
-// Used when generating types when building as a library.
 {
   "compilerOptions": {
     "allowJs": true,
