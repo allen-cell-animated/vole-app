@@ -33,10 +33,14 @@ jobs:
           node-version: ${{env.NODE_VERSION}}
           cache: "npm"
 
+      - name: Install
+        run: npm ci
+
         # Must override default webpack build base so that assets can still be accessed when not placed in the root directory of gh-pages branch.
-      - name: Install and Build
-        run: npm ci && vite build --base=/vole-app/pr-preview/pr-${PR_NUMBER}/
+      - name: Build
+        run: npx vite build --base=/${GITHUB_EVENT_REPOSITORY_NAME}/pr-preview/pr-${PR_NUMBER}/
         env:
+          GITHUB_EVENT_REPOSITORY_NAME: ${{ github.event.repository.name }}
           PR_NUMBER: ${{ github.event.number }}
 
       - name: Deploy preview
