@@ -1,7 +1,7 @@
 import React from "react";
 
-import { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types.js";
-import { MetadataRecord } from "../../src/aics-image-viewer/shared/types.js";
+import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types.js";
+import type { MetadataRecord } from "../../src/aics-image-viewer/shared/types.js";
 import { encodeImageUrlProp } from "../utils/urls.js";
 
 type Message = MultisceneUrls & {
@@ -10,7 +10,7 @@ type Message = MultisceneUrls & {
 
 const LocalStorageReceiver: React.FC = () => {
   React.useLayoutEffect(() => {
-    const receiveMessage = (e: MessageEvent) => {
+    const receiveMessage = (e: MessageEvent): void => {
       if (e.origin === window.location.origin) {
         return;
       }
