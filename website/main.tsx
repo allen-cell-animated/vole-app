@@ -12,7 +12,6 @@ import LocalStorageReceiver from "./components/LocalStorageReceiver";
 
 import "./App.css";
 
-// vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
 
