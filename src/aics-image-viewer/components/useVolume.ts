@@ -40,7 +40,7 @@ export const enum ImageLoadStatus {
 }
 
 const enum LoadType {
-  TIME,
+  RELOAD,
   SCENE,
 }
 
@@ -63,6 +63,7 @@ export type ReactiveVolume = {
   imageLoadStatus: ImageLoadStatus;
   setTime: (view3d: View3d, time: number) => void;
   setScene: (scene: number) => void;
+  setScrubbingAxis: (axis: AxisName | "t" | null) => void;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
   channelGroupedByType: ChannelGrouping;
@@ -115,6 +116,7 @@ const useVolume = (
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
+  const [scrubbingAxis, setScrubbingAxis] = useState<AxisName | "t" | null>(null);
   useEffect(() => {
     playControls.onPlayingAxisChanged = (axis) => {
       const isPlaying = axis !== null;
@@ -122,14 +124,6 @@ const useVolume = (
       // prioritize prefetching along the playing axis
       sceneLoader.setPrefetchPriority(axis ? [AXIS_TO_LOADER_PRIORITY[axis]] : []);
       sceneLoader.updateFetchOptions({ onlyPriorityDirections: isPlaying });
-      // sync multichannel loading so we don't show loaded channels one at a time
-      sceneLoader.syncMultichannelLoading(isPlaying);
-      if (image) {
-        // If we're playing and entire axis is not in memory (T always, Z likely), downlevel to speed things up
-        const { volumeSize, subregionSize } = image.imageInfo;
-        const shouldDownlevel = isPlaying && (axis === "t" || volumeSize[axis] !== subregionSize[axis]);
-        image.updateRequiredData({ scaleLevelBias: shouldDownlevel ? 1 : 0 });
-      }
     };
   }, [sceneLoader, playControls, image]);
 
@@ -187,6 +181,24 @@ const useVolume = (
     },
     [onErrorRef]
   );
+
+  const scaleLevelBias = useMemo(() => {
+    if (!image) return 0;
+
+    // If we're playing/scrubbing and entire axis is not in memory, downlevel to speed things up
+    const { volumeSize, subregionSize, numMultiscaleLevels } = image.imageInfo;
+    const axis = scrubbingAxis ?? playingAxis;
+    if (axis && (axis === "t" || volumeSize[axis] !== subregionSize[axis])) {
+      const isPlayback = scrubbingAxis !== null;
+      return isPlayback ? numMultiscaleLevels : 1;
+    }
+
+    return 0;
+  }, [image, playingAxis, scrubbingAxis]);
+
+  useEffect(() => {
+    image?.updateRequiredData({ scaleLevelBias }).catch(onError);
+  }, [scaleLevelBias, image, onError]);
 
   // channelGroupedByType groups channel indexes by their category.
   // It depends on `viewerChannelSettings` and the channel names in the current image.
@@ -333,7 +345,7 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time).catch(onError);
-        setIsLoading(LoadType.TIME);
+        setIsLoading(LoadType.RELOAD);
       }
     },
     [image, onError, setIsLoading, inInitialLoadRef]
@@ -377,6 +389,20 @@ const useVolume = (
     ]
   );
 
+  useEffect(() => {
+    if (image && !inInitialLoadRef.current && scrubbingAxis === null) {
+      setIsLoading(LoadType.RELOAD);
+    }
+  }, [image, scrubbingAxis, setIsLoading]);
+
+  useEffect(() => {
+    if (image && !inInitialLoadRef.current) {
+      // When playing, wait for all channels to load before displaying
+      // When scrubbing, show channels as they arrive, for speed
+      sceneLoader.syncMultichannelLoading(scrubbingAxis === null && playingAxis !== null);
+    }
+  }, [image, scrubbingAxis, playingAxis, sceneLoader]);
+
   return useMemo(
     () => ({
       image,
@@ -384,11 +410,22 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
+      setScrubbingAxis,
       playControls,
       playingAxis,
       channelGroupedByType,
     }),
-    [image, channelVersions, imageLoadStatus, setTime, setScene, playControls, playingAxis, channelGroupedByType]
+    [
+      image,
+      channelVersions,
+      imageLoadStatus,
+      setTime,
+      setScene,
+      setScrubbingAxis,
+      playControls,
+      playingAxis,
+      channelGroupedByType,
+    ]
   );
 };
 
