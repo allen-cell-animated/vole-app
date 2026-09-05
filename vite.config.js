@@ -33,22 +33,15 @@ const DEFAULT_CONFIG = {
     port: 9020,
   },
   optimizeDeps: {
-    // vole-core uses a worker imported via local import (e.g. new
-    // URL('./local-worker.js', import.meta.url)). If vite bundles the worker,
-    // vole-core will not be able to find it at runtime. We exclude vole-core
-    // from dependency optimization here.
-    exclude: ["@aics/vole-core"],
-    // Have to still optimize all CommonJS dependencies of vole-core. See
+    // TODO: Check if this is still necessary. This configuration seems to work
+    // without excluding vole-core, but breaks when its dependencies are not
+    // explicitly included.
+    // CommonJS dependencies of vole-core must be optimized still. See
     // https://vite.dev/config/dep-optimization-options#optimizedeps-exclude
-    include: [
-      "@aics/vole-core > tweakpane",
-      "@aics/vole-core > geotiff",
-      "@aics/vole-core > numcodecs",
-      "@aics/vole-core > throttled-queue",
-    ],
+    include: ["@aics/vole-core > geotiff"],
   },
   define: {
-    // Also expose the version number directly as a global constant for the
+    // Expose the version number directly as a global constant for the
     // src/aics-image-viewer, which cannot use the `import.meta.env` syntax.
     VITE_VOLEAPP_VERSION: process.env.VITE_VOLEAPP_VERSION,
   },
