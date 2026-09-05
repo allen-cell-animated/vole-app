@@ -21,9 +21,7 @@ const DEFAULT_CONFIG = {
   build: {
     rollupOptions: {
       input: {
-        // eslint-disable-next-line no-undef
         main: resolve(__dirname, "./index.html"),
-        // eslint-disable-next-line no-undef
         404: resolve(__dirname, "./404.html"),
       },
       output: {
@@ -53,10 +51,6 @@ const DEFAULT_CONFIG = {
     // Also expose the version number directly as a global constant for the
     // src/aics-image-viewer, which cannot use the `import.meta.env` syntax.
     VITE_VOLEAPP_VERSION: process.env.VITE_VOLEAPP_VERSION,
-  },
-  worker: {
-    // Fixes an invalid output format error when building
-    format: "es",
   },
   plugins: [
     svgr({
