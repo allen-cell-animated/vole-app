@@ -8,7 +8,6 @@
     // `tsconfig.base.json` are used instead, which target ES6.
     "module": "ES2022",
     "target": "ES2017",
-    "outDir": "./dist",
-    "types": ["vite-plugin-svgr/client"]
+    "outDir": "./dist"
   }
 }
