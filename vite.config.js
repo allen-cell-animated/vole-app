@@ -11,7 +11,6 @@ const DEFAULT_ENV = {
   ...process.env,
   VITE_VOLEAPP_VERSION: JSON.stringify(process.env.npm_package_version),
   VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
-  VITE_BASENAME: process.env.basename ?? "./",
   VITE_BUILD_TIME_UTC: JSON.stringify(Date.now().toString()),
 };
 
