@@ -15,9 +15,12 @@ function getBuildVersion(): string | undefined {
   // Injected at build time when built by Babel as a library
   try {
     return process.env.VOLEAPP_VERSION;
-  } catch {
-    return undefined;
-  }
+  } catch {}
+
+  console.error(
+    "Failed to determine VOLEAPP_VERSION; a default fallback will be used instead. This is likely due to a build environment misconfiguration."
+  );
+  return undefined;
 }
 
 export const VOLEAPP_VERSION: string = getBuildVersion() ?? "3.5.0";
