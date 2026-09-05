@@ -17,8 +17,9 @@ const DEFAULT_ENV = {
 process.env = DEFAULT_ENV;
 
 const DEFAULT_CONFIG = {
+  base: process.env.basename ?? "./",
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         main: resolve(__dirname, "./index.html"),
         404: resolve(__dirname, "./404.html"),
