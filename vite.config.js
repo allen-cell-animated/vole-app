@@ -33,11 +33,8 @@ const DEFAULT_CONFIG = {
     port: 9020,
   },
   optimizeDeps: {
-    // TODO: Check if this is still necessary. This configuration seems to work
-    // without excluding vole-core, but breaks when its dependencies are not
-    // explicitly included.
-    // CommonJS dependencies of vole-core must be optimized still. See
-    // https://vite.dev/config/dep-optimization-options#optimizedeps-exclude
+    // geotiff is only imported indirectly in vole-core workers, so vite will
+    // exclude it unless it's explicitly included here.
     include: ["@aics/vole-core > geotiff"],
   },
   define: {
