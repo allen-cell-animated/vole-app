@@ -112,6 +112,7 @@ const setIndicatorPositions = (
   view3d.setAxisPosition(AXIS_MARGIN_DEFAULT[0], axisY);
   view3d.setTimestepIndicatorPosition(SCALE_BAR_MARGIN_DEFAULT[0], scaleBarY);
   view3d.setScaleBarPosition(scaleBarX, scaleBarY);
+  view3d.setLowResIndicatorPosition(scaleBarY);
 };
 
 const App: React.FC<AppProps> = (props) => {
@@ -348,12 +349,24 @@ const App: React.FC<AppProps> = (props) => {
     [showError, onImageTitleChange]
   );
 
+  const onScrub = useCallback(
+    (isScrubbing: boolean, image: Volume) => {
+      if (isScrubbing) {
+        void view3d.enableScrubIndicator(image).catch(onError);
+      } else {
+        view3d.disableScrubIndicator();
+      }
+    },
+    [view3d, onError]
+  );
+
   const volume = useVolume(scenes, {
     viewerChannelSettings: props.viewerChannelSettings,
     onCreateImage,
     onChannelLoaded,
     onChangeScene,
     onError,
+    onScrub,
     maskChannelName,
   });
   const { image, setTime, setScene } = volume;
