@@ -15,15 +15,18 @@ function getBuildVersion(): string | undefined {
   // Injected at build time when built by Babel as a library
   try {
     return process.env.VOLEAPP_VERSION;
-  } catch {}
+  } catch {
+    return undefined;
+  }
+}
 
+const buildVersion = getBuildVersion();
+if (buildVersion === undefined) {
   console.error(
     "Failed to determine VOLEAPP_VERSION; a default fallback will be used instead. This is likely due to a build environment misconfiguration."
   );
-  return undefined;
 }
-
-export const VOLEAPP_VERSION: string = getBuildVersion() ?? "3.5.0";
+export const VOLEAPP_VERSION: string = buildVersion ?? "3.5.0";
 
 // Add all exported constants here to prevent circular dependencies
 export const // Control panel will automatically close if viewport is less than this width
