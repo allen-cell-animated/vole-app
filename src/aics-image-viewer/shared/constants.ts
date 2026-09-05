@@ -5,6 +5,23 @@ import type { AxisName } from "./types";
 import type { ColorArray } from "./utils/colorRepresentations";
 import type { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
+declare const VITE_VOLEAPP_VERSION: string | undefined;
+
+function getBuildVersion(): string | undefined {
+  // Defined as global constants when built by Vite as an app
+  if (typeof VITE_VOLEAPP_VERSION === "string" && VITE_VOLEAPP_VERSION.length > 0) {
+    return VITE_VOLEAPP_VERSION;
+  }
+  // Injected at build time when built by Babel as a library
+  try {
+    return process.env.VOLEAPP_VERSION;
+  } catch {
+    return undefined;
+  }
+}
+
+export const VOLEAPP_VERSION: string = getBuildVersion() ?? "3.5.0";
+
 // Add all exported constants here to prevent circular dependencies
 export const // Control panel will automatically close if viewport is less than this width
   CONTROL_PANEL_CLOSE_WIDTH = 970,

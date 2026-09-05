@@ -1,0 +1,60 @@
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
+import { defineConfig } from "vite";
+import glsl from "vite-plugin-glsl";
+import svgr from "vite-plugin-svgr";
+
+const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { paths: [__dirname] });
+
+// Add version number and build timestamp to the environment variables
+const DEFAULT_ENV = {
+  ...process.env,
+  VITE_VOLEAPP_VERSION: JSON.stringify(process.env.npm_package_version),
+  VITE_VOLECORE_VERSION: JSON.stringify(require(voleCorePackagePath).version),
+  VITE_BASENAME: process.env.basename ?? "./",
+  VITE_BUILD_TIME_UTC: JSON.stringify(Date.now().toString()),
+};
+
+process.env = DEFAULT_ENV;
+
+const DEFAULT_CONFIG = {
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "./index.html"),
+        404: resolve(__dirname, "./404.html"),
+      },
+      output: {
+        dir: resolve(__dirname, "./imageviewer"),
+      },
+    },
+  },
+  server: {
+    port: 9020,
+  },
+  optimizeDeps: {
+    // TODO: Check if this is still necessary. This configuration seems to work
+    // without excluding vole-core, but breaks when its dependencies are not
+    // explicitly included.
+    // CommonJS dependencies of vole-core must be optimized still. See
+    // https://vite.dev/config/dep-optimization-options#optimizedeps-exclude
+    include: ["@aics/vole-core > geotiff"],
+  },
+  define: {
+    // Expose the version number directly as a global constant for the
+    // src/aics-image-viewer, which cannot use the `import.meta.env` syntax.
+    VITE_VOLEAPP_VERSION: process.env.VITE_VOLEAPP_VERSION,
+  },
+  plugins: [
+    svgr({
+      // Because Vol-E is also built as a standalone library without vite, we cannot
+      // use the default SVGR `.svg?rect` import syntax in source code. This
+      // tells vite to treat all `.svg` files as React components.
+      include: "**/*.svg",
+    }),
+    glsl(),
+    react(),
+  ],
+};
+
+module.exports = defineConfig(DEFAULT_CONFIG);

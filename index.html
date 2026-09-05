@@ -21,11 +21,11 @@
 
     <title>Vol-E</title>
     
-    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/images/icon.svg" />
     <meta name="description" content="A web-based viewer for multi-channel 3D microscopy data." />
     <meta name="keywords" content="Microscopy, biology, imaging, 3D, 3D data, OME-Zarr, zarr, volumetric data, volume rendering, data visualization" />
     <meta name="author" content="The cell science accelerator at the Allen Institute" />
-    <!-- <meta name="version" content="%VITE_APP_VERSION%" /> -->
+    <meta name="version" content=%VITE_VOLEAPP_VERSION% />
 
     <meta property="og:title" content="Vol-E" />
     <meta property="og:type" content="website" />
@@ -35,7 +35,7 @@
     <meta property="og:url" content="https://vol-e.allencell.org/" />
     <meta property="og:description" content="A web-based viewer for multi-channel 3D microscopy data." />
     <meta property="og:locale" content="en_US" />
-   <meta property="og:image" content="<%= require('./meta-image.png') %>"/>
+   <meta property="og:image" content="/images/meta-image.png"/>
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="660" />
     <meta property="og:image:type" content="image/png" />
@@ -54,7 +54,7 @@
       name="twitter:description"
       content="A web-based viewer for multi-channel 3D microscopy data."
     />
-    <meta name="twitter:image" content="<%= require('./meta-image.png') %>" />
+    <meta name="twitter:image" content="/images/meta-image.png" />
     <meta
       name="twitter:image:alt"
       content="A screenshot of the Vol-E web viewer, viewing a 3D volumetric microscopy image of a colony of cells. The cell nuclei are shown in white, and the brightfield image is shown in purple."
@@ -83,6 +83,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
       rel="stylesheet"
     />
+    <script type="module" src="/website/main.tsx"></script>
   </head>
   <body style="margin: 0">
     <!-- Google Tag Manager (noscript) -->

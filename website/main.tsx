@@ -2,27 +2,22 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
-import {
-  decodeGitHubPagesUrl,
-  isEncodedPathUrl,
-  resolveBasename,
-  tryRemoveHashRouting,
-} from "../website/utils/gh_route_utils";
-import firestore from "./firebase/configure_firebase";
+import { VOLEAPP_BASENAME, VOLEAPP_BUILD_ENVIRONMENT, VOLEAPP_VERSION, VOLECORE_VERSION } from "./constants";
+import firestore from "./utils/firebase/configure_firebase";
+import { decodeGitHubPagesUrl, isEncodedPathUrl, resolveBasename, tryRemoveHashRouting } from "./utils/gh_route_utils";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
-import LocalStorageReceiver from "./LocalStorageReceiver";
+import LocalStorageReceiver from "./components/LocalStorageReceiver";
 
 import "./App.css";
 
-// vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
 
 const basename = resolveBasename(VOLEAPP_BASENAME);
-console.log(`vole-app Basename ${VOLEAPP_BASENAME}` +
-  ((VOLEAPP_BASENAME !== basename) ? ` (resolved to "${basename}")` : "")
+console.log(
+  `vole-app Basename ${VOLEAPP_BASENAME}` + (VOLEAPP_BASENAME !== basename ? ` (resolved to "${basename}")` : "")
 );
 
 console.log(`vole-core Version ${VOLECORE_VERSION}`);

@@ -3,8 +3,9 @@ es/
 type-declarations/
 src/aics-image-viewer/shared/utils/webgl-debug.js
 server.js
-webpack.*.js
 postcss.*.js
+vite.config.js
 node_modules
 .env
 coverage/
+imageviewer/
