@@ -76,7 +76,6 @@
     width:100%;
     border-bottom:1px solid var(--color-controlpanel-border);
   }
-
 .control-panel-col .ant-collapse-item:not(:last-child) .control-panel-row:last-child::after{
   border-bottom:none;
 }
@@ -859,7 +858,6 @@
   width:100%;
   z-index:250;
 }
-
 .viewer-toolbar-container .viewer-toolbar-scroll-left,
   .viewer-toolbar-container .viewer-toolbar-scroll-right{
     height:100%;
@@ -873,28 +871,22 @@
     z-index:255;
     transition:color 0.3s;
   }
-
 .viewer-toolbar-container .viewer-toolbar-scroll-left:hover, .viewer-toolbar-container .viewer-toolbar-scroll-right:hover{
       color:white;
     }
-
 .viewer-toolbar-container .viewer-toolbar-scroll-left{
     left:0;
   }
-
 .viewer-toolbar-container .viewer-toolbar-scroll-right{
     right:0;
   }
-
 .viewer-toolbar-container.viewer-toolbar-scroll{
     border-bottom:1px solid var(--color-layout-dividers);
   }
-
 .viewer-toolbar-container.viewer-toolbar-scroll .viewer-toolbar-scroll-left,
     .viewer-toolbar-container.viewer-toolbar-scroll .viewer-toolbar-scroll-right{
       display:flex;
     }
-
 .viewer-toolbar-container.viewer-toolbar-scroll .viewer-toolbar{
       white-space:nowrap;
       justify-content:normal;
@@ -902,16 +894,13 @@
       overflow-x:scroll;
       scrollbar-width:none;
     }
-
 .viewer-toolbar-container.viewer-toolbar-scroll .viewer-toolbar::-webkit-scrollbar{
         display:none;
       }
-
 .viewer-toolbar-container.viewer-toolbar-scroll .viewer-toolbar .viewer-toolbar-left{
         position:static;
         margin-left:15px;
       }
-
 .viewer-toolbar-container.viewer-toolbar-scroll .viewer-toolbar .viewer-toolbar-right{
         position:static;
         margin-right:15px;
