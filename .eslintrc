@@ -2,8 +2,8 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    // TODO: Re-enable import plugin; currently it flags imports for
-    // styled-components, React, and lodash.
+    // TODO: Re-enable recommended settings for import plugin; currently it
+    // flags imports for styled-components, React, and lodash.
     // "plugin:import/recommended"
   ],
   "env": {
