@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <% const gtmId = (process.env.WEBPACK_GTM_ID || "").trim(); %>
-    <% if (gtmId) { %>
     <!-- Google Tag Manager -->
     <script>
       (function (w, d, s, l, i) {
+        if (!i) {
+          return;
+        }
         w[l] = w[l] || [];
         w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
         var f = d.getElementsByTagName(s)[0],
@@ -14,10 +15,10 @@
         j.async = true;
         j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
         f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "<%= gtmId %>");
+      })(window, document, "script", "dataLayer", "%VITE_GTM_ID%");
     </script>
     <!-- End Google Tag Manager -->
-    <% } %>
+
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -89,11 +90,10 @@
     <script type="module" src="/website/main.tsx"></script>
   </head>
   <body style="margin: 0">
-    <% if (gtmId) { %>
     <!-- Google Tag Manager (noscript) -->
     <noscript>
       <iframe
-        src="https://www.googletagmanager.com/ns.html?id=<%= gtmId %>"
+        src="https://www.googletagmanager.com/ns.html?id=%VITE_GTM_ID%"
         height="0"
         width="0"
         style="display: none; visibility: hidden"
@@ -101,7 +101,6 @@
       </iframe>
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
-    <% } %>
 
     <div id="cell-viewer"></div>
   </body>
