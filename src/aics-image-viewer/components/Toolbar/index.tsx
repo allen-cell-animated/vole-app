@@ -57,7 +57,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const leftRef = React.useRef<HTMLDivElement>(null);
   const rightRef = React.useRef<HTMLDivElement>(null);
   const centerRef = React.useRef<HTMLDivElement>(null);
-  const resizeObserver = React.useRef<ResizeObserver>();
+  const resizeObserver = React.useRef<ResizeObserver>(undefined);
 
   const [scrollMode, setScrollMode] = React.useState(false);
   const [showScrollBtnLeft, setScrollBtnLeft] = React.useState(false);
