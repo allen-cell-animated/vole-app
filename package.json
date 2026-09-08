@@ -21,13 +21,13 @@
     "url": "git+https://github.com/allen-cell-animated/vole-app.git"
   },
   "scripts": {
-    "start": "webpack serve --config webpack.dev.js  --env env=dev",
+    "start": "webpack serve --config webpack.dev.js  --env env=development",
     "gh-build-nightly": "webpack --config webpack.dev.js --env env=production basename=/vole-app/",
     "gh-build-release": "webpack --config webpack.dev.js --env env=production basename=/website-3d-cell-viewer-release/",
     "s3-build": "webpack --config webpack.dev.js --env env=production",
     "release-build": "webpack --config webpack.dev.js --env env=production",
     "docker-build": "webpack --config webpack.common.js --env env=production",
-    "dev": "webpack --config webpack.dev.js --env env=dev",
+    "dev": "webpack --config webpack.dev.js --env env=development",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
     "test": "jest --coverage --passWithNoTests",
     "test:github-action": "jest --silent --passWithNoTests --ci --coverage --coverageReporters=\"text\" --coverageReporters=\"text-summary\" --outputFile=\"report.json\"",
@@ -46,7 +46,7 @@
   "author": "Allen Institute, Cell Science",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@aics/vole-core": "^4.9.2",
+    "@aics/vole-core": "^4.10.1",
     "@ant-design/icons": "^6.3.4",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
@@ -104,7 +104,6 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "file-loader": "^6.2.0",
-    "firebase": "^7.x",
     "gh-pages": "^4.0.0",
     "html-webpack-plugin": "^5.3.2",
     "jest": "^29.7.0",
@@ -135,6 +134,7 @@
     "webpack-cli": "^4.7.2",
     "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0",
-    "webpack-shell-plugin": "^0.5.0"
+    "webpack-shell-plugin": "^0.5.0",
+    "zarrita": "^0.7.2"
   }
 }

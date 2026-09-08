@@ -1,4 +1,3 @@
-import type { FirebaseFirestore } from "@firebase/firestore-types";
 import { Button, Divider } from "antd";
 import React, { type ReactElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -7,6 +6,7 @@ import styled from "styled-components";
 
 import { parseViewerUrlParams } from "../../../src";
 import { BannerVideo } from "../../assets/videos";
+import { GTM_ID } from "../../constants";
 import type { AppDataProps } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
 import { LANDING_PAGE_CONTENT } from "./content";
@@ -138,9 +138,7 @@ const CookieSettingsButton = styled(Button)`
   }
 `;
 
-type LandingPageProps = {
-  firestore?: FirebaseFirestore;
-};
+type LandingPageProps = {};
 
 export default function LandingPage(props: LandingPageProps): ReactElement {
   // Rendering
@@ -151,7 +149,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
     // Check if the URL used to open the landing page has arguments;
     // if so, assume that this is an old URL intended to go to the viewer.
     // Navigate to the viewer while preserving URL arguments.
-    parseViewerUrlParams(window.location.search, props.firestore).then(({ args }) => {
+    parseViewerUrlParams(window.location.search).then(({ args }) => {
       if (Object.keys(args).length > 0) {
         console.log("Detected URL parameters. Redirecting from landing page to viewer.");
         navigation("viewer" + "?" + searchParams.toString(), {
@@ -160,7 +158,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
         });
       }
     });
-  }, [navigation, searchParams, props.firestore]);
+  }, [navigation, searchParams]);
 
   const onClickLoad = (appProps: AppDataProps, hideTitle?: boolean): void => {
     // TODO: Make URL search params from the appProps and append it to the viewer URL so the URL can be shared directly.
@@ -248,7 +246,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
         />
       </ContentContainer>
 
-      <ContentContainer style={{ padding: "0 30px 40px 30px" }}>
+      <ContentContainer style={{ padding: "0 30px 40px 30px", display: GTM_ID ? "block" : "none" }}>
         <Divider />
         <FlexColumnAlignCenter style={{ paddingTop: "20px" }}>
           <CookieSettingsButton type="text" className="ot-sdk-show-settings">

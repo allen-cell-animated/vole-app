@@ -23,6 +23,7 @@ type ViewerWrapperProps = {
   numSlicesLoaded: XYZ<number>;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
+  setScrubbingAxis: (axis: AxisName | "t" | null) => void;
   numTimesteps: number;
   numScenes: number;
   visibleControls: {
@@ -88,6 +89,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
           scene={scene}
           playControls={props.playControls}
           playingAxis={props.playingAxis}
+          setScrubbingAxis={props.setScrubbingAxis}
         />
       ),
     });
