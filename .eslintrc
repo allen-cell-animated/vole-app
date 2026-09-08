@@ -1,5 +1,11 @@
 {
-  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    // TODO: Re-enable import plugin; currently it flags imports for
+    // styled-components, React, and lodash.
+    // "plugin:import/recommended"
+  ],
   "env": {
     "es6": true,
     "browser": true,
@@ -15,7 +21,19 @@
     "sourceType": "module",
     "project": "./tsconfig.json",
   },
-  "plugins": ["react", "react-hooks", "@typescript-eslint"],
+  "settings": {
+    "import/extensions": [".ts", ".tsx", ".js", ".jsx"],
+    "import/parser": {
+      "@typescript-eslint/parser": [".d.ts", ".ts", ".tsx"],
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+      },
+      "node": true,
+    },
+  },
+  "plugins": ["react", "react-hooks", "import", "@typescript-eslint"],
   "rules": {
     "comma-style": [1, "last"],
     "curly": [1, "multi-line"],
@@ -45,5 +63,12 @@
     "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useImageEffect" }],
     "semi": 2,
     "space-before-blocks": [1, "always"],
+    "import/no-restricted-paths": [
+      "error",
+      {
+        // Do not allow library package to import from the web app
+        "zones": [{ "target": "./src", "from": "./website" }],
+      },
+    ],
   },
 }
