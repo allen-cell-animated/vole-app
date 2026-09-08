@@ -66,8 +66,12 @@
     "import/no-restricted-paths": [
       "error",
       {
-        // Do not allow library package to import from the web app
-        "zones": [{ "target": "./src", "from": "./website" }],
+        "zones": [
+          // Do not allow library package to import from the web app
+          { "target": "./src", "from": "./website" },
+          // TODO: Only allow website to import from public exports of the library
+          // { "target": "./website", "from": "./src/aics-image-viewer", "except": ["./src"] },
+        ],
       },
     ],
   },
