@@ -30,6 +30,8 @@ if (buildVersion === undefined) {
     "Failed to determine VOLEAPP_VERSION; a default fallback will be used instead. This is likely due to a build environment misconfiguration."
   );
 }
+// 3.5.0 is the first version where app versions are serialized to channel
+// state, and is used as the fallback.
 export const VOLEAPP_VERSION: string = buildVersion ?? "3.5.0";
 
 // Add all exported constants here to prevent circular dependencies
