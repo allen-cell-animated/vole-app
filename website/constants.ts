@@ -1,4 +1,4 @@
-export const GTM_ID = process.env.WEBPACK_GTM_ID;
+export const GTM_ID = JSON.parse(import.meta.env.VITE_GTM_ID);
 export const VOLEAPP_VERSION: string = JSON.parse(import.meta.env.VITE_VOLEAPP_VERSION);
 export const VOLECORE_VERSION: string = JSON.parse(import.meta.env.VITE_VOLECORE_VERSION);
 export const VOLEAPP_BUILD_ENVIRONMENT: "production" | "dev" =
