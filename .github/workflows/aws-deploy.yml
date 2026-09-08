@@ -1,7 +1,5 @@
 ---
 name: AWS Deployment
-env:
-  NODE_VERSION: "24"
 
 on:
   workflow_dispatch:
@@ -16,6 +14,7 @@ on:
         type: choice
 
 env:
+  NODE_VERSION: "24"
   AWS_ACCOUNT_ID: ${{ vars.AWS_PUBLIC_DATA_RELEASES_ACCOUNT_ID }}
   AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
@@ -36,7 +35,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
         with:
           persist-credentials: false
-          
+
       - name: Setup Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
