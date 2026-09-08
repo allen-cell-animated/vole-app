@@ -7,6 +7,7 @@ import styled from "styled-components";
 
 import { parseViewerUrlParams } from "../../../src";
 import { BannerVideo } from "../../assets/videos";
+import { GTM_ID } from "../../constants";
 import type { AppDataProps } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
 import { LANDING_PAGE_CONTENT } from "./content";
@@ -248,7 +249,7 @@ export default function LandingPage(props: LandingPageProps): ReactElement {
         />
       </ContentContainer>
 
-      <ContentContainer style={{ padding: "0 30px 40px 30px" }}>
+      <ContentContainer style={{ padding: "0 30px 40px 30px", display: GTM_ID ? "block" : "none" }}>
         <Divider />
         <FlexColumnAlignCenter style={{ paddingTop: "20px" }}>
           <CookieSettingsButton type="text" className="ot-sdk-show-settings">
