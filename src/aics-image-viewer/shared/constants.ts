@@ -7,6 +7,10 @@ import type { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
 declare const VITE_VOLEAPP_VERSION: string | undefined;
 
+/**
+ * Gets the current vole-app version safely across the different app and library
+ * build environments.
+ */
 function getBuildVersion(): string | undefined {
   // Defined as global constants when built by Vite as an app
   if (typeof VITE_VOLEAPP_VERSION === "string" && VITE_VOLEAPP_VERSION.length > 0) {
