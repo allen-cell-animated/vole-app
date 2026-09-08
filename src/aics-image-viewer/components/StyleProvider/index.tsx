@@ -364,10 +364,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     background-color: var(--color-checkbox-bg);
   }
 
-  .ant-checkbox-inner {
-    background-color: transparent !important;
-  }
-
   // Add outlines to modals and dropdowns
   .ant-select-dropdown,
   .ant-dropdown-menu,
@@ -394,7 +390,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   .ant-select {
-    &.ant-select-disabled .ant-select-selector {
+    &.ant-select-disabled .ant-select-content {
       border-color: var(--color-button-icon-disabled-outline);
     }
 
@@ -406,12 +402,17 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:hover:not(.ant-select-disabled),
     &:focus-visible:not(.ant-select-disabled),
     &.ant-select.ant-select-open {
-      .ant-select-selector,
-      .ant-select-arrow,
+      .ant-select-content,
+      .ant-select-suffix,
       .ant-select-selection-item {
         color: var(--color-button-tertiary-hover-text);
         outline-color: var(--color-button-tertiary-hover-outline);
+        opacity: 1;
       }
+    }
+
+    .ant-select-content {
+      transition: all 0.3s;
     }
   }
 
@@ -426,10 +427,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
     &.ant-radio-button-wrapper-checked {
       color: var(--color-button-icon-active-text);
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-active-outline);
-      }
     }
 
     &:hover,
@@ -508,7 +505,7 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           },
           Checkbox: {
             borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
+            colorBgContainer: "transparent",
             colorPrimary: theme.colors.checkbox.bg,
             colorPrimaryHover: theme.colors.checkbox.hoverBg,
             colorText: theme.colors.checkbox.text,

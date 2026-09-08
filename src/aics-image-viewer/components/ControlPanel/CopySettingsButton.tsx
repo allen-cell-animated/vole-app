@@ -115,7 +115,7 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
     setModalAlertType(alertType);
   }, []);
 
-  const undoRef = React.useRef<() => void>();
+  const undoRef = React.useRef<() => void>(undefined);
 
   const undo = React.useCallback(() => {
     undoRef.current?.();

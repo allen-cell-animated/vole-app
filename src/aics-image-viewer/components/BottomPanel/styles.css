@@ -18,7 +18,7 @@
     box-shadow: none;
   }
 
-  .ant-drawer-content {
+  .ant-drawer-section {
     background: none;
   }
 
@@ -43,6 +43,7 @@
     &:hover,
     &:focus {
       background-color: var(--color-controlpanel-drawer-bg);
+      border: none;
       color: white;
     }
   }

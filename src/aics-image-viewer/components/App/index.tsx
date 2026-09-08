@@ -135,7 +135,7 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   // Apply viewer settings to state that have changed since the last prop
-  const prevViewerSettingsPropsRef = useRef<Partial<ViewerState> | undefined>();
+  const prevViewerSettingsPropsRef = useRef<Partial<ViewerState> | undefined>(undefined);
   if (props.viewerSettings && !isEqual(props.viewerSettings, prevViewerSettingsPropsRef.current)) {
     for (const key of Object.keys(props.viewerSettings) as (keyof ViewerState)[]) {
       const value = props.viewerSettings[key];
