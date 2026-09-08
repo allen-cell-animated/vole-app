@@ -2,13 +2,13 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
 
-import { VOLEAPP_BASENAME, VOLEAPP_BUILD_ENVIRONMENT, VOLEAPP_VERSION, VOLECORE_VERSION } from "../src/constants";
 import {
   decodeGitHubPagesUrl,
   isEncodedPathUrl,
   resolveBasename,
   tryRemoveHashRouting,
 } from "../website/utils/gh_route_utils";
+import { VOLEAPP_BASENAME, VOLEAPP_BUILD_ENVIRONMENT, VOLEAPP_VERSION, VOLECORE_VERSION } from "./constants";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
