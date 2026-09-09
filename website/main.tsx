@@ -8,14 +8,14 @@ import {
   resolveBasename,
   tryRemoveHashRouting,
 } from "../website/utils/gh_route_utils";
+import { VOLEAPP_BASENAME, VOLEAPP_BUILD_ENVIRONMENT, VOLEAPP_VERSION, VOLECORE_VERSION } from "./constants";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
-import LocalStorageReceiver from "./LocalStorageReceiver";
+import LocalStorageReceiver from "./components/LocalStorageReceiver";
 
 import "./App.css";
 
-// vars filled at build time using webpack DefinePlugin
 console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
 
