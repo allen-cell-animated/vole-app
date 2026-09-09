@@ -1,4 +1,10 @@
-import { LoadSpec, type RawArrayLoaderOptions, type View3d, type Volume, VolumeLoaderContext } from "@aics/vole-core";
+import {
+  LoadSpec,
+  type RawArrayLoaderOptions,
+  type View3d,
+  type Volume,
+  VolumeLoaderContext,
+} from "@aics/vole-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
@@ -173,6 +179,13 @@ const useVolume = (
     [channelVersionsRef, setChannelVersions]
   );
 
+  useEffect(() => {
+    if (!image) return;
+    const onLoadStart = (): void => setIsLoading(LoadType.RELOAD);
+    image.addEventListener("loadStart", onLoadStart);
+    return () => image.removeEventListener("loadStart", onLoadStart);
+  }, [image, setIsLoading]);
+
   const onError = useCallback(
     (e: unknown): never => {
       setLoadThrewError(true);
@@ -345,10 +358,9 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time).catch(onError);
-        setIsLoading(LoadType.RELOAD);
       }
     },
-    [image, onError, setIsLoading, inInitialLoadRef]
+    [image, onError, inInitialLoadRef]
   );
 
   const setScene = useCallback(
@@ -388,12 +400,6 @@ const useVolume = (
       onChangeSceneRef,
     ]
   );
-
-  useEffect(() => {
-    if (image && !inInitialLoadRef.current && scrubbingAxis === null) {
-      setIsLoading(LoadType.RELOAD);
-    }
-  }, [image, scrubbingAxis, setIsLoading]);
 
   useEffect(() => {
     if (image && !inInitialLoadRef.current) {
