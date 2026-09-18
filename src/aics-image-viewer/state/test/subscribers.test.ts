@@ -1,5 +1,5 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 
 import type { AxisName, XYZ } from "../../shared/types";
 import { applyTripleSliceIndices } from "../subscribers";
@@ -45,7 +45,7 @@ const SLICES: XYZ<number>[] = [
 ];
 
 describe("applyTripleSliceIndices", () => {
-  it.each(LEVELS)("keeps every axis in range at a level with %s", (_name, volumeSize) => {
+  it.each(LEVELS)("keeps every axis in range at a level with %s", (_name: string, volumeSize: XYZ<number>) => {
     for (const slice of SLICES) {
       const indices = indicesAtLevel(volumeSize, slice);
       for (const axis of AXES) {
@@ -56,7 +56,7 @@ describe("applyTripleSliceIndices", () => {
     }
   });
 
-  it.each(LEVELS)("preserves each axis's relative position at a level with %s", (_name, volumeSize) => {
+  it.each(LEVELS)("preserves each axis's relative position at a level with %s", (_name: string, volumeSize: XYZ<number>) => {
     for (const slice of SLICES) {
       const indices = indicesAtLevel(volumeSize, slice);
       for (const axis of AXES) {
