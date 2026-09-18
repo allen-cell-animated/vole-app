@@ -114,10 +114,28 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
               viewerChannelSettings: snapshotToViewerChannelSettings(jsonImport),
             };
             receivedViewerSettings = { ...(receivedViewerSettings ?? {}), ...snapshotToViewerState(jsonImport) };
+          } else {
+            showErrorAlert({
+              title: `Failed to parse viewer state snapshot from ${jsonImportUrl}`,
+              description: (
+                <>
+                  The viewer is configured to import its state from the URL above, but the JSON record at that location
+                  is not a valid viewer state snapshot. Check that the file matches the spec.
+                </>
+              ),
+            });
           }
         } catch {
           if (ignore) return;
-          // import invalid! TODO error message here
+          showErrorAlert({
+            title: `Could not import viewer state snapshot from ${jsonImportUrl}`,
+            description: (
+              <>
+                The viewer is configured to import its state from the URL above, but no valid JSON file was found there.
+                Check that the path is correct.
+              </>
+            ),
+          });
         }
       }
 
