@@ -114,11 +114,11 @@ const CopySettingsButton: React.FC<CopySettingsButtonProps> = (props) => {
   );
 
   const applySnapshotText = React.useCallback(
-    (textSnapshot: string, sourceName: string, defaultModalAlerts: boolean): boolean => {
+    (jsonTextSnapshot: string, sourceName: string, defaultModalAlerts: boolean): boolean => {
       const showDefaultAlert = defaultModalAlerts ? showModalAlert : showContextualAlert;
       const sourceNameCapitalized = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
 
-      const parsedStates = parseSnapshot(textSnapshot);
+      const parsedStates = parseSnapshot(jsonTextSnapshot);
       const { channelSettings, replaceAllChannelSettings } = useViewerState.getState();
       const currentStates = channelSettings.map(cloneChannelState);
 
