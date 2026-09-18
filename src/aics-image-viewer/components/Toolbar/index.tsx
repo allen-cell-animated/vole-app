@@ -21,6 +21,8 @@ type ToolbarProps = {
   canPathTrace: boolean;
   multiscaleDims?: VolumeDims[];
   multiscaleIndex?: number;
+  /** Called with the toolbar's rendered height in pixels whenever it changes. */
+  onHeightChange?: (height: number) => void;
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
@@ -137,6 +139,20 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       window.removeEventListener("resize", checkSize);
     };
   }, [checkSize]);
+
+  // Report our height so the viewport can inset content that would otherwise be hidden beneath the floating toolbar
+  const { onHeightChange } = props;
+  React.useEffect(() => {
+    const containerEl = containerRef.current;
+    if (!containerEl || !onHeightChange) {
+      return;
+    }
+    const reportHeight = (): void => onHeightChange(containerEl.offsetHeight);
+    reportHeight();
+    const observer = new ResizeObserver(reportHeight);
+    observer.observe(containerEl);
+    return () => observer.disconnect();
+  }, [onHeightChange]);
 
   const scrollX = (amount: number): number => (barRef.current!.scrollLeft += amount);
 

@@ -9,6 +9,7 @@ export const activeAxisMap: { [A in ViewMode]: AxisName | null } = {
   [ViewMode.xz]: "y",
   [ViewMode.xy]: "z",
   [ViewMode.threeD]: null,
+  [ViewMode.tripleProj]: null,
 };
 
 export type IsosurfaceFormat = "GLTF" | "STL";

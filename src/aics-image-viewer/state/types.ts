@@ -8,6 +8,7 @@ export enum ViewMode {
   xy = "XY",
   xz = "XZ",
   yz = "YZ",
+  tripleProj = "TRIPLE",
 }
 
 export enum RenderMode {
@@ -88,6 +89,7 @@ export enum ViewModeSnapshot {
   xy = "Z",
   xz = "Y",
   yz = "X",
+  tripleProj = "TRIPLE",
 }
 
 /**
