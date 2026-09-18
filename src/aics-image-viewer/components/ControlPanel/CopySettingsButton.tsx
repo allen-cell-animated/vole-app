@@ -66,7 +66,7 @@ const PartialMatchMessage: React.FC<{ matchedCount: number; unmatched: string[] 
 
 const SuccessMessage: React.FC<{ channelCount?: number; undo: () => void }> = ({ channelCount, undo }) => (
   <>
-    Settings applied{channelCount !== undefined && `to ${channelCount} channel${channelCount > 1 ? "s" : ""}`} -{" "}
+    Settings applied{channelCount !== undefined && ` to ${channelCount} channel${channelCount > 1 ? "s" : ""}`} -{" "}
     <Button type="link" style={{ padding: 0, height: "unset" }} onClick={undo}>
       Undo
     </Button>
