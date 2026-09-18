@@ -8,7 +8,6 @@ import {
   resolveBasename,
   tryRemoveHashRouting,
 } from "../website/utils/gh_route_utils";
-import firestore from "./firebase/configure_firebase";
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
@@ -21,8 +20,8 @@ console.log(`vole-app ${VOLEAPP_BUILD_ENVIRONMENT} build`);
 console.log(`vole-app Version ${VOLEAPP_VERSION}`);
 
 const basename = resolveBasename(VOLEAPP_BASENAME);
-console.log(`vole-app Basename ${VOLEAPP_BASENAME}` +
-  ((VOLEAPP_BASENAME !== basename) ? ` (resolved to "${basename}")` : "")
+console.log(
+  `vole-app Basename ${VOLEAPP_BASENAME}` + (VOLEAPP_BASENAME !== basename ? ` (resolved to "${basename}")` : "")
 );
 
 console.log(`vole-core Version ${VOLECORE_VERSION}`);
@@ -45,7 +44,7 @@ const routes: RouteObject[] = [
     lazy: async () => {
       const LandingPage = (await import("../website/components/LandingPage")).default;
       return {
-        Component: () => <LandingPage firestore={firestore} />,
+        Component: () => <LandingPage />,
       };
     },
     errorElement: <ErrorPage />,
@@ -55,7 +54,7 @@ const routes: RouteObject[] = [
     lazy: async () => {
       const AppWrapper = (await import("../website/components/AppWrapper")).default;
       return {
-        Component: () => <AppWrapper firestore={firestore} />,
+        Component: () => <AppWrapper />,
       };
     },
     errorElement: <ErrorPage />,

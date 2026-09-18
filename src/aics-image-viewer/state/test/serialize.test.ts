@@ -1,4 +1,5 @@
 import type { CameraState } from "@aics/vole-core";
+import { describe, expect, it } from "vitest";
 
 import { getDefaultCameraState } from "../../shared/constants";
 import {

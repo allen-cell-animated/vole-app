@@ -11,6 +11,7 @@ export type ControlPanelRowProps = React.PropsWithChildren<
     verticalMargin?: number;
     showColorPicker?: boolean;
     title?: React.ReactNode;
+    icon?: React.ReactNode;
     onClick?: React.MouseEventHandler;
     className?: string;
     highlight?: boolean;
@@ -33,7 +34,7 @@ const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
     "--control-panel-row-vertical-margin": props.verticalMargin + "px",
   } as React.CSSProperties;
 
-  const createTitle = props.title !== undefined || props.showColorPicker;
+  const createTitle = props.title !== undefined || props.icon !== undefined || props.showColorPicker;
   const baseClass = `control-panel-row${props.highlight ? " control-panel-row-highlight" : ""}`;
   const className = props.className ? `${baseClass} ${props.className}` : baseClass;
 
@@ -41,6 +42,7 @@ const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
     <div className={className} style={style} onClick={props.onClick}>
       {createTitle && (
         <div className="control-panel-row-title">
+          {props.icon && <div className="control-panel-row-icon">{props.icon}</div>}
           {props.showColorPicker && <ColorPicker disableAlpha={true} width={18} {...colorPickerProps} />}
           {props.title && <h4>{props.title}</h4>}
         </div>

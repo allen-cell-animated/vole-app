@@ -621,6 +621,7 @@ const App: React.FC<AppProps> = (props) => {
               numScenes={numScenes}
               playControls={volume.playControls}
               playingAxis={volume.playingAxis}
+              setScrubbingAxis={volume.setScrubbingAxis}
               appHeight={props.appHeight}
               visibleControls={visibleControls}
               clippingPanelOpen={clippingPanelOpen}
