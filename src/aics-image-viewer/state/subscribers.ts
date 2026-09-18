@@ -1,4 +1,4 @@
-import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type View3d, type Volume } from "@aics/vole-core";
+import { RENDERMODE_PATHTRACE, RENDERMODE_RAYMARCH, type AxisName as VCAxisName, type View3d, type Volume } from "@aics/vole-core";
 import { shallow } from "zustand/shallow";
 
 import { activeAxisMap, type AxisName } from "../shared/types";
@@ -104,7 +104,7 @@ export const subscribeImageToState = (store: typeof useViewerState, view3d: View
       }
 
       // view3d wants the coordinates in the -0.5 to 0.5 range
-      view3d.setAxisClip(image, axis, axismin - 0.5, axismax - 0.5, isOrthoAxis);
+      view3d.setAxisClip(image, axis as VCAxisName, axismin - 0.5, axismax - 0.5, isOrthoAxis);
       // TODO necessary?
       // view3d.setCameraMode(viewMode);
       // TODO under some circumstances, this effect will trigger a load. Ideally, this would be reflected in the load

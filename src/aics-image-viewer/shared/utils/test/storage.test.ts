@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 
 import { readStoredMetadata, readStoredScenes, writeMetadata, writeScenes } from "../storage";
 
@@ -13,7 +13,7 @@ storage, and that inserting a fourth one will trigger an eviction. They can also
 containing four or more copies of this string will not be allowed in local storage at all. This is slightly imprecise \
 because adding items to local storage using the functions tested in this module incurs some additional storage \
 penalties for the storage key, the stringified JSON surrounding the value, and the key and value of the \
-least-recently-used queue. The size of local storage in this test environment is set in jest.config.js.\
+least-recently-used queue. The size of local storage in this test environment is set in vitest.config.ts.\
 `;
 
 const LARGE_ENTRY = { data: LONG_STRING };

@@ -13,8 +13,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ES6",
-    "types": ["jest"]
+    "target": "ES6"
   },
   "files": [
     "src/index.ts",
