@@ -5,7 +5,7 @@ var SvgComponent = function SvgComponent(props) {
     xmlns: "http://www.w3.org/2000/svg",
     role: "img"
   }, props), /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("font", {
-    id: "open_sanssemibold",
+    id: "64c3b7__open_sanssemibold",
     horizAdvX: 1169
   }, /*#__PURE__*/React.createElement("fontFace", {
     ascent: 1638,
