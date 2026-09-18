@@ -199,6 +199,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 onApplyColorPresets={props.onApplyColorPresets}
                 filterFunc={props.filterFunc}
                 viewerChannelSettings={viewerChannelSettings}
+                getDropdownContainer={getDropdownContainer}
+                scrollContainer={columnRef.current}
+                controlPanelCollapsed={props.collapsed}
               />
             )}
             {tab === ControlTab.Advanced && renderAdvancedSettings()}
