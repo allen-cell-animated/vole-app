@@ -63,6 +63,26 @@ const TOO_MUCH_METADATA_ERROR: ErrorAlertDescription = {
   ),
 };
 
+const snapshotNotFoundError = (url: string): ErrorAlertDescription => ({
+  title: `Could not import viewer state snapshot from ${url}`,
+  description: (
+    <>
+      The viewer is configured to import its state from the URL above, but no valid JSON file was found there. Check
+      that the path is correct.
+    </>
+  ),
+});
+
+const snapshotParseError = (url: string): ErrorAlertDescription => ({
+  title: `Failed to parse viewer state snapshot from ${url}`,
+  description: (
+    <>
+      The viewer is configured to import its state from the URL above, but the JSON record at that location is not a
+      valid viewer state snapshot. Check that the file matches the spec.
+    </>
+  ),
+});
+
 /**
  * Wrapper around the main ImageViewer component. Handles the collection of parameters from the
  * URL and location state (from routing) to pass to the viewer.
@@ -115,27 +135,11 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
             };
             receivedViewerSettings = { ...(receivedViewerSettings ?? {}), ...snapshotToViewerState(jsonImport) };
           } else {
-            showErrorAlert({
-              title: `Failed to parse viewer state snapshot from ${jsonImportUrl}`,
-              description: (
-                <>
-                  The viewer is configured to import its state from the URL above, but the JSON record at that location
-                  is not a valid viewer state snapshot. Check that the file matches the spec.
-                </>
-              ),
-            });
+            showErrorAlert(snapshotParseError(jsonImportUrl));
           }
         } catch {
           if (ignore) return;
-          showErrorAlert({
-            title: `Could not import viewer state snapshot from ${jsonImportUrl}`,
-            description: (
-              <>
-                The viewer is configured to import its state from the URL above, but no valid JSON file was found there.
-                Check that the path is correct.
-              </>
-            ),
-          });
+          showErrorAlert(snapshotNotFoundError(jsonImportUrl));
         }
       }
 
