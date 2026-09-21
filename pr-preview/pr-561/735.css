@@ -34,8 +34,10 @@
     flex-grow:1;
   }
 
-  .control-panel-col .control-panel-row .control-panel-row-title .color-picker{
-      margin-right:16px;
+  .control-panel-col .control-panel-row .control-panel-row-title .color-picker,
+    .control-panel-col .control-panel-row .control-panel-row-title .control-panel-row-icon{
+      margin-right:10px;
+      font-size:12px;
     }
 
   .control-panel-col .control-panel-row .control-panel-row-title h4{
