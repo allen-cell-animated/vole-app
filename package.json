@@ -23,7 +23,6 @@
   "scripts": {
     "start": "vite dev",
     "gh-build-nightly": "vite build --base=/vole-app/",
-    "gh-build-release": "vite build --base=/website-3d-cell-viewer-release/",
     "s3-build": "vite build",
     "release-build": "vite build",
     "docker-build": "vite build",
