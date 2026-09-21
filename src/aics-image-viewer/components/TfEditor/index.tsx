@@ -502,7 +502,9 @@ const TfEditor: React.FC<TfEditorProps> = (props) => {
   );
 
   const yAxisRef = useCallback(
-    (el: SVGGElement) => d3.select(el).call(d3.axisLeft(yScale).ticks(TFEDITOR_NUM_TICKS)),
+    (el: SVGGElement) => {
+      d3.select(el).call(d3.axisLeft(yScale).ticks(TFEDITOR_NUM_TICKS));
+    },
     [yScale]
   );
 
