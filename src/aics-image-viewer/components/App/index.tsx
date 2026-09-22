@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AXIS_MARGIN_DEFAULT,
   CLIPPING_PANEL_BUTTON_HEIGHT,
+  CLIPPING_PANEL_HEIGHT_COLLAPSED,
   CLIPPING_PANEL_HEIGHT_DEFAULT,
   CLIPPING_PANEL_HEIGHT_TALL,
   CONTROL_PANEL_CLOSE_WIDTH,
@@ -82,18 +83,20 @@ const CLIPPING_PANEL_ANIMATION_DURATION_MS = 300;
 
 const setIndicatorPositions = (
   view3d: View3d,
-  /** Whether the open clipping panel covers the bottom of the viewport (false if the viewport is inset above it) */
-  panelOverlapsViewport: boolean,
+  clippingPanelOpen: boolean,
   hasTime: boolean,
   hasScenes: boolean,
-  isMode3d: boolean
+  isMode3d: boolean,
+  /** Distance the bottom of the viewport is inset from the bottom of the screen */
+  viewportInsetBottom: number
 ): void => {
   // Move scale bars this far to the left when showing time series, to make room for timestep indicator
   const SCALE_BAR_TIME_SERIES_OFFSET = 120;
 
+  // Positions here are measured from the bottom of the screen, and converted to viewport-relative below
   let axisY = AXIS_MARGIN_DEFAULT[1];
   let [scaleBarX, scaleBarY] = SCALE_BAR_MARGIN_DEFAULT;
-  if (panelOverlapsViewport) {
+  if (clippingPanelOpen) {
     // If we have Time, Scene, X, Y, and Z sliders, the drawer will need to be a bit taller
     let isTall = hasTime && hasScenes && isMode3d;
     let clippingPanelFullHeight = isTall ? CLIPPING_PANEL_HEIGHT_TALL : CLIPPING_PANEL_HEIGHT_DEFAULT;
@@ -102,6 +105,10 @@ const setIndicatorPositions = (
     axisY += clippingPanelHeight;
     scaleBarY += clippingPanelHeight;
   }
+  // The scale bar and timestep indicator are DOM overlays, so they can hang below an inset viewport; the axis
+  // indicator is drawn in the canvas, so keep it inside.
+  scaleBarY -= viewportInsetBottom;
+  axisY = Math.max(axisY - viewportInsetBottom, AXIS_MARGIN_DEFAULT[1]);
   if (hasTime) {
     // Move scale bar left out of the way of timestep indicator
     scaleBarX += SCALE_BAR_TIME_SERIES_OFFSET;
@@ -333,6 +340,13 @@ const App: React.FC<AppProps> = (props) => {
       // effects that apply LUT/color settings and call updateLuts with the final state.
       view3d.onVolumeData(image, [channelIndex]);
 
+      // `onVolumeData` only clamps triple-view slice indices to the newly loaded scale level, which leaves them
+      // naming a different position whenever that level is coarser. Re-derive them from the normalized `slice`.
+      const { viewMode: loadedViewMode, slice } = useViewerState.getState();
+      if (loadedViewMode === ViewMode.tripleProj) {
+        applyTripleSliceIndices(view3d, image, slice);
+      }
+
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
       }
@@ -424,11 +438,14 @@ const App: React.FC<AppProps> = (props) => {
     const hasTime = numTimesteps > 1;
     const hasScenes = numScenes > 1;
     const mode3d = viewMode === ViewMode.threeD;
-    // In triple projection mode the viewport is inset to the top of the drawer rather than running underneath it,
-    // so the indicators don't need to be moved up out of the panel's way.
-    const panelOverlapsViewport = clippingPanelOpen && viewMode !== ViewMode.tripleProj;
+    // In triple projection mode the viewport is inset above the clipping drawer rather than running underneath it.
+    // (The drawer is never tall in this mode, since that requires 3D mode.) See `ViewerCanvasWrapper`.
+    let insetBottom = 0;
+    if (viewMode === ViewMode.tripleProj) {
+      insetBottom = clippingPanelOpen ? CLIPPING_PANEL_HEIGHT_DEFAULT : CLIPPING_PANEL_HEIGHT_COLLAPSED;
+    }
 
-    setIndicatorPositions(view3d, panelOverlapsViewport, hasTime, hasScenes, mode3d);
+    setIndicatorPositions(view3d, clippingPanelOpen, hasTime, hasScenes, mode3d, insetBottom);
 
     // Hide indicators while clipping panel is in motion - otherwise they pop to the right place prematurely
     if (clippingPanelOpen) {
