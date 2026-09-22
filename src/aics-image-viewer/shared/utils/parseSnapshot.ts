@@ -137,13 +137,14 @@ export function viewerMessageToParams(
   const metadata =
     meta &&
     scenes.map((scene) => {
-      if (Array.isArray(scene)) {
+      if (Array.isArray(scene) && scene.length > 1) {
         // can't handle multi-source scenes (yet)
         console.warn("Can't apply metadata to multi-source scene", scene);
         return undefined;
       }
 
-      return meta[scene] as MetadataRecord | undefined;
+      const sceneString = Array.isArray(scene) ? scene[0] : scene;
+      return meta[sceneString] as MetadataRecord | undefined;
     });
 
   return { imageUrl, metadata };
