@@ -19,6 +19,7 @@ import {
 } from "../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { ViewerState } from "../../src/aics-image-viewer/state/types";
+import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../constants";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
