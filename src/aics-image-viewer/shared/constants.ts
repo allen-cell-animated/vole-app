@@ -40,7 +40,7 @@ export const // Control panel will automatically close if viewport is less than 
   CLIPPING_PANEL_HEIGHT_DEFAULT = 200,
   CLIPPING_PANEL_HEIGHT_TALL = 235,
   // Height of the drawer's tab strip, which stays visible when the clipping panel is collapsed.
-  // Must match the 55px offset that `BottomPanel/styles.css` translates the collapsed drawer by.
+  // Exposed to CSS by `StyleProvider` as `--clipping-panel-height-collapsed`.
   CLIPPING_PANEL_HEIGHT_COLLAPSED = 55,
   // Height of the button strip at the top of the open drawer (above the slider content).
   CLIPPING_PANEL_BUTTON_HEIGHT = 40,
