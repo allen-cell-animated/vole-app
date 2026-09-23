@@ -557,10 +557,8 @@ const App: React.FC<AppProps> = (props) => {
   );
 
   // `view3d` holds triple-view slice positions as voxel indices into the *currently loaded* scale level,
-  // while `slice` state is normalized. Entering triple view needs the whole volume, so it commonly loads a
-  // coarser level than a single-slice 2D view does. A level may resize any subset of the axes by any factor,
-  // so indices set against the previous level no longer name the same position - too large on an axis that
-  // shrank, unchanged on one that didn't. Re-derive all three from the resolution-independent `slice`.
+  // while `slice` state is normalized. The scale level can change when entering triple-view, so voxel
+  // indices must be recomputed. Re-derive all three from the resolution-independent `slice`.
   //
   // Depend on the three sizes individually: `volumeSize` is a fresh object on every access, and any one axis
   // changing on its own has to re-fire this.
