@@ -3,6 +3,8 @@ import React from "react";
 import type { PropsWithChildren, ReactElement } from "react";
 import styled, { createGlobalStyle, css } from "styled-components";
 
+import { CLIPPING_PANEL_HEIGHT_COLLAPSED } from "../../shared/constants";
+
 const palette = {
   black: "#000000",
   white: "#ffffff",
@@ -243,6 +245,8 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-menu-selected-text: ${$theme.colors.menu.selectedText};
 
       --color-checkbox-bg: ${$theme.colors.checkbox.bg};
+
+      --clipping-panel-height-collapsed: ${CLIPPING_PANEL_HEIGHT_COLLAPSED}px;
 
       --font-family: ${$theme.fonts.family};
     `;

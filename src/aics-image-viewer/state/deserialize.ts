@@ -397,6 +397,7 @@ const snapshotToViewMode = enumSnapshotConverter<ViewModeSnapshot, ViewMode>({
   [ViewModeSnapshot.xy]: ViewMode.xy,
   [ViewModeSnapshot.xz]: ViewMode.xz,
   [ViewModeSnapshot.yz]: ViewMode.yz,
+  [ViewModeSnapshot.tripleProj]: ViewMode.tripleProj,
 });
 
 const snapshotToRenderMode = enumSnapshotConverter<RenderModeSnapshot, RenderMode>({

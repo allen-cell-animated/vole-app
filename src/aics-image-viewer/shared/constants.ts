@@ -39,6 +39,11 @@ export const // Control panel will automatically close if viewport is less than 
   CONTROL_PANEL_CLOSE_WIDTH = 970,
   CLIPPING_PANEL_HEIGHT_DEFAULT = 200,
   CLIPPING_PANEL_HEIGHT_TALL = 235,
+  // Height of the drawer's tab strip, which stays visible when the clipping panel is collapsed.
+  // Exposed to CSS by `StyleProvider` as `--clipping-panel-height-collapsed`.
+  CLIPPING_PANEL_HEIGHT_COLLAPSED = 55,
+  // Height of the button strip at the top of the open drawer (above the slider content).
+  CLIPPING_PANEL_BUTTON_HEIGHT = 40,
   BACKGROUND_COLOR_DEFAULT: ColorArray = [0, 0, 0],
   BOUNDING_BOX_COLOR_DEFAULT: ColorArray = [255, 255, 255],
   AXIS_MARGIN_DEFAULT: [number, number] = [16, 16],
@@ -157,6 +162,7 @@ const viewModeToDefaultCameraPosition: Record<ViewMode, [number, number, number]
   [ViewMode.xy]: [0, 0, 2],
   [ViewMode.xz]: [0, 2, 0],
   [ViewMode.yz]: [2, 0, 0],
+  [ViewMode.tripleProj]: [0, 0, 2],
 };
 
 const viewModeToDefaultCameraUp: Record<ViewMode, [number, number, number]> = {
@@ -164,6 +170,7 @@ const viewModeToDefaultCameraUp: Record<ViewMode, [number, number, number]> = {
   [ViewMode.xy]: [0, 1, 0],
   [ViewMode.xz]: [0, 0, 1],
   [ViewMode.yz]: [0, 0, 1],
+  [ViewMode.tripleProj]: [0, 1, 0],
 };
 
 /**
