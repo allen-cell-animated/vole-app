@@ -1,0 +1,1 @@
+import{n as e}from"./gh_route_utils-C8KZuZ1V.js";window.onload=()=>{document.body.innerHTML=``};var t=window.location,n=new URL(t.toString()),r=e(n);t.replace(r),console.log(`Redirecting to `+r.toString());
