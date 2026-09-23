@@ -4,7 +4,28 @@ import React from "react";
 
 import { ViewMode } from "../../state/types";
 
-const viewModes = [ViewMode.threeD, ViewMode.xy, ViewMode.xz, ViewMode.yz, ViewMode.tripleProj];
+const radioButtonInfos = [
+  {
+    label: "3D",
+    mode: ViewMode.threeD,
+  },
+  {
+    label: "XY",
+    mode: ViewMode.xy,
+  },
+  {
+    label: "XZ",
+    mode: ViewMode.xz,
+  },
+  {
+    label: "YZ",
+    mode: ViewMode.yz,
+  },
+  {
+    label: "3-PLANE",
+    mode: ViewMode.tripleProj,
+  },
+];
 
 interface ViewModeRadioButtonsProps {
   mode: ViewMode;
@@ -20,9 +41,9 @@ const ViewModeRadioButtons: React.FC<ViewModeRadioButtonsProps> = (props) => {
 
   return (
     <Radio.Group onChange={onChangeButton} value={props.mode.toString()}>
-      {viewModes.map((mode, index) => (
-        <Radio.Button key={index} value={mode.toString()}>
-          {mode}
+      {radioButtonInfos.map((info, index) => (
+        <Radio.Button key={index} value={info.mode.toString()}>
+          {info.label}
         </Radio.Button>
       ))}
     </Radio.Group>
