@@ -56,16 +56,19 @@ describe("applyTripleSliceIndices", () => {
     }
   });
 
-  it.each(LEVELS)("preserves each axis's relative position at a level with %s", (_name: string, volumeSize: XYZ<number>) => {
-    for (const slice of SLICES) {
-      const indices = indicesAtLevel(volumeSize, slice);
-      for (const axis of AXES) {
-        // Within one voxel of the requested position - the most any resolution can resolve
-        const requested = slice[axis] * volumeSize[axis];
-        expect(Math.abs(indices[axis] - requested)).toBeLessThanOrEqual(1);
+  it.each(LEVELS)(
+    "preserves each axis's relative position at a level with %s",
+    (_name: string, volumeSize: XYZ<number>) => {
+      for (const slice of SLICES) {
+        const indices = indicesAtLevel(volumeSize, slice);
+        for (const axis of AXES) {
+          // Within one voxel of the requested position - the most any resolution can resolve
+          const requested = slice[axis] * volumeSize[axis];
+          expect(Math.abs(indices[axis] - requested)).toBeLessThanOrEqual(1);
+        }
       }
     }
-  });
+  );
 
   it("re-derives indices for the new level rather than carrying over the old level's", () => {
     // Whichever axes a level resizes, the position each index names must survive the change. Carrying an
@@ -80,9 +83,9 @@ describe("applyTripleSliceIndices", () => {
     }
   });
 
-  it("maps the levels from the reported bug to their midpoints", () => {
-    // The "small colony" pyramid halves x and y per level but holds z at 42. Switching from the level a 2D
-    // view loads to the one a triple view needs used to leave x and y clamped to the far edge (455, 311).
+  it("centers the crosshairs at two different multiresolution levels taken from a real dataset", () => {
+    // An example image's pyramid halves x and y per level but holds z at 42. Entering triple view drops to a coarser
+    // level, and carrying the old level's indices over left x and y should keep them centered.
     expect(indicesAtLevel({ x: 1824, y: 1248, z: 42 }, { x: 0.5, y: 0.5, z: 0.5 })).toEqual({
       x: 912,
       y: 624,
