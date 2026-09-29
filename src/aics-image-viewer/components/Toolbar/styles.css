@@ -151,7 +151,7 @@
     }
 
     &.ant-select-disabled {
-      .ant-select-arrow {
+      .ant-select-suffix {
         display: none;
       }
     }
