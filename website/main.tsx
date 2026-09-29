@@ -12,7 +12,6 @@ import { VOLEAPP_BASENAME, VOLEAPP_BUILD_ENVIRONMENT, VOLEAPP_VERSION, VOLECORE_
 
 import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
-import LocalStorageReceiver from "./components/LocalStorageReceiver";
 
 import "./App.css";
 
@@ -57,11 +56,6 @@ const routes: RouteObject[] = [
         Component: () => <AppWrapper />,
       };
     },
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: "write_storage",
-    element: <LocalStorageReceiver />,
     errorElement: <ErrorPage />,
   },
 ];
