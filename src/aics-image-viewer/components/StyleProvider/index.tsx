@@ -367,7 +367,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   // Add outlines to modals and dropdowns
   .ant-select-dropdown,
   .ant-dropdown-menu,
-  .ant-modal-content {
+  .ant-modal-container {
     border: 1px solid var(--color-modal-border);
   }
 
