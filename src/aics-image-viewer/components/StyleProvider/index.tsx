@@ -502,6 +502,7 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             defaultHoverBg: theme.colors.button.secondary.bg,
             defaultActiveBg: theme.colors.button.secondary.bg,
             defaultActiveBorderColor: theme.colors.button.primary.activeOutline,
+            onlyIconSize: 16,
           },
           Checkbox: {
             borderRadiusSM: 2,
