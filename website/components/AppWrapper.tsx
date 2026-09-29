@@ -4,10 +4,22 @@ import React, { type ReactElement, useCallback, useEffect, useState } from "reac
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
-import { ImageViewerApp, parseViewerUrlParams, viewerMessageToParams, writeMetadata, writeScenes } from "../../src";
+import {
+  ImageViewerApp,
+  parseViewerUrlParams,
+  snapshotToViewerState,
+  viewerMessageToParams,
+  writeMetadata,
+  writeScenes,
+} from "../../src";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
+import {
+  isSessionSnapshot,
+  snapshotToViewerChannelSettings,
+} from "../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
 import type { ViewerState } from "../../src/aics-image-viewer/state/types";
+import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../constants";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
 import { FlexRowAlignCenter } from "./LandingPage/utils";
@@ -20,6 +32,7 @@ import ShareModal from "./Modals/ShareModal";
 
 const MSG_ORIGIN_PARAM = "msgorigin";
 const COLLECTION_ID_PARAM = "collectionid";
+const IMPORT_PARAM = "import";
 
 const DEFAULT_APP_PROPS: AppDataProps = {
   imageUrl: "",
@@ -51,6 +64,26 @@ const TOO_MUCH_METADATA_ERROR: ErrorAlertDescription = {
   ),
 };
 
+const snapshotNotFoundError = (url: string): ErrorAlertDescription => ({
+  title: `Could not import viewer state snapshot from ${url}`,
+  description: (
+    <>
+      The viewer is configured to import its state from the URL above, but no valid JSON file was found there. Check
+      that the path is correct.
+    </>
+  ),
+});
+
+const snapshotParseError = (url: string): ErrorAlertDescription => ({
+  title: `Failed to parse viewer state snapshot from ${url}`,
+  description: (
+    <>
+      The viewer is configured to import its state from the URL above, but the JSON record at that location is not a
+      valid viewer state snapshot. Check that the file matches the spec.
+    </>
+  ),
+});
+
 /**
  * Wrapper around the main ImageViewer component. Handles the collection of parameters from the
  * URL and location state (from routing) to pass to the viewer.
@@ -73,21 +106,54 @@ export default function AppWrapper(props: AppWrapperProps): ReactElement {
     let ignore = false;
 
     const getViewerStateFromSearchParams = async (): Promise<void> => {
+      let receivedProps: Partial<AppDataProps> = {};
+      let receivedViewerSettings: Partial<ViewerState> | undefined = undefined;
+
+      // Parse state from viewer URL params
       try {
         const urlArgs = await parseViewerUrlParams(window.location.search);
         if (ignore) return;
-        setViewerProps({ ...DEFAULT_APP_PROPS, ...urlArgs.args, ...locationArgs });
-
-        const viewerSettings = { ...urlArgs.viewerSettings, ...locationArgs?.viewerSettings };
-        if (viewerSettings && !isEqual(viewerSettings, prevViewerSettingsRef.current)) {
-          mergeViewerSettings(viewerSettings);
-          prevViewerSettingsRef.current = viewerSettings;
-        }
+        receivedProps = { ...receivedProps, ...urlArgs.args };
+        receivedViewerSettings = { ...(receivedViewerSettings ?? {}), ...urlArgs.viewerSettings };
       } catch (reason) {
         if (ignore) return;
         showErrorAlert("Failed to parse URL parameters: " + reason);
-        setViewerProps({ ...DEFAULT_APP_PROPS, ...locationArgs });
       }
+
+      // If the URL params point to a JSON state snapshot, fetch and parse it too
+      const jsonImportUrl = searchParams.get(IMPORT_PARAM);
+      if (jsonImportUrl !== null) {
+        try {
+          const response = await fetch(jsonImportUrl);
+          const jsonImportText = await response.text();
+          if (ignore) return;
+          const jsonImport = JSON.parse(jsonImportText);
+          if (isSessionSnapshot(jsonImport)) {
+            receivedProps = {
+              ...receivedProps,
+              ...viewerMessageToParams(jsonImport),
+              viewerChannelSettings: snapshotToViewerChannelSettings(jsonImport),
+            };
+            receivedViewerSettings = { ...(receivedViewerSettings ?? {}), ...snapshotToViewerState(jsonImport) };
+          } else {
+            showErrorAlert(snapshotParseError(jsonImportUrl));
+          }
+        } catch {
+          if (ignore) return;
+          showErrorAlert(snapshotNotFoundError(jsonImportUrl));
+        }
+      }
+
+      // Merge params from above
+      const resultViewerSettings = receivedViewerSettings && {
+        ...receivedViewerSettings,
+        ...locationArgs?.viewerSettings,
+      };
+      if (resultViewerSettings !== undefined && !isEqual(resultViewerSettings, prevViewerSettingsRef.current)) {
+        mergeViewerSettings(resultViewerSettings);
+        prevViewerSettingsRef.current = resultViewerSettings;
+      }
+      setViewerProps({ ...DEFAULT_APP_PROPS, ...receivedProps, ...locationArgs });
     };
 
     // Handle the opening window wanting to send more data via a message

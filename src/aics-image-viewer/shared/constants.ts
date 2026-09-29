@@ -5,6 +5,35 @@ import type { AxisName } from "./types";
 import type { ColorArray } from "./utils/colorRepresentations";
 import type { ViewerChannelSettings } from "./utils/viewerChannelSettings";
 
+declare const VITE_VOLEAPP_VERSION: string | undefined;
+
+/**
+ * Gets the current vole-app version safely across the different app and library
+ * build environments.
+ */
+function getBuildVersion(): string | undefined {
+  // Defined as global constants when built by Vite as an app
+  if (typeof VITE_VOLEAPP_VERSION === "string" && VITE_VOLEAPP_VERSION.length > 0) {
+    return VITE_VOLEAPP_VERSION;
+  }
+  // Injected at build time when built by Babel as a library
+  try {
+    return process.env.VOLEAPP_VERSION;
+  } catch {
+    return undefined;
+  }
+}
+
+const buildVersion = getBuildVersion();
+if (buildVersion === undefined) {
+  console.error(
+    "Failed to determine VOLEAPP_VERSION; a default fallback will be used instead. This is likely due to a build environment misconfiguration."
+  );
+}
+// 3.5.0 is the first version where app versions are serialized to channel
+// state, and is used as the fallback.
+export const VOLEAPP_VERSION: string = buildVersion ?? "3.5.0";
+
 // Add all exported constants here to prevent circular dependencies
 export const // Control panel will automatically close if viewport is less than this width
   CONTROL_PANEL_CLOSE_WIDTH = 970,

@@ -1,4 +1,10 @@
-import { LoadSpec, type RawArrayLoaderOptions, type View3d, type Volume, VolumeLoaderContext } from "@aics/vole-core";
+import {
+  LoadSpec,
+  type RawArrayLoaderOptions,
+  type View3d,
+  type Volume,
+  VolumeLoaderContext,
+} from "@aics/vole-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Vector3 } from "three";
 
@@ -28,6 +34,8 @@ export type UseVolumeOptions = {
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
   onError?: (error: unknown, image?: Volume) => void;
+  /** Callback for when scrubbing starts or stops, including the state info needed */
+  onScrub?: (isScrubbing: boolean, image: Volume) => void;
   /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
 };
@@ -106,6 +114,7 @@ const useVolume = (
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
   const onChangeSceneRef = useEffectEventRef(options?.onChangeScene);
   const onCreateImageRef = useEffectEventRef(options?.onCreateImage);
+  const onScrubRef = useEffectEventRef(options?.onScrub);
   const maskChannelName = options?.maskChannelName;
 
   // set up our big objects: the image, its loading infrastructure, and controls for playback
@@ -172,6 +181,13 @@ const useVolume = (
     },
     [channelVersionsRef, setChannelVersions]
   );
+
+  useEffect(() => {
+    if (!image) return;
+    const onLoadStart = (): void => setIsLoading(LoadType.RELOAD);
+    image.addEventListener("loadStart", onLoadStart);
+    return () => image.removeEventListener("loadStart", onLoadStart);
+  }, [image, setIsLoading]);
 
   const onError = useCallback(
     (e: unknown): never => {
@@ -345,10 +361,9 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time).catch(onError);
-        setIsLoading(LoadType.RELOAD);
       }
     },
-    [image, onError, setIsLoading, inInitialLoadRef]
+    [image, onError, inInitialLoadRef]
   );
 
   const setScene = useCallback(
@@ -390,18 +405,17 @@ const useVolume = (
   );
 
   useEffect(() => {
-    if (image && !inInitialLoadRef.current && scrubbingAxis === null) {
-      setIsLoading(LoadType.RELOAD);
-    }
-  }, [image, scrubbingAxis, setIsLoading]);
-
-  useEffect(() => {
     if (image && !inInitialLoadRef.current) {
       // When playing, wait for all channels to load before displaying
       // When scrubbing, show channels as they arrive, for speed
       sceneLoader.syncMultichannelLoading(scrubbingAxis === null && playingAxis !== null);
     }
   }, [image, scrubbingAxis, playingAxis, sceneLoader]);
+
+  useEffect(() => {
+    if (!image) return;
+    onScrubRef(scrubbingAxis !== null, image);
+  }, [onScrubRef, scrubbingAxis, image]);
 
   return useMemo(
     () => ({
