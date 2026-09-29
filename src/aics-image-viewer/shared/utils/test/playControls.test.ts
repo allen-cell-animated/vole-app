@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PlayControls from "../playControls";
 
@@ -12,15 +12,15 @@ describe("PlayControls", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
-    jest.useRealTimers();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it("reschedules immediately when framerate changes during active playback", () => {
     // ARRANGE
-    jest.useFakeTimers();
-    const timeoutSpy = jest.spyOn(window, "setTimeout");
-    const clearTimeoutSpy = jest.spyOn(window, "clearTimeout");
+    vi.useFakeTimers();
+    const timeoutSpy = vi.spyOn(window, "setTimeout");
+    const clearTimeoutSpy = vi.spyOn(window, "clearTimeout");
 
     controls.play("t");
     expect(timeoutSpy).toHaveBeenLastCalledWith(expect.any(Function), 125);
