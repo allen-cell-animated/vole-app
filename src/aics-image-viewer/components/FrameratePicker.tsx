@@ -1,4 +1,4 @@
-import React, { type ReactElement, useEffect, useState } from "react";
+import React, { type ReactElement } from "react";
 
 import { isValidFramerate } from "../shared/framerate";
 import { select, useViewerState } from "../state/store";
@@ -8,7 +8,7 @@ export default function FrameratePicker(): ReactElement {
   const targetFramerate = useViewerState(select("targetFramerate"));
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
-  const onChange = (value: number) => {
+  const onChange = (value: number): void => {
     if (isValidFramerate(value)) {
       changeViewerSetting("targetFramerate", value);
     }
