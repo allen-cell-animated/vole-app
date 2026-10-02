@@ -8,11 +8,12 @@ import {
   parseKeyValueList,
   stringSnapshotToChannelState,
   stringSnapshotToViewerChannelSetting,
+  snapshotToViewerState,
   stringSnapshotToViewerState,
   validateInt,
   validateNumber,
 } from "../deserialize";
-import { viewerStateToStringSnapshot } from "../serialize";
+import { viewerStateToSnapshot, viewerStateToStringSnapshot } from "../serialize";
 import { RenderMode, type ViewerState, ViewMode } from "../types";
 import {
   CUSTOM_TEST_VIEWER_STATE,
@@ -448,4 +449,46 @@ it("replaces '1' color strings with default color #ffffff", () => {
     { x: 0, opacity: 0, color: [255, 255, 255] },
     { x: 50, opacity: 1, color: [255, 255, 255] },
   ]);
+});
+
+describe("triple projection slice indices", () => {
+  // All three panes are independently sliceable in triple projection mode, so unlike the single-axis 2D modes
+  // every axis of `slice` carries user-visible state and must survive a round trip on every transport.
+  const TRIPLE_PROJ_STATE: ViewerState = {
+    ...DEFAULT_TEST_VIEWER_STATE,
+    viewMode: ViewMode.tripleProj,
+    slice: { x: 0.125, y: 0.375, z: 0.875 },
+  };
+
+  it("round-trips through url query strings", () => {
+    // `removeDefaults` is true here to match what the share button does
+    const stringified = viewerStateToStringSnapshot(TRIPLE_PROJ_STATE, true);
+    expect(stringified.slice).toEqual("0.125,0.375,0.875");
+
+    const parsed = stringSnapshotToViewerState(stringified);
+    expect(parsed.viewMode).toEqual(ViewMode.tripleProj);
+    expect(parsed.slice).toEqual(TRIPLE_PROJ_STATE.slice);
+  });
+
+  it("round-trips through snapshots, as used by import/export and copy/paste", () => {
+    const snapshot = viewerStateToSnapshot(TRIPLE_PROJ_STATE, false);
+    expect(snapshot.slice).toEqual([0.125, 0.375, 0.875]);
+
+    const parsed = snapshotToViewerState(snapshot);
+    expect(parsed.viewMode).toEqual(ViewMode.tripleProj);
+    expect(parsed.slice).toEqual(TRIPLE_PROJ_STATE.slice);
+  });
+
+  it("keeps every axis when only one slider has moved from its default", () => {
+    // `removeMatchingProperties` compares `slice` as a whole, so a single moved slider must not
+    // drop the two axes that still happen to sit at their defaults.
+    const state: ViewerState = { ...TRIPLE_PROJ_STATE, slice: { x: 0.25, y: 0.5, z: 0.5 } };
+    const parsed = stringSnapshotToViewerState(viewerStateToStringSnapshot(state, true));
+    expect(parsed.slice).toEqual({ x: 0.25, y: 0.5, z: 0.5 });
+  });
+
+  it("omits slice entirely when no slider has moved", () => {
+    const stringified = viewerStateToStringSnapshot({ ...TRIPLE_PROJ_STATE, slice: { x: 0.5, y: 0.5, z: 0.5 } }, true);
+    expect(stringified.slice).toBeUndefined();
+  });
 });
