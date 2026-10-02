@@ -112,6 +112,18 @@
       .ant-collapse-content-box {
         padding: 0;
       }
+
+      .playback-settings {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        color: var(--color-controlpanel-text);
+
+        .target-framerate-input {
+          width: 72px;
+        }
+      }
     }
 
     .ant-collapse {

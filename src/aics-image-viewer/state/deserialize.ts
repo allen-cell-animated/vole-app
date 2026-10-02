@@ -1,6 +1,7 @@
 import type { CameraState, ControlPoint, Histogram } from "@aics/vole-core";
 import { clamp, identity } from "lodash";
 
+import { isValidFramerate } from "../shared/framerate";
 import type { XYZ } from "../shared/types";
 import type { ColorArray } from "../shared/utils/colorRepresentations";
 import { controlPointsToRamp, parseLutSetting } from "../shared/utils/controlPointsToLut";
@@ -208,6 +209,7 @@ export const destringifyViewerStateSnapshot = (stringified: ViewerStateStringifi
     [ViewerStateSnapshotKeys.Autorotate]: parseBoolean,
     [ViewerStateSnapshotKeys.Brightness]: Number.parseFloat,
     [ViewerStateSnapshotKeys.Density]: Number.parseFloat,
+    [ViewerStateSnapshotKeys.TargetFramerate]: Number.parseFloat,
     [ViewerStateSnapshotKeys.Levels]: tupleParser(3, Number.parseFloat, ","),
     [ViewerStateSnapshotKeys.Interpolation]: parseBoolean,
     [ViewerStateSnapshotKeys.Region]: tupleParser(3, tupleParser(2, Number.parseFloat), ","),
@@ -294,6 +296,9 @@ export function parseHexColorAsColorArray(hexColor: unknown): ColorArray | undef
 export const validateNumber = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
   return typeof value === "number" && !Number.isNaN(value) ? clamp(value, min, max) : undefined;
 };
+
+const validateFramerate = (value: unknown): number | undefined =>
+  typeof value === "number" && isValidFramerate(value) ? value : undefined;
 
 /** Verifies that `value` is a `number`; if it is, truncates it to an integer and clamps it between `min` and `max`. */
 export const validateInt = (value: unknown, min = -Infinity, max = Infinity): number | undefined => {
@@ -444,6 +449,7 @@ export function snapshotToViewerState(snapshot: Untrusted<ViewerStateSnapshot>):
     autorotate: validateBoolean(snapshot[ViewerStateSnapshotKeys.Autorotate]),
     brightness: validateNumber(snapshot[ViewerStateSnapshotKeys.Brightness], 0, 100),
     density: validateNumber(snapshot[ViewerStateSnapshotKeys.Density], 0, 100),
+    targetFramerate: validateFramerate(snapshot[ViewerStateSnapshotKeys.TargetFramerate]),
     levels: validateTuple(snapshot[ViewerStateSnapshotKeys.Levels], 3, (value) => validateNumber(value, 0, 255)),
     interpolationEnabled: validateBoolean(snapshot[ViewerStateSnapshotKeys.Interpolation]),
     region: validateXYZ(snapshot[ViewerStateSnapshotKeys.Region], (value) => validateSortedPair(value, 0, 1)),

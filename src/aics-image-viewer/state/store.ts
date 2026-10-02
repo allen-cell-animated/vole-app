@@ -83,6 +83,7 @@ export const selectViewerSettings = (store: ViewerStore): ViewerState => ({
   maskAlpha: store.maskAlpha,
   brightness: store.brightness,
   density: store.density,
+  targetFramerate: store.targetFramerate,
   levels: store.levels,
   interpolationEnabled: store.interpolationEnabled,
   region: store.region,
