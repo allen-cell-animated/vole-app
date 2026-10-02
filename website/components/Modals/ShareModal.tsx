@@ -76,35 +76,46 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     duration: 2,
   });
 
-  const paramProps = {
-    ...viewerSettings,
-    scene: showAllScenes ? viewerSettings.scene : 0,
-    channelSettings,
-    cameraState: props.view3dRef?.current?.getCameraState(),
-  };
+  const shareUrl = useMemo(() => {
+    if (!showModal) {
+      return undefined;
+    }
 
-  const urlParams: string[] = [];
+    const paramProps = {
+      ...viewerSettings,
+      scene: showAllScenes ? viewerSettings.scene : 0,
+      channelSettings,
+      cameraState: props.view3dRef?.current?.getCameraState(),
+    };
 
-  const serializedUrl = showAllScenes ? urls.map(encodeSceneUrl).join("+") : encodeSceneUrl(urls[viewerSettings.scene]);
+    const urlParams: string[] = [];
 
-  urlParams.push(`url=${serializedUrl}`);
+    const serializedUrl = showAllScenes
+      ? urls.map(encodeSceneUrl).join("+")
+      : encodeSceneUrl(urls[viewerSettings.scene]);
 
-  let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
-  if (serializedViewerParams.size > 0) {
-    // Decode specifically colons and commas for better readability + decreased char count
-    let viewerParamString = serializedViewerParams
-      .toString()
-      .replace(ENCODED_COLON_REGEX, ":")
-      .replace(ENCODED_COMMA_REGEX, ",");
-    urlParams.push(viewerParamString);
-  }
+    urlParams.push(`url=${serializedUrl}`);
 
-  // location.pathname will include up to `.../viewer`
-  const baseUrl = location.protocol + "//" + location.host + location.pathname;
+    let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
+    if (serializedViewerParams.size > 0) {
+      // Decode specifically colons and commas for better readability + decreased char count
+      let viewerParamString = serializedViewerParams
+        .toString()
+        .replace(ENCODED_COLON_REGEX, ":")
+        .replace(ENCODED_COMMA_REGEX, ",");
+      urlParams.push(viewerParamString);
+    }
 
-  const shareUrl = urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
+    // location.pathname will include up to `.../viewer`
+    const baseUrl = location.protocol + "//" + location.host + location.pathname;
+
+    return urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
+  }, [channelSettings, props.view3dRef, showAllScenes, showModal, urls, viewerSettings]);
 
   const onClickCopy = React.useCallback((): void => {
+    if (shareUrl === undefined) {
+      return;
+    }
     navigator.clipboard.writeText(shareUrl);
     notificationApi.success({
       message: "URL copied",
@@ -169,7 +180,7 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
             message="Image metadata from external apps (like BFF) can't be shared in a URL."
           />
         )}
-        {shareUrl.length > MAX_URL_CHARACTERS && (
+        {shareUrl !== undefined && shareUrl.length > MAX_URL_CHARACTERS && (
           <Alert
             showIcon
             icon={<InfoCircleOutlined />}
