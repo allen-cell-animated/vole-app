@@ -1,14 +1,14 @@
 import type { AxisName } from "../types";
+import { TARGET_FRAMERATE_DEFAULT } from "../constants";
 
 type PlayAxisName = AxisName | "t";
-
-const PLAY_STEP_INTERVAL_MS = 125;
 
 export default class PlayControls {
   playingAxis: PlayAxisName | null = null;
   playWaitingForLoad = false;
   playHolding = false;
   playTimeoutId = 0;
+  private targetFramerate = TARGET_FRAMERATE_DEFAULT;
   private lastStepTime = 0;
 
   public getVolumeIsLoaded?: () => boolean;
@@ -18,6 +18,18 @@ export default class PlayControls {
   private setPlayingAxis(axis: PlayAxisName | null): void {
     this.playingAxis = axis;
     this.onPlayingAxisChanged?.(axis);
+  }
+
+  public setTargetFramerate(framerate: number): void {
+    this.targetFramerate = framerate;
+
+    // If playback is currently active and already scheduled, reschedule immediately so
+    // the new framerate applies to the very next playback tick.
+    if (this.playingAxis !== null && this.playTimeoutId !== 0) {
+      window.clearTimeout(this.playTimeoutId);
+      this.playTimeoutId = 0;
+      this.playStep();
+    }
   }
 
   private playStep(): void {
@@ -31,20 +43,21 @@ export default class PlayControls {
 
     // Enforce minimum interval between frame *presentations* (not requests).
     // lastStepTime is set in onImageLoaded when a frame's data arrives.
-    const delay = PLAY_STEP_INTERVAL_MS - (performance.now() - this.lastStepTime);
+    const playStepIntervalMs = 1000 / this.targetFramerate;
+    const delay = playStepIntervalMs - (performance.now() - this.lastStepTime);
     if (delay > 0) {
       this.playTimeoutId = window.setTimeout(this.playStep.bind(this), delay);
       return;
     }
 
     this.stepAxis(this.playingAxis);
-    this.playTimeoutId = window.setTimeout(this.playStep.bind(this), PLAY_STEP_INTERVAL_MS);
+    this.playTimeoutId = window.setTimeout(this.playStep.bind(this), playStepIntervalMs);
   }
 
   /** Call whenever new data is loaded to resume playback if it was paused for data loading. */
   onImageLoaded(): void {
     // Record when the frame was presented, so scheduleNextStep enforces
-    // PLAY_STEP_INTERVAL_MS between presentations (not between requests).
+    // a minimum interval between presentations (not between requests).
     this.lastStepTime = performance.now();
     if (this.playWaitingForLoad) {
       this.playWaitingForLoad = false;
