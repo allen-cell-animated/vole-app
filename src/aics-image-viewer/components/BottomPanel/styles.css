@@ -3,8 +3,9 @@
   bottom: 0;
   width: 100%;
 
+  /* Collapsed drawer leaves only its tab strip visible */
   .ant-drawer .ant-drawer-content-wrapper {
-    transform: translateY(calc(100% - 55px));
+    transform: translateY(calc(100% - var(--clipping-panel-height-collapsed)));
   }
 
   .ant-drawer-content-wrapper {
