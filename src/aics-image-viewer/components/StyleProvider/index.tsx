@@ -368,14 +368,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     background-color: var(--color-checkbox-bg);
   }
 
-  .ant-checkbox-inner {
-    background-color: transparent !important;
-  }
-
   // Add outlines to modals and dropdowns
   .ant-select-dropdown,
   .ant-dropdown-menu,
-  .ant-modal-content {
+  .ant-modal-container {
     border: 1px solid var(--color-modal-border);
   }
 
@@ -398,7 +394,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   .ant-select {
-    &.ant-select-disabled .ant-select-selector {
+    &.ant-select-disabled .ant-select-content {
       border-color: var(--color-button-icon-disabled-outline);
     }
 
@@ -410,12 +406,17 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:hover:not(.ant-select-disabled),
     &:focus-visible:not(.ant-select-disabled),
     &.ant-select.ant-select-open {
-      .ant-select-selector,
-      .ant-select-arrow,
+      .ant-select-content,
+      .ant-select-suffix,
       .ant-select-selection-item {
         color: var(--color-button-tertiary-hover-text);
         outline-color: var(--color-button-tertiary-hover-outline);
+        opacity: 1;
       }
+    }
+
+    .ant-select-content {
+      transition: all 0.3s;
     }
   }
 
@@ -430,10 +431,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
     &.ant-radio-button-wrapper-checked {
       color: var(--color-button-icon-active-text);
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-active-outline);
-      }
     }
 
     &:hover,
@@ -451,7 +448,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 `;
 
 const GlobalTooltipStyle = createGlobalStyle`
-  .ant-tooltip-inner {
+  .ant-tooltip-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -500,6 +497,8 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           controlItemBgHover: theme.colors.menu.hoverBg,
           controlItemBgActiveHover: theme.colors.menu.hoverBg,
           controlItemBgActive: theme.colors.menu.selectedBg,
+          boxShadowSecondary:
+            "0 6px 16px 0 rgba(0, 0, 0, 0.30), 0 3px 6px -4px rgba(0, 0, 0, 0.40), 0 9px 28px 8px rgba(0, 0, 0, 0.20)",
           borderRadius: 4,
         },
         components: {
@@ -509,10 +508,11 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             defaultHoverBg: theme.colors.button.secondary.bg,
             defaultActiveBg: theme.colors.button.secondary.bg,
             defaultActiveBorderColor: theme.colors.button.primary.activeOutline,
+            onlyIconSize: 16,
           },
           Checkbox: {
             borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
+            colorBgContainer: "transparent",
             colorPrimary: theme.colors.checkbox.bg,
             colorPrimaryHover: theme.colors.checkbox.hoverBg,
             colorText: theme.colors.checkbox.text,

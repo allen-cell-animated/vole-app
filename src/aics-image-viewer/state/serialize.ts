@@ -234,6 +234,10 @@ const stringify = <T extends Record<string, unknown>>(
  * ```
  */
 function formatFloat(value: number, maxPrecision: number = 7): string {
+  if (typeof value !== "number") {
+    console.warn(`Expected parsed value to have type number; received ${typeof value}.`);
+    value = Number(value);
+  }
   if (Number.isInteger(value)) {
     return value.toString();
   }
