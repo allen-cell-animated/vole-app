@@ -6,6 +6,7 @@ import { useRefWithSetter } from "../../../shared/utils/hooks";
 import "./styles.css";
 
 interface NumericInputProps {
+  id?: string;
   value: number;
   step?: number;
   precision?: number;
@@ -23,6 +24,7 @@ interface NumericInputProps {
  * ant's `InputNumber`, but conforms to our style and behavior expectations.
  */
 const NumericInput: React.FC<NumericInputProps> = ({
+  id,
   value,
   step = 1,
   precision = step,
@@ -104,6 +106,7 @@ const NumericInput: React.FC<NumericInputProps> = ({
         min={min}
         max={max}
         disabled={disabled}
+        id={id}
         className="numinput-input"
         autoComplete="off"
         role="spinbutton"

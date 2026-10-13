@@ -3,7 +3,9 @@
   width: 52px;
   position: relative;
   display: inline-block;
-  box-sizing: border-box;
+  box-sizing: content-box;
+
+  border: 1px solid #4b4b4b;
 
   & input {
     color: var(--color-text-body);
@@ -16,11 +18,12 @@
   .numinput-input {
     width: 40px;
     height: 100%;
+    box-sizing: border-box;
     font-size: 12px;
     text-align: right;
     padding-right: 6px;
     background-color: transparent;
-    border: 1px solid #4b4b4b;
+    border: none;
 
     &:focus {
       outline: none;
@@ -30,10 +33,11 @@
   .numinput-controls {
     width: 12px;
     height: 100%;
+    box-sizing: border-box;
     position: absolute;
     display: inline-block;
-    border: 1px solid #4b4b4b;
-    border-left-width: 0;
+    border: 0px solid #4b4b4b;
+    border-left-width: 1px;
   }
 
   .numinput-controls-button {
