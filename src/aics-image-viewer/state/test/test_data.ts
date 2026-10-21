@@ -1,6 +1,13 @@
-import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import type { ViewerChannelSetting } from "../../shared/utils/viewerChannelSettings";
-import type { ChannelState, ViewerChannelStateParams, ViewerState, ViewerStateParams } from "../types";
+import { ImageType, ImageTypeSnapshot, RenderMode, RenderModeSnapshot, ViewMode, ViewModeSnapshot } from "../types";
+import type {
+  ChannelState,
+  ChannelStateSnapshot,
+  ChannelStateStringified,
+  ViewerState,
+  ViewerStateSnapshot,
+  ViewerStateStringified,
+} from "../types";
 
 export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {
   viewMode: ViewMode.threeD, // "XY", "XZ", "YZ"
@@ -27,7 +34,35 @@ export const DEFAULT_TEST_VIEWER_STATE: ViewerState = {
   scaleLevelIndex: 0,
 };
 
-export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateParams = {
+export const SERIALIZED_DEFAULT_TEST_VIEWER_STATE: ViewerStateSnapshot = {
+  mode: RenderModeSnapshot.volumetric,
+  view: ViewModeSnapshot.threeD,
+  image: ImageTypeSnapshot.segmentedCell,
+  axes: false,
+  bb: false,
+  bgcol: "000000",
+  bbcol: "ffffff",
+  rot: false,
+  mask: 0,
+  bright: 70,
+  dens: 50,
+  lvl: [35, 140, 255],
+  interp: true,
+  reg: [
+    [0, 1],
+    [0, 1],
+    [0, 1],
+  ],
+  slice: [0.5, 0.5, 0.5],
+  t: 0,
+  scene: 0,
+  scm: false,
+  sci: 0,
+  esl: false,
+  scl: 0,
+};
+
+export const STRINGIFIED_DEFAULT_TEST_VIEWER_STATE: ViewerStateStringified = {
   mode: "volumetric",
   view: "3D",
   image: "cell",
@@ -82,7 +117,36 @@ export const CUSTOM_TEST_VIEWER_STATE: ViewerState = {
   },
 };
 
-export const SERIALIZED_CUSTOM_TEST_VIEWER_STATE: ViewerStateParams = {
+export const SERIALIZED_CUSTOM_TEST_VIEWER_STATE: ViewerStateSnapshot = {
+  mode: RenderModeSnapshot.pathTrace,
+  view: ViewModeSnapshot.xy,
+  image: ImageTypeSnapshot.fullField,
+  axes: true,
+  bb: true,
+  bgcol: "ff0000",
+  bbcol: "00ff00",
+  rot: true,
+  mask: 55,
+  bright: 100,
+  dens: 75,
+  lvl: [0, 250, 251],
+  interp: false,
+  reg: [
+    [0, 0.5],
+    [0, 1],
+    [0, 1],
+  ],
+  slice: [0.25, 0.75, 0.5],
+  t: 100,
+  scene: 3,
+  scm: true,
+  sci: 3,
+  esl: true,
+  scl: 3,
+  cam: { pos: [-1.05, -4, 45], tar: [0, 0, 0], up: [0, 1, 0], ort: 3.534, fov: 43.5 },
+};
+
+export const STRINGIFIED_CUSTOM_TEST_VIEWER_STATE: ViewerStateStringified = {
   mode: "pathtrace",
   view: "Z",
   image: "fov",
@@ -128,7 +192,24 @@ export const DEFAULT_TEST_CHANNEL_STATE: ChannelState = {
   keepIntensityRange: false,
 };
 
-export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ViewerChannelStateParams = {
+export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ChannelStateSnapshot = {
+  col: "ff0000",
+  ven: true,
+  sen: true,
+  isv: 128,
+  isa: 0.75,
+  clz: true,
+  cza: 0.5,
+  cpe: false,
+  cpt: [
+    { x: 0, opacity: 0.5, color: "1" },
+    { x: 255, opacity: 1, color: "326496" },
+  ],
+  ram: [0, 255],
+  pin: false,
+};
+
+export const STRINGIFIED_DEFAULT_TEST_CHANNEL_STATE: ChannelStateStringified = {
   col: "ff0000",
   ven: "1",
   sen: "1",
@@ -138,6 +219,53 @@ export const SERIALIZED_DEFAULT_TEST_CHANNEL_STATE: ViewerChannelStateParams = {
   cza: "0.5",
   cpe: "0",
   cpt: "0:0.5:1:255:1:326496",
+  ram: "0:255",
+  pin: "0",
+};
+
+export const CUSTOM_TEST_CHANNEL_STATE: ChannelState = {
+  name: "a",
+  displayName: "a",
+  color: [3, 255, 157],
+  volumeEnabled: false,
+  isosurfaceEnabled: false,
+  isovalue: 0,
+  opacity: 0.54,
+  colorizeEnabled: false,
+  colorizeAlpha: 1.0,
+  useControlPoints: false,
+  controlPoints: [],
+  ramp: [0, 255],
+  // TODO: the settings below are not serialized. should they be? (see #384)
+  plotMin: 0,
+  plotMax: 255,
+  keepIntensityRange: false,
+};
+
+export const SERIALIZED_CUSTOM_TEST_CHANNEL_STATE: Required<Omit<ChannelStateSnapshot, "lut" | "rmp" | "cps">> = {
+  col: "03ff9d",
+  ven: false,
+  sen: false,
+  isv: 0,
+  isa: 0.54,
+  clz: false,
+  cza: 1,
+  cpe: false,
+  cpt: [],
+  ram: [0, 255],
+  pin: false,
+};
+
+export const STRINGIFIED_CUSTOM_TEST_CHANNEL_STATE: Required<Omit<ChannelStateStringified, "lut" | "rmp" | "cps">> = {
+  col: "03ff9d",
+  ven: "0",
+  sen: "0",
+  isv: "0",
+  isa: "0.54",
+  clz: "0",
+  cza: "1",
+  cpe: "0",
+  cpt: "",
   ram: "0:255",
   pin: "0",
 };

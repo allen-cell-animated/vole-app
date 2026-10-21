@@ -8,7 +8,6 @@ import {
   QUEUE_MAX_LOW_PRIORITY_SIZE,
   QUEUE_MAX_SIZE,
 } from "../shared/constants";
-import { ViewMode } from "../shared/enums";
 import type { AxisName } from "../shared/types";
 import { useConstructor, useRefWithSetter } from "../shared/utils/hooks";
 import PlayControls from "../shared/utils/playControls";
@@ -16,7 +15,7 @@ import SceneStore from "../shared/utils/sceneStore";
 import type { ChannelGrouping, ViewerChannelSettings } from "../shared/utils/viewerChannelSettings";
 import { makeChannelIndexGrouping } from "../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../state/store";
-import type { ChannelState } from "../state/types";
+import { type ChannelState, ViewMode } from "../state/types";
 
 export type UseVolumeOptions = {
   viewerChannelSettings?: ViewerChannelSettings;
@@ -28,6 +27,8 @@ export type UseVolumeOptions = {
   onChannelLoaded?: (image: Volume, channelIndex: number, isInitialLoad: boolean) => void;
   /** Callback for when image loading encounters an error. */
   onError?: (error: unknown, image?: Volume) => void;
+  /** Callback for when scrubbing starts or stops, including the state info needed */
+  onScrub?: (isScrubbing: boolean, image: Volume) => void;
   /** The name of a channel which should be treated as a mask rather than as viewable data. */
   maskChannelName?: string;
 };
@@ -40,7 +41,7 @@ export const enum ImageLoadStatus {
 }
 
 const enum LoadType {
-  TIME,
+  RELOAD,
   SCENE,
 }
 
@@ -63,6 +64,7 @@ export type ReactiveVolume = {
   imageLoadStatus: ImageLoadStatus;
   setTime: (view3d: View3d, time: number) => void;
   setScene: (scene: number) => void;
+  setScrubbingAxis: (axis: AxisName | "t" | null) => void;
   playControls: PlayControls;
   playingAxis: AxisName | "t" | null;
   channelGroupedByType: ChannelGrouping;
@@ -105,6 +107,7 @@ const useVolume = (
   const onChannelLoadedRef = useEffectEventRef(options?.onChannelLoaded);
   const onChangeSceneRef = useEffectEventRef(options?.onChangeScene);
   const onCreateImageRef = useEffectEventRef(options?.onCreateImage);
+  const onScrubRef = useEffectEventRef(options?.onScrub);
   const maskChannelName = options?.maskChannelName;
 
   // set up our big objects: the image, its loading infrastructure, and controls for playback
@@ -115,6 +118,7 @@ const useVolume = (
   const sceneLoader = useMemo(() => new SceneStore(loadContext, scenePaths), [loadContext, scenePaths]);
   const playControls = useConstructor(() => new PlayControls());
   const [playingAxis, setPlayingAxis] = useState<AxisName | "t" | null>(null);
+  const [scrubbingAxis, setScrubbingAxis] = useState<AxisName | "t" | null>(null);
   useEffect(() => {
     playControls.onPlayingAxisChanged = (axis) => {
       const isPlaying = axis !== null;
@@ -122,12 +126,6 @@ const useVolume = (
       // prioritize prefetching along the playing axis
       sceneLoader.setPrefetchPriority(axis ? [AXIS_TO_LOADER_PRIORITY[axis]] : []);
       sceneLoader.updateFetchOptions({ onlyPriorityDirections: isPlaying });
-      // sync multichannel loading so we don't show loaded channels one at a time
-      sceneLoader.syncMultichannelLoading(isPlaying);
-      if (image) {
-        // If we're playing and entire axis is not in memory (T always, Z likely), downlevel to speed things up
-        // TODO this will be put back in the next PR!
-      }
     };
   }, [sceneLoader, playControls, image]);
 
@@ -177,6 +175,13 @@ const useVolume = (
     [channelVersionsRef, setChannelVersions]
   );
 
+  useEffect(() => {
+    if (!image) return;
+    const onLoadStart = (): void => setIsLoading(LoadType.RELOAD);
+    image.addEventListener("loadStart", onLoadStart);
+    return () => image.removeEventListener("loadStart", onLoadStart);
+  }, [image, setIsLoading]);
+
   const onError = useCallback(
     (e: unknown): never => {
       setLoadThrewError(true);
@@ -186,8 +191,37 @@ const useVolume = (
     [onErrorRef]
   );
 
-  // channel indexes, sorted by category
-  const [channelGroupedByType, setChannelGroupedByType] = useState<ChannelGrouping>({});
+  const scaleLevelBias = useMemo(() => {
+    if (!image) return 0;
+
+    // If we're playing/scrubbing and entire axis is not in memory, downlevel to speed things up
+    const { volumeSize, subregionSize, numMultiscaleLevels } = image.imageInfo;
+    const axis = scrubbingAxis ?? playingAxis;
+    if (axis && (axis === "t" || volumeSize[axis] !== subregionSize[axis])) {
+      const isPlayback = scrubbingAxis !== null;
+      return isPlayback ? numMultiscaleLevels : 1;
+    }
+
+    return 0;
+  }, [image, playingAxis, scrubbingAxis]);
+
+  useEffect(() => {
+    image?.updateRequiredData({ scaleLevelBias }).catch(onError);
+  }, [scaleLevelBias, image, onError]);
+
+  // channelGroupedByType groups channel indexes by their category.
+  // It depends on `viewerChannelSettings` and the channel names in the current image.
+  // TODO this can be derived much more easily once `Volume` has events
+  const channelNamesKey = channelSettings.map(({ name }) => name).join("\0");
+  const channelNames = useMemo(() => channelNamesKey.split("\0"), [channelNamesKey]);
+
+  const useDefaultViewerChannelSettings = useViewerState(select("useDefaultViewerChannelSettings"));
+  const channelGroupedByType = useMemo(() => {
+    const viewerChannelSettings = useDefaultViewerChannelSettings
+      ? getDefaultViewerChannelSettings()
+      : options?.viewerChannelSettings;
+    return makeChannelIndexGrouping(channelNames, viewerChannelSettings);
+  }, [channelNames, options?.viewerChannelSettings, useDefaultViewerChannelSettings]);
 
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
@@ -214,8 +248,6 @@ const useVolume = (
       const viewerChannelSettings = useDefaultViewerChannelSettings
         ? getDefaultViewerChannelSettings()
         : options?.viewerChannelSettings;
-      const grouping = makeChannelIndexGrouping(channelNames, viewerChannelSettings);
-      setChannelGroupedByType(grouping);
 
       return initChannelSettings(channelNames, viewerChannelSettings);
     },
@@ -313,7 +345,6 @@ const useVolume = (
     setIsLoading,
     onChannelDataLoaded,
     changeViewerSetting,
-    initChannelSettings,
     setChannelStateForNewImage,
     options?.viewerChannelSettings,
   ]);
@@ -323,10 +354,9 @@ const useVolume = (
     (view3d: View3d, time: number): void => {
       if (image && !inInitialLoadRef.current) {
         view3d.setTime(image, time).catch(onError);
-        setIsLoading(LoadType.TIME);
       }
     },
-    [image, onError, setIsLoading, inInitialLoadRef]
+    [image, onError, inInitialLoadRef]
   );
 
   const setScene = useCallback(
@@ -367,6 +397,19 @@ const useVolume = (
     ]
   );
 
+  useEffect(() => {
+    if (image && !inInitialLoadRef.current) {
+      // When playing, wait for all channels to load before displaying
+      // When scrubbing, show channels as they arrive, for speed
+      sceneLoader.syncMultichannelLoading(scrubbingAxis === null && playingAxis !== null);
+    }
+  }, [image, scrubbingAxis, playingAxis, sceneLoader]);
+
+  useEffect(() => {
+    if (!image) return;
+    onScrubRef(scrubbingAxis !== null, image);
+  }, [onScrubRef, scrubbingAxis, image]);
+
   return useMemo(
     () => ({
       image,
@@ -374,11 +417,22 @@ const useVolume = (
       imageLoadStatus,
       setTime,
       setScene,
+      setScrubbingAxis,
       playControls,
       playingAxis,
       channelGroupedByType,
     }),
-    [image, channelVersions, imageLoadStatus, setTime, setScene, playControls, playingAxis, channelGroupedByType]
+    [
+      image,
+      channelVersions,
+      imageLoadStatus,
+      setTime,
+      setScene,
+      setScrubbingAxis,
+      playControls,
+      playingAxis,
+      channelGroupedByType,
+    ]
   );
 };
 

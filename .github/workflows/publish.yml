@@ -12,10 +12,6 @@ on:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 permissions:
-  # Required for OIDC token for NPM Trusted Publishers.
-  # See https://docs.github.com/en/actions/concepts/security/openid-connect
-  # and https://docs.npmjs.com/trusted-publishers.
-  id-token: write
   contents: read
 
 jobs:
@@ -23,12 +19,15 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
-          cache: "npm"
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
       - run: npm ci
       - run: npm run lint --if-present
 
@@ -36,12 +35,15 @@ jobs:
     name: Unit Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
-          cache: "npm"
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
       - run: npm ci
       - run: npm test --if-present
 
@@ -49,12 +51,15 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
-          cache: "npm"
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
       - run: npm ci
       - run: npm run typeCheck --if-present
 
@@ -62,11 +67,14 @@ jobs:
     needs: [lint, typeCheck, test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}
-          cache: "npm"
+          package-manager-cache: false # Do not cache when publishing to prevent cache pollution attacks
       - run: npm ci
       - run: npm run build
 
@@ -76,8 +84,17 @@ jobs:
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required for actions/checkout
+      # Required for OIDC token for NPM Trusted Publishers.
+      # See https://docs.github.com/en/actions/concepts/security/openid-connect
+      # and https://docs.npmjs.com/trusted-publishers.
+      id-token: write
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: ${{env.NODE_VERSION}}

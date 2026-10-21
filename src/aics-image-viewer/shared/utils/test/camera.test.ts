@@ -1,11 +1,10 @@
 import type { CameraState } from "@aics/vole-core";
-import { describe, expect, it } from "@jest/globals";
 import { mat3 } from "gl-matrix";
+import { describe, expect, it } from "vitest";
 
 import { applyMatrix, defaultOrientedCamera, getRotationAngles, rotationMatrix } from "../camera";
 
 const expectCameraStateToBe = (actual: CameraState, expected: CameraState, precision?: number): void => {
-  console.log(actual.up, expected.up);
   const [apx, apy, apz] = actual.position;
   const [epx, epy, epz] = expected.position;
   expect(apx).toBeCloseTo(epx, precision);

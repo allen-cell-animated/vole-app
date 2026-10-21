@@ -7,8 +7,12 @@
   ],
   "env": {
     "es": {
-      // in npm run build, .svgs will be translated to js as React components; update imports to match
-      "plugins": [["replace-import-extension", { "extMapping": { ".svg": ".js" } }]]
+      "plugins": [
+        // in npm run build, .svgs will be translated to js as React components; update imports to match
+        ["replace-import-extension", { "extMapping": { ".svg": ".js" } }],
+        // Inlines the VOLEAPP_VERSION environment variable into the code.
+        ["transform-inline-environment-variables", { "include": ["VOLEAPP_VERSION"] }]
+      ]
     }
   }
 }

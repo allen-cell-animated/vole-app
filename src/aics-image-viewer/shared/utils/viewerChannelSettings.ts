@@ -24,7 +24,7 @@ export type IntensitySettings = {
    * - `autoij` in either the min or max fields will use the "auto" algorithm
    * from ImageJ to select the min and max.
    */
-  lut?: [string, string];
+  lut?: [string | number, string | number];
 };
 
 /** Settings for a single channel, as passed in via props by App users */

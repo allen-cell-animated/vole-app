@@ -1,13 +1,15 @@
-import type { FirebaseFirestore } from "@firebase/firestore-types";
-
 import type { AppProps, MultisceneUrls } from "../../components/App/types";
-import { deserializeViewerChannelSetting, deserializeViewerState, parseKeyValueList } from "../../state/deserialize";
-import { objectToKeyValueList, serializeViewerChannelSetting, serializeViewerState } from "../../state/serialize";
+import {
+  parseKeyValueList,
+  stringSnapshotToViewerChannelSetting,
+  stringSnapshotToViewerState,
+} from "../../state/deserialize";
+import { channelStateToStringSnapshot, objectToKeyValueList, viewerStateToStringSnapshot } from "../../state/serialize";
 import type { ViewerStore } from "../../state/store";
-import { type ViewerChannelStateParams, type ViewerState, ViewerStateParams } from "../../state/types";
+import { ViewerStateSnapshotKeys } from "../../state/types";
+import type { ChannelStateStringified, ViewerState, ViewerStateStringified } from "../../state/types";
 import type { ManifestJson, MetadataRecord } from "../types";
 import { removeUndefinedProperties } from "./datatypes";
-import FirebaseRequest, { type DatasetMetaData } from "./firebase";
 import { readStoredMetadata, readStoredScenes } from "./storage";
 import type { ViewerChannelSetting, ViewerChannelSettings } from "./viewerChannelSettings";
 
@@ -42,10 +44,6 @@ class DataParams {
    * See `ManifestJson` for the type definition.
    */
   manifest?: string = undefined;
-  /** The name of a dataset in the Cell Feature Explorer database. Used with `id`. */
-  dataset?: string = undefined;
-  /** The ID of a cell within the loaded dataset. Used with `dataset`. */
-  id?: string = undefined;
   /** The key of a collection of scenes stored in local storage. Overrides `url`. */
   collectionid?: string = undefined;
   /**
@@ -71,23 +69,10 @@ class DeprecatedParams {
   colors?: string = undefined;
 }
 
-type AppParams = Partial<ViewerStateParams & DataParams & DeprecatedParams & ChannelParams>;
-
-/**
- * A message sent from an external application after this app was opened,
- * containing data that was too large to pack into the URL.
- */
-type ViewerMessage = {
-  /** A (possibly very long) list of scene URLs. */
-  scenes?: string[];
-  /** A (likely very large) list of metadata records for each scene. */
-  meta?: Record<string, MetadataRecord>;
-  /** The scene to open once this message arrives. */
-  sceneIndex?: number;
-};
+type AppParams = Partial<ViewerStateStringified & DataParams & DeprecatedParams & ChannelParams>;
 
 const allowedParamKeys: Array<keyof AppParams> = [
-  ...Object.keys(new ViewerStateParams()),
+  ...Object.values(ViewerStateSnapshotKeys),
   ...Object.keys(new DataParams()),
   ...Object.keys(new DeprecatedParams()),
 ] as Array<keyof AppParams>;
@@ -210,7 +195,10 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
       const channelIndex = Number.parseInt(key.slice(1), 10);
       try {
         const channelData = parseKeyValueList(params[key]!);
-        const channelSetting = deserializeViewerChannelSetting(channelIndex, channelData as ViewerChannelStateParams);
+        const channelSetting = stringSnapshotToViewerChannelSetting(
+          channelIndex,
+          channelData as ChannelStateStringified
+        );
         channelIndexToSettings.set(channelIndex, channelSetting);
       } catch (e) {
         console.warn(
@@ -234,38 +222,6 @@ function parseChannelSettings(params: ChannelParams): ViewerChannelSettings | un
 }
 
 //// FULL URL PARSING //////////////////////
-async function loadDataset(firestore: FirebaseFirestore, dataset: string, id: string): Promise<Partial<AppProps>> {
-  const db = new FirebaseRequest(firestore);
-  const args: Partial<AppProps> = {};
-
-  const datasets = await db.getAvailableDatasets();
-
-  let datasetMeta: DatasetMetaData | undefined = undefined;
-  for (const d of datasets) {
-    const innerDatasets = d.datasets!;
-    const names = Object.keys(innerDatasets);
-    const matchingName = names.find((name) => name === dataset);
-    if (matchingName) {
-      datasetMeta = innerDatasets[matchingName];
-      break;
-    }
-  }
-  if (datasetMeta === undefined) {
-    console.error(`No matching dataset: ${dataset}`);
-    return {};
-  }
-
-  const datasetData = await db.selectDataset(datasetMeta.manifest!);
-  const baseUrl = datasetData.volumeViewerDataRoot + "/";
-  args.imageDownloadHref = datasetData.downloadRoot + "/" + id;
-  // args.fovDownloadHref = datasetData.downloadRoot + "/" + id;
-
-  const fileInfo = await db.getFileInfoByCellId(id);
-  args.imageUrl = baseUrl + fileInfo!.volumeviewerPath;
-  args.parentImageUrl = baseUrl + fileInfo!.fovVolumeviewerPath;
-
-  return args;
-}
 
 function isStringArray(arr: any[]): arr is string[] {
   return Array.isArray(arr) && arr.every((item) => typeof item === "string");
@@ -325,18 +281,13 @@ export async function loadFromManifest(
 /**
  * Parses a set of URL search parameters into props for the viewer.
  * @param search The query string to parse, which must be valid in the `URLSearchParams constructor
- * @param firestore Optional Firestore instance. If provided, the function can load data from a
- * Firestore dataset if the `dataset` and `id` parameters are provided.
  * @returns An object containing:
  * - `args`: Partial AppProps object.
  * - `viewerSettings`: Partial ViewerState object.
  *
  * `args` can be passed as props to the `ImageViewerApp`, and `viewerSettings` can be passed to `ViewerStateProvider`.
  */
-export async function parseViewerUrlParams(
-  search: string,
-  firestore?: FirebaseFirestore
-): Promise<{
+export async function parseViewerUrlParams(search: string): Promise<{
   args: Partial<AppProps>;
   viewerSettings: Partial<ViewerState>;
 }> {
@@ -344,7 +295,7 @@ export async function parseViewerUrlParams(
   const params = getAllowedParams(searchParams);
   let args: Partial<AppProps> = {};
   // Parse viewer state
-  const viewerSettings: Partial<ViewerState> = deserializeViewerState(params);
+  const viewerSettings: Partial<ViewerState> = stringSnapshotToViewerState(params);
 
   // Parse channel settings. If per-channel settings are provided, they will override
   // the old `ch` query parameter.
@@ -399,45 +350,8 @@ export async function parseViewerUrlParams(
         ],
       };
     }
-  } else if (params.dataset && params.id && firestore) {
-    // ?dataset=aics_hipsc_v2020.1&id=232265
-    const datasetArgs = await loadDataset(firestore, params.dataset, params.id);
-    args = { ...args, ...datasetArgs };
   }
-
   return { args: removeUndefinedProperties(args), viewerSettings: removeUndefinedProperties(viewerSettings) };
-}
-
-/** Adds the data in a newly-arrived `ViewerMessage` to an existing stored `AppProps` instance. */
-export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" | "metadata">>(
-  args: P,
-  message: ViewerMessage
-): P {
-  // get scenes
-  const { imageUrl } = args;
-  const scenes = message.scenes ?? (typeof imageUrl === "string" ? [imageUrl] : imageUrl.scenes);
-  const firstScene = scenes[0];
-  const newImageUrl = scenes.length === 1 && typeof firstScene === "string" ? firstScene : { scenes };
-
-  // get metadata
-  const { meta } = message;
-  const messageMeta =
-    meta &&
-    scenes.map((scene) => {
-      if (Array.isArray(scene)) {
-        // can't handle multi-source scenes (yet)
-        return undefined;
-      }
-
-      return meta[scene] as MetadataRecord | undefined;
-    });
-  const newMetadata = messageMeta ?? args.metadata;
-
-  if (newMetadata === undefined) {
-    return { ...args, imageUrl: newImageUrl };
-  } else {
-    return { ...args, imageUrl: newImageUrl, metadata: newMetadata };
-  }
 }
 
 /**
@@ -447,18 +361,12 @@ export function addViewerParamsFromMessage<P extends Pick<AppProps, "imageUrl" |
  * This includes the output of GET_DEFAULT_VIEWER_STATE and GET_DEFAULT_CHANNEL_STATE.
  */
 export function serializeViewerUrlParams(state: Partial<ViewerStore>, removeDefaults: boolean = true): AppParams {
-  const params = serializeViewerState(state, removeDefaults);
+  const params = viewerStateToStringSnapshot(state, removeDefaults);
 
-  const channelParams = state.channelSettings?.reduce<Record<string, string>>(
-    (acc, channelSetting, index): Record<string, string> => {
-      const key = `c${index}`;
-      acc[key] = objectToKeyValueList(
-        serializeViewerChannelSetting(channelSetting, removeDefaults) as Record<string, string>
-      );
-      return acc;
-    },
-    {} as Record<string, string>
-  );
+  const channelParams = state.channelSettings?.reduce((acc, channelSetting, index): Record<`c${number}`, string> => {
+    acc[`c${index}`] = objectToKeyValueList(channelStateToStringSnapshot(channelSetting, removeDefaults));
+    return acc;
+  }, {});
 
   return { ...params, ...channelParams };
 }

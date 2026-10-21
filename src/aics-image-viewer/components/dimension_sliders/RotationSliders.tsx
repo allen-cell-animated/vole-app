@@ -2,7 +2,6 @@ import type { View3d } from "@aics/vole-core";
 import { Button, Space } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { ViewMode } from "../../shared/enums";
 import type { AxisName } from "../../shared/types";
 import {
   applyMatrix,
@@ -12,6 +11,7 @@ import {
   useCameraCallback,
 } from "../../shared/utils/camera";
 import { select, useViewerState } from "../../state/store";
+import { ViewMode } from "../../state/types";
 
 import { DimensionSliderRow } from "./SliderRows";
 
@@ -77,19 +77,19 @@ export const RotationSliders: React.FC<{ view3d: View3d; disable: boolean }> = (
 
   // Set up event listeners on mount.
   useEffect(() => {
-    // TODO this is *extremely brittle*: setting this clears away any other listener for render events.
-    //   At time of writing, `setOnRenderCallback` appears not to be used anywhere else in either this package or
-    //   vole-core, but that could change at any time.
-    //   Ideally `View3d` would have an `addEventListener`/`removeEventListener` model.
-    view3d.setOnRenderCallback(() => {
+    const renderListener = (): void => {
       if (!hasControlRef.current) {
         setRotation(getRotationAngles(view3d.getCameraState()));
       }
-    });
+    };
+    view3d.addEventListener("render", renderListener);
 
     const clickListener = (): boolean => (hasControlRef.current = false);
     view3d.getDOMElement().addEventListener("mousedown", clickListener);
-    return () => view3d.getDOMElement().removeEventListener("mousedown", clickListener);
+    return () => {
+      view3d.removeEventListener("render", renderListener);
+      view3d.getDOMElement().removeEventListener("mousedown", clickListener);
+    };
   }, [view3d]);
 
   const createRotateSlider = (axis: AxisName): React.ReactNode => (

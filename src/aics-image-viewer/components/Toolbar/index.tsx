@@ -4,8 +4,8 @@ import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
-import { ImageType, RenderMode, ViewMode } from "../../shared/enums";
 import { select, useViewerState } from "../../state/store";
+import { ImageType, RenderMode, ViewMode } from "../../state/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
@@ -57,7 +57,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const leftRef = React.useRef<HTMLDivElement>(null);
   const rightRef = React.useRef<HTMLDivElement>(null);
   const centerRef = React.useRef<HTMLDivElement>(null);
-  const resizeObserver = React.useRef<ResizeObserver>();
+  const resizeObserver = React.useRef<ResizeObserver>(undefined);
 
   const [scrollMode, setScrollMode] = React.useState(false);
   const [showScrollBtnLeft, setScrollBtnLeft] = React.useState(false);
