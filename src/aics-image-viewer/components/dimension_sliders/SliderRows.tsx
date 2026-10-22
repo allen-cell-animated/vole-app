@@ -29,9 +29,8 @@ type DimensionSliderRowProps = SharedSliderRowProps<number[]> & {
 
 type IndexSliderRowProps = Omit<SharedSliderRowProps, "min">;
 
-type PlaySliderRowProps = Omit<SharedSliderRowProps, "valReadout" | "min" | "onSlide"> & {
+type PlaySliderRowProps = Omit<SharedSliderRowProps, "valReadout" | "min"> & {
   playing: boolean;
-  updateWhileSliding?: boolean;
   onTogglePlayback: (play: boolean) => void;
 };
 
@@ -130,14 +129,20 @@ export const IndexSliderRow: React.FC<IndexSliderRowProps> = (props) => (
 
 /** Wrapper around `SliderRow` that adds a play button and accounts for the case where not all of an axis is loaded. */
 export const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
-  const { onChange, onStart, onEnd } = props;
+  const { onChange, onSlide, onStart, onEnd } = props;
   // In partially-loaded axes, stores the displayed value of the slider while the user is sliding it
   const [valReadout, setValReadout] = useState(props.val);
   // Tracks when the user is sliding the slider and `valReadout` may have to sub in for props
   const [sliderHeld, setSliderHeld] = useState(false);
 
   const wrappedOnChange = useCallback((val: number) => onChange?.(val), [onChange]);
-  const wrappedSetValReadout = useCallback((val: number) => setValReadout(val), []);
+  const wrappedOnSlide = useCallback(
+    (val: number) => {
+      setValReadout(val);
+      onSlide?.(val);
+    },
+    [onSlide]
+  );
   const wrappedOnStart = useCallback((): void => {
     setValReadout(props.val);
     setSliderHeld(true);
@@ -153,10 +158,10 @@ export const PlaySliderRow: React.FC<PlaySliderRowProps> = (props) => {
       <IndexSliderRow
         label={props.label}
         val={props.val}
-        valReadout={props.updateWhileSliding || !sliderHeld ? undefined : valReadout}
+        valReadout={!sliderHeld ? undefined : valReadout}
         max={props.max}
-        onSlide={props.updateWhileSliding ? wrappedOnChange : wrappedSetValReadout}
-        onChange={props.updateWhileSliding ? undefined : wrappedOnChange}
+        onSlide={wrappedOnSlide}
+        onChange={wrappedOnChange}
         onStart={wrappedOnStart}
         onEnd={wrappedOnEnd}
       />

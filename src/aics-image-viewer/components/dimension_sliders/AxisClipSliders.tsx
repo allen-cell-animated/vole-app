@@ -1,10 +1,10 @@
 import type { Volume } from "@aics/vole-core";
 import React, { useEffect } from "react";
 
-import type { ViewMode } from "../../shared/enums";
-import { activeAxisMap, type AxisName, type PerAxis } from "../../shared/types";
+import { activeAxisMap, type AxisName, type XYZ } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
 import type { ViewerStateActions } from "../../state/store";
+import type { ViewMode } from "../../state/types";
 
 import { DimensionSliderRow, IndexSliderRow, PlaySliderRow } from "./SliderRows";
 
@@ -14,16 +14,17 @@ type AxisClipSlidersProps = {
   mode: ViewMode;
   image: Volume | null;
   changeViewerSetting: ViewerStateActions["changeViewerSetting"];
-  numSlices: PerAxis<number>;
-  numSlicesLoaded: PerAxis<number>;
+  numSlices: XYZ<number>;
+  numSlicesLoaded: XYZ<number>;
   numScenes: number;
-  region: PerAxis<[number, number]>;
-  slices: PerAxis<number>;
+  region: XYZ<[number, number]>;
+  slices: XYZ<number>;
   numTimesteps: number;
   time: number;
   scene: number;
   playingAxis: AxisName | "t" | null;
   playControls: PlayControls;
+  setScrubbingAxis: (axis: AxisName | "t" | null) => void;
 };
 
 export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
@@ -47,14 +48,25 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
     changeViewerSetting("region", { [axis]: [start, end] });
   };
 
-  const updateSlice = (axis: AxisName, slice: number): void => {
+  const updateSlice = (axis: AxisName, slice: number, isScrubbing = false): void => {
     pauseOnInput(axis);
+    if (isScrubbing) {
+      props.setScrubbingAxis(axis);
+    }
     props.changeViewerSetting("slice", { [axis]: slice / props.numSlices[axis] });
   };
 
-  const updateTime = (time: number): void => {
+  const updateTime = (time: number, isScrubbing = false): void => {
     pauseOnInput("t");
+    if (isScrubbing) {
+      props.setScrubbingAxis("t");
+    }
     props.changeViewerSetting("time", time);
+  };
+
+  const endScrub = (): void => {
+    props.setScrubbingAxis(null);
+    props.playControls.endHold();
   };
 
   // Pause when view mode or volume size has changed
@@ -78,12 +90,12 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
           label={axis.toUpperCase()}
           val={Math.round(props.slices[axis] * numSlices)}
           max={numSlices}
+          onSlide={(val) => updateSlice(axis, val, true)}
           onChange={(val) => updateSlice(axis, val)}
           onStart={() => props.playControls.startHold(axis)}
-          onEnd={() => props.playControls.endHold()}
+          onEnd={endScrub}
           playing={props.playingAxis === axis}
           onTogglePlayback={(willPlay) => handlePlayPause(axis, willPlay)}
-          updateWhileSliding={numSlices === numSlicesLoaded}
         />
       </div>
     );
@@ -131,9 +143,10 @@ export const AxisClipSliders: React.FC<AxisClipSlidersProps> = (props) => {
                 max={props.numTimesteps}
                 playing={props.playingAxis === "t"}
                 onTogglePlayback={(willPlay) => handlePlayPause("t", willPlay)}
+                onSlide={(time) => updateTime(time, true)}
                 onChange={(time) => updateTime(time)}
                 onStart={() => props.playControls.startHold("t")}
-                onEnd={() => props.playControls.endHold()}
+                onEnd={endScrub}
               />
             </div>
           </span>

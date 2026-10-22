@@ -55,11 +55,11 @@ export interface AppProps {
   viewerChannelSettings?: ViewerChannelSettings;
 
   appHeight: string;
-  cellId: string;
+  cellId?: string;
   visibleControls?: Partial<ControlVisibilityFlags>;
   viewerSettings?: Partial<ViewerState>;
-  imageDownloadHref: string;
-  parentImageDownloadHref: string;
+  imageDownloadHref?: string;
+  parentImageDownloadHref?: string;
   pixelSize?: [number, number, number];
   canvasMargin: string;
   transform?: {

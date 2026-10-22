@@ -1,6 +1,6 @@
 import type { CameraState } from "@aics/vole-core";
-import { describe, expect, it } from "@jest/globals";
 import { mat3 } from "gl-matrix";
+import { describe, expect, it } from "vitest";
 
 import { applyMatrix, defaultOrientedCamera, getRotationAngles, rotationMatrix } from "../camera";
 

@@ -1,6 +1,5 @@
 import type { ScaleLevelDims } from "@aics/vole-core";
 import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Select, Tooltip } from "antd";
-import type { MenuInfo } from "rc-menu/lib/interface";
 import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
@@ -13,6 +12,7 @@ import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalV
 import MetadataViewer from "../MetadataViewer";
 import ResolutionControls from "../ResolutionControls";
 import ViewerIcon from "../shared/ViewerIcon";
+import CopySettingsButton from "./CopySettingsButton";
 
 import "./styles.css";
 
@@ -56,21 +56,19 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
   const changeViewerSetting = useViewerState(select("changeViewerSetting"));
 
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const columnRef = React.useRef<HTMLDivElement>(null);
   const getDropdownContainer = (): HTMLElement => containerRef.current ?? document.body;
 
-  const { viewerChannelSettings, visibleControls, hasImage, multiscaleDims, multiscaleIndex } = props;
-
-  // TODO key is a number, but MenuInfo assumes keys will always be strings
-  //   if future versions of antd make this type more permissive, remove ugly double-cast
-  const makeTurnOnPresetFn = ({ key }: MenuInfo): void =>
-    props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors);
+  const { viewerChannelSettings, visibleControls, hasImage } = props;
 
   const renderChannelSettingsHeader = (): React.ReactNode => {
     const dropDownMenuProps: MenuProps = {
       items: PRESET_COLOR_MAP.map((preset, index) => {
         return { key: index, label: preset.name };
       }),
-      onClick: makeTurnOnPresetFn,
+      // TODO key is a number, but MenuInfo assumes keys will always be strings
+      //   if future versions of antd make this type more permissive, remove ugly double-cast
+      onClick: ({ key }): void => props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors),
     };
 
     const singleChannelTitle = singleChannelMode ? (
@@ -226,8 +224,18 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
         {renderTab(ControlTab.Advanced, <ViewerIcon type="preferences" />)}
         {props.visibleControls.metadataViewer && renderTab(ControlTab.Metadata, <ViewerIcon type="metadata" />)}
       </div>
-      <div className="control-panel-col" style={{ flex: "0 0 450px" }}>
-        <h2 className="control-panel-title">{ControlTabNames[tab]}</h2>
+      <div className="control-panel-col" style={{ flex: "0 0 450px" }} ref={columnRef}>
+        <div className="control-panel-title-container">
+          <h2>{ControlTabNames[tab]}</h2>
+          {tab === ControlTab.Channels && (
+            <CopySettingsButton
+              imageName={props.imageName}
+              scrollContainer={columnRef.current}
+              hide={props.collapsed}
+              getDropdownContainer={getDropdownContainer}
+            />
+          )}
+        </div>
         {visibleControls.colorPresetsDropdown && tab === ControlTab.Channels && renderChannelSettingsHeader()}
         {hasImage && (
           <div className="control-panel-content">
@@ -240,6 +248,9 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 onApplyColorPresets={props.onApplyColorPresets}
                 filterFunc={props.filterFunc}
                 viewerChannelSettings={viewerChannelSettings}
+                getDropdownContainer={getDropdownContainer}
+                scrollContainer={columnRef.current}
+                controlPanelCollapsed={props.collapsed}
               />
             )}
             {tab === ControlTab.Advanced && renderAdvancedSettings()}

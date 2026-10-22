@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 
-import { ViewMode } from "./enums";
+import { ViewMode } from "../state/types";
 
 export type AxisName = "x" | "y" | "z";
-export type PerAxis<T> = Record<AxisName, T>;
+export type XYZ<T> = Record<AxisName, T>;
 export const activeAxisMap: { [A in ViewMode]: AxisName | null } = {
   [ViewMode.yz]: "x",
   [ViewMode.xz]: "y",
