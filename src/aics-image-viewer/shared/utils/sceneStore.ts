@@ -3,12 +3,11 @@ import type {
   LoadSpec,
   PrefetchDirection,
   RawArrayLoaderOptions,
-  Volume,
+  VolumeLoader,
   VolumeLoaderContext,
   ZarrLoaderFetchOptions,
 } from "@aics/vole-core";
-import { createDefaultMetadata, VolumeFileFormat } from "@aics/vole-core";
-import type { ThreadableVolumeLoader } from "@aics/vole-core/es/types/loaders/IVolumeLoader";
+import { Volume, VolumeFileFormat } from "@aics/vole-core";
 
 export type LoadSceneOptions = {
   onCreateScene?: (volume: Volume, sceneIndex: number, loadSpec: LoadSpec) => void;
@@ -17,7 +16,7 @@ export type LoadSceneOptions = {
 
 export default class SceneStore {
   context: VolumeLoaderContext;
-  loaders: (ThreadableVolumeLoader | undefined)[];
+  loaders: (VolumeLoader | undefined)[];
   paths: (string | string[] | RawArrayLoaderOptions)[];
   currentScene: number = 0;
   syncChannels: boolean = false;
@@ -30,7 +29,7 @@ export default class SceneStore {
   }
 
   /** Get the loader associated with the given scene index, or create it if it doesn't exist */
-  private async getLoader(scene: number): Promise<ThreadableVolumeLoader> {
+  private async getLoader(scene: number): Promise<VolumeLoader> {
     this.currentScene = scene;
     let loader = this.loaders[scene];
 
@@ -55,34 +54,16 @@ export default class SceneStore {
 
   public async loadScene(scene: number, image: Volume, loadSpec?: LoadSpec, options?: LoadSceneOptions): Promise<void> {
     const loader = await this.getLoader(scene);
-    const spec = loadSpec ?? image.loadSpecRequired;
-
-    image.loader = loader;
-    const imageInfo = (await loader.createImageInfo(spec)).imageInfo;
-    image.imageInfo.imageInfo = imageInfo;
-    image.imageMetadata = createDefaultMetadata(imageInfo);
-
-    const maxTime = imageInfo.multiscaleLevelDims[imageInfo.multiscaleLevel].shape[0] - 1;
-    const adjustedSpec: LoadSpec = {
-      ...spec,
-      channels: spec.channels?.filter((channelIndex) => channelIndex < imageInfo.channelNames.length),
-      time: Math.min(spec.time, maxTime),
-    };
-    // TODO it's not great that this is the caller's responsibility... fix this more robustly in vole-core
-    image.loadSpec = { ...image.loadSpec, ...adjustedSpec };
-    image.loadSpecRequired = { ...image.loadSpecRequired, ...adjustedSpec };
-
-    options?.onCreateScene?.(image, scene, adjustedSpec);
-    loader.loadVolumeData(image, adjustedSpec, options?.onChannelLoaded);
+    image.setLoader(loader, loadSpec);
+    options?.onCreateScene?.(image, scene, image.loadSpec);
+    image.load();
   }
 
-  public async createVolume(
-    scene: number,
-    loadSpec: LoadSpec,
-    onChannelLoaded?: (volume: Volume, channelIndex: number) => void
-  ): Promise<Volume> {
+  public async createVolume(scene: number): Promise<Volume> {
     const loader = await this.getLoader(scene);
-    return loader.createVolume(loadSpec, onChannelLoaded);
+    const result = new Volume(loader);
+    result.load();
+    return result;
   }
 
   public syncMultichannelLoading(sync: boolean): void {

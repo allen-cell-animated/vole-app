@@ -332,7 +332,7 @@ const App: React.FC<AppProps> = (props) => {
       // Note: updateLuts and updateActiveChannels are not called here because the
       // channelVersion bump (via onChannelDataLoaded) will trigger ChannelUpdater
       // effects that apply LUT/color settings and call updateLuts with the final state.
-      view3d.onVolumeData(image, [channelIndex]);
+      view3d.onVolumeData(image, channelIndex);
 
       if (image.channelNames[channelIndex] === maskChannelName) {
         view3d.setVolumeChannelAsMask(image, channelIndex);
@@ -571,7 +571,7 @@ const App: React.FC<AppProps> = (props) => {
             visibleControls={visibleControls}
             collapsed={controlPanelClosed}
             // image state
-            imageName={image?.name}
+            imageName={image?.imageInfo.name}
             hasImage={!!image}
             pixelSize={pixelSize}
             channelDataChannels={image?.channels}

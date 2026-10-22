@@ -1,4 +1,5 @@
 import { LoadSpec, type RawArrayLoaderOptions, type View3d, type Volume, VolumeLoaderContext } from "@aics/vole-core";
+import type { VolumeEvents } from "@aics/vole-core/es/types/Volume";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -83,6 +84,18 @@ const useEffectEventRef = <T extends (...args: any[]) => void>(callback: T | und
   const callbackRef = useRef<T | undefined>(callback);
   callbackRef.current = callback;
   return useCallback(((...args): void => callbackRef.current?.(...args)) as T, [callbackRef]);
+};
+
+const useVolumeChannelLoadEffect = (
+  image: Volume | null,
+  effect: (image: Volume, channelIndex: number) => void
+): void => {
+  useEffect(() => {
+    if (image === null) return;
+    const fn = ({ channelIndex }: VolumeEvents["loadChannel"]): void => effect(image, channelIndex);
+    image.addEventListener("loadChannel", fn);
+    return () => image.removeEventListener("loadChannel", fn);
+  }, [image, effect]);
 };
 
 /**
@@ -225,6 +238,7 @@ const useVolume = (
 
   const onChannelDataLoaded = useCallback(
     (aimg: Volume, channelIndex: number): void => {
+      console.log("channel load", channelIndex);
       // let the hook caller know that this channel has loaded
       const isInitialLoad = channelVersionsRef.current[channelIndex] === CHANNEL_INITIAL_LOAD;
       onChannelLoadedRef(aimg, channelIndex, isInitialLoad);
@@ -241,6 +255,8 @@ const useVolume = (
     },
     [channelVersionsRef, onChannelLoadedRef, playControls, setChannelVersions]
   );
+
+  useVolumeChannelLoadEffect(image, onChannelDataLoaded);
 
   const setChannelStateForNewImage = useCallback(
     (channelNames: string[]): ChannelState[] => {
@@ -267,7 +283,7 @@ const useVolume = (
       const loadSpec = new LoadSpec();
       loadSpec.time = time;
 
-      const aimg = await sceneLoader.createVolume(scene, loadSpec, onChannelDataLoaded).catch(onError);
+      const aimg = await sceneLoader.createVolume(scene).catch(onError);
 
       const channelNames = aimg.imageInfo.channelNames;
       const newChannelSettings = setChannelStateForNewImage(channelNames);
@@ -338,7 +354,6 @@ const useVolume = (
     onError,
     onCreateImageRef,
     onChangeSceneRef,
-    onChannelLoadedRef,
     channelVersionsRef,
     setChannelVersions,
     playControls,
