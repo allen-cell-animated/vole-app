@@ -174,6 +174,7 @@ export function channelStateToSnapshot(state: Partial<ChannelState>, removeDefau
 
   const result: ChannelStateSnapshot = {
     [ChannelStateSnapshotKeys.VolumeEnabled]: s.volumeEnabled,
+    [ChannelStateSnapshotKeys.VolumeAlpha]: s.volumeOpacity,
     [ChannelStateSnapshotKeys.SurfaceEnabled]: s.isosurfaceEnabled,
     [ChannelStateSnapshotKeys.IsosurfaceValue]: s.isovalue,
     [ChannelStateSnapshotKeys.IsosurfaceAlpha]: s.opacity,
@@ -304,6 +305,7 @@ export const stringifyChannelStateSnapshot = (snapshot: ChannelStateSnapshot): C
     [ChannelStateSnapshotKeys.Color]: identity,
     [ChannelStateSnapshotKeys.Colorize]: stringifyBoolean,
     [ChannelStateSnapshotKeys.ColorizeAlpha]: formatFloat,
+    [ChannelStateSnapshotKeys.VolumeAlpha]: formatFloat,
     [ChannelStateSnapshotKeys.IsosurfaceAlpha]: formatFloat,
     [ChannelStateSnapshotKeys.Lut]: ([min, max]) => `${min}:${max}`,
     [ChannelStateSnapshotKeys.ControlPoints]: stringifyControlPointSnapshots,
