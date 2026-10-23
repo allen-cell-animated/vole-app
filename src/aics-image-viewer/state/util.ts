@@ -88,6 +88,7 @@ export const cloneChannelState = (setting: ChannelState): ChannelState => ({
   colorizeEnabled: setting.colorizeEnabled,
   colorizeAlpha: setting.colorizeAlpha,
   opacity: setting.opacity,
+  volumeOpacity: setting.volumeOpacity,
   color: setting.color,
   useControlPoints: setting.useControlPoints,
   plotMin: setting.plotMin,

@@ -4,7 +4,18 @@ import ColorPicker, { type ColorPickerProps } from "../../ColorPicker";
 
 import "./styles.css";
 
-type ColorPickerPropPassthru = Partial<Pick<ColorPickerProps, "color" | "onColorChange" | "onColorChangeComplete">>;
+type ColorPickerPropPassthru = Partial<
+  Pick<
+    ColorPickerProps,
+    | "color"
+    | "onColorChange"
+    | "onColorChangeComplete"
+    | "disableAlpha"
+    | "alpha"
+    | "onAlphaChange"
+    | "onAlphaChangeComplete"
+  >
+>;
 
 export type ControlPanelRowProps = React.PropsWithChildren<
   ColorPickerPropPassthru & {
@@ -27,8 +38,15 @@ const defaultProps = {
 
 const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
   const props = { ...defaultProps, ...inputProps };
-  const { color, onColorChange, onColorChangeComplete } = props;
-  const colorPickerProps = { color, onColorChange, onColorChangeComplete };
+  const colorPickerProps = {
+    color: props.color,
+    onColorChange: props.onColorChange,
+    onColorChangeComplete: props.onColorChangeComplete,
+    alpha: props.alpha,
+    onAlphaChange: props.onAlphaChange,
+    onAlphaChangeComplete: props.onAlphaChangeComplete,
+    disableAlpha: props.disableAlpha,
+  };
 
   const style = {
     "--control-panel-row-vertical-margin": props.verticalMargin + "px",
@@ -43,7 +61,7 @@ const ControlPanelRow: React.FC<ControlPanelRowProps> = (inputProps) => {
       {createTitle && (
         <div className="control-panel-row-title">
           {props.icon && <div className="control-panel-row-icon">{props.icon}</div>}
-          {props.showColorPicker && <ColorPicker disableAlpha={true} width={18} {...colorPickerProps} />}
+          {props.showColorPicker && <ColorPicker width={18} {...colorPickerProps} />}
           {props.title && <h4>{props.title}</h4>}
         </div>
       )}

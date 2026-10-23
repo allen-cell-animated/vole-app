@@ -61,6 +61,9 @@ export type ChannelState = {
   isovalue: number;
   colorizeEnabled: boolean;
   colorizeAlpha: number;
+  /** Volume opacity, in a [0, 1] range. */
+  volumeOpacity: number;
+  /** Isosurface opacity, in a [0, 1] range. */
   opacity: number;
   color: ColorArray;
   ramp: [number, number];
@@ -225,6 +228,8 @@ export enum ChannelStateSnapshotKeys {
   ColorizeAlpha = "cza",
   /** Isosurface alpha, in the range `[0, 1]`. Set to `1.0` by default.*/
   IsosurfaceAlpha = "isa",
+  /** Volume opacity, in the range `[0, 1]`. Set to `1.0` by default. */
+  VolumeAlpha = "va",
   /**
    * Lookup table (LUT) to map from volume intensity to opacity. A two-element array of alphanumeric values
    * (colon-separated when stringified), where the first value is the minimum and the second is the maximum.
@@ -372,6 +377,7 @@ type ChannelStateSnapshotTypes = {
   [ChannelStateSnapshotKeys.RampLegacy]: [number, number];
   [ChannelStateSnapshotKeys.Ramp]: [number, number];
   [ChannelStateSnapshotKeys.VolumeEnabled]: boolean;
+  [ChannelStateSnapshotKeys.VolumeAlpha]: number;
   [ChannelStateSnapshotKeys.SurfaceEnabled]: boolean;
   [ChannelStateSnapshotKeys.IsosurfaceValue]: number;
   [ChannelStateSnapshotKeys.KeepRange]: boolean;

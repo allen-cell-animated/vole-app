@@ -24,7 +24,8 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
   const channelState = useViewerState(channelStateSelector);
   const singleChannelMode = useViewerState(select("singleChannelMode"));
   const singleChannelIndex = useViewerState(select("singleChannelIndex"));
-  const { volumeEnabled, isosurfaceEnabled, isovalue, colorizeEnabled, colorizeAlpha, opacity, color } = channelState;
+  const { volumeEnabled, isosurfaceEnabled, isovalue, colorizeEnabled, colorizeAlpha, opacity, color, volumeOpacity } =
+    channelState;
 
   // Effects to update channel settings should check if image is present and channel is loaded first
   const useImageEffect: UseImageEffectType = (effect, deps) => {
@@ -70,10 +71,10 @@ const ChannelUpdater: React.FC<ChannelUpdaterProps> = ({ index, view3d, image, v
   useImageEffect(
     (currentImage) => {
       const finalColor = singleChannelMode ? SINGLE_CHANNEL_MODE_COLOR : color;
-      view3d.setVolumeChannelOptions(currentImage, index, { color: finalColor });
+      view3d.setVolumeChannelOptions(currentImage, index, { color: finalColor, opacity: volumeOpacity });
       view3d.updateLuts(currentImage);
     },
-    [color, index, view3d, singleChannelMode]
+    [color, index, view3d, singleChannelMode, volumeOpacity]
   );
 
   const { controlPoints, ramp, useControlPoints } = channelState;

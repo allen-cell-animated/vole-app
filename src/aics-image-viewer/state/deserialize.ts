@@ -231,6 +231,7 @@ export const destringifyChannelStateSnapshot = (stringified: ChannelStateStringi
     [ChannelStateSnapshotKeys.Color]: identity,
     [ChannelStateSnapshotKeys.Colorize]: parseBoolean,
     [ChannelStateSnapshotKeys.ColorizeAlpha]: Number.parseFloat,
+    [ChannelStateSnapshotKeys.VolumeAlpha]: Number.parseFloat,
     [ChannelStateSnapshotKeys.IsosurfaceAlpha]: Number.parseFloat,
     [ChannelStateSnapshotKeys.Lut]: tupleParser(2),
     [ChannelStateSnapshotKeys.ControlPoints]: parseControlPointSnapshots,

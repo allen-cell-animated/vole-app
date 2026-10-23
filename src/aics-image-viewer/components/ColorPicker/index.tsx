@@ -17,7 +17,10 @@ export interface ColorPickerProps {
   width: number;
   onColorChange?: ColorChangeHandler;
   onColorChangeComplete?: ColorChangeHandler;
+  alpha?: number;
   disableAlpha?: boolean;
+  onAlphaChange?: (alpha: number, prevAlpha: number) => void;
+  onAlphaChangeComplete?: (alpha: number, prevAlpha: number) => void;
 }
 
 const DEFAULT_COLOR = {
@@ -35,6 +38,7 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [openAboveSwatch, setOpenAboveSwatch] = React.useState(false);
   const [currentColor, setCurrentColor] = React.useState(props.color || DEFAULT_COLOR);
+  const [currentAlpha, setCurrentAlpha] = React.useState(props.alpha || 1);
 
   const swatchRef = React.useRef<HTMLDivElement>(null);
 
@@ -49,34 +53,38 @@ const ColorPicker: React.FC<ColorPickerProps> = (props) => {
 
   const handleChange = (color: ColorResult): void => {
     setCurrentColor(color.rgb);
+    setCurrentAlpha(color.rgb.a ?? currentAlpha);
     // supply onColorChange callback in props.
     props.onColorChange?.(color.rgb, currentColor);
+    props.onAlphaChange?.(color.rgb.a ?? currentAlpha, currentAlpha);
   };
 
   const handleChangeComplete = (color: ColorResult): void => {
     setCurrentColor(color.rgb);
+    setCurrentAlpha(color.rgb.a ?? currentAlpha);
     // supply onColorChange callback in props.
     props.onColorChangeComplete?.(color.rgb, currentColor);
+    props.onAlphaChangeComplete?.(color.rgb.a ?? currentAlpha, currentAlpha);
   };
 
   React.useEffect(() => setCurrentColor(props.color), [props.color]);
+  React.useEffect(() => setCurrentAlpha(props.alpha ?? currentAlpha), [props.alpha]);
+
+  const colorWithAlpha = { ...currentColor, a: currentAlpha };
 
   const width = props.width || 36;
   const popoverDirectionStyle = openAboveSwatch ? { bottom: "18px" } : { top: "3px" };
   return (
     <div className="color-picker">
-      <div
-        ref={swatchRef}
-        onClick={handleClick}
-        className="color-picker-swatch"
-        style={{ width: `${width}px`, background: `rgba(${map(currentColor, (ele) => ele)})` }}
-      />
+      <div className="color-picker-swatch-bg" ref={swatchRef} onClick={handleClick} style={{ width: `${width}px` }}>
+        <div className="color-picker-swatch" style={{ background: `rgba(${map(colorWithAlpha, (ele) => ele)})` }} />
+      </div>
       <div style={{ position: "absolute" }}>
         {isOpen ? (
           <div className="color-picker-popover" style={popoverDirectionStyle}>
             <div className="color-picker-cover" onClick={handleClose} />
             <SketchPicker
-              color={currentColor}
+              color={colorWithAlpha}
               onChange={handleChange}
               onChangeComplete={handleChangeComplete}
               disableAlpha={props.disableAlpha}

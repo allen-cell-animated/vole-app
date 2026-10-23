@@ -246,6 +246,7 @@ export const getDefaultChannelState = (index: number = 0): ChannelState => {
     colorizeEnabled: false,
     colorizeAlpha: 1.0,
     isovalue: 128,
+    volumeOpacity: 1.0,
     opacity: 1.0,
     color: getDefaultChannelColor(index),
     useControlPoints: false,
