@@ -1,6 +1,7 @@
 // 3rd Party Imports
 import { View3d } from "@aics/vole-core";
 import type { LoadSpec, RawArrayLoaderOptions, Volume } from "@aics/vole-core";
+import type { VolumeEvents } from "@aics/vole-core/es/types/Volume";
 import { Layout } from "antd";
 import { debounce, isEqual } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -157,12 +158,6 @@ const App: React.FC<AppProps> = (props) => {
   // messaging when App is used standalone.
   const [errorAlert, _showError] = useErrorAlert();
   const showError = props.showError ?? _showError;
-
-  useEffect(() => {
-    // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
-    view3d.setLoadErrorHandler((vol, e) => showError(e, vol));
-    return () => view3d.setLoadErrorHandler(undefined);
-  }, [view3d, showError]);
 
   const imageUrlRef = useRef<string | string[] | MultisceneUrls>("");
   const scenesRef = useRef<(string | string[])[] | [RawArrayLoaderOptions]>([]);
@@ -370,6 +365,16 @@ const App: React.FC<AppProps> = (props) => {
     maskChannelName,
   });
   const { image, setTime, setScene } = volume;
+
+  useEffect(() => {
+    // Get notifications of loading errors which occur after the initial load, e.g. on time change or new channel load
+    if (image !== null) {
+      const handler = ({ error, volume }: VolumeEvents["loadError"]): void => showError(error, volume);
+      image.addEventListener("loadError", handler);
+      return () => image.removeEventListener("loadError", handler);
+    }
+    return undefined;
+  }, [image, showError]);
 
   const hasRawImage = !!(props.rawData && props.rawDims);
   const numScenes = hasRawImage ? 1 : ((props.imageUrl as MultisceneUrls).scenes?.length ?? 1);
