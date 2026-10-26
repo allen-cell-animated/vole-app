@@ -27,7 +27,8 @@ type ControlNames =
   | "showAxesButton"
   | "showBoundingBoxButton"
   | "metadataViewer"
-  | "scaleLevelControls";
+  | "scaleLevelControls"
+  | "openInNewTabButton";
 /** Show/hide different elements of the UI */
 export type ControlVisibilityFlags = { [K in ControlNames]: boolean };
 
@@ -60,6 +61,7 @@ export interface AppProps {
   viewerSettings?: Partial<ViewerState>;
   imageDownloadHref?: string;
   parentImageDownloadHref?: string;
+  standaloneViewerHref?: string;
   pixelSize?: [number, number, number];
   canvasMargin: string;
   transform?: {
