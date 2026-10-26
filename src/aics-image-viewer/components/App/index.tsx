@@ -55,6 +55,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   showBoundingBoxButton: true,
   metadataViewer: true,
   scaleLevelControls: true,
+  openInNewTabButton: true,
 };
 
 const defaultProps = {
@@ -65,6 +66,7 @@ const defaultProps = {
 
   imageUrl: "",
   parentImageUrl: "",
+  standaloneViewerHref: "https://vole.allencell.org/viewer",
 
   appHeight: "100vh",
   visibleControls: defaultVisibleControls,
@@ -598,6 +600,9 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
               multiscaleIndex={image?.imageInfo.multiscaleLevel}
+              standaloneViewerHref={props.standaloneViewerHref}
+              appProps={props}
+              view3dRef={props.view3dRef}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}

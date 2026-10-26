@@ -1,21 +1,27 @@
-import type { VolumeDims } from "@aics/vole-core";
+import type { View3d, VolumeDims } from "@aics/vole-core";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
+import type { AppDataProps } from "../../../../website/types";
 import { select, useViewerState } from "../../state/store";
 import { ImageType, RenderMode, ViewMode } from "../../state/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
+import OpenInNewTabButton from "./OpenInNewTabButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
 import "./styles.css";
 
 type ToolbarProps = {
+  appProps: AppDataProps;
+  view3dRef?: React.RefObject<View3d | null>;
+
   cellDownloadHref: string;
   fovDownloadHref: string;
+  standaloneViewerHref?: string;
   hasCellId: boolean;
   hasParentImage: boolean;
   canPathTrace: boolean;
@@ -34,6 +40,7 @@ type ToolbarProps = {
     showAxesButton: boolean;
     showBoundingBoxButton: boolean;
     scaleLevelControls: boolean;
+    openInNewTabButton: boolean;
   };
 };
 
@@ -306,6 +313,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               hasFov={props.hasCellId && props.hasParentImage}
             />
           </Tooltip>
+          {visibleControls.openInNewTabButton && (
+            <OpenInNewTabButton
+              standaloneViewerHref={props.standaloneViewerHref}
+              appProps={props.appProps}
+              view3dRef={props.view3dRef}
+            />
+          )}
           <Tooltip placement="bottom" title="Screenshot">
             <Button className="ant-btn-icon-only btn-borderless" onClick={props.downloadScreenshot}>
               <ViewerIcon type="camera" />
