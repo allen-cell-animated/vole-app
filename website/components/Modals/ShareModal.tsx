@@ -11,15 +11,12 @@ import {
   channelStatesToSnapshot,
   paramsToViewerMessage,
 } from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
-import { serializeViewerUrlParams } from "../../../src/aics-image-viewer/shared/utils/parseUrl";
+import { getDefaultBaseUrl, getShareLink } from "../../../src/aics-image-viewer/shared/utils/sharing";
 import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
 import { viewerStateToSnapshot } from "../../../src/aics-image-viewer/state/serialize";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
-
-const ENCODED_COLON_REGEX = /%3A/g;
-const ENCODED_COMMA_REGEX = /%2C/g;
 
 type ShareModalProps = {
   appProps: AppDataProps;
@@ -43,14 +40,6 @@ const ModalContainer = styled.div`
     font-size: 21px;
   }
 `;
-
-const encodeSceneUrl = (scene: string | string[]): string => {
-  if (Array.isArray(scene)) {
-    return scene.map((url) => encodeURIComponent(url)).join(",");
-  } else {
-    return encodeURIComponent(scene);
-  }
-};
 
 const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
   const { imageUrl, metadata } = props.appProps;
@@ -80,37 +69,16 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     if (!showModal) {
       return undefined;
     }
-
-    const paramProps = {
-      ...viewerSettings,
-      scene: showAllScenes ? viewerSettings.scene : 0,
+    const baseUrl = getDefaultBaseUrl();
+    return getShareLink(
+      baseUrl,
+      props.appProps.imageUrl,
+      viewerSettings,
       channelSettings,
-      cameraState: props.view3dRef?.current?.getCameraState(),
-    };
-
-    const urlParams: string[] = [];
-
-    const serializedUrl = showAllScenes
-      ? urls.map(encodeSceneUrl).join("+")
-      : encodeSceneUrl(urls[viewerSettings.scene]);
-
-    urlParams.push(`url=${serializedUrl}`);
-
-    let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
-    if (serializedViewerParams.size > 0) {
-      // Decode specifically colons and commas for better readability + decreased char count
-      let viewerParamString = serializedViewerParams
-        .toString()
-        .replace(ENCODED_COLON_REGEX, ":")
-        .replace(ENCODED_COMMA_REGEX, ",");
-      urlParams.push(viewerParamString);
-    }
-
-    // location.pathname will include up to `.../viewer`
-    const baseUrl = location.protocol + "//" + location.host + location.pathname;
-
-    return urlParams.length > 0 ? `${baseUrl}?${urlParams.join("&")}` : baseUrl;
-  }, [channelSettings, props.view3dRef, showAllScenes, showModal, urls, viewerSettings]);
+      props.view3dRef?.current ?? undefined,
+      showAllScenes
+    );
+  }, [showModal, props.appProps.imageUrl, viewerSettings, channelSettings, props.view3dRef, showAllScenes]);
 
   const onClickCopy = React.useCallback((): void => {
     if (shareUrl === undefined) {
