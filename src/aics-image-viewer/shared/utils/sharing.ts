@@ -1,6 +1,6 @@
-import { View3d } from "@aics/vole-core";
+import type { View3d } from "@aics/vole-core";
 
-import { AppProps, MultisceneUrls } from "../../components/App/types";
+import type { MultisceneUrls } from "../../components/App/types";
 import type { ChannelState, ViewerState } from "../../state/types";
 import { serializeViewerUrlParams } from "./parseUrl";
 
@@ -26,7 +26,7 @@ export function getShareLink(
   viewerSettings: ViewerState,
   channelSettings: ChannelState[],
   view3d: View3d | undefined,
-  showAllScenes = false
+  showAllScenes: boolean = false
 ): string {
   const urls = imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : [];
 
