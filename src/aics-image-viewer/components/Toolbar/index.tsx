@@ -1,4 +1,4 @@
-import type { View3d, VolumeDims } from "@aics/vole-core";
+import type { VolumeDims } from "@aics/vole-core";
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
@@ -6,22 +6,16 @@ import React from "react";
 
 import { select, useViewerState } from "../../state/store";
 import { ImageType, RenderMode, ViewMode } from "../../state/types";
-import { AppProps } from "../App/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
-import OpenInNewTabButton from "./OpenInNewTabButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
 import "./styles.css";
 
 type ToolbarProps = {
-  appProps: AppProps;
-  view3d: View3d;
-
   cellDownloadHref: string;
   fovDownloadHref: string;
-  standaloneViewerHref?: string;
   hasCellId: boolean;
   hasParentImage: boolean;
   canPathTrace: boolean;
@@ -31,6 +25,7 @@ type ToolbarProps = {
   resetCamera: () => void;
   downloadScreenshot: () => void;
   resetToSavedViewerState: () => void;
+  openInNewTab: () => void;
 
   visibleControls: {
     autoRotateButton: boolean;
@@ -319,11 +314,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             </Button>
           </Tooltip>
           {visibleControls.openInNewTabButton && (
-            <OpenInNewTabButton
-              standaloneViewerHref={props.standaloneViewerHref}
-              appProps={props.appProps}
-              view3d={props.view3d}
-            />
+            <Tooltip placement="bottom" title="Open in new tab">
+              <Button className="ant-btn-icon-only btn-borderless" onClick={props.openInNewTab}>
+                <ViewerIcon type="openInNewTab" />
+              </Button>
+            </Tooltip>
           )}
         </div>
       </div>
