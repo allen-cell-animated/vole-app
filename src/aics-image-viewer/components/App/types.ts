@@ -61,6 +61,13 @@ export interface AppProps {
   viewerSettings?: Partial<ViewerState>;
   imageDownloadHref?: string;
   parentImageDownloadHref?: string;
+  /**
+   * URL of the standalone viewer to open in a new tab when
+   * `visibleControls.openInNewTabButton=true`. If `undefined`, the current page
+   * URL will be used as the viewer URL, if available.
+   * @example
+   * "https://vole.allencell.org/viewer"
+   */
   standaloneViewerHref?: string;
   pixelSize?: [number, number, number];
   canvasMargin: string;
