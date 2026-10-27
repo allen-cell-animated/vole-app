@@ -4,18 +4,18 @@ import { Button, Tooltip } from "antd";
 import React, { ReactElement, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 
-import { AppDataProps } from "../../../../website/types";
+import { paramsToViewerMessage } from "../../shared/utils/parseSnapshot";
 import { serializeViewerUrlParams } from "../../shared/utils/parseUrl";
 import { readStoredMetadata } from "../../shared/utils/storage";
 import { selectViewerSettings, useViewerState, ViewerStore } from "../../state/store";
-import { MultisceneUrls } from "../App/types";
+import { AppProps, MultisceneUrls } from "../App/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 
 type OpenInNewTabProps = {
   standaloneViewerHref?: string;
-  appProps: AppDataProps;
-  view3dRef?: React.RefObject<View3d | null>;
+  appProps: AppProps;
+  view3d: View3d;
 };
 
 const enum OpenInNewTabHtmlIds {}
@@ -35,8 +35,6 @@ const encodeSceneUrl = (scene: string | string[]): string => {
 export default function OpenInNewTabButton(props: OpenInNewTabProps): ReactElement {
   const windowProxyRef = React.useRef<Window | null>(null);
 
-  console.log("A!!!");
-
   const { imageUrl, metadata } = props.appProps;
   const urls = useMemo(
     () => (imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : []),
@@ -47,13 +45,16 @@ export default function OpenInNewTabButton(props: OpenInNewTabProps): ReactEleme
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
+  const viewerUrl = props.standaloneViewerHref ?? "https://vole.allencell.org/viewer";
+  const viewerOrigin = new URL(viewerUrl).origin;
+
   // TODO: Copied from ShareModal, DRY
   const getViewerUrl = (): string => {
     const paramProps = {
       ...viewerSettings,
       scene: 0,
       channelSettings,
-      cameraState: props.view3dRef?.current?.getCameraState(),
+      cameraState: props.view3d.getCameraState(),
     };
 
     const urlParams: string[] = [];
@@ -69,12 +70,12 @@ export default function OpenInNewTabButton(props: OpenInNewTabProps): ReactEleme
         .replace(ENCODED_COMMA_REGEX, ",");
       urlParams.push(viewerParamString);
     }
-
     // Include message origin so the opened window can have additioanl data sent
     const msOrigin = window.location.origin;
     urlParams.push(`msgorigin=${encodeURIComponent(msOrigin)}`);
 
-    return `${props.standaloneViewerHref ?? ""}?${urlParams.join("&")}`;
+    const url = `${viewerUrl}?${urlParams.join("&")}`;
+    return url;
   };
 
   const onMessage = (event: MessageEvent) => {
@@ -86,29 +87,28 @@ export default function OpenInNewTabButton(props: OpenInNewTabProps): ReactEleme
     const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
 
     console.log("Received message from opened window:", event.data);
-    windowProxyRef.current.postMessage({
-      scenes: urls,
-      sceneIndex: viewerSettings.scene,
-      meta: meta,
-    });
+
+    const message = { ...paramsToViewerMessage({ scenes: urls }, meta), sceneIndex: viewerSettings.scene };
+    windowProxyRef.current.postMessage(message, viewerOrigin);
 
     // Clear window reference and remove event listener
-    windowProxyRef.current.removeEventListener("message", onMessage);
+    window.removeEventListener("message", onMessage);
     windowProxyRef.current = null;
   };
 
-  const handleClick = async () => {
+  const handleClick = () => {
     // Open viewer in a new tab
     const windowProxy = window.open(getViewerUrl());
     // Store window reference so metadata + scene information can be passed back
     windowProxyRef.current = windowProxy;
-    windowProxy?.addEventListener("message", onMessage);
+    window.addEventListener("message", onMessage);
   };
 
   return (
     <Tooltip placement="bottom" title="Open in new tab">
       <Button className="ant-btn-icon-only btn-borderless" onClick={handleClick}>
-        <ExportOutlined />
+        <ViewerIcon type="openInNewTab" />
+        {/* <ExportOutlined /> */}
       </Button>
     </Tooltip>
   );
