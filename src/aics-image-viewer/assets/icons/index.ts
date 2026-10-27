@@ -6,6 +6,7 @@ import closePanel from "./closePanel.svg";
 import download from "./download.svg";
 import dropdownArrow from "./dropdownArrow.svg";
 import metadata from "./metadata.svg";
+import openInNewTab from "./openInNewTab.svg";
 import preferences from "./preferences.svg";
 import resetView from "./resetView.svg";
 import turnTable from "./turnTable.svg";
@@ -22,4 +23,5 @@ export default {
   preferences,
   resetView,
   turnTable,
+  openInNewTab,
 };

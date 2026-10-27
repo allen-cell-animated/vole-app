@@ -4,9 +4,9 @@ import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
-import type { AppDataProps } from "../../../../website/types";
 import { select, useViewerState } from "../../state/store";
 import { ImageType, RenderMode, ViewMode } from "../../state/types";
+import { AppProps } from "../App/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
@@ -16,8 +16,8 @@ import ViewModeRadioButtons from "./ViewModeRadioButtons";
 import "./styles.css";
 
 type ToolbarProps = {
-  appProps: AppDataProps;
-  view3dRef?: React.RefObject<View3d | null>;
+  appProps: AppProps;
+  view3d: View3d;
 
   cellDownloadHref: string;
   fovDownloadHref: string;
@@ -313,18 +313,18 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               hasFov={props.hasCellId && props.hasParentImage}
             />
           </Tooltip>
-          {visibleControls.openInNewTabButton && (
-            <OpenInNewTabButton
-              standaloneViewerHref={props.standaloneViewerHref}
-              appProps={props.appProps}
-              view3dRef={props.view3dRef}
-            />
-          )}
           <Tooltip placement="bottom" title="Screenshot">
             <Button className="ant-btn-icon-only btn-borderless" onClick={props.downloadScreenshot}>
               <ViewerIcon type="camera" />
             </Button>
           </Tooltip>
+          {visibleControls.openInNewTabButton && (
+            <OpenInNewTabButton
+              standaloneViewerHref={props.standaloneViewerHref}
+              appProps={props.appProps}
+              view3d={props.view3d}
+            />
+          )}
         </div>
       </div>
       <div

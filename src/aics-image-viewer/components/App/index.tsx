@@ -602,7 +602,7 @@ const App: React.FC<AppProps> = (props) => {
               multiscaleIndex={image?.imageInfo.multiscaleLevel}
               standaloneViewerHref={props.standaloneViewerHref}
               appProps={props}
-              view3dRef={props.view3dRef}
+              view3d={view3d}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}
