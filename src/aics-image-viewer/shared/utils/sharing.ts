@@ -15,11 +15,18 @@ export function encodeSceneUrl(scene: string | string[]): string {
   }
 }
 
+/**
+ * Returns the current base URL of the viewer, including the protocol, host, and
+ * pathname.
+ */
 export function getDefaultBaseUrl(): string {
   // location.pathname will include up to `.../viewer`
   return location.protocol + "//" + location.host + location.pathname;
 }
 
+/**
+ * Returns a shareable URL for the viewer with the specified settings and scene data.
+ */
 export function getShareLink(
   baseUrl: string,
   imageUrl: MultisceneUrls | string | undefined,
