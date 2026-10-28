@@ -16,6 +16,7 @@ import {
 import type { IsosurfaceFormat, MetadataRecord, XYZ } from "../../shared/types";
 import { controlPointsToRamp, initializeLut } from "../../shared/utils/controlPointsToLut";
 import { useConstructor } from "../../shared/utils/hooks";
+import useOpenInNewTab from "../../shared/utils/useOpenInNewTab";
 import { findFirstChannelMatch } from "../../shared/utils/viewerChannelSettings";
 import { select, useViewerState } from "../../state/store";
 import { subscribeImageToState, subscribeViewToState } from "../../state/subscribers";
@@ -55,6 +56,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   showBoundingBoxButton: true,
   metadataViewer: true,
   scaleLevelControls: true,
+  openInNewTabButton: true,
 };
 
 const defaultProps = {
@@ -65,6 +67,7 @@ const defaultProps = {
 
   imageUrl: "",
   parentImageUrl: "",
+  standaloneViewerHref: undefined,
 
   appHeight: "100vh",
   visibleControls: defaultVisibleControls,
@@ -152,6 +155,8 @@ const App: React.FC<AppProps> = (props) => {
   if (props.view3dRef !== undefined) {
     props.view3dRef.current = view3d;
   }
+
+  const openInNewTab = useOpenInNewTab(props.standaloneViewerHref, props, view3d);
 
   // Allows AppWrapper to pass in its own `useErrorAlert` callbacks, but still keeps error
   // messaging when App is used standalone.
@@ -598,6 +603,7 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
               multiscaleIndex={image?.imageInfo.multiscaleLevel}
+              openInNewTab={openInNewTab}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}

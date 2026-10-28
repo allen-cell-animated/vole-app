@@ -14,7 +14,7 @@ process requires the external application to send the additional data using
 ## Step 1: Open Vol-E
 
 Using [`window.open`], the external application opens a Vol-E window with the
-additional query parameter `msgorigin`. `msgorgigin` identifies the _origin_ of
+additional query parameter `msgorigin`. `msgorigin` identifies the _origin_ of
 the app that just opened Vol-E. The origin is the segment of the URL from the
 beginning through the hostname and (optional) port. For instance, the origin of
 `https://example.com/index.html?foo=bar` is `https://example.com`. The origin

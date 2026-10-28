@@ -25,6 +25,7 @@ type ToolbarProps = {
   resetCamera: () => void;
   downloadScreenshot: () => void;
   resetToSavedViewerState: () => void;
+  openInNewTab: () => void;
 
   visibleControls: {
     autoRotateButton: boolean;
@@ -34,6 +35,7 @@ type ToolbarProps = {
     showAxesButton: boolean;
     showBoundingBoxButton: boolean;
     scaleLevelControls: boolean;
+    openInNewTabButton: boolean;
   };
 };
 
@@ -311,6 +313,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               <ViewerIcon type="camera" />
             </Button>
           </Tooltip>
+          {visibleControls.openInNewTabButton && (
+            <Tooltip placement="bottom" title="Open in new tab">
+              <Button className="ant-btn-icon-only btn-borderless" onClick={props.openInNewTab}>
+                <ViewerIcon type="openInNewTab" />
+              </Button>
+            </Tooltip>
+          )}
         </div>
       </div>
       <div
