@@ -6,16 +6,18 @@ import type { MetadataRecord } from "../../shared/types";
 import { select, useViewerState } from "../../state/store";
 
 import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
-import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
-import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
+import { type CustomizeWidgetProps } from "../CustomizeWidget";
+import { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
+import AdvancedSettings from "./AdvancedSettings";
 import CopySettingsButton from "./CopySettingsButton";
 
 import "./styles.css";
 
 interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps {
   hasImage: boolean;
+  imageName: string | undefined;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
       colorPresetsDropdown: boolean;
@@ -112,48 +114,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
     </Tooltip>
   );
 
-  // TODO this can just be a component...?
-  const renderAdvancedSettings = (): React.ReactNode => {
-    const items: CollapseProps["items"] = [
-      {
-        key: 0,
-        label: "Rendering adjustments",
-        children: (
-          <GlobalVolumeControls
-            imageName={props.imageName}
-            pixelSize={props.pixelSize}
-            visibleControls={visibleControls}
-          />
-        ),
-      },
-    ];
-    const showCustomize = visibleControls.backgroundColorPicker || visibleControls.boundingBoxColorPicker;
-
-    if (showCustomize) {
-      items.push({
-        key: 1,
-        label: "Customize",
-        children: <CustomizeWidget visibleControls={props.visibleControls} />,
-      });
-    }
-
-    return (
-      <Flex gap={10} vertical>
-        <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1] : 0} items={items} />
-        <div style={{ margin: "0 10px", width: "fit-content" }}>
-          <Tooltip
-            trigger={["hover", "focus"]}
-            placement="right"
-            title="Clears ALL rendering settings and channel configuration to the default viewer state.
-            This will replace any edits to channel settings, color presets, and rendering adjustments."
-          >
-            <Button onClick={resetToDefaultViewerState}>Clear all settings</Button>
-          </Tooltip>
-        </div>
-      </Flex>
-    );
-  };
-
   const collapseLabel = props.collapsed ? "Show panel" : "Hide panel";
 
   return (
@@ -204,7 +164,12 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 controlPanelCollapsed={props.collapsed}
               />
             )}
-            {tab === ControlTab.Advanced && renderAdvancedSettings()}
+            {tab === ControlTab.Advanced && (
+              <AdvancedSettings
+                visibleControls={visibleControls}
+                resetToDefaultViewerState={resetToDefaultViewerState}
+              />
+            )}
             {tab === ControlTab.Metadata && <MetadataViewer metadata={props.metadata} />}
           </div>
         )}

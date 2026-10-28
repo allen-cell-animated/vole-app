@@ -573,7 +573,6 @@ const App: React.FC<AppProps> = (props) => {
             // image state
             imageName={image?.name}
             hasImage={!!image}
-            pixelSize={pixelSize}
             channelDataChannels={image?.channels}
             channelGroupedByType={volume.channelGroupedByType}
             // functions
