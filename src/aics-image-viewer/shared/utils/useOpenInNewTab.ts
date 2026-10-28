@@ -25,7 +25,6 @@ export default function useOpenInNewTab(
   view3d: View3d
 ): () => void {
   const { imageUrl, metadata } = appProps;
-
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
@@ -33,9 +32,9 @@ export default function useOpenInNewTab(
   const viewerOrigin = new URL(viewerUrl).origin;
 
   const openInNewTab = useCallback((): void => {
+    // Get URL, add `msgorigin` so the opened window knows there is additional
+    // metadata + scene data to be sent
     let url = getShareLink(viewerUrl, imageUrl, viewerSettings, channelSettings, view3d ?? undefined, false);
-    // Include message origin so the opened window can have additional metadata
-    // + scene data sent
     const msOrigin = window.location.origin;
     url += `&msgorigin=${encodeURIComponent(msOrigin)}`;
 
@@ -48,15 +47,12 @@ export default function useOpenInNewTab(
       if (!windowProxy || event.source !== windowProxy) {
         return;
       }
-
       // Send message with metadata + scene data
       const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
       const message = { ...paramsToViewerMessage(imageUrl, meta), sceneIndex: viewerSettings.scene };
       windowProxy.postMessage(message, viewerOrigin);
-
       window.removeEventListener("message", onMessage);
     };
-
     window.addEventListener("message", onMessage);
   }, [viewerUrl, imageUrl, viewerSettings, channelSettings, view3d, viewerOrigin, metadata]);
 
