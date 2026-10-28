@@ -33,7 +33,7 @@ export default function useOpenInNewTab(
   const viewerOrigin = new URL(viewerUrl).origin;
 
   const openInNewTab = useCallback((): void => {
-    let url = getShareLink(viewerUrl, appProps.imageUrl, viewerSettings, channelSettings, view3d ?? undefined, false);
+    let url = getShareLink(viewerUrl, imageUrl, viewerSettings, channelSettings, view3d ?? undefined, false);
     // Include message origin so the opened window can have additional metadata
     // + scene data sent
     const msOrigin = window.location.origin;
@@ -44,7 +44,7 @@ export default function useOpenInNewTab(
 
     // Add listener for the return message (see
     // `documentation/EXTERNAL_APP_MESSAGE_SPEC.md` for details)
-    const onMessage = (event: MessageEvent) => {
+    const onMessage = (event: MessageEvent): void => {
       if (!windowProxy || event.source !== windowProxy) {
         return;
       }
@@ -58,7 +58,7 @@ export default function useOpenInNewTab(
     };
 
     window.addEventListener("message", onMessage);
-  }, [viewerUrl, imageUrl, viewerSettings, channelSettings, view3d, metadata]);
+  }, [viewerUrl, imageUrl, viewerSettings, channelSettings, view3d, viewerOrigin, metadata]);
 
   return openInNewTab;
 }
