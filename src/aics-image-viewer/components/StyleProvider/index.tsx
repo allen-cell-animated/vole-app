@@ -581,11 +581,6 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           Upload: {
             padding: 32,
           },
-          Popconfirm: {
-            fontSize: 14,
-            fontSizeLG: 16,
-            boxShadow: "#000000",
-          },
         },
       }}
     >

@@ -2,6 +2,8 @@ import { CloseCircleFilled } from "@ant-design/icons";
 import { Button, Popconfirm, Tooltip } from "antd";
 import React, { type ReactElement } from "react";
 
+import "./ResetButton.style.css";
+
 type ResetButtonProps = {
   label: string;
   tooltip: string;
@@ -17,7 +19,7 @@ export default function ResetButton(props: ResetButtonProps): ReactElement {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="reset-button">
       <Tooltip trigger={["hover", "focus"]} placement="right" title={props.tooltip}>
         <Popconfirm
           title={<span style={{ fontSize: "16px" }}>{props.popupTitle}</span>}
