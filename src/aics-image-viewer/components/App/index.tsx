@@ -577,6 +577,7 @@ const App: React.FC<AppProps> = (props) => {
             onApplyColorPresets={applyColorPresets}
             viewerChannelSettings={props.viewerChannelSettings}
             metadata={metadata}
+            resetToInitialViewerState={resetToSavedViewerState}
           />
         </Sider>
         <Layout className="cell-viewer-wrapper" style={{ margin: props.canvasMargin }}>
@@ -589,7 +590,6 @@ const App: React.FC<AppProps> = (props) => {
               canPathTrace={view3d ? view3d.hasWebGL2() : false}
               resetCamera={resetCamera}
               downloadScreenshot={saveScreenshot}
-              resetToSavedViewerState={resetToSavedViewerState}
               visibleControls={visibleControls}
               multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
               multiscaleIndex={image?.imageInfo.multiscaleLevel}

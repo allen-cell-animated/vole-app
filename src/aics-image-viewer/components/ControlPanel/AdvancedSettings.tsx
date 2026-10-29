@@ -1,12 +1,14 @@
-import { Button, Collapse, type CollapseProps, Flex, Tooltip } from "antd";
+import { Collapse, type CollapseProps, Flex } from "antd";
 import React, { type ReactElement } from "react";
 
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
+import ResetButton from "./ResetButton";
 
 type AdvancedSettingsProps = {
   visibleControls: GlobalVolumeControlsProps["visibleControls"] & CustomizeWidgetProps["visibleControls"];
   resetToDefaultViewerState: () => void;
+  resetToInitialViewerState: () => void;
 };
 
 export default function AdvancedSettings(props: AdvancedSettingsProps): ReactElement {
@@ -30,16 +32,26 @@ export default function AdvancedSettings(props: AdvancedSettingsProps): ReactEle
   return (
     <Flex gap={10} vertical>
       <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1] : 0} items={items} />
-      <div style={{ margin: "0 10px", width: "fit-content" }}>
-        <Tooltip
-          trigger={["hover", "focus"]}
-          placement="right"
-          title="Clears ALL rendering settings and channel configuration to the default viewer state.
-            This will replace any edits to channel settings, color presets, and rendering adjustments."
-        >
-          <Button onClick={props.resetToDefaultViewerState}>Clear all settings</Button>
-        </Tooltip>
-      </div>
+      <Flex style={{ margin: "0 10px", width: "fit-content" }} vertical gap={10}>
+        <ResetButton
+          label={"Reset all viewer and channel settings"}
+          tooltip={"Resets all settings to the viewer's defaults"}
+          popupTitle={"Clear all settings?"}
+          popupDescription={
+            "All viewer settings, including the channel settings, color presets, and rendering settings, will be reset to the viewer's defaults. This cannot be undone."
+          }
+          onConfirm={props.resetToDefaultViewerState}
+        ></ResetButton>
+        <ResetButton
+          label={"Reset to initial view"}
+          tooltip={"Resets all settings to the initial view"}
+          popupTitle={"Reset all settings?"}
+          popupDescription={
+            "All viewer settings, including the channel settings, color presets, and rendering settings, will be reset to the initial view. This cannot be undone."
+          }
+          onConfirm={props.resetToInitialViewerState}
+        ></ResetButton>
+      </Flex>
     </Flex>
   );
 }
