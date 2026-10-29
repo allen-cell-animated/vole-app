@@ -1,5 +1,5 @@
-import { Button, Collapse, CollapseProps, Flex, Tooltip } from "antd";
-import React, { ReactElement } from "react";
+import { Button, Collapse, type CollapseProps, Flex, Tooltip } from "antd";
+import React, { type ReactElement } from "react";
 
 import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
 import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";

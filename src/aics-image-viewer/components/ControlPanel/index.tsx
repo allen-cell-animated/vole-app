@@ -1,4 +1,4 @@
-import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
+import { Button, Checkbox, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
@@ -6,8 +6,8 @@ import type { MetadataRecord } from "../../shared/types";
 import { select, useViewerState } from "../../state/store";
 
 import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
-import { type CustomizeWidgetProps } from "../CustomizeWidget";
-import { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
+import type { CustomizeWidgetProps } from "../CustomizeWidget";
+import type { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
 import AdvancedSettings from "./AdvancedSettings";
