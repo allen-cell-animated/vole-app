@@ -36,7 +36,7 @@ export default function AdvancedSettings(props: AdvancedSettingsProps): ReactEle
         <ResetButton
           label={"Reset all viewer and channel settings"}
           tooltip={"Resets all settings to the viewer's defaults"}
-          popupTitle={"Clear all settings?"}
+          popupTitle={"Reset all settings?"}
           popupDescription={
             "All viewer settings, including the channel settings, color presets, and rendering settings, will be reset to the viewer's defaults. This cannot be undone."
           }

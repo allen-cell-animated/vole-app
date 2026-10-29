@@ -160,21 +160,21 @@
     }
   }
 
-  /* Reset button confirmations */
+  /* Reset button confirmation popups */
   & .ant-popover {
     /* Override transparent white shadow */
     --ant-drop-shadow-popover: rgba(0, 0, 0, 0.016);
     box-shadow: var(--ant-box-shadow-secondary);
 
+    /* Add light border */
     & .ant-popover-container {
-      /* margin-left: 10px; */
       border: 1px solid var(--color-modal-border);
     }
-
     & .ant-popover-arrow::before {
       background-color: var(--color-modal-border);
     }
 
+    /* Increase size + change color of icon */
     & .ant-popconfirm-message-icon > span > svg {
       width: 16px;
       height: 16px;

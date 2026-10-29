@@ -360,10 +360,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     }
   }
 
-  /* Lighten danger button text color for contrast */
   .ant-btn-default.ant-btn-dangerous {
     box-shadow: none;
 
+    /* Lighten danger button text color for accessibility */
     &:not(:hover) {
       color: var(--color-button-error-text);
     }

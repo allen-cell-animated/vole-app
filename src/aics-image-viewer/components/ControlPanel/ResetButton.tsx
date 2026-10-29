@@ -10,6 +10,9 @@ type ResetButtonProps = {
   onConfirm: () => void;
 };
 
+/**
+ * Renders a red reset button with a confirmation popup.
+ */
 export default function ResetButton(props: ResetButtonProps): ReactElement {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
