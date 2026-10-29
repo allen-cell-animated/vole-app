@@ -539,10 +539,6 @@ const App: React.FC<AppProps> = (props) => {
     (): ControlVisibilityFlags => ({ ...defaultVisibleControls, ...props.visibleControls }),
     [props.visibleControls]
   );
-  const pixelSize = useMemo(
-    (): [number, number, number] => (image ? image.imageInfo.physicalPixelSize.toArray() : [1, 1, 1]),
-    [image]
-  );
   const resetCamera = useMemo(() => view3d.resetCamera.bind(view3d), [view3d]);
 
   return (
@@ -573,7 +569,6 @@ const App: React.FC<AppProps> = (props) => {
             // image state
             imageName={image?.name}
             hasImage={!!image}
-            pixelSize={pixelSize}
             channelDataChannels={image?.channels}
             channelGroupedByType={volume.channelGroupedByType}
             // functions

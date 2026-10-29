@@ -8,8 +8,6 @@ import SliderRow from "./shared/SliderRow";
 type GlobalVolumeControlKey = "maskAlpha" | "brightness" | "density" | "levels";
 
 export interface GlobalVolumeControlsProps {
-  imageName: string | undefined;
-  pixelSize: [number, number, number];
   visibleControls: {
     alphaMaskSlider: boolean;
     brightnessSlider: boolean;
