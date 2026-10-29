@@ -26,6 +26,7 @@ interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsPro
   metadata: MetadataRecord;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
+  resetToInitialViewerState: () => void;
 }
 
 const enum ControlTab {
@@ -168,6 +169,7 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
               <AdvancedSettings
                 visibleControls={visibleControls}
                 resetToDefaultViewerState={resetToDefaultViewerState}
+                resetToInitialViewerState={props.resetToInitialViewerState}
               />
             )}
             {tab === ControlTab.Metadata && <MetadataViewer metadata={props.metadata} />}

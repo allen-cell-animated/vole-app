@@ -19,6 +19,7 @@ const palette = {
   veryDarkPurple: "#5f369f",
   veryLtPurple: "#e7e4f2",
   brightRed: "#dc4446",
+  ltRed: "#ff6669",
   brightYellow: "#e39b0d",
   darkGreen: "#294c2f",
   brightGreen: "#0ccf4d",
@@ -86,6 +87,10 @@ const theme = {
         activeOutline: palette.purpleGrey,
         disabledOutline: palette.medGrey,
         disabledText: palette.medGrey,
+      },
+      error: {
+        hoverBg: palette.ltRed,
+        text: palette.ltRed,
       },
     },
     checkbox: {
@@ -210,6 +215,9 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-button-icon-active-text: ${$theme.colors.button.tertiary.activeText};
       --color-button-icon-active-bg: ${$theme.colors.button.tertiary.activeBg};
       --color-button-icon-active-outline: ${$theme.colors.button.tertiary.activeOutline};
+
+      --color-button-error-text: ${$theme.colors.button.error.text};
+      --color-button-error-hover-bg: ${$theme.colors.button.error.hoverBg};
 
       --color-toolbar-button-bg: ${$theme.colors.toolbar.buttonBg};
 
@@ -339,7 +347,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
    * Tertiary style buttons. Grey outline by default, turns to light
    * purple outline on hover.
    */
-  .ant-btn-default:not(.ant-btn-icon-only) {
+  .ant-btn-default:not(.ant-btn-icon-only):not(.ant-btn-dangerous) {
     background-color: var(--color-button-tertiary-bg);
     color: var(--color-button-tertiary-text);
     border-color: var(--color-button-tertiary-outline);
@@ -350,6 +358,20 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       border-color: var(--color-button-tertiary-hover-outline);
       color: var(--color-button-tertiary-hover-text);
     }
+  }
+
+  .ant-btn-default.ant-btn-dangerous {
+    box-shadow: none;
+
+    /* Lighten danger button text color for accessibility */
+    &:not(:hover) {
+      color: var(--color-button-error-text);
+    }
+  }
+
+  .ant-btn-primary.ant-btn-dangerous:hover {
+    background-color: var(--color-button-error-hover-bg);
+    border: 1px solid var(--color-button-error-hover-bg);
   }
 
   // Overrides for checkbox styling
