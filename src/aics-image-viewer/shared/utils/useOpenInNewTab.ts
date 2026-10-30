@@ -29,7 +29,7 @@ export default function useOpenInNewTab(
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
   const viewerUrl = standaloneViewerHref ?? getDefaultBaseUrl();
-  const viewerOrigin = new URL(viewerUrl).origin;
+  const viewerOrigin = new URL(viewerUrl, window.location.href).origin;
 
   const openInNewTab = useCallback((): void => {
     // Get URL, add `msgorigin` so the opened window knows there is additional
