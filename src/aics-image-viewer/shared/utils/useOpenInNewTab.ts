@@ -21,10 +21,10 @@ import { getDefaultBaseUrl, getShareLink } from "./sharing";
  */
 export default function useOpenInNewTab(
   standaloneViewerHref: string | undefined,
-  appProps: Pick<AppProps, "imageUrl" | "metadata">,
+  appProps: Pick<AppProps, "imageUrl" | "parentImageUrl" | "metadata">,
   view3d: View3d
 ): () => void {
-  const { imageUrl, metadata } = appProps;
+  const { imageUrl, metadata, parentImageUrl } = appProps;
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
   const channelSettings = useViewerState(useShallow((store: ViewerStore) => store.channelSettings));
 
@@ -34,7 +34,15 @@ export default function useOpenInNewTab(
   const openInNewTab = useCallback((): void => {
     // Get URL, add `msgorigin` so the opened window knows there is additional
     // metadata + scene data to be sent
-    let url = getShareLink(viewerUrl, imageUrl, viewerSettings, channelSettings, view3d ?? undefined, false);
+    let url = getShareLink(
+      viewerUrl,
+      imageUrl,
+      parentImageUrl,
+      viewerSettings,
+      channelSettings,
+      view3d ?? undefined,
+      false
+    );
     const msOrigin = window.location.origin;
     url += `&msgorigin=${encodeURIComponent(msOrigin)}`;
 
@@ -54,7 +62,7 @@ export default function useOpenInNewTab(
       window.removeEventListener("message", onMessage);
     };
     window.addEventListener("message", onMessage);
-  }, [viewerUrl, imageUrl, viewerSettings, channelSettings, view3d, viewerOrigin, metadata]);
+  }, [viewerUrl, imageUrl, parentImageUrl, viewerSettings, channelSettings, view3d, viewerOrigin, metadata]);
 
   return openInNewTab;
 }

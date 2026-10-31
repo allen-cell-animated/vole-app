@@ -1,7 +1,7 @@
 import type { View3d } from "@aics/vole-core";
 
 import type { MultisceneUrls } from "../../components/App/types";
-import type { ChannelState, ViewerState } from "../../state/types";
+import { type ChannelState, ImageType, type ViewerState } from "../../state/types";
 import { serializeViewerUrlParams } from "./parseUrl";
 
 const ENCODED_COLON_REGEX = /%3A/g;
@@ -30,12 +30,17 @@ export function getDefaultBaseUrl(): string {
 export function getShareLink(
   baseUrl: string,
   imageUrl: MultisceneUrls | string | undefined,
+  parentImageUrl: MultisceneUrls | string | undefined,
   viewerSettings: ViewerState,
   channelSettings: ChannelState[],
   view3d: View3d | undefined,
   showAllScenes: boolean = false
 ): string {
-  const urls = imageUrl !== undefined ? ((imageUrl as MultisceneUrls).scenes ?? [imageUrl]) : [];
+  let imageUrlToUse = imageUrl;
+  if (viewerSettings.imageType === ImageType.fullField) {
+    imageUrlToUse = parentImageUrl;
+  }
+  const urls = imageUrlToUse !== undefined ? ((imageUrlToUse as MultisceneUrls).scenes ?? [imageUrlToUse]) : [];
 
   const paramProps = {
     ...viewerSettings,
@@ -43,6 +48,10 @@ export function getShareLink(
     channelSettings,
     cameraState: view3d?.getCameraState(),
   };
+  // Disable FOV view, since there is no way to pass a parent image source via
+  // URL.
+  // TODO: Allow parent image source to be passed via URL?
+  paramProps.imageType = ImageType.segmentedCell;
 
   const urlParams: string[] = [];
 
