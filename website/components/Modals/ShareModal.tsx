@@ -73,12 +73,21 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
     return getShareLink(
       baseUrl,
       props.appProps.imageUrl,
+      props.appProps.parentImageUrl,
       viewerSettings,
       channelSettings,
       props.view3dRef?.current ?? undefined,
       showAllScenes
     );
-  }, [showModal, props.appProps.imageUrl, viewerSettings, channelSettings, props.view3dRef, showAllScenes]);
+  }, [
+    showModal,
+    props.appProps.imageUrl,
+    props.appProps.parentImageUrl,
+    viewerSettings,
+    channelSettings,
+    props.view3dRef,
+    showAllScenes,
+  ]);
 
   const onClickCopy = React.useCallback((): void => {
     if (shareUrl === undefined) {
