@@ -37,7 +37,7 @@ export function getShareLink(
   showAllScenes: boolean = false
 ): string {
   let imageUrlToUse = imageUrl;
-  if (viewerSettings.imageType === ImageType.fullField) {
+  if (viewerSettings.imageType === ImageType.fullField && parentImageUrl !== undefined) {
     imageUrlToUse = parentImageUrl;
   }
   const urls = imageUrlToUse !== undefined ? ((imageUrlToUse as MultisceneUrls).scenes ?? [imageUrlToUse]) : [];

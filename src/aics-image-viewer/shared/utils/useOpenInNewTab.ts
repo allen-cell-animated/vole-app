@@ -4,6 +4,7 @@ import { useShallow } from "zustand/shallow";
 
 import type { AppProps } from "../../components/App/types";
 import { selectViewerSettings, useViewerState, type ViewerStore } from "../../state/store";
+import { ImageType } from "../../state/types";
 import { paramsToViewerMessage } from "./parseSnapshot";
 import { getDefaultBaseUrl, getShareLink } from "./sharing";
 
@@ -57,7 +58,12 @@ export default function useOpenInNewTab(
       }
       // Send message with metadata + scene data
       const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
-      const message = { ...paramsToViewerMessage(imageUrl, meta), sceneIndex: viewerSettings.scene };
+
+      const parentImageUrl = appProps.parentImageUrl;
+      const useParentImage = viewerSettings.imageType === ImageType.fullField && parentImageUrl !== undefined;
+      const imageUrlToUse = useParentImage ? parentImageUrl : imageUrl;
+
+      const message = { ...paramsToViewerMessage(imageUrlToUse, meta), sceneIndex: viewerSettings.scene };
       windowProxy.postMessage(message, viewerOrigin);
       window.removeEventListener("message", onMessage);
     };
