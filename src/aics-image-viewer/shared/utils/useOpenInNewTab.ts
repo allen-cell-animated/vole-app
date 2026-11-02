@@ -57,11 +57,9 @@ export default function useOpenInNewTab(
         return;
       }
       // Send message with metadata + scene data
-      const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
-
-      const parentImageUrl = appProps.parentImageUrl;
       const useParentImage = viewerSettings.imageType === ImageType.fullField && parentImageUrl !== undefined;
       const imageUrlToUse = useParentImage ? parentImageUrl : imageUrl;
+      const meta = Array.isArray(metadata) || metadata === undefined ? metadata : [metadata];
 
       const message = { ...paramsToViewerMessage(imageUrlToUse, meta), sceneIndex: viewerSettings.scene };
       windowProxy.postMessage(message, viewerOrigin);
