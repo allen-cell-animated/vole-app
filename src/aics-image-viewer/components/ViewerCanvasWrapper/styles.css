@@ -3,7 +3,7 @@
     z-index: 10;
     transition: width 0.3s;
     height: 100%;
-    width: 100%;
+    width: round(down, 100%, 2px);
   }
 }
 

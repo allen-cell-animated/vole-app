@@ -103,7 +103,7 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
   }
 
   return (
-    <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
+    <div className="cell-canvas" style={{ ...STYLES.viewer, height: `round(down, ${appHeight}, 2px)` }}>
       <div ref={view3dviewerRef} style={STYLES.view3d}></div>
       <BottomPanel
         open={props.clippingPanelOpen}
@@ -124,7 +124,7 @@ const STYLES: Styles = {
     position: "relative",
   },
   view3d: {
-    width: "100%",
+    width: "round(down, 100%, 2px)",
     display: "flex",
     overflow: "hidden",
   },
