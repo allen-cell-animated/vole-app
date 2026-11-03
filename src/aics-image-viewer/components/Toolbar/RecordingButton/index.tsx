@@ -52,9 +52,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         min: 0,
         max: 10,
         fps: 1,
-        onRecordedFrame: (frame: number) => {
-          console.log(`Recorded frame: ${frame}`);
-        },
+        onRecordedFrame: (_frame: number) => {},
         onCompleted: async () => {
           setIsRecording(false);
         },

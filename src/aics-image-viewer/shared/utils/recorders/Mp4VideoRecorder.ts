@@ -66,8 +66,6 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     if (!this.isRecording()) {
       return;
     }
-
-    // Force a re-render just before recording to prevent blank frames.
     await this.setFrameAndRender(frame);
     // Add the frame to the video encoder
     if (!this.videoSource) {
