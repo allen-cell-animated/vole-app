@@ -3,6 +3,7 @@ import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Modal, Tooltip } from "antd";
 import React, { type ReactElement, useRef, useState } from "react";
 
+import type PlayControls from "../../../shared/utils/playControls";
 import { useViewerState } from "../../../state/store";
 
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
@@ -10,10 +11,12 @@ import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 type RecordingButtonProps = {
   view3d: View3d;
   volume: Volume | null;
+  playControls: PlayControls;
 };
 
 export default function RecordingButton(props: RecordingButtonProps): ReactElement {
   const originalFrame = useRef(0);
+  const recorderRef = useRef<Mp4VideoRecorder | null>(null);
 
   // Store initial time on modal open so it can be restored on close.
   const [isModalOpen, _setIsModalOpen] = useState(false);
@@ -23,6 +26,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     }
     _setIsModalOpen(open);
     if (open) {
+      props.playControls.pause();
       originalFrame.current = useViewerState.getState().time;
     } else if (props.volume) {
       props.view3d.setTime(props.volume, originalFrame.current);
@@ -33,6 +37,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   const handleCancel = (): void => {
     setIsModalOpen(false);
+    setIsRecording(false);
+    if (recorderRef.current && recorderRef.current.isRecording()) {
+      recorderRef.current.abort();
+      recorderRef.current = null;
+    }
   };
 
   const handleRecord = (): void => {
@@ -42,12 +51,17 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     }
     setIsRecording(true);
 
+    // Set play axis to t for prefetching.
+    props.playControls.playingAxis = "t";
+    props.playControls?.onPlayingAxisChanged?.("t");
+
     const recorder = new Mp4VideoRecorder(
       async (frame: number) => {
         await props.view3d.setTime(volume, frame);
         props.view3d.redraw(true);
       },
       () => props.view3d.getCanvasDOMElement(),
+      // TODO: set to real user-defined values
       {
         min: 0,
         max: 10,
@@ -55,9 +69,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         onRecordedFrame: (_frame: number) => {},
         onCompleted: async () => {
           setIsRecording(false);
+          recorderRef.current = null;
+          // Clear play axis
+          props.playControls.pause();
         },
       }
     );
+    recorderRef.current = recorder;
     recorder.start();
   };
 
@@ -70,7 +88,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
       </Tooltip>
 
       {/* Export modal */}
-      <Modal open={isModalOpen} onCancel={handleCancel}>
+      <Modal open={isModalOpen} onCancel={handleCancel} footer={null}>
         <Button type="primary" onClick={handleRecord} disabled={isRecording}>
           Record
         </Button>

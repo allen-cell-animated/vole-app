@@ -152,7 +152,6 @@ export default class CanvasRecorder {
           // information about what error was encountered.
           // This happens most often when a resource fails to load
           // (e.g., network issues or user not on VPN)
-          // TODO: Update error message if this tool becomes public!
           this.options.onError(
             new Error(
               "Encountered an unknown error while exporting; this is most likely a network issue. " +
@@ -175,7 +174,7 @@ export default class CanvasRecorder {
         this.finishedRecording = true;
         this.recording = false;
         await this.onCompletedRecording();
-        this.options.onCompleted();
+        await this.options.onCompleted();
         await this.cleanup();
         return;
       }

@@ -1,6 +1,6 @@
 import { BufferTarget, CanvasSource, getFirstEncodableVideoCodec, Mp4OutputFormat, Output, Quality } from "mediabunny";
 
-import CanvasRecorder, { defaultRecordingOptions, type RecordingOptions } from "./CanvasRecorder";
+import CanvasRecorder, { type RecordingOptions } from "./CanvasRecorder";
 
 export enum VideoBitrate {
   HIGH = 1e8, // 100 Mbps
@@ -21,8 +21,7 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     getCanvas: () => HTMLCanvasElement,
     options: Partial<RecordingOptions>
   ) {
-    super(setFrameAndRender, getCanvas);
-    this.options = { ...defaultRecordingOptions, ...options };
+    super(setFrameAndRender, getCanvas, options);
     this.output = new Output({
       format: new Mp4OutputFormat(),
       target: new BufferTarget(),
@@ -85,7 +84,7 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     const videoBlob = new Blob([buffer], { type: "video/mp4" });
     const url = URL.createObjectURL(videoBlob);
     this.download(this.options.prefix + ".mp4", url);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   protected async cleanup(): Promise<void> {
@@ -94,9 +93,5 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     if (this.videoSource) {
       this.videoSource.close();
     }
-  }
-
-  public static isSupported(): boolean {
-    return true;
   }
 }
