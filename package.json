@@ -55,6 +55,7 @@
     "fuse.js": "^7.0.0",
     "gl-matrix": "^3.4.4",
     "lodash": "^4.17.20",
+    "mediabunny": "^1.65.0",
     "nouislider-react": "^3.4.2",
     "react-color": "^2.19.3",
     "react-router-dom": "^6.26.2",

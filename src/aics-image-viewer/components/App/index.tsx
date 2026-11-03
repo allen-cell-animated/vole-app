@@ -593,6 +593,8 @@ const App: React.FC<AppProps> = (props) => {
               visibleControls={visibleControls}
               multiscaleDims={image?.imageInfo.imageInfo.multiscaleLevelDims}
               multiscaleIndex={image?.imageInfo.multiscaleLevel}
+              view3d={view3d}
+              volume={volume.image}
             />
             <CellViewerCanvasWrapper
               view3d={view3d}
