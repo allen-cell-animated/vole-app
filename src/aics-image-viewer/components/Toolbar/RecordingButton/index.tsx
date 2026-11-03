@@ -13,13 +13,10 @@ type RecordingButtonProps = {
 };
 
 export default function RecordingButton(props: RecordingButtonProps): ReactElement {
-  const [isModalOpen, _setIsModalOpen] = useState(false);
-  const time = useViewerState((state) => state.time);
   const originalFrame = useRef(0);
 
-  props.view3d.getCanvasDOMElement();
-
   // Store initial time on modal open so it can be restored on close.
+  const [isModalOpen, _setIsModalOpen] = useState(false);
   const setIsModalOpen = (open: boolean) => {
     if (open === isModalOpen) {
       return;
@@ -34,9 +31,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   const [isRecording, setIsRecording] = useState(false);
 
-  const totalFrames = props.volume?.imageInfo.times ?? 0;
-
-  const handleCancel = () => {};
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   const handleRecord = () => {
     const volume = props.volume;
@@ -44,8 +41,6 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
       return;
     }
     setIsRecording(true);
-
-    // const view3dSize = props.view3d.getCanvasDOMElement().getBoundingClientRect();
 
     const recorder = new Mp4VideoRecorder(
       async (frame: number) => {
@@ -76,8 +71,8 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         </Button>
       </Tooltip>
 
-      {/* Export modal1 */}
-      <Modal open={isModalOpen} onCancel={() => setIsModalOpen(false)}>
+      {/* Export modal */}
+      <Modal open={isModalOpen} onCancel={handleCancel}>
         <Button type="primary" onClick={handleRecord} disabled={isRecording}>
           Record
         </Button>
