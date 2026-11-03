@@ -48,7 +48,10 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     // const view3dSize = props.view3d.getCanvasDOMElement().getBoundingClientRect();
 
     const recorder = new Mp4VideoRecorder(
-      (frame: number) => props.view3d.setTime(volume, frame),
+      async (frame: number) => {
+        await props.view3d.setTime(volume, frame);
+        props.view3d.redraw(true);
+      },
       () => props.view3d.getCanvasDOMElement(),
       {
         min: 0,

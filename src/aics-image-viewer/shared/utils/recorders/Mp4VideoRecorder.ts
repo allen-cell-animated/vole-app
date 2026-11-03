@@ -15,13 +15,6 @@ export enum VideoBitrate {
 }
 
 /**
- * Returns a promise that resolves after a set duration, in milliseconds.
- */
-export async function sleep(timeoutMs: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, timeoutMs));
-}
-
-/**
  * Records frames to an MP4 file using the WebCodecs API.
  */
 export default class Mp4VideoRecorder extends CanvasRecorder {
@@ -86,13 +79,10 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     if (!this.videoSource) {
       throw new Error("Video source is not initialized.");
     }
-    await sleep(10);
     await this.videoSource.add(timestampSeconds, durationSeconds);
   }
 
   protected async onCompletedRecording(): Promise<void> {
-    console.log("Completed recording.");
-    console.log("MIME type:", await this.output.getMimeType());
     await this.output.finalize();
     const buffer = this.output.target.buffer;
     if (!buffer) {
