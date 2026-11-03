@@ -1,7 +1,7 @@
-import { View3d, Volume } from "@aics/vole-core";
+import type { View3d, Volume } from "@aics/vole-core";
 import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Modal, Tooltip } from "antd";
-import { ReactElement, useRef, useState } from "react";
+import React, { type ReactElement, useRef, useState } from "react";
 
 import { useViewerState } from "../../../state/store";
 
@@ -17,7 +17,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   // Store initial time on modal open so it can be restored on close.
   const [isModalOpen, _setIsModalOpen] = useState(false);
-  const setIsModalOpen = (open: boolean) => {
+  const setIsModalOpen = (open: boolean): void => {
     if (open === isModalOpen) {
       return;
     }
@@ -31,11 +31,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   const [isRecording, setIsRecording] = useState(false);
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     setIsModalOpen(false);
   };
 
-  const handleRecord = () => {
+  const handleRecord = (): void => {
     const volume = props.volume;
     if (!volume) {
       return;
@@ -65,7 +65,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   return (
     <div>
-      <Tooltip placement="bottom" title="Screenshot">
+      <Tooltip placement="bottom" title="Record">
         <Button className="ant-btn-icon-only btn-borderless" onClick={() => setIsModalOpen(true)}>
           <VideoCameraOutlined />
         </Button>

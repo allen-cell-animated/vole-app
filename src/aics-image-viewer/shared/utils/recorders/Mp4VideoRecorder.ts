@@ -1,12 +1,6 @@
-// import { ArrayBufferTarget, Muxer } from "mp4-muxer";
 import { BufferTarget, CanvasSource, getFirstEncodableVideoCodec, Mp4OutputFormat, Output, Quality } from "mediabunny";
 
 import CanvasRecorder, { defaultRecordingOptions, type RecordingOptions } from "./CanvasRecorder";
-
-// Eslint doesn't recognize the WebCodecs API yet.
-// This line prevents eslint from throwing errors like
-// 'VideoEncoder' is not defined (no-undef).
-/* global VideoEncoder, VideoFrame, VideoEncoderConfig*/
 
 export enum VideoBitrate {
   HIGH = 1e8, // 100 Mbps
