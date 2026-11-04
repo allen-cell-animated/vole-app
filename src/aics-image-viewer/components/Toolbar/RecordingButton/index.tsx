@@ -3,7 +3,7 @@ import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Modal, Tooltip } from "antd";
 import React, { type ReactElement, useRef, useState } from "react";
 
-import type PlayControls from "../../../shared/utils/playControls";
+import PlayControls from "../../../shared/utils/playControls";
 import { useViewerState } from "../../../state/store";
 
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
@@ -38,6 +38,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const handleCancel = (): void => {
     setIsModalOpen(false);
     setIsRecording(false);
+    props.playControls.pause();
     if (recorderRef.current && recorderRef.current.isRecording()) {
       recorderRef.current.abort();
       recorderRef.current = null;
@@ -64,7 +65,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
       // TODO: set to real user-defined values
       {
         min: 0,
-        max: 10,
+        max: 9,
         fps: 1,
         onRecordedFrame: (_frame: number) => {},
         onCompleted: async () => {

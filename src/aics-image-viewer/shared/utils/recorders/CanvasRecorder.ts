@@ -129,11 +129,24 @@ export default class CanvasRecorder {
    * Finishes the recording, reporting result and performing cleanup steps.
    */
   private async finishRecording(): Promise<void> {
-    this.recording = false;
-    this.finishedRecording = true;
-    await this.onCompletedRecording();
-    await this.options.onCompleted();
-    await this.cleanup();
+    if (!this.recording) {
+      return;
+    }
+    try {
+      await this.onCompletedRecording();
+      await this.options.onCompleted();
+      this.recording = false;
+      this.finishedRecording = true;
+    } catch (e) {
+      if (e instanceof Error) {
+        this.options.onError(e);
+      } else if (e instanceof ErrorEvent) {
+        this.options.onError((e as ErrorEvent).error);
+      }
+      console.error(e);
+    } finally {
+      await this.cleanup();
+    }
   }
 
   private startRecordingLoop(): void {
