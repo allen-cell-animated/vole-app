@@ -102,12 +102,8 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
     });
   }
 
-  // Round viewport dimensions to nearest even number to support wider array of
-  // codecs during video recording.
-  //
-  // TODO: Allow explicit size to be set, handle device pixel ratio.
   return (
-    <div className="cell-canvas" style={{ ...STYLES.viewer, height: `round(down, ${appHeight}, 2px)` }}>
+    <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
       <div ref={view3dviewerRef} style={STYLES.view3d}></div>
       <BottomPanel
         open={props.clippingPanelOpen}
@@ -128,7 +124,7 @@ const STYLES: Styles = {
     position: "relative",
   },
   view3d: {
-    width: "round(down, 100%, 2px)",
+    width: "100%",
     display: "flex",
     overflow: "hidden",
   },
