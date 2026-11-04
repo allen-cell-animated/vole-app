@@ -1,5 +1,4 @@
 import type { VolumeDims } from "@aics/vole-core";
-import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
@@ -24,7 +23,6 @@ type ToolbarProps = {
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
-  resetToSavedViewerState: () => void;
 
   visibleControls: {
     autoRotateButton: boolean;
@@ -38,18 +36,6 @@ type ToolbarProps = {
 };
 
 const RESIZE_DEBOUNCE_DELAY = 50;
-
-const visuallyHiddenStyle: React.CSSProperties = {
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  padding: "0",
-  margin: "-1px",
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  borderWidth: "0",
-};
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -179,14 +165,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       </div>
 
       <div className="viewer-toolbar" ref={barRef} onWheel={wheelHandler} onScroll={checkScrollBtnVisible}>
-        <div className="viewer-toolbar-left" ref={leftRef}>
-          <Tooltip placement="bottom" title="Reset to initial settings" trigger={["focus", "hover"]}>
-            <Button className="ant-btn-icon-only btn-borderless" onClick={props.resetToSavedViewerState}>
-              <ReloadOutlined />
-              <span style={visuallyHiddenStyle}>Reset to initial settings</span>
-            </Button>
-          </Tooltip>
-        </div>
+        <div className="viewer-toolbar-left" ref={leftRef}></div>
 
         <div className="viewer-toolbar-center" ref={centerRef}>
           {renderGroup1 && (
