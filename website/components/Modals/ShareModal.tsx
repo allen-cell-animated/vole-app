@@ -70,21 +70,18 @@ const ShareModal: React.FC<ShareModalProps> = (props: ShareModalProps) => {
       return undefined;
     }
     const baseUrl = getDefaultBaseUrl();
-    return getShareLink(
-      baseUrl,
-      props.appProps.imageUrl,
-      props.appProps.parentImageUrl,
-      viewerSettings,
-      channelSettings,
-      props.view3dRef?.current ?? undefined,
-      showAllScenes
-    );
+    return getShareLink(baseUrl, viewerSettings, channelSettings, {
+      imageUrl: props.appProps.imageUrl,
+      parentImageUrl: props.appProps.parentImageUrl,
+      cameraState: props.view3dRef?.current?.getCameraState(),
+      showAllScenes,
+    });
   }, [
     showModal,
-    props.appProps.imageUrl,
-    props.appProps.parentImageUrl,
     viewerSettings,
     channelSettings,
+    props.appProps.imageUrl,
+    props.appProps.parentImageUrl,
     props.view3dRef,
     showAllScenes,
   ]);

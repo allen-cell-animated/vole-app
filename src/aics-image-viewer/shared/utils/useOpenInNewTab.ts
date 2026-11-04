@@ -1,5 +1,5 @@
-import type { View3d } from "@aics/vole-core";
-import { useCallback } from "react";
+import type { CameraState } from "@aics/vole-core";
+import { useCallback, useRef } from "react";
 import { useShallow } from "zustand/shallow";
 
 import type { AppProps } from "../../components/App/types";
@@ -23,7 +23,7 @@ import { getDefaultBaseUrl, getShareLink } from "./sharing";
 export default function useOpenInNewTab(
   standaloneViewerHref: string | undefined,
   appProps: Pick<AppProps, "imageUrl" | "parentImageUrl" | "metadata">,
-  view3d: View3d
+  getCameraState: () => CameraState | undefined
 ): () => void {
   const { imageUrl, metadata, parentImageUrl } = appProps;
   const viewerSettings = useViewerState(useShallow(selectViewerSettings));
@@ -32,18 +32,18 @@ export default function useOpenInNewTab(
   const viewerUrl = standaloneViewerHref ?? getDefaultBaseUrl();
   const viewerOrigin = new URL(viewerUrl, window.location.href).origin;
 
+  const getCameraStateRef = useRef(getCameraState);
+  getCameraStateRef.current = getCameraState;
+
   const openInNewTab = useCallback((): void => {
     // Get URL, add `msgorigin` so the opened window knows there is additional
     // metadata + scene data to be sent
-    let url = getShareLink(
-      viewerUrl,
+    let url = getShareLink(viewerUrl, viewerSettings, channelSettings, {
       imageUrl,
       parentImageUrl,
-      viewerSettings,
-      channelSettings,
-      view3d ?? undefined,
-      false
-    );
+      cameraState: getCameraStateRef.current(),
+      showAllScenes: false,
+    });
     const msOrigin = window.location.origin;
     url += `&msgorigin=${encodeURIComponent(msOrigin)}`;
 
@@ -66,7 +66,7 @@ export default function useOpenInNewTab(
       window.removeEventListener("message", onMessage);
     };
     window.addEventListener("message", onMessage);
-  }, [viewerUrl, imageUrl, parentImageUrl, viewerSettings, channelSettings, view3d, viewerOrigin, metadata]);
+  }, [viewerUrl, imageUrl, parentImageUrl, viewerSettings, channelSettings, viewerOrigin, metadata]);
 
   return openInNewTab;
 }
