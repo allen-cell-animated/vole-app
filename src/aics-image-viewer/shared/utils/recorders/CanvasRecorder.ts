@@ -22,7 +22,7 @@ export type RecordingOptions = {
    * Filenames will be formatted as `{prefix}{frame #}.{ext}` for images,
    * and `{prefix}.{ext}` for videos. */
   prefix: string;
-  /** Delay between each recorded frame, in milliseconds. 100 ms by default. */
+  /** Delay after each processed frame, in milliseconds. 100 ms by default. */
   delayMs: number;
   /** Frames per second for video output. Default is 30 fps.*/
   fps: number;
@@ -125,6 +125,17 @@ export default class CanvasRecorder {
     this.startRecordingLoop();
   }
 
+  /**
+   * Finishes the recording, reporting result and performing cleanup steps.
+   */
+  private async finishRecording(): Promise<void> {
+    this.recording = false;
+    this.finishedRecording = true;
+    await this.onCompletedRecording();
+    await this.options.onCompleted();
+    await this.cleanup();
+  }
+
   private startRecordingLoop(): void {
     // Reset any existing timers
     clearTimeout(this.timerId);
@@ -134,8 +145,7 @@ export default class CanvasRecorder {
         return;
       }
       if (frame > this.options.max) {
-        this.recording = false;
-        await this.options.onCompleted();
+        await this.finishRecording();
         return;
       }
 
@@ -171,11 +181,7 @@ export default class CanvasRecorder {
       const nextFrame = frame + this.options.frameIncrement;
       if (nextFrame > this.options.max) {
         // Stop recording
-        this.finishedRecording = true;
-        this.recording = false;
-        await this.onCompletedRecording();
-        await this.options.onCompleted();
-        await this.cleanup();
+        await this.finishRecording();
         return;
       }
       this.timerId = window.setTimeout(() => loadAndRecordFrame(nextFrame), this.options.delayMs);
