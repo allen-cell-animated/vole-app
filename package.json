@@ -28,6 +28,7 @@
     "docker-build": "vite build",
     "dev": "vite dev",
     "lint": "eslint --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
+    "lint-fix": "eslint --fix --config ./.eslintrc --ignore-path ./.eslintignore --ext .jsx --ext .js --ext .ts --ext .tsx ./",
     "test": "vitest run --passWithNoTests",
     "typeCheck": "tsc -p tsconfig.json --noEmit",
     "generateTypes": "tsc -p tsconfig.base.json --emitDeclarationOnly",
