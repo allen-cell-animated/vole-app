@@ -1,4 +1,4 @@
-import type { View3d } from "@aics/vole-core";
+import type { CameraState } from "@aics/vole-core";
 
 import type { MultisceneUrls } from "../../components/App/types";
 import { type ChannelState, ImageType, type ViewerState } from "../../state/types";
@@ -29,13 +29,17 @@ export function getDefaultBaseUrl(): string {
  */
 export function getShareLink(
   baseUrl: string,
-  imageUrl: MultisceneUrls | string | undefined,
-  parentImageUrl: MultisceneUrls | string | undefined,
   viewerSettings: ViewerState,
   channelSettings: ChannelState[],
-  view3d: View3d | undefined,
-  showAllScenes: boolean = false
+  options: Partial<{
+    imageUrl: MultisceneUrls | string | undefined;
+    parentImageUrl: MultisceneUrls | string | undefined;
+    cameraState: CameraState | undefined;
+    showAllScenes: boolean;
+  }> = {}
 ): string {
+  const { imageUrl, parentImageUrl, cameraState, showAllScenes } = options;
+
   let imageUrlToUse = imageUrl;
   if (viewerSettings.imageType === ImageType.fullField && parentImageUrl !== undefined) {
     imageUrlToUse = parentImageUrl;
@@ -46,7 +50,7 @@ export function getShareLink(
     ...viewerSettings,
     scene: showAllScenes ? viewerSettings.scene : 0,
     channelSettings,
-    cameraState: view3d?.getCameraState(),
+    cameraState: cameraState,
   };
   // Disable FOV view, since there is no way to pass a parent image source via
   // URL.

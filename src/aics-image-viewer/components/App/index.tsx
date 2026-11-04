@@ -388,7 +388,7 @@ const App: React.FC<AppProps> = (props) => {
   const [clippingPanelOpen, setClippingPanelOpen] = useState(true);
   const clippingPanelOpenTimeout = useRef<number>(0);
 
-  const openInNewTabCallback = useOpenInNewTab(props.standaloneViewerHref, props, view3d);
+  const openInNewTabCallback = useOpenInNewTab(props.standaloneViewerHref, props, () => view3d?.getCameraState());
   // Disable opening in new tab when viewing raw image data.
   const openInNewTab = hasRawImage ? undefined : openInNewTabCallback;
 
