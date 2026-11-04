@@ -1,16 +1,46 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { VideoCameraOutlined } from "@ant-design/icons";
-import { Button, Modal, Tooltip } from "antd";
-import React, { type ReactElement, useCallback, useRef, useState } from "react";
+import { LockOutlined, UnlockOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import { Button, Card, Input, InputNumber, Modal, Radio, RadioChangeEvent, Space, Tooltip } from "antd";
+import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
 import { useViewerState } from "../../../state/store";
+import {
+  FlexColumn,
+  FlexColumnAlignCenter,
+  FlexRow,
+  FlexRowAlignCenter,
+  StyledRadioGroup,
+  VisuallyHidden,
+} from "../../shared/utils";
 
 import { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
+import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
+
+// Align settings both inside and outside of cards
+const CARD_SETTINGS_INDENT_PX = 5;
+const SETTINGS_INDENT_PX = 18;
+const TOOLTIP_TRIGGER: ("hover" | "focus")[] = ["hover", "focus"];
+const HINT_CSS_COLOR = "var(--color-text-hint)";
+
+const enum ExportHtmlIds {
+  FRAME_RANGE_RADIO = "export-modal-frame-range-radio",
+  FRAME_RANGE_RADIO_LABEL_ID = "export-modal-frame-range-radio-label",
+  FRAME_CUSTOM_RANGE_INPUT = "export-modal-frame-custom-range-input",
+  FRAME_DIMENSION_WIDTH_INPUT = "export-modal-dimensions-width-input",
+  FRAME_DIMENSION_HEIGHT_INPUT_ID = "export-modal-dimensions-height",
+  FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "export-modal-frame-custom-range-frame-increment-input",
+  SHOW_FEATURE_LEGEND_CHECKBOX = "export-modal-show-feature-legend-checkbox",
+  SHOW_DATASET_NAME_CHECKBOX = "export-modal-show-dataset-name-checkbox",
+  FINAL_DIMENSIONS_TEXT = "export-modal-final-dimensions-text",
+  FPS_INPUT = "export-modal-fps-input",
+  VIDEO_QUALITY_RADIO = "export-modal-video-quality-radio",
+  IMAGE_FILENAME_INPUT = "export-modal-image-filename-input",
+}
 
 type RecordingButtonProps = {
   view3d: View3d;
@@ -24,11 +54,18 @@ const enum RangeMode {
   CUSTOM,
 }
 
+const enum RecordingMode {
+  IMAGE_SEQUENCE,
+  VIDEO_MP4,
+}
+
 export enum VideoBitrate {
   HIGH = 1e8, // 100 Mbps
   MEDIUM = 1e7, // 10 Mbps
   LOW = 5e6, // 5 Mbps
 }
+
+// MARK: Styles
 
 const VerticalDiv = styled.div`
   display: flex;
@@ -43,10 +80,77 @@ const HorizontalDiv = styled.div`
   flex-wrap: wrap;
 `;
 
+const CustomRadio = styled(Radio)`
+  & span {
+    // Clip text when the radio is too narrow
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  & span:not(.ant-radio-button) {
+    // Text span
+    width: 100%;
+    text-align: center;
+  }
+`;
+
+const ExportModeRadioGroup = styled(StyledRadioGroup)`
+  & {
+    // Use standard 40px of padding, unless the view is too narrow and it needs to shrink
+    padding: 0 calc(min(40px, 5vw));
+  }
+  & label {
+    // Make the Radio options the same width
+    flex-grow: 1;
+    width: 50%;
+  }
+`;
+
+/** Overrides Ant's styling so contents can take up full width */
+const MaxWidthRadioGroup = styled(Radio.Group)`
+  width: 100%;
+
+  & .ant-space {
+    width: 100%;
+  }
+`;
+
+const VideoQualityRadioGroup = styled(StyledRadioGroup)`
+  & {
+    display: flex;
+    flex-direction: row;
+  }
+`;
+
+const HintText = styled.p`
+  color: var(--color-text-hint);
+  padding: 0;
+  margin: 0;
+`;
+
+const StyledInputNumber = styled(InputNumber<number>)`
+  /* Add some padding around text so it isn't clipped  */
+  .ant-input-number-group-addon {
+    padding: 0 6px;
+  }
+`;
+
+// MARK: Helpers
+
+function getPixelRatio(): number {
+  return window.devicePixelRatio || 1;
+}
+
+function toEven(value: number): number {
+  return Math.round(value / 2) * 2;
+}
+
 export default function RecordingButton(props: RecordingButtonProps): ReactElement {
   //// MARK: State
   const originalFrameRef = useRef(0);
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const exportModalRef = useRef<HTMLDivElement | null>(null);
 
   // Store initial time on modal open so it can be restored on close.
   const [isModalOpen, _setIsModalOpen] = useState(false);
@@ -68,19 +172,127 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const [isPlayingCloseAnimation, setIsPlayingCloseAnimation] = useState(false);
   const [percentComplete, setPercentComplete] = useState(0);
 
+  const recorderRef = useRef<Mp4VideoRecorder | null>(null);
+  const [errorText, setErrorText] = useState("");
+  const [recordingMode, _setRecordingMode] = useState(RecordingMode.IMAGE_SEQUENCE);
+
   const totalFrames = props.volume?.imageInfo.times ?? 0;
-
-  const [fps, setFps] = useState(12);
-  const [videoBitsPerSecond, setVideoBitsPerSecond] = useState(VideoBitrate.MEDIUM);
-
-  // TODO: Store these settings to local storage so they persist?
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
   const [customMin, setCustomMin] = useState(0);
   const [customMax, setCustomMax] = useState(totalFrames - 1);
 
-  const recorderRef = useRef<Mp4VideoRecorder | null>(null);
+  const [useCurrentViewportSize, setUseCurrentViewportSize] = useState(true);
+  const [dimensionsInput, setDimensionsInput] = useState([1, 1]);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(dimensionsInput[0] / dimensionsInput[1]);
+  const pixelRatio = getPixelRatio();
 
-  const [errorText, setErrorText] = useState("");
+  const enforceEvenDims = recordingMode === RecordingMode.VIDEO_MP4;
+
+  /**
+   * Target resolution of the viewport area in the final rendered canvas.
+   *
+   * Note that the canvas' inner resolution is the canvas' size multiplied by
+   * the device's pixel ratio. For example, an HTML canvas with a size of
+   * 100x100 on a device and a pixel ratio of 1.5 (e.g. 150% zoom) will be
+   * rendering at a resolution of 150x150.
+   *
+   * To get the canvas size from the resolution, this value needs to be divided
+   * by the device pixel ratio.
+   */
+  const targetCanvasResolution = useMemo(() => {
+    if (enforceEvenDims) {
+      return dimensionsInput.map((value) => toEven(value));
+    }
+    return dimensionsInput.map((value) => Math.round(value));
+  }, [dimensionsInput, enforceEvenDims]);
+
+  /** Final size of the exported image/video frame, based on current options. */
+  const exportDimensions = useMemo(() => {
+    return [Math.floor(targetCanvasResolution[0] / pixelRatio), Math.floor(targetCanvasResolution[1] / pixelRatio)];
+  }, [targetCanvasResolution, pixelRatio]);
+
+  const defaultImagePrefix = useMemo(() => {
+    const volume = props.volume;
+    if (!volume) {
+      return "";
+    }
+    return `${volume.imageInfo.imageInfo.name}-${targetCanvasResolution[0]}x${targetCanvasResolution[1]}`;
+  }, [targetCanvasResolution, props.volume]);
+
+  const [imagePrefix, setImagePrefix] = useState(defaultImagePrefix);
+  const [useDefaultImagePrefix, setUseDefaultImagePrefix] = useState(true);
+  const [frameIncrement, setFrameIncrement] = useState(1);
+  const [fps, setFps] = useState(12);
+  const [videoBitsPerSecond, setVideoBitsPerSecond] = useState(VideoBitrate.MEDIUM);
+
+  const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
+  const isViewportDimensions =
+    viewportDimensions[0] === dimensionsInput[0] && viewportDimensions[1] === dimensionsInput[1];
+
+  //// MARK: State Handlers
+
+  const getImagePrefix = (): string => {
+    if (useDefaultImagePrefix) {
+      if (recordingMode === RecordingMode.IMAGE_SEQUENCE) {
+        // Add separator between prefix and frame number
+        return defaultImagePrefix + "-";
+      } else {
+        return defaultImagePrefix;
+      }
+    } else {
+      return imagePrefix;
+    }
+  };
+
+  // Override setRecordingMode when switching to video; users should not choose current frame only
+  // (since exporting the current frame only as a video doesn't really make sense.)
+  const setRecordingMode = (mode: RecordingMode): void => {
+    _setRecordingMode(mode);
+    if (mode === RecordingMode.VIDEO_MP4 && rangeMode === RangeMode.CURRENT) {
+      setRangeMode(RangeMode.ALL);
+    }
+  };
+
+  const onSetDimensions = useCallback(
+    (dimensions: [number, number]) => {
+      setDimensionsInput(dimensions);
+      if (aspectRatio) {
+        setAspectRatio(dimensions[0] / dimensions[1]);
+      }
+    },
+    [aspectRatio]
+  );
+
+  useEffect(() => {
+    const canvasHtmlElement = props.view3d.getCanvasDOMElement();
+    const observer = new ResizeObserver(() => {
+      setViewportDimensions([canvasHtmlElement.clientWidth, canvasHtmlElement.clientHeight]);
+    });
+    observer.observe(canvasHtmlElement);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleSetWidth = (width: number | null): void => {
+    if (width !== null) {
+      if (aspectRatio !== null) {
+        setDimensionsInput([Math.round(width), Math.round(width / aspectRatio)]);
+      } else {
+        setDimensionsInput([Math.round(width), dimensionsInput[1]]);
+      }
+    }
+    setUseCurrentViewportSize(false);
+  };
+
+  const handleSetHeight = (height: number | null): void => {
+    if (height !== null) {
+      if (aspectRatio !== null) {
+        setDimensionsInput([Math.round(height * aspectRatio), Math.round(height)]);
+      } else {
+        setDimensionsInput([dimensionsInput[0], Math.round(height)]);
+      }
+    }
+    setUseCurrentViewportSize(false);
+  };
 
   //// MARK: Callbacks
 
@@ -183,6 +395,68 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   //// MARK: Rendering
 
+  const videoQualityOptions = [
+    { label: "High", value: VideoBitrate.HIGH },
+    { label: "Med", value: VideoBitrate.MEDIUM },
+    { label: "Low", value: VideoBitrate.LOW },
+  ];
+
+  const isWebCodecsEnabled = Mp4VideoRecorder.isSupported();
+  const customRangeFrames = Math.max(Math.ceil((customMax - customMin + 1) / frameIncrement), 1);
+
+  const numFrames = rangeMode === RangeMode.CUSTOM ? customRangeFrames : totalFrames;
+  const totalSeconds = numFrames / fps;
+
+  // Gets the total duration as a MM min, SS sec label.
+  // Also adds decimal places for small durations.
+  const getDurationLabel = (): string => {
+    const durationMin = Math.floor(totalSeconds / 60);
+    const durationSec = totalSeconds - durationMin * 60;
+
+    let timestamp = "";
+    if (durationMin > 0) {
+      timestamp += durationMin.toString() + " min, ";
+    }
+    // Format seconds to hundredths if less than 10 seconds
+    if (durationMin === 0 && durationSec < 10) {
+      // Round digits to 2 decimal places
+      const roundedSeconds = Math.round(durationSec * 100) / 100;
+      timestamp += roundedSeconds.toFixed(2) + " sec";
+    } else {
+      timestamp += Math.floor(durationSec).toString() + " sec";
+    }
+    return timestamp;
+  };
+
+  const getApproximateVideoFilesizeMb = (): string => {
+    // From experimentation, filesize scales linearly (ish) with the
+    // bitrate and duration unless a maximum filesize is hit at high
+    // bitrates, which seems to depend on the video dimensions.
+
+    // Video quality is bitrate in bits/second.
+    // This is usually within 0.5-2x the actual filesize.
+    const maxVideoBitsDuration = totalSeconds * videoBitsPerSecond;
+
+    // Experimentally-determined compression ratio (bits per pixel), which determines
+    // maximum size a video can be at very high bitrates. This may vary WILDLY based
+    // on image complexity (videos with little change will compress better).
+    // This is here because otherwise the filesize estimate is way too high for high bitrates
+    // (475 MB predicted vs. 70 MB actual)
+    // TODO: Is there a way to concretely determine this?
+    const compressionRatioBitsPerPixel = 3.5; // Actual value 2.7-3.0, overshooting to be safe
+    const maxVideoBitsResolution = exportDimensions[0] * exportDimensions[1] * numFrames * compressionRatioBitsPerPixel;
+
+    const sizeInMb = Math.min(maxVideoBitsResolution, maxVideoBitsDuration) / 8_000_000; // bits to MB
+
+    if (sizeInMb > 1) {
+      return Math.round(sizeInMb) + " MB";
+    } else {
+      // Round to one decimal place, with a minimum of 0.1 MB. (We don't need to be too precise
+      // because these are estimates.)
+      return Math.max(1, Math.round(sizeInMb * 10)) / 10 + " MB";
+    }
+  };
+
   // Footer for the Export modal.
   // Layout: Optional Progress meter - Export/Stop Button - Cancel Button
   const modalFooter = (
@@ -222,12 +496,281 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
       {/* Export modal */}
       <Modal
-        title="Export video"
+        title="Export"
         open={isModalOpen}
+        // Do not allow cancellation of modal by clicking outside it when recording
+        mask={{ closable: !isRecording }}
         onCancel={handleCancel}
         footer={modalFooter}
         getContainer={() => modalContainerRef.current ?? document.body}
-      ></Modal>
+      >
+        <FlexColumn $gap={10} style={{ marginTop: "15px" }} ref={exportModalRef}>
+          {/* Recording type (image/video) radio */}
+          <FlexColumnAlignCenter>
+            <ExportModeRadioGroup
+              value={recordingMode}
+              buttonStyle="solid"
+              optionType="button"
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                width: "100%",
+              }}
+              onChange={(e) => setRecordingMode(e.target.value)}
+              disabled={isRecording}
+            >
+              <CustomRadio value={RecordingMode.IMAGE_SEQUENCE}>PNG image sequence</CustomRadio>
+              {/* Optional tooltip here in case WebCodecs API is not enabled. */}
+              <Tooltip
+                title={"Video recording isn't supported by this browser."}
+                open={isWebCodecsEnabled ? false : undefined}
+                trigger={TOOLTIP_TRIGGER}
+              >
+                <CustomRadio value={RecordingMode.VIDEO_MP4} disabled={isRecording || !isWebCodecsEnabled}>
+                  MP4 video
+                </CustomRadio>
+              </Tooltip>
+            </ExportModeRadioGroup>
+          </FlexColumnAlignCenter>
+
+          {/* Range options (All/Current Frame/Custom) */}
+          <Card size="small" title="Frame range">
+            <MaxWidthRadioGroup
+              // TODO: Use fieldset + label to align with accessibility standards
+              value={rangeMode}
+              onChange={(e: RadioChangeEvent) => {
+                setRangeMode(e.target.value);
+              }}
+              disabled={isRecording}
+              id={ExportHtmlIds.FRAME_RANGE_RADIO}
+            >
+              <Space orientation="vertical" align="start">
+                <Radio value={RangeMode.ALL}>
+                  All frames{" "}
+                  {rangeMode === RangeMode.ALL && (
+                    <span style={{ color: HINT_CSS_COLOR, marginLeft: "4px" }}>({totalFrames} frames total)</span>
+                  )}
+                </Radio>
+                <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
+                  Current frame only
+                </Radio>
+                <Radio value={RangeMode.CUSTOM}>Custom range</Radio>
+
+                {rangeMode === RangeMode.CUSTOM ? (
+                  // Render the custom range input in the radio list if selected
+                  <SettingsContainer indentPx={CARD_SETTINGS_INDENT_PX}>
+                    <SettingsItem label="Range" htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
+                      <HorizontalDiv>
+                        <InputNumber
+                          id={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
+                          style={{ width: 60 }}
+                          aria-label="min frame"
+                          controls={false}
+                          min={0}
+                          max={totalFrames - 1}
+                          value={customMin}
+                          onChange={(value) => value && setCustomMin(value)}
+                          disabled={isRecording}
+                        />
+                        <p>-</p>
+                        <InputNumber
+                          style={{ width: 60 }}
+                          aria-label="max frame"
+                          controls={false}
+                          min={customMin}
+                          max={totalFrames - 1}
+                          value={customMax}
+                          onChange={(value) => value && setCustomMax(value)}
+                          disabled={isRecording}
+                        />
+                        <p>of {totalFrames - 1}</p>
+                      </HorizontalDiv>
+                    </SettingsItem>
+                    <SettingsItem
+                      label="Frame increment"
+                      htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
+                    >
+                      <FlexRow $gap={6} style={{ alignItems: "flex-start" }}>
+                        <InputNumber
+                          id={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
+                          value={frameIncrement}
+                          onChange={(value) => value && setFrameIncrement(value)}
+                          min={1}
+                          max={totalFrames - 1}
+                          disabled={isRecording}
+                          width="140px"
+                        />
+                        <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
+                      </FlexRow>
+                    </SettingsItem>
+                  </SettingsContainer>
+                ) : null}
+              </Space>
+            </MaxWidthRadioGroup>
+          </Card>
+          <Card size="small" title={"Dimensions"}>
+            <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
+              <SettingsItem
+                label="Frame dimensions"
+                labelStyle={{ marginTop: "2px", height: "min-content" }}
+                htmlFor={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+              >
+                <FlexColumn style={{ alignItems: "flex-start", paddingBottom: "8px" }} $gap={6}>
+                  <FlexRow $gap={6}>
+                    <Button
+                      onClick={() => {
+                        onSetDimensions(viewportDimensions as [number, number]);
+                        setUseCurrentViewportSize(true);
+                      }}
+                      type={isViewportDimensions ? "primary" : "default"}
+                    >
+                      Set to viewport
+                    </Button>
+                    {/* <Button
+                      disabled={imageDimensions === null}
+                      type={isImageDimensions ? "primary" : "default"}
+                      onClick={() => {
+                        imageDimensions && onSetDimensions([imageDimensions[0], imageDimensions[1]]);
+                        setUseCurrentViewportSize(false);
+                      }}
+                    >
+                      Set to image
+                    </Button> */}
+                  </FlexRow>
+                  <FlexColumn>
+                    <FlexRowAlignCenter $gap={4}>
+                      <Space.Compact>
+                        <Space.Addon>
+                          <HintText>W</HintText>
+                        </Space.Addon>
+                        <StyledInputNumber
+                          id={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+                          aria-label="Width"
+                          value={dimensionsInput[0]}
+                          onChange={handleSetWidth}
+                          controls={false}
+                          style={{ width: "90px" }}
+                        />
+                      </Space.Compact>
+                      <span style={{ padding: "0 4px" }}>×</span>
+                      <Space.Compact>
+                        <Space.Addon>
+                          <HintText>H</HintText>
+                        </Space.Addon>
+                        <StyledInputNumber
+                          id={ExportHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT_ID}
+                          aria-label="Height"
+                          value={dimensionsInput[1]}
+                          onChange={handleSetHeight}
+                          controls={false}
+                          style={{ width: "90px" }}
+                        />
+                      </Space.Compact>
+                      <Tooltip
+                        title={aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
+                        trigger={["hover", "focus"]}
+                        getPopupContainer={() => exportModalRef.current || document.body}
+                      >
+                        <Button
+                          type={aspectRatio ? "primary" : "link"}
+                          // sizePx={26}
+                          onClick={() => setAspectRatio(aspectRatio ? null : dimensionsInput[0] / dimensionsInput[1])}
+                        >
+                          {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
+                          <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
+                        </Button>
+                      </Tooltip>
+                    </FlexRowAlignCenter>
+                  </FlexColumn>
+                </FlexColumn>
+              </SettingsItem>
+              {/* <SettingsItem label="Dataset name" htmlFor={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}>
+                <div style={{ width: "fit-content" }}>
+                  <Checkbox
+                    id={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}
+                    checked={showHeaderDuringExport}
+                    onChange={(e) => setShowHeaderDuringExport(e.target.checked)}
+                  />
+                </div>
+              </SettingsItem>
+              <SettingsItem label={"Feature legend"} htmlFor={ExportHtmlIds.SHOW_FEATURE_LEGEND_CHECKBOX}>
+                <div style={{ width: "fit-content" }}>
+                  <Checkbox
+                    id={ExportHtmlIds.SHOW_FEATURE_LEGEND_CHECKBOX}
+                    checked={showLegendDuringExport}
+                    onChange={(e) => setShowLegendDuringExport(e.target.checked)}
+                  />
+                </div>
+              </SettingsItem> */}
+              <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
+                <HintText
+                  id={ExportHtmlIds.FINAL_DIMENSIONS_TEXT}
+                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</HintText>
+              </SettingsItem>
+            </SettingsContainer>
+          </Card>
+
+          <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
+            {recordingMode === RecordingMode.VIDEO_MP4 && (
+              <>
+                <SettingsItem label="Frames per second" htmlFor={ExportHtmlIds.FPS_INPUT}>
+                  <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
+                    <InputNumber
+                      id={ExportHtmlIds.FPS_INPUT}
+                      value={fps}
+                      onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
+                      min={1}
+                      max={120}
+                      disabled={isRecording}
+                      width="175px"
+                    />
+                    <p style={{ color: HINT_CSS_COLOR, margin: 0 }}>({getDurationLabel()})</p>
+                  </FlexRowAlignCenter>
+                </SettingsItem>
+                <SettingsItem label="Video quality" htmlFor={ExportHtmlIds.VIDEO_QUALITY_RADIO}>
+                  <FlexRow $gap={6} style={{ alignItems: "center" }}>
+                    <VideoQualityRadioGroup
+                      id={ExportHtmlIds.VIDEO_QUALITY_RADIO}
+                      disabled={isRecording}
+                      options={videoQualityOptions}
+                      optionType="button"
+                      value={videoBitsPerSecond}
+                      onChange={(e) => setVideoBitsPerSecond(e.target.value)}
+                    />
+                    <p style={{ color: HINT_CSS_COLOR }}>(~{getApproximateVideoFilesizeMb()})</p>
+                  </FlexRow>
+                </SettingsItem>
+              </>
+            )}
+            {/* Filename prefix */}
+            <SettingsItem label={"Filename"} htmlFor={ExportHtmlIds.IMAGE_FILENAME_INPUT}>
+              <FlexRow $gap={6}>
+                <Input
+                  id={ExportHtmlIds.IMAGE_FILENAME_INPUT}
+                  onChange={(event) => {
+                    setImagePrefix(event.target.value);
+                    setUseDefaultImagePrefix(false);
+                  }}
+                  size="small"
+                  value={getImagePrefix()}
+                  disabled={isRecording}
+                />
+                <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
+                <Button
+                  disabled={isRecording || useDefaultImagePrefix}
+                  onClick={() => {
+                    setUseDefaultImagePrefix(true);
+                  }}
+                >
+                  Reset
+                </Button>
+              </FlexRow>
+            </SettingsItem>
+          </SettingsContainer>
+          <br />
+        </FlexColumn>
+      </Modal>
     </div>
   );
 }
