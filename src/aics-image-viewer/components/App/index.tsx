@@ -156,8 +156,6 @@ const App: React.FC<AppProps> = (props) => {
     props.view3dRef.current = view3d;
   }
 
-  const openInNewTab = useOpenInNewTab(props.standaloneViewerHref, props, view3d);
-
   // Allows AppWrapper to pass in its own `useErrorAlert` callbacks, but still keeps error
   // messaging when App is used standalone.
   const [errorAlert, _showError] = useErrorAlert();
@@ -389,6 +387,10 @@ const App: React.FC<AppProps> = (props) => {
 
   const [clippingPanelOpen, setClippingPanelOpen] = useState(true);
   const clippingPanelOpenTimeout = useRef<number>(0);
+
+  const openInNewTabCallback = useOpenInNewTab(props.standaloneViewerHref, props, view3d);
+  // Disable opening in new tab when viewing raw image data.
+  const openInNewTab = hasRawImage ? undefined : openInNewTabCallback;
 
   // Imperative callbacks /////////////////////////////////////////////////////
 
