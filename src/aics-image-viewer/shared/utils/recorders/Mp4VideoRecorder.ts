@@ -9,10 +9,9 @@ export enum VideoBitrate {
 }
 
 /**
- * Records frames to an MP4 file using the WebCodecs API.
+ * Records frames to an MP4 file.
  */
 export default class Mp4VideoRecorder extends CanvasRecorder {
-  // private videoEncoder: VideoEncoder;
   private output: Output<Mp4OutputFormat, BufferTarget>;
   private videoSource: CanvasSource | undefined;
 
@@ -32,6 +31,9 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
   }
 
   protected async setup(): Promise<void> {
+    // avc preferred since it has better platform support. However,
+    // it only works when the target canvas has even dimensions.
+    // TODO: enforce even dimensions on View3D when recording starts.
     const codec = await getFirstEncodableVideoCodec(["avc", "av1", "vp9"], {
       width: this.getCanvas().width,
       height: this.getCanvas().height,
@@ -79,7 +81,6 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     if (!buffer) {
       throw new Error("No video buffer found after finalizing the output.");
     }
-
     // Download the finished video file
     const videoBlob = new Blob([buffer], { type: "video/mp4" });
     const url = URL.createObjectURL(videoBlob);
