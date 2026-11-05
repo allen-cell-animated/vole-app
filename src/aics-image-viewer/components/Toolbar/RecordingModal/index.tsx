@@ -1,12 +1,14 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { Button, Card, Input, InputNumber, Modal, Radio } from "antd";
+import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
+import { Button, Card, Input, InputNumber, Modal, Radio, Space, Tooltip } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
+import { getPixelRatio } from "../../../shared/utils/window";
 import { select, useViewerState } from "../../../state/store";
-import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
-import { RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
+import { FlexColumn, FlexColumnAlignCenter, FlexRow, FlexRowAlignCenter, VisuallyHidden } from "../../shared/utils";
+import { RECORDING_CARD_SETTINGS_INDENT_PX, RECORDING_SETTINGS_INDENT_PX } from "./constants";
 import { RangeMode, RecordingMode } from "./types";
 import { getFrameCount } from "./utils";
 
@@ -30,7 +32,7 @@ const enum RecordingHtmlIds {
   // FRAME_CUSTOM_RANGE_INPUT = "recording-modal-frame-custom-range-input",
   // FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "recording-modal-frame-custom-range-frame-increment-input",
   FRAME_DIMENSION_WIDTH_INPUT = "recording-modal-dimensions-width-input",
-  FRAME_DIMENSION_HEIGHT_INPUT_ID = "recording-modal-dimensions-height",
+  FRAME_DIMENSION_HEIGHT_INPUT = "recording-modal-dimensions-height",
   SHOW_FEATURE_LEGEND_CHECKBOX = "recording-modal-show-feature-legend-checkbox",
   SHOW_DATASET_NAME_CHECKBOX = "recording-modal-show-dataset-name-checkbox",
   FINAL_DIMENSIONS_TEXT = "recording-modal-final-dimensions-text",
@@ -45,6 +47,7 @@ type RecordingModalProps = {
   playControls: PlayControls;
   open: boolean;
   setIsOpen: (open: boolean) => void;
+  setCanvasResolution(resolution: [number, number] | null): void;
 };
 
 export enum VideoBitrate {
@@ -54,10 +57,6 @@ export enum VideoBitrate {
 }
 
 // MARK: Helpers
-
-function getPixelRatio(): number {
-  return window.devicePixelRatio || 1;
-}
 
 export default function RecordingModal(props: RecordingModalProps): ReactElement {
   //////////////////////////////////////////////////////////
@@ -107,9 +106,9 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
 
   const [useCurrentViewportSize, setUseCurrentViewportSize] = useState(true);
   const [dimensionsInput, setDimensionsInput] = useState([1, 1]);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(dimensionsInput[0] / dimensionsInput[1]);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(1);
   const pixelRatio = getPixelRatio();
-  const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
+  const [viewportDimensions, setViewportDimensions] = useState([1, 1]);
   const isViewportDimensions =
     viewportDimensions[0] === dimensionsInput[0] && viewportDimensions[1] === dimensionsInput[1];
 
@@ -143,7 +142,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     ];
     console.log("export dimensions", exportDimensions);
     return exportDimensions;
-  }, [targetCanvasResolution, pixelRatio]);
+  }, [targetCanvasResolution, pixelRatio, viewportDimensions]);
 
   const defaultImagePrefix = useMemo(() => {
     const volume = props.volume;
@@ -204,9 +203,9 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   useEffect(() => {
     if (useCurrentViewportSize) {
       setDimensionsInput([viewportDimensions[0] * pixelRatio, viewportDimensions[1] * pixelRatio]);
-    }
-    if (aspectRatio) {
-      setAspectRatio(viewportDimensions[0] / viewportDimensions[1]);
+      if (aspectRatio) {
+        setAspectRatio(viewportDimensions[0] / viewportDimensions[1]);
+      }
     }
   }, [viewportDimensions, useCurrentViewportSize, aspectRatio, pixelRatio]);
 
@@ -256,11 +255,12 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
       setIsPlayingCloseAnimation(false);
       setPercentComplete(0);
       props.playControls.pause();
+      props.setCanvasResolution(null);
       if (closeModal) {
         setIsModalOpen(false);
       }
     },
-    [props.view3d, props.volume, props.playControls, setIsModalOpen]
+    [props.view3d, props.volume, props.playControls, props.setCanvasResolution, setIsModalOpen]
   );
   const handleCancel = (): void => {
     if (!isRecording) {
@@ -277,7 +277,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     setErrorText("");
   };
 
-  const handleStartRecord = (): void => {
+  const handleStartRecord = async (): Promise<void> => {
     const volume = props.volume;
     if (!volume) {
       return;
@@ -334,7 +334,9 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
         setPercentComplete(Math.floor(((frame - min) / (max - min)) * 100));
       },
       onError: (error: Error) => {
+        // TODO: Parse/handle error messages
         setErrorText(error.message);
+        stopRecording(false);
       },
     };
     if (recordingMode === RecordingMode.VIDEO_MP4) {
@@ -342,7 +344,13 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     } else {
       recorderRef.current = new ImageSequenceRecorder(setFrame, getCanvas, options);
     }
-    recorderRef.current.start();
+    props.setCanvasResolution(exportDimensions);
+    await setTimeout(() => {
+      if (!recorderRef.current) {
+        return;
+      }
+      recorderRef.current.start();
+    }, 10);
   };
 
   //////////////////////////////////////////////////////////
@@ -492,25 +500,25 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             isRecording={isRecording}
           />
 
-            <Card size="small" title={"Dimensions"}>
-              <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
-                <SettingsItem
-                  label="Frame dimensions"
-                  labelStyle={{ marginTop: "2px", height: "min-content" }}
-                  htmlFor={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
-                >
-                  <FlexColumn style={{ alignItems: "flex-start", paddingBottom: "8px" }} $gap={6}>
-                    <FlexRow $gap={6}>
-                      <Button
-                        onClick={() => {
-                          onSetDimensions(viewportDimensions as [number, number]);
-                          setUseCurrentViewportSize(true);
-                        }}
-                        type={isViewportDimensions ? "primary" : "default"}
-                      >
-                        Set to viewport
-                      </Button>
-                      {/* <Button
+          <Card size="small" title={"Dimensions"}>
+            <SettingsContainer gapPx={6} indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}>
+              <SettingsItem
+                label="Frame dimensions"
+                labelStyle={{ marginTop: "2px", height: "min-content" }}
+                htmlFor={RecordingHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+              >
+                <FlexColumn style={{ alignItems: "flex-start", paddingBottom: "8px" }} $gap={6}>
+                  <FlexRow $gap={6}>
+                    <Button
+                      onClick={() => {
+                        onSetDimensions(viewportDimensions as [number, number]);
+                        setUseCurrentViewportSize(true);
+                      }}
+                      type={isViewportDimensions ? "primary" : "default"}
+                    >
+                      Set to viewport
+                    </Button>
+                    {/* <Button
                         disabled={imageDimensions === null}
                         type={isImageDimensions ? "primary" : "default"}
                         onClick={() => {
@@ -520,123 +528,122 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
                       >
                         Set to image
                       </Button> */}
-                    </FlexRow>
-                    <FlexColumn>
-                      <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
-                        <Space.Compact>
-                          <Space.Addon>
-                            <p className={styles.hintText}>W</p>
-                          </Space.Addon>
-                          <InputNumber<number>
-                            className={styles.dimensionInput}
-                            id={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
-                            aria-label="Width"
-                            value={dimensionsInput[0]}
-                            onChange={handleSetWidth}
-                            controls={false}
-                            style={{ width: "90px" }}
-                          />
-                        </Space.Compact>
-                        <span style={{ padding: "0 4px" }}>×</span>
-                        <Space.Compact>
-                          <Space.Addon>
-                            <p className={styles.hintText}>H</p>
-                          </Space.Addon>
-                          <InputNumber<number>
-                            className={styles.dimensionInput}
-                            id={ExportHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT_ID}
-                            aria-label="Height"
-                            value={dimensionsInput[1]}
-                            onChange={handleSetHeight}
-                            controls={false}
-                            style={{ width: "90px" }}
-                          />
-                        </Space.Compact>
-                        <Tooltip
-                          title={aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
-                          trigger={["hover", "focus"]}
-                          getPopupContainer={() => exportModalRef.current || document.body}
+                  </FlexRow>
+                  <FlexColumn>
+                    <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
+                      <Space.Compact>
+                        <Space.Addon>
+                          <p className={styles.hintText}>W</p>
+                        </Space.Addon>
+                        <InputNumber<number>
+                          className={styles.dimensionInput}
+                          id={RecordingHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+                          aria-label="Width"
+                          value={dimensionsInput[0]}
+                          onChange={handleSetWidth}
+                          controls={false}
+                          style={{ width: "90px" }}
+                        />
+                      </Space.Compact>
+                      <span style={{ padding: "0 4px" }}>×</span>
+                      <Space.Compact>
+                        <Space.Addon>
+                          <p className={styles.hintText}>H</p>
+                        </Space.Addon>
+                        <InputNumber<number>
+                          className={styles.dimensionInput}
+                          id={RecordingHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT}
+                          aria-label="Height"
+                          value={dimensionsInput[1]}
+                          onChange={handleSetHeight}
+                          controls={false}
+                          style={{ width: "90px" }}
+                        />
+                      </Space.Compact>
+                      <Tooltip
+                        title={aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
+                        trigger={["hover", "focus"]}
+                        getPopupContainer={() => exportModalRef.current || document.body}
+                      >
+                        <Button
+                          type={aspectRatio ? "primary" : "link"}
+                          // sizePx={26}
+                          onClick={() => setAspectRatio(aspectRatio ? null : dimensionsInput[0] / dimensionsInput[1])}
                         >
-                          <Button
-                            type={aspectRatio ? "primary" : "link"}
-                            // sizePx={26}
-                            onClick={() => setAspectRatio(aspectRatio ? null : dimensionsInput[0] / dimensionsInput[1])}
-                          >
-                            {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
-                            <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
-                          </Button>
-                        </Tooltip>
-                      </FlexRowAlignCenter>
-                    </FlexColumn>
+                          {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
+                          <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
+                        </Button>
+                      </Tooltip>
+                    </FlexRowAlignCenter>
                   </FlexColumn>
-                </SettingsItem>
-                <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
-                  <p
-                    className={styles.hintText}
-                    id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
-                  >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
-                </SettingsItem>
-              </SettingsContainer>
-            </Card>
-
-            <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
-              {recordingMode === RecordingMode.VIDEO_MP4 && (
-                <>
-                  <SettingsItem label="Frames per second" htmlFor={RecordingHtmlIds.FPS_INPUT}>
-                    <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
-                      <InputNumber
-                        id={RecordingHtmlIds.FPS_INPUT}
-                        value={fps}
-                        onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
-                        min={1}
-                        max={120}
-                        disabled={isRecording}
-                        width="175px"
-                      />
-                      <p className={styles.hintText}>({getDurationLabel()})</p>
-                    </FlexRowAlignCenter>
-                  </SettingsItem>
-                  <SettingsItem label="Video quality" htmlFor={RecordingHtmlIds.VIDEO_QUALITY_RADIO}>
-                    <FlexRowAlignCenter $gap={6}>
-                      <Radio.Group
-                        className={styles.videoQualityRadioGroup}
-                        id={RecordingHtmlIds.VIDEO_QUALITY_RADIO}
-                        disabled={isRecording}
-                        options={videoQualityOptions}
-                        optionType="button"
-                        value={videoBitsPerSecond}
-                        onChange={(e) => setVideoBitsPerSecond(e.target.value)}
-                      />
-                      <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
-                    </FlexRowAlignCenter>
-                  </SettingsItem>
-                </>
-              )}
-              {/* Filename prefix */}
-              <SettingsItem label={"Filename"} htmlFor={RecordingHtmlIds.IMAGE_FILENAME_INPUT}>
-                <FlexRowAlignCenter $gap={6}>
-                  <Input
-                    id={RecordingHtmlIds.IMAGE_FILENAME_INPUT}
-                    onChange={(event) => {
-                      setImagePrefix(event.target.value);
-                      setUseDefaultImagePrefix(false);
-                    }}
-                    value={getImagePrefix()}
-                    disabled={isRecording}
-                  />
-                  <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
-                  <Button
-                    disabled={isRecording || useDefaultImagePrefix}
-                    onClick={() => {
-                      setUseDefaultImagePrefix(true);
-                    }}
-                  >
-                    Reset
-                  </Button>
-                </FlexRowAlignCenter>
+                </FlexColumn>
+              </SettingsItem>
+              <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
+                <p
+                  className={styles.hintText}
+                  id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
+                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
               </SettingsItem>
             </SettingsContainer>
           </Card>
+
+          <SettingsContainer indentPx={RECORDING_SETTINGS_INDENT_PX} gapPx={6}>
+            {recordingMode === RecordingMode.VIDEO_MP4 && (
+              <>
+                <SettingsItem label="Frames per second" htmlFor={RecordingHtmlIds.FPS_INPUT}>
+                  <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
+                    <InputNumber
+                      id={RecordingHtmlIds.FPS_INPUT}
+                      value={fps}
+                      onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
+                      min={1}
+                      max={120}
+                      disabled={isRecording}
+                      width="175px"
+                    />
+                    <p className={styles.hintText}>({getDurationLabel()})</p>
+                  </FlexRowAlignCenter>
+                </SettingsItem>
+                <SettingsItem label="Video quality" htmlFor={RecordingHtmlIds.VIDEO_QUALITY_RADIO}>
+                  <FlexRowAlignCenter $gap={6}>
+                    <Radio.Group
+                      className={styles.videoQualityRadioGroup}
+                      id={RecordingHtmlIds.VIDEO_QUALITY_RADIO}
+                      disabled={isRecording}
+                      options={videoQualityOptions}
+                      optionType="button"
+                      value={videoBitsPerSecond}
+                      onChange={(e) => setVideoBitsPerSecond(e.target.value)}
+                    />
+                    <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
+                  </FlexRowAlignCenter>
+                </SettingsItem>
+              </>
+            )}
+            {/* Filename prefix */}
+            <SettingsItem label={"Filename"} htmlFor={RecordingHtmlIds.IMAGE_FILENAME_INPUT}>
+              <FlexRowAlignCenter $gap={6}>
+                <Input
+                  id={RecordingHtmlIds.IMAGE_FILENAME_INPUT}
+                  onChange={(event) => {
+                    setImagePrefix(event.target.value);
+                    setUseDefaultImagePrefix(false);
+                  }}
+                  value={getImagePrefix()}
+                  disabled={isRecording}
+                />
+                <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
+                <Button
+                  disabled={isRecording || useDefaultImagePrefix}
+                  onClick={() => {
+                    setUseDefaultImagePrefix(true);
+                  }}
+                >
+                  Reset
+                </Button>
+              </FlexRowAlignCenter>
+            </SettingsItem>
+          </SettingsContainer>
 
           <SettingsContainer indentPx={RECORDING_CARD_SETTINGS_INDENT_PX} gapPx={6}>
             {recordingMode === RecordingMode.VIDEO_MP4 && (
