@@ -9,6 +9,10 @@
   }
 }
 
+.ant-layout-content {
+  position: relative;
+}
+
 .cell-viewer-wrapper {
   overflow-y: hidden;
 
