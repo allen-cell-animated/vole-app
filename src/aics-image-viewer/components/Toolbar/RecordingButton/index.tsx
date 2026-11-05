@@ -106,7 +106,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const totalFrames = props.volume?.imageInfo.times ?? 0;
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
   const [customMin, setCustomMin] = useState(0);
-  const [customMax, setCustomMax] = useState(totalFrames - 1);
+  const [customMax, setCustomMax] = useState<number | undefined>(undefined);
 
   const pixelRatio = getPixelRatio();
 
@@ -114,8 +114,8 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   /** Final size of the exported image/video frame, based on current options. */
   const exportDimensions = useMemo((): [number, number] => {
-    console.log("viewport dimensions", viewportDimensions);
     console.log("pixel ratio", pixelRatio);
+    console.log("viewport dimensions", viewportDimensions);
     const exportDimensions: [number, number] = [
       Math.floor(viewportDimensions[0] * pixelRatio),
       Math.floor(viewportDimensions[1] * pixelRatio),
@@ -141,6 +141,16 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   //////////////////////////////////////////////////////////
   //// MARK: State Handlers
   //////////////////////////////////////////////////////////
+
+  // Bound max and min by the total frames on volume changes. If this is the first time the
+  // volume is loaded, this will also set the max bound.
+  useEffect(() => {
+    if (props.volume) {
+      const maxFrame = props.volume.imageInfo.times - 1;
+      setCustomMin((min) => clamp(min, 0, maxFrame));
+      setCustomMax((max) => clamp(max ?? maxFrame, 0, maxFrame));
+    }
+  }, [props.volume, customMax]);
 
   const getImagePrefix = (): string => {
     if (useDefaultImagePrefix) {
@@ -237,7 +247,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
       case RangeMode.CUSTOM:
         // Clamp range values in case of unsafe input
         min = clamp(customMin, 0, totalFrames - 1);
-        max = clamp(customMax, min, totalFrames - 1);
+        max = clamp(customMax!, min, totalFrames - 1);
     }
 
     const setFrame = async (frame: number): Promise<void> => {
@@ -289,7 +299,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   ];
 
   const isWebCodecsEnabled = Mp4VideoRecorder.isSupported();
-  const customRangeFrames = Math.max(Math.ceil((customMax - customMin + 1) / frameIncrement), 1);
+  const customRangeFrames = Math.max(Math.ceil(((customMax ?? 1) - customMin + 1) / frameIncrement), 1);
 
   const numFrames = rangeMode === RangeMode.CUSTOM ? customRangeFrames : totalFrames;
   const totalSeconds = numFrames / fps;
