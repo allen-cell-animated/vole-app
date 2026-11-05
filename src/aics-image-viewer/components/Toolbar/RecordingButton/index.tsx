@@ -2,7 +2,6 @@ import type { View3d, Volume } from "@aics/vole-core";
 import { LockOutlined, UnlockOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Card, Input, InputNumber, Modal, Radio, RadioChangeEvent, Space, Tooltip } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styled from "styled-components";
 
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
@@ -20,6 +19,8 @@ import { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
+
+import styles from "./styles.module.css";
 
 // Align settings both inside and outside of cards
 const CARD_SETTINGS_INDENT_PX = 5;
@@ -65,77 +66,6 @@ export enum VideoBitrate {
   LOW = 5e6, // 5 Mbps
 }
 
-// MARK: Styles
-
-const VerticalDiv = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const HorizontalDiv = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  flex-wrap: wrap;
-`;
-
-const CustomRadio = styled(Radio)`
-  & span {
-    // Clip text when the radio is too narrow
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  & span:not(.ant-radio-button) {
-    // Text span
-    width: 100%;
-    text-align: center;
-  }
-`;
-
-const ExportModeRadioGroup = styled(StyledRadioGroup)`
-  & {
-    // Use standard 40px of padding, unless the view is too narrow and it needs to shrink
-    padding: 0 calc(min(40px, 5vw));
-  }
-  & label {
-    // Make the Radio options the same width
-    flex-grow: 1;
-    width: 50%;
-  }
-`;
-
-/** Overrides Ant's styling so contents can take up full width */
-const MaxWidthRadioGroup = styled(Radio.Group)`
-  width: 100%;
-
-  & .ant-space {
-    width: 100%;
-  }
-`;
-
-const VideoQualityRadioGroup = styled(StyledRadioGroup)`
-  & {
-    display: flex;
-    flex-direction: row;
-  }
-`;
-
-const HintText = styled.p`
-  color: var(--color-text-hint);
-  padding: 0;
-  margin: 0;
-`;
-
-const StyledInputNumber = styled(InputNumber<number>)`
-  /* Add some padding around text so it isn't clipped  */
-  .ant-input-number-group-addon {
-    padding: 0 6px;
-  }
-`;
-
 // MARK: Helpers
 
 function getPixelRatio(): number {
@@ -147,7 +77,10 @@ function toEven(value: number): number {
 }
 
 export default function RecordingButton(props: RecordingButtonProps): ReactElement {
+  //////////////////////////////////////////////////////////
   //// MARK: State
+  //////////////////////////////////////////////////////////
+
   const originalFrameRef = useRef(0);
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const exportModalRef = useRef<HTMLDivElement | null>(null);
@@ -229,7 +162,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const isViewportDimensions =
     viewportDimensions[0] === dimensionsInput[0] && viewportDimensions[1] === dimensionsInput[1];
 
+  //////////////////////////////////////////////////////////
   //// MARK: State Handlers
+  //////////////////////////////////////////////////////////
 
   const getImagePrefix = (): string => {
     if (useDefaultImagePrefix) {
@@ -294,7 +229,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     setUseCurrentViewportSize(false);
   };
 
+  //////////////////////////////////////////////////////////
   //// MARK: Callbacks
+  //////////////////////////////////////////////////////////
 
   const stopRecording = useCallback(
     async (closeModal: boolean): Promise<void> => {
@@ -393,7 +330,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     recorderRef.current.start();
   };
 
+  //////////////////////////////////////////////////////////
   //// MARK: Rendering
+  //////////////////////////////////////////////////////////
 
   const videoQualityOptions = [
     { label: "High", value: VideoBitrate.HIGH },
@@ -460,8 +399,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   // Footer for the Export modal.
   // Layout: Optional Progress meter - Export/Stop Button - Cancel Button
   const modalFooter = (
-    <VerticalDiv>
-      <HorizontalDiv style={{ alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+    <div className={styles.modalFooter}>
+      <div
+        className={styles.flexRowWrap}
+        style={{ alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}
+      >
         {(percentComplete !== 0 || isRecording) && (
           <StyledInlineProgress percent={percentComplete} error={!!errorText} />
         )}
@@ -477,13 +419,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         >
           {isRecording ? "Stop" : "Export"}
         </Button>
-      </HorizontalDiv>
+      </div>
       <div>
         {errorText && (
           <p style={{ color: "var(--color-text-error)", textAlign: "left", textWrap: "wrap" }}>{errorText}</p>
         )}
       </div>
-    </VerticalDiv>
+    </div>
   );
 
   return (
@@ -496,6 +438,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
       {/* Export modal */}
       <Modal
+        className={styles.exportModal}
         title="Export"
         open={isModalOpen}
         // Do not allow cancellation of modal by clicking outside it when recording
@@ -504,39 +447,41 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         footer={modalFooter}
         getContainer={() => modalContainerRef.current ?? document.body}
       >
-        <FlexColumn $gap={10} style={{ marginTop: "15px" }} ref={exportModalRef}>
+        <div className={styles.exportModalContent} ref={exportModalRef}>
           {/* Recording type (image/video) radio */}
           <FlexColumnAlignCenter>
-            <ExportModeRadioGroup
+            <StyledRadioGroup
+              className={styles.exportModeRadioGroup}
               value={recordingMode}
               buttonStyle="solid"
               optionType="button"
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "center",
-                width: "100%",
-              }}
               onChange={(e) => setRecordingMode(e.target.value)}
               disabled={isRecording}
             >
-              <CustomRadio value={RecordingMode.IMAGE_SEQUENCE}>PNG image sequence</CustomRadio>
+              <Radio className={styles.exportModeRadio} value={RecordingMode.IMAGE_SEQUENCE}>
+                PNG image sequence
+              </Radio>
               {/* Optional tooltip here in case WebCodecs API is not enabled. */}
               <Tooltip
                 title={"Video recording isn't supported by this browser."}
                 open={isWebCodecsEnabled ? false : undefined}
                 trigger={TOOLTIP_TRIGGER}
               >
-                <CustomRadio value={RecordingMode.VIDEO_MP4} disabled={isRecording || !isWebCodecsEnabled}>
+                <Radio
+                  className={styles.exportModeRadio}
+                  value={RecordingMode.VIDEO_MP4}
+                  disabled={isRecording || !isWebCodecsEnabled}
+                >
                   MP4 video
-                </CustomRadio>
+                </Radio>
               </Tooltip>
-            </ExportModeRadioGroup>
+            </StyledRadioGroup>
           </FlexColumnAlignCenter>
 
           {/* Range options (All/Current Frame/Custom) */}
           <Card size="small" title="Frame range">
-            <MaxWidthRadioGroup
+            <Radio.Group
+              className={styles.rangeRadioGroup}
               // TODO: Use fieldset + label to align with accessibility standards
               value={rangeMode}
               onChange={(e: RadioChangeEvent) => {
@@ -549,7 +494,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                 <Radio value={RangeMode.ALL}>
                   All frames{" "}
                   {rangeMode === RangeMode.ALL && (
-                    <span style={{ color: HINT_CSS_COLOR, marginLeft: "4px" }}>({totalFrames} frames total)</span>
+                    <span className={styles.hintText} style={{ marginLeft: "4px" }}>
+                      ({totalFrames} frames total)
+                    </span>
                   )}
                 </Radio>
                 <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
@@ -559,9 +506,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
                 {rangeMode === RangeMode.CUSTOM ? (
                   // Render the custom range input in the radio list if selected
-                  <SettingsContainer indentPx={CARD_SETTINGS_INDENT_PX}>
+                  <SettingsContainer indentPx={CARD_SETTINGS_INDENT_PX} className={styles.customRangeSettingsContainer}>
                     <SettingsItem label="Range" htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
-                      <HorizontalDiv>
+                      <FlexRowAlignCenter className={styles.flexRowWrap}>
                         <InputNumber
                           id={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
                           style={{ width: 60 }}
@@ -585,13 +532,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                           disabled={isRecording}
                         />
                         <p>of {totalFrames - 1}</p>
-                      </HorizontalDiv>
+                      </FlexRowAlignCenter>
                     </SettingsItem>
                     <SettingsItem
                       label="Frame increment"
                       htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
                     >
-                      <FlexRow $gap={6} style={{ alignItems: "flex-start" }}>
+                      <FlexRowAlignCenter $gap={6}>
                         <InputNumber
                           id={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
                           value={frameIncrement}
@@ -599,15 +546,15 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                           min={1}
                           max={totalFrames - 1}
                           disabled={isRecording}
-                          width="140px"
+                          style={{ width: 140 }}
                         />
                         <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
-                      </FlexRow>
+                      </FlexRowAlignCenter>
                     </SettingsItem>
                   </SettingsContainer>
                 ) : null}
               </Space>
-            </MaxWidthRadioGroup>
+            </Radio.Group>
           </Card>
           <Card size="small" title={"Dimensions"}>
             <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
@@ -639,12 +586,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                     </Button> */}
                   </FlexRow>
                   <FlexColumn>
-                    <FlexRowAlignCenter $gap={4}>
+                    <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
                       <Space.Compact>
                         <Space.Addon>
-                          <HintText>W</HintText>
+                          <p className={styles.hintText}>W</p>
                         </Space.Addon>
-                        <StyledInputNumber
+                        <InputNumber<number>
+                          className={styles.dimensionInput}
                           id={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
                           aria-label="Width"
                           value={dimensionsInput[0]}
@@ -656,9 +604,10 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       <span style={{ padding: "0 4px" }}>×</span>
                       <Space.Compact>
                         <Space.Addon>
-                          <HintText>H</HintText>
+                          <p className={styles.hintText}>H</p>
                         </Space.Addon>
-                        <StyledInputNumber
+                        <InputNumber<number>
+                          className={styles.dimensionInput}
                           id={ExportHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT_ID}
                           aria-label="Height"
                           value={dimensionsInput[1]}
@@ -704,9 +653,10 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                 </div>
               </SettingsItem> */}
               <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
-                <HintText
+                <p
+                  className={styles.hintText}
                   id={ExportHtmlIds.FINAL_DIMENSIONS_TEXT}
-                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</HintText>
+                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
               </SettingsItem>
             </SettingsContainer>
           </Card>
@@ -725,12 +675,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       disabled={isRecording}
                       width="175px"
                     />
-                    <p style={{ color: HINT_CSS_COLOR, margin: 0 }}>({getDurationLabel()})</p>
+                    <p className={styles.hintText}>({getDurationLabel()})</p>
                   </FlexRowAlignCenter>
                 </SettingsItem>
                 <SettingsItem label="Video quality" htmlFor={ExportHtmlIds.VIDEO_QUALITY_RADIO}>
-                  <FlexRow $gap={6} style={{ alignItems: "center" }}>
-                    <VideoQualityRadioGroup
+                  <FlexRowAlignCenter $gap={6}>
+                    <StyledRadioGroup
+                      className={styles.videoQualityRadioGroup}
                       id={ExportHtmlIds.VIDEO_QUALITY_RADIO}
                       disabled={isRecording}
                       options={videoQualityOptions}
@@ -738,14 +689,14 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       value={videoBitsPerSecond}
                       onChange={(e) => setVideoBitsPerSecond(e.target.value)}
                     />
-                    <p style={{ color: HINT_CSS_COLOR }}>(~{getApproximateVideoFilesizeMb()})</p>
-                  </FlexRow>
+                    <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
+                  </FlexRowAlignCenter>
                 </SettingsItem>
               </>
             )}
             {/* Filename prefix */}
             <SettingsItem label={"Filename"} htmlFor={ExportHtmlIds.IMAGE_FILENAME_INPUT}>
-              <FlexRow $gap={6}>
+              <FlexRowAlignCenter $gap={6}>
                 <Input
                   id={ExportHtmlIds.IMAGE_FILENAME_INPUT}
                   onChange={(event) => {
@@ -765,11 +716,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                 >
                   Reset
                 </Button>
-              </FlexRow>
+              </FlexRowAlignCenter>
             </SettingsItem>
           </SettingsContainer>
           <br />
-        </FlexColumn>
+        </div>
       </Modal>
     </div>
   );

@@ -1,0 +1,91 @@
+.export-modal {
+}
+
+.export-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+  overflow: auto;
+
+  & p {
+    margin: 0;
+    text-align: left;
+  }
+}
+
+/* Footer for the export modal; stacks the controls row above error text. */
+.modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flex-row-wrap {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Radio group for selecting the export mode (image sequence vs. video). */
+.export-mode-radio-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+  /* Use standard 40px of padding, unless the view is too narrow and it needs to shrink */
+  padding: 0 calc(min(40px, 5vw));
+
+  & label {
+    /* Make the Radio options the same width */
+    flex-grow: 1;
+    width: 50%;
+  }
+
+  & .export-mode-radio {
+    & > span {
+      /* Clip text when the radio is too narrow */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    & > span:not(:global(.ant-radio-button)) {
+      /* Text span */
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+.range-radio-group {
+  /* Overrides Ant's styling so contents can take up full width */
+  width: 100%;
+
+  & :global(.ant-space) {
+    width: 100%;
+  }
+
+  & .custom-range-settings-container {
+    list-style-position: inside;
+  }
+}
+
+.video-quality-radio-group {
+  display: flex;
+  flex-direction: row;
+}
+
+.hint-text {
+  color: var(--color-text-hint);
+  padding: 0;
+  margin: 0;
+}
+
+.dimension-input {
+  /* Add some padding around text so it isn't clipped */
+  & :global(.ant-input-number-group-addon) {
+    padding: 0 6px;
+  }
+}
