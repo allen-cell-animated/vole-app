@@ -19,7 +19,7 @@ type SettingsItemProps = {
 };
 
 const defaultLabelStyle: React.CSSProperties = {
-  color: "var(--color-text-secondary)",
+  color: "var(--color-text-body)",
   lineHeight: 1.25,
   margin: "3px 0",
 };
@@ -111,13 +111,12 @@ const SettingsDivContainer = styled.div<{ $labelWidth: string; $gapPx: number; $
       grid-column: 1;
       align-items: center;
       text-align: left;
+      text-wrap: wrap;
+      word-wrap: break-word;
     }
 
     & > :not(:first-child) {
       grid-column: 2;
-      // Lines up the bottom of the input with the bottom of the label,
-      // where the colon separator is.
-      align-items: end;
     }
   }
 `;
@@ -127,6 +126,7 @@ type SettingsContainerProps = {
   gapPx?: number;
   indentPx?: number;
   style?: React.CSSProperties;
+  className?: string;
 };
 
 const defaultSettingsContainerProps = {
@@ -169,6 +169,7 @@ export function SettingsContainer(inputProps: PropsWithChildren<Partial<Settings
       $indentPx={props.indentPx}
       $labelWidth={props.labelWidth}
       style={props.style}
+      className={props.className}
     >
       {props.children}
     </SettingsDivContainer>
