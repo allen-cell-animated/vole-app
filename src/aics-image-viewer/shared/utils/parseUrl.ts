@@ -128,7 +128,7 @@ export const parseImageURLParam = (urlParam: string): string[][] => {
   // Decode until either any valid delimiters appear or `urlParam` is parseable as a single URL.
   const decodedScenes = decodeURLUntilParseable(urlParam, (url) => /[+ ,]/.test(url));
   // Split into scene URLs.
-  const sceneUrls = decodedScenes.split(/[+ ]/);
+  const sceneUrls = decodedScenes.split(/[+]/);
 
   return sceneUrls.map((scene) => {
     // Split each scene into multiple sources, if any.
