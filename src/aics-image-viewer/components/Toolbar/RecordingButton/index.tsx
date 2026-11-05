@@ -114,53 +114,28 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const [customMin, setCustomMin] = useState(0);
   const [customMax, setCustomMax] = useState(totalFrames - 1);
 
-  const [useCurrentViewportSize, setUseCurrentViewportSize] = useState(true);
-  const [dimensionsInput, setDimensionsInput] = useState([1, 1]);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(dimensionsInput[0] / dimensionsInput[1]);
   const pixelRatio = getPixelRatio();
 
-  const enforceEvenDims = recordingMode === RecordingMode.VIDEO_MP4;
-
-  /**
-   * Target resolution of the viewport area in the final rendered canvas.
-   *
-   * Note that the canvas' inner resolution is the canvas' size multiplied by
-   * the device's pixel ratio. For example, an HTML canvas with a size of
-   * 100x100 on a device and a pixel ratio of 1.5 (e.g. 150% zoom) will be
-   * rendering at a resolution of 150x150.
-   *
-   * To get the canvas size from the resolution, this value needs to be divided
-   * by the device pixel ratio.
-   */
-  const targetCanvasResolution = useMemo(() => {
-    if (enforceEvenDims) {
-      return dimensionsInput.map((value) => toEven(value));
-    }
-    return dimensionsInput.map((value) => Math.round(value));
-  }, [dimensionsInput, enforceEvenDims]);
+  const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
 
   /** Final size of the exported image/video frame, based on current options. */
   const exportDimensions = useMemo(() => {
-    return [Math.floor(targetCanvasResolution[0] / pixelRatio), Math.floor(targetCanvasResolution[1] / pixelRatio)];
-  }, [targetCanvasResolution, pixelRatio]);
+    return [Math.floor(viewportDimensions[0] / pixelRatio), Math.floor(viewportDimensions[1] / pixelRatio)];
+  }, [viewportDimensions, pixelRatio]);
 
   const defaultImagePrefix = useMemo(() => {
     const volume = props.volume;
     if (!volume) {
       return "";
     }
-    return `${volume.imageInfo.imageInfo.name}-${targetCanvasResolution[0]}x${targetCanvasResolution[1]}`;
-  }, [targetCanvasResolution, props.volume]);
+    return `${volume.imageInfo.imageInfo.name}-${exportDimensions[0]}x${exportDimensions[1]}`;
+  }, [exportDimensions, props.volume]);
 
   const [imagePrefix, setImagePrefix] = useState(defaultImagePrefix);
   const [useDefaultImagePrefix, setUseDefaultImagePrefix] = useState(true);
   const [frameIncrement, setFrameIncrement] = useState(1);
   const [fps, setFps] = useState(12);
   const [videoBitsPerSecond, setVideoBitsPerSecond] = useState(VideoBitrate.MEDIUM);
-
-  const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
-  const isViewportDimensions =
-    viewportDimensions[0] === dimensionsInput[0] && viewportDimensions[1] === dimensionsInput[1];
 
   //////////////////////////////////////////////////////////
   //// MARK: State Handlers
@@ -188,16 +163,6 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     }
   };
 
-  const onSetDimensions = useCallback(
-    (dimensions: [number, number]) => {
-      setDimensionsInput(dimensions);
-      if (aspectRatio) {
-        setAspectRatio(dimensions[0] / dimensions[1]);
-      }
-    },
-    [aspectRatio]
-  );
-
   useEffect(() => {
     const canvasHtmlElement = props.view3d.getCanvasDOMElement();
     const observer = new ResizeObserver(() => {
@@ -206,28 +171,6 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     observer.observe(canvasHtmlElement);
     return () => observer.disconnect();
   }, []);
-
-  const handleSetWidth = (width: number | null): void => {
-    if (width !== null) {
-      if (aspectRatio !== null) {
-        setDimensionsInput([Math.round(width), Math.round(width / aspectRatio)]);
-      } else {
-        setDimensionsInput([Math.round(width), dimensionsInput[1]]);
-      }
-    }
-    setUseCurrentViewportSize(false);
-  };
-
-  const handleSetHeight = (height: number | null): void => {
-    if (height !== null) {
-      if (aspectRatio !== null) {
-        setDimensionsInput([Math.round(height * aspectRatio), Math.round(height)]);
-      } else {
-        setDimensionsInput([dimensionsInput[0], Math.round(height)]);
-      }
-    }
-    setUseCurrentViewportSize(false);
-  };
 
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
