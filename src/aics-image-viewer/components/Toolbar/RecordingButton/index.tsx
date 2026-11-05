@@ -1,19 +1,12 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { LockOutlined, UnlockOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Card, Input, InputNumber, Modal, Radio, type RadioChangeEvent, Space, Tooltip } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
 import { useViewerState } from "../../../state/store";
-import {
-  FlexColumn,
-  FlexColumnAlignCenter,
-  FlexRow,
-  FlexRowAlignCenter,
-  StyledRadioGroup,
-  VisuallyHidden,
-} from "../../shared/utils";
+import { FlexColumnAlignCenter, FlexRowAlignCenter, StyledRadioGroup } from "../../shared/utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
@@ -72,10 +65,6 @@ function getPixelRatio(): number {
   return window.devicePixelRatio || 1;
 }
 
-function toEven(value: number): number {
-  return Math.round(value / 2) * 2;
-}
-
 export default function RecordingButton(props: RecordingButtonProps): ReactElement {
   //////////////////////////////////////////////////////////
   //// MARK: State
@@ -87,19 +76,22 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   // Store initial time on modal open so it can be restored on close.
   const [isModalOpen, _setIsModalOpen] = useState(false);
-  const setIsModalOpen = (open: boolean): void => {
-    if (open === isModalOpen) {
-      return;
-    }
-    _setIsModalOpen(open);
-    if (open) {
-      props.playControls.pause();
-      setErrorText("");
-      originalFrameRef.current = useViewerState.getState().time;
-    } else if (props.volume) {
-      props.view3d.setTime(props.volume, originalFrameRef.current);
-    }
-  };
+  const setIsModalOpen = useCallback(
+    (open: boolean): void => {
+      if (open === isModalOpen) {
+        return;
+      }
+      _setIsModalOpen(open);
+      if (open) {
+        props.playControls.pause();
+        setErrorText("");
+        originalFrameRef.current = useViewerState.getState().time;
+      } else if (props.volume) {
+        props.view3d.setTime(props.volume, originalFrameRef.current);
+      }
+    },
+    [isModalOpen, props.playControls, props.view3d, props.volume]
+  );
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPlayingCloseAnimation, setIsPlayingCloseAnimation] = useState(false);
@@ -170,7 +162,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     });
     observer.observe(canvasHtmlElement);
     return () => observer.disconnect();
-  }, []);
+  }, [props.view3d]);
 
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
@@ -192,9 +184,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         setIsModalOpen(false);
       }
     },
-    [props.view3d, props.volume]
+    [props.view3d, props.volume, props.playControls, setIsModalOpen]
   );
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     if (!isRecording) {
       setIsModalOpen(false);
       return;
@@ -223,13 +215,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
     /** Min and max are both inclusive */
     let min: number, max: number;
+    const currentFrame = useViewerState.getState().time;
     switch (rangeMode) {
       case RangeMode.ALL:
         min = 0;
         max = totalFrames - 1;
         break;
       case RangeMode.CURRENT:
-        const currentFrame = useViewerState.getState().time;
         min = currentFrame;
         max = currentFrame;
         break;
@@ -239,11 +231,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         max = clamp(customMax, min, totalFrames - 1);
     }
 
-    const setFrame = async (frame: number) => {
+    const setFrame = async (frame: number): Promise<void> => {
       await props.view3d.setTime(volume, frame);
       props.view3d.redraw(true);
     };
-    const getCanvas = () => props.view3d.getCanvasDOMElement();
+    const getCanvas = (): HTMLCanvasElement => props.view3d.getCanvasDOMElement();
     const options: Partial<RecordingOptions> = {
       min,
       max,
