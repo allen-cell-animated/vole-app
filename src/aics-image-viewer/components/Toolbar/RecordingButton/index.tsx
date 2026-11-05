@@ -429,7 +429,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   );
 
   return (
-    <div ref={modalContainerRef}>
+    <div>
       <Tooltip placement="bottom" title="Record">
         <Button className="ant-btn-icon-only btn-borderless" onClick={() => setIsModalOpen(true)}>
           <VideoCameraOutlined />
@@ -437,144 +437,148 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
       </Tooltip>
 
       {/* Export modal */}
-      <Modal
-        className={styles.exportModal}
-        title="Export"
-        open={isModalOpen}
-        // Do not allow cancellation of modal by clicking outside it when recording
-        mask={{ closable: !isRecording }}
-        onCancel={handleCancel}
-        footer={modalFooter}
-        getContainer={() => modalContainerRef.current ?? document.body}
-      >
-        <div className={styles.exportModalContent} ref={exportModalRef}>
-          {/* Recording type (image/video) radio */}
-          <FlexColumnAlignCenter>
-            <StyledRadioGroup
-              className={styles.exportModeRadioGroup}
-              value={recordingMode}
-              buttonStyle="solid"
-              optionType="button"
-              onChange={(e) => setRecordingMode(e.target.value)}
-              disabled={isRecording}
-            >
-              <Radio className={styles.exportModeRadio} value={RecordingMode.IMAGE_SEQUENCE}>
-                PNG image sequence
-              </Radio>
-              {/* Optional tooltip here in case WebCodecs API is not enabled. */}
-              <Tooltip
-                title={"Video recording isn't supported by this browser."}
-                open={isWebCodecsEnabled ? false : undefined}
-                trigger={TOOLTIP_TRIGGER}
+      <div ref={modalContainerRef}>
+        <Modal
+          className={styles.exportModal}
+          title="Export"
+          open={isModalOpen}
+          // Do not allow cancellation of modal by clicking outside it when recording
+          mask={{ closable: !isRecording }}
+          onCancel={handleCancel}
+          footer={modalFooter}
+          getContainer={() => modalContainerRef.current ?? document.body}
+        >
+          <div className={styles.exportModalContent} ref={exportModalRef}>
+            {/* Recording type (image/video) radio */}
+            <FlexColumnAlignCenter>
+              <StyledRadioGroup
+                className={styles.exportModeRadioGroup}
+                value={recordingMode}
+                buttonStyle="solid"
+                optionType="button"
+                onChange={(e) => setRecordingMode(e.target.value)}
+                disabled={isRecording}
               >
-                <Radio
-                  className={styles.exportModeRadio}
-                  value={RecordingMode.VIDEO_MP4}
-                  disabled={isRecording || !isWebCodecsEnabled}
+                <Radio className={styles.exportModeRadio} value={RecordingMode.IMAGE_SEQUENCE}>
+                  PNG image sequence
+                </Radio>
+                {/* Optional tooltip here in case WebCodecs API is not enabled. */}
+                <Tooltip
+                  title={"Video recording isn't supported by this browser."}
+                  open={isWebCodecsEnabled ? false : undefined}
+                  trigger={TOOLTIP_TRIGGER}
                 >
-                  MP4 video
-                </Radio>
-              </Tooltip>
-            </StyledRadioGroup>
-          </FlexColumnAlignCenter>
+                  <Radio
+                    className={styles.exportModeRadio}
+                    value={RecordingMode.VIDEO_MP4}
+                    disabled={isRecording || !isWebCodecsEnabled}
+                  >
+                    MP4 video
+                  </Radio>
+                </Tooltip>
+              </StyledRadioGroup>
+            </FlexColumnAlignCenter>
 
-          {/* Range options (All/Current Frame/Custom) */}
-          <Card size="small" title="Frame range">
-            <Radio.Group
-              className={styles.rangeRadioGroup}
-              // TODO: Use fieldset + label to align with accessibility standards
-              value={rangeMode}
-              onChange={(e: RadioChangeEvent) => {
-                setRangeMode(e.target.value);
-              }}
-              disabled={isRecording}
-              id={ExportHtmlIds.FRAME_RANGE_RADIO}
-            >
-              <Space orientation="vertical" align="start">
-                <Radio value={RangeMode.ALL}>
-                  All frames{" "}
-                  {rangeMode === RangeMode.ALL && (
-                    <span className={styles.hintText} style={{ marginLeft: "4px" }}>
-                      ({totalFrames} frames total)
-                    </span>
-                  )}
-                </Radio>
-                <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
-                  Current frame only
-                </Radio>
-                <Radio value={RangeMode.CUSTOM}>Custom range</Radio>
-
-                {rangeMode === RangeMode.CUSTOM ? (
-                  // Render the custom range input in the radio list if selected
-                  <SettingsContainer indentPx={CARD_SETTINGS_INDENT_PX} className={styles.customRangeSettingsContainer}>
-                    <SettingsItem label="Range" htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
-                      <FlexRowAlignCenter className={styles.flexRowWrap}>
-                        <InputNumber
-                          id={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
-                          style={{ width: 60 }}
-                          aria-label="min frame"
-                          controls={false}
-                          min={0}
-                          max={totalFrames - 1}
-                          value={customMin}
-                          onChange={(value) => value && setCustomMin(value)}
-                          disabled={isRecording}
-                        />
-                        <p>-</p>
-                        <InputNumber
-                          style={{ width: 60 }}
-                          aria-label="max frame"
-                          controls={false}
-                          min={customMin}
-                          max={totalFrames - 1}
-                          value={customMax}
-                          onChange={(value) => value && setCustomMax(value)}
-                          disabled={isRecording}
-                        />
-                        <p>of {totalFrames - 1}</p>
-                      </FlexRowAlignCenter>
-                    </SettingsItem>
-                    <SettingsItem
-                      label="Frame increment"
-                      htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
-                    >
-                      <FlexRowAlignCenter $gap={6}>
-                        <InputNumber
-                          id={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
-                          value={frameIncrement}
-                          onChange={(value) => value && setFrameIncrement(value)}
-                          min={1}
-                          max={totalFrames - 1}
-                          disabled={isRecording}
-                          style={{ width: 140 }}
-                        />
-                        <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
-                      </FlexRowAlignCenter>
-                    </SettingsItem>
-                  </SettingsContainer>
-                ) : null}
-              </Space>
-            </Radio.Group>
-          </Card>
-          <Card size="small" title={"Dimensions"}>
-            <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
-              <SettingsItem
-                label="Frame dimensions"
-                labelStyle={{ marginTop: "2px", height: "min-content" }}
-                htmlFor={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+            {/* Range options (All/Current Frame/Custom) */}
+            <Card size="small" title="Frame range">
+              <Radio.Group
+                className={styles.rangeRadioGroup}
+                // TODO: Use fieldset + label to align with accessibility standards
+                value={rangeMode}
+                onChange={(e: RadioChangeEvent) => {
+                  setRangeMode(e.target.value);
+                }}
+                disabled={isRecording}
+                id={ExportHtmlIds.FRAME_RANGE_RADIO}
               >
-                <FlexColumn style={{ alignItems: "flex-start", paddingBottom: "8px" }} $gap={6}>
-                  <FlexRow $gap={6}>
-                    <Button
-                      onClick={() => {
-                        onSetDimensions(viewportDimensions as [number, number]);
-                        setUseCurrentViewportSize(true);
-                      }}
-                      type={isViewportDimensions ? "primary" : "default"}
+                <Space orientation="vertical" align="start">
+                  <Radio value={RangeMode.ALL}>
+                    All frames{" "}
+                    {rangeMode === RangeMode.ALL && (
+                      <span className={styles.hintText} style={{ marginLeft: "4px" }}>
+                        ({totalFrames} frames total)
+                      </span>
+                    )}
+                  </Radio>
+                  <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
+                    Current frame only
+                  </Radio>
+                  <Radio value={RangeMode.CUSTOM}>Custom range</Radio>
+
+                  {rangeMode === RangeMode.CUSTOM ? (
+                    // Render the custom range input in the radio list if selected
+                    <SettingsContainer
+                      indentPx={CARD_SETTINGS_INDENT_PX}
+                      className={styles.customRangeSettingsContainer}
                     >
-                      Set to viewport
-                    </Button>
-                    {/* <Button
+                      <SettingsItem label="Range" htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
+                        <FlexRowAlignCenter className={styles.flexRowWrap}>
+                          <InputNumber
+                            id={ExportHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
+                            style={{ width: 60 }}
+                            aria-label="min frame"
+                            controls={false}
+                            min={0}
+                            max={totalFrames - 1}
+                            value={customMin}
+                            onChange={(value) => value && setCustomMin(value)}
+                            disabled={isRecording}
+                          />
+                          <p>-</p>
+                          <InputNumber
+                            style={{ width: 60 }}
+                            aria-label="max frame"
+                            controls={false}
+                            min={customMin}
+                            max={totalFrames - 1}
+                            value={customMax}
+                            onChange={(value) => value && setCustomMax(value)}
+                            disabled={isRecording}
+                          />
+                          <p>of {totalFrames - 1}</p>
+                        </FlexRowAlignCenter>
+                      </SettingsItem>
+                      <SettingsItem
+                        label="Frame increment"
+                        htmlFor={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
+                      >
+                        <FlexRowAlignCenter $gap={6}>
+                          <InputNumber
+                            id={ExportHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
+                            value={frameIncrement}
+                            onChange={(value) => value && setFrameIncrement(value)}
+                            min={1}
+                            max={totalFrames - 1}
+                            disabled={isRecording}
+                            style={{ width: 140 }}
+                          />
+                          <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
+                        </FlexRowAlignCenter>
+                      </SettingsItem>
+                    </SettingsContainer>
+                  ) : null}
+                </Space>
+              </Radio.Group>
+            </Card>
+            <Card size="small" title={"Dimensions"}>
+              <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
+                <SettingsItem
+                  label="Frame dimensions"
+                  labelStyle={{ marginTop: "2px", height: "min-content" }}
+                  htmlFor={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+                >
+                  <FlexColumn style={{ alignItems: "flex-start", paddingBottom: "8px" }} $gap={6}>
+                    <FlexRow $gap={6}>
+                      <Button
+                        onClick={() => {
+                          onSetDimensions(viewportDimensions as [number, number]);
+                          setUseCurrentViewportSize(true);
+                        }}
+                        type={isViewportDimensions ? "primary" : "default"}
+                      >
+                        Set to viewport
+                      </Button>
+                      {/* <Button
                       disabled={imageDimensions === null}
                       type={isImageDimensions ? "primary" : "default"}
                       onClick={() => {
@@ -584,144 +588,145 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                     >
                       Set to image
                     </Button> */}
-                  </FlexRow>
-                  <FlexColumn>
-                    <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
-                      <Space.Compact>
-                        <Space.Addon>
-                          <p className={styles.hintText}>W</p>
-                        </Space.Addon>
-                        <InputNumber<number>
-                          className={styles.dimensionInput}
-                          id={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
-                          aria-label="Width"
-                          value={dimensionsInput[0]}
-                          onChange={handleSetWidth}
-                          controls={false}
-                          style={{ width: "90px" }}
-                        />
-                      </Space.Compact>
-                      <span style={{ padding: "0 4px" }}>×</span>
-                      <Space.Compact>
-                        <Space.Addon>
-                          <p className={styles.hintText}>H</p>
-                        </Space.Addon>
-                        <InputNumber<number>
-                          className={styles.dimensionInput}
-                          id={ExportHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT_ID}
-                          aria-label="Height"
-                          value={dimensionsInput[1]}
-                          onChange={handleSetHeight}
-                          controls={false}
-                          style={{ width: "90px" }}
-                        />
-                      </Space.Compact>
-                      <Tooltip
-                        title={aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
-                        trigger={["hover", "focus"]}
-                        getPopupContainer={() => exportModalRef.current || document.body}
-                      >
-                        <Button
-                          type={aspectRatio ? "primary" : "link"}
-                          // sizePx={26}
-                          onClick={() => setAspectRatio(aspectRatio ? null : dimensionsInput[0] / dimensionsInput[1])}
+                    </FlexRow>
+                    <FlexColumn>
+                      <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
+                        <Space.Compact>
+                          <Space.Addon>
+                            <p className={styles.hintText}>W</p>
+                          </Space.Addon>
+                          <InputNumber<number>
+                            className={styles.dimensionInput}
+                            id={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
+                            aria-label="Width"
+                            value={dimensionsInput[0]}
+                            onChange={handleSetWidth}
+                            controls={false}
+                            style={{ width: "90px" }}
+                          />
+                        </Space.Compact>
+                        <span style={{ padding: "0 4px" }}>×</span>
+                        <Space.Compact>
+                          <Space.Addon>
+                            <p className={styles.hintText}>H</p>
+                          </Space.Addon>
+                          <InputNumber<number>
+                            className={styles.dimensionInput}
+                            id={ExportHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT_ID}
+                            aria-label="Height"
+                            value={dimensionsInput[1]}
+                            onChange={handleSetHeight}
+                            controls={false}
+                            style={{ width: "90px" }}
+                          />
+                        </Space.Compact>
+                        <Tooltip
+                          title={aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
+                          trigger={["hover", "focus"]}
+                          getPopupContainer={() => exportModalRef.current || document.body}
                         >
-                          {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
-                          <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
-                        </Button>
-                      </Tooltip>
-                    </FlexRowAlignCenter>
+                          <Button
+                            type={aspectRatio ? "primary" : "link"}
+                            // sizePx={26}
+                            onClick={() => setAspectRatio(aspectRatio ? null : dimensionsInput[0] / dimensionsInput[1])}
+                          >
+                            {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
+                            <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
+                          </Button>
+                        </Tooltip>
+                      </FlexRowAlignCenter>
+                    </FlexColumn>
                   </FlexColumn>
-                </FlexColumn>
-              </SettingsItem>
-              {/* <SettingsItem label="Dataset name" htmlFor={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}>
+                </SettingsItem>
+                {/* <SettingsItem label="Dataset name" htmlFor={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}>
                 <div style={{ width: "fit-content" }}>
-                  <Checkbox
-                    id={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}
-                    checked={showHeaderDuringExport}
-                    onChange={(e) => setShowHeaderDuringExport(e.target.checked)}
-                  />
+                <Checkbox
+                id={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}
+                checked={showHeaderDuringExport}
+                onChange={(e) => setShowHeaderDuringExport(e.target.checked)}
+                />
                 </div>
-              </SettingsItem>
-              <SettingsItem label={"Feature legend"} htmlFor={ExportHtmlIds.SHOW_FEATURE_LEGEND_CHECKBOX}>
+                </SettingsItem>
+                <SettingsItem label={"Feature legend"} htmlFor={ExportHtmlIds.SHOW_FEATURE_LEGEND_CHECKBOX}>
                 <div style={{ width: "fit-content" }}>
-                  <Checkbox
-                    id={ExportHtmlIds.SHOW_FEATURE_LEGEND_CHECKBOX}
-                    checked={showLegendDuringExport}
-                    onChange={(e) => setShowLegendDuringExport(e.target.checked)}
-                  />
+                <Checkbox
+                id={ExportHtmlIds.SHOW_FEATURE_LEGEND_CHECKBOX}
+                checked={showLegendDuringExport}
+                onChange={(e) => setShowLegendDuringExport(e.target.checked)}
+                />
                 </div>
-              </SettingsItem> */}
-              <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
-                <p
-                  className={styles.hintText}
-                  id={ExportHtmlIds.FINAL_DIMENSIONS_TEXT}
-                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
+                </SettingsItem> */}
+                <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
+                  <p
+                    className={styles.hintText}
+                    id={ExportHtmlIds.FINAL_DIMENSIONS_TEXT}
+                  >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
+                </SettingsItem>
+              </SettingsContainer>
+            </Card>
+
+            <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
+              {recordingMode === RecordingMode.VIDEO_MP4 && (
+                <>
+                  <SettingsItem label="Frames per second" htmlFor={ExportHtmlIds.FPS_INPUT}>
+                    <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
+                      <InputNumber
+                        id={ExportHtmlIds.FPS_INPUT}
+                        value={fps}
+                        onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
+                        min={1}
+                        max={120}
+                        disabled={isRecording}
+                        width="175px"
+                      />
+                      <p className={styles.hintText}>({getDurationLabel()})</p>
+                    </FlexRowAlignCenter>
+                  </SettingsItem>
+                  <SettingsItem label="Video quality" htmlFor={ExportHtmlIds.VIDEO_QUALITY_RADIO}>
+                    <FlexRowAlignCenter $gap={6}>
+                      <StyledRadioGroup
+                        className={styles.videoQualityRadioGroup}
+                        id={ExportHtmlIds.VIDEO_QUALITY_RADIO}
+                        disabled={isRecording}
+                        options={videoQualityOptions}
+                        optionType="button"
+                        value={videoBitsPerSecond}
+                        onChange={(e) => setVideoBitsPerSecond(e.target.value)}
+                      />
+                      <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
+                    </FlexRowAlignCenter>
+                  </SettingsItem>
+                </>
+              )}
+              {/* Filename prefix */}
+              <SettingsItem label={"Filename"} htmlFor={ExportHtmlIds.IMAGE_FILENAME_INPUT}>
+                <FlexRowAlignCenter $gap={6}>
+                  <Input
+                    id={ExportHtmlIds.IMAGE_FILENAME_INPUT}
+                    onChange={(event) => {
+                      setImagePrefix(event.target.value);
+                      setUseDefaultImagePrefix(false);
+                    }}
+                    size="small"
+                    value={getImagePrefix()}
+                    disabled={isRecording}
+                  />
+                  <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
+                  <Button
+                    disabled={isRecording || useDefaultImagePrefix}
+                    onClick={() => {
+                      setUseDefaultImagePrefix(true);
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </FlexRowAlignCenter>
               </SettingsItem>
             </SettingsContainer>
-          </Card>
-
-          <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
-            {recordingMode === RecordingMode.VIDEO_MP4 && (
-              <>
-                <SettingsItem label="Frames per second" htmlFor={ExportHtmlIds.FPS_INPUT}>
-                  <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
-                    <InputNumber
-                      id={ExportHtmlIds.FPS_INPUT}
-                      value={fps}
-                      onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
-                      min={1}
-                      max={120}
-                      disabled={isRecording}
-                      width="175px"
-                    />
-                    <p className={styles.hintText}>({getDurationLabel()})</p>
-                  </FlexRowAlignCenter>
-                </SettingsItem>
-                <SettingsItem label="Video quality" htmlFor={ExportHtmlIds.VIDEO_QUALITY_RADIO}>
-                  <FlexRowAlignCenter $gap={6}>
-                    <StyledRadioGroup
-                      className={styles.videoQualityRadioGroup}
-                      id={ExportHtmlIds.VIDEO_QUALITY_RADIO}
-                      disabled={isRecording}
-                      options={videoQualityOptions}
-                      optionType="button"
-                      value={videoBitsPerSecond}
-                      onChange={(e) => setVideoBitsPerSecond(e.target.value)}
-                    />
-                    <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
-                  </FlexRowAlignCenter>
-                </SettingsItem>
-              </>
-            )}
-            {/* Filename prefix */}
-            <SettingsItem label={"Filename"} htmlFor={ExportHtmlIds.IMAGE_FILENAME_INPUT}>
-              <FlexRowAlignCenter $gap={6}>
-                <Input
-                  id={ExportHtmlIds.IMAGE_FILENAME_INPUT}
-                  onChange={(event) => {
-                    setImagePrefix(event.target.value);
-                    setUseDefaultImagePrefix(false);
-                  }}
-                  size="small"
-                  value={getImagePrefix()}
-                  disabled={isRecording}
-                />
-                <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
-                <Button
-                  disabled={isRecording || useDefaultImagePrefix}
-                  onClick={() => {
-                    setUseDefaultImagePrefix(true);
-                  }}
-                >
-                  Reset
-                </Button>
-              </FlexRowAlignCenter>
-            </SettingsItem>
-          </SettingsContainer>
-          <br />
-        </div>
-      </Modal>
+            <br />
+          </div>
+        </Modal>
+      </div>
     </div>
   );
 }
