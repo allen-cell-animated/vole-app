@@ -5,7 +5,7 @@ import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useS
 
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
-import { useViewerState } from "../../../state/store";
+import { select, useViewerState } from "../../../state/store";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
@@ -72,6 +72,8 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   //// MARK: State
   //////////////////////////////////////////////////////////
 
+  const changeViewerSetting = useViewerState(select("changeViewerSetting"));
+
   const originalFrameRef = useRef(0);
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const exportModalRef = useRef<HTMLDivElement | null>(null);
@@ -88,11 +90,13 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         props.playControls.pause();
         setErrorText("");
         originalFrameRef.current = useViewerState.getState().time;
+        // Disable auto-rotation
+        changeViewerSetting("autorotate", false);
       } else if (props.volume) {
         props.view3d.setTime(props.volume, originalFrameRef.current);
       }
     },
-    [isModalOpen, props.playControls, props.view3d, props.volume]
+    [isModalOpen, props.playControls, props.view3d, props.volume, changeViewerSetting]
   );
 
   const [isRecording, setIsRecording] = useState(false);
