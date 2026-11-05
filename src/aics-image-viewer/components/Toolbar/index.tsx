@@ -1,7 +1,7 @@
 import type { VolumeDims } from "@aics/vole-core";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { select, useViewerState } from "../../state/store";
 import { ImageType, RenderMode, ViewMode } from "../../state/types";
@@ -128,14 +128,21 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
   const scrollX = (amount: number): number => (barRef.current!.scrollLeft += amount);
 
-  // Translate vertical scrolling into horizontal scrolling
-  const wheelHandler: React.WheelEventHandler<HTMLDivElement> = (e) => {
-    e.preventDefault();
-    if (e.deltaY === 0) {
-      return;
-    }
-    scrollX(e.deltaY);
-  };
+  useEffect(() => {
+    const bar = barRef.current;
+    // Translate vertical scrolling into horizontal scrolling
+    const wheelHandler = (e: WheelEvent): void => {
+      e.preventDefault();
+      if (e.deltaY === 0) {
+        return;
+      }
+      scrollX(e.deltaY);
+    };
+    bar?.addEventListener("wheel", wheelHandler, { passive: false });
+    return () => {
+      bar?.removeEventListener("wheel", wheelHandler);
+    };
+  }, []);
 
   const toggleAxis = (): void => changeViewerSetting("showAxes", !showAxes);
   const toggleBoundingBox = (): void => changeViewerSetting("showBoundingBox", !showBoundingBox);
@@ -166,7 +173,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
         <ViewerIcon type="closePanel" style={{ fontSize: "12px", transform: "rotate(180deg)" }} />
       </div>
 
-      <div className="viewer-toolbar" ref={barRef} onWheel={wheelHandler} onScroll={checkScrollBtnVisible}>
+      <div className="viewer-toolbar" ref={barRef} onScroll={checkScrollBtnVisible}>
         <div className="viewer-toolbar-left" ref={leftRef}></div>
 
         <div className="viewer-toolbar-center" ref={centerRef}>
