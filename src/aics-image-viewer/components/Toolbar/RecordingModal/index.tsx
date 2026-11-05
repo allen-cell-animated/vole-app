@@ -1,6 +1,7 @@
 import type { View3d, Volume } from "@aics/vole-core";
 import { Button, Card, Input, InputNumber, Modal, Radio, Tooltip } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { viewport } from "three/src/nodes/display/ScreenNode";
 
 import { TOOLTIP_TRIGGER } from "../../../shared/constants";
 import { clamp } from "../../../shared/utils/math";
@@ -101,8 +102,33 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const [frameIncrement, setFrameIncrement] = useState(1);
 
   //// Resolution and dimensions
+  const [useCurrentViewportSize, setUseCurrentViewportSize] = useState(true);
+  const [dimensionsInput, setDimensionsInput] = useState([1, 1]);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(dimensionsInput[0] / dimensionsInput[1]);
   const pixelRatio = getPixelRatio();
   const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
+  const isViewportDimensions =
+    viewportDimensions[0] === dimensionsInput[0] && viewportDimensions[1] === dimensionsInput[1];
+
+  const enforceEvenDims = recordingMode === RecordingMode.VIDEO_MP4;
+
+  /**
+   * Target resolution of the viewport area in the final rendered canvas.
+   *
+   * Note that the canvas' inner resolution is the canvas' size multiplied by
+   * the device's pixel ratio. For example, an HTML canvas with a size of
+   * 100x100 on a device and a pixel ratio of 1.5 (e.g. 150% zoom) will be
+   * rendering at a resolution of 150x150.
+   *
+   * To get the canvas size from the resolution, this value needs to be divided
+   * by the device pixel ratio.
+   */
+  const targetCanvasResolution = useMemo(() => {
+    if (enforceEvenDims) {
+      return dimensionsInput.map((value) => toEven(value));
+    }
+    return dimensionsInput.map((value) => Math.round(value));
+  }, [dimensionsInput, enforceEvenDims]);
 
   /** Final size of the exported image/video frame, based on current options. */
   const exportDimensions = useMemo((): [number, number] => {
@@ -167,6 +193,15 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     observer.observe(canvasHtmlElement);
     return () => observer.disconnect();
   }, [view3d]);
+
+  useEffect(() => {
+    if (useCurrentViewportSize) {
+      setDimensionsInput([viewportDimensions[0] * pixelRatio, viewportDimensions[1] * pixelRatio]);
+    }
+    if (aspectRatio) {
+      setAspectRatio(viewportDimensions[0] / viewportDimensions[1]);
+    }
+  }, [viewportDimensions, useCurrentViewportSize, aspectRatio, pixelRatio]);
 
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
