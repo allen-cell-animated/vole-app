@@ -1,4 +1,8 @@
 .export-modal {
+  & :global(.ant-card-head-title),
+  & :global(.ant-modal-title) {
+    text-align: left;
+  }
 }
 
 .export-modal-content {

@@ -463,6 +463,11 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       color: var(--color-button-icon-active-text);
     }
 
+    &:not(:disabled):active {
+      // Use same border color as buttons on click
+      border-color: var(--color-button-primary-active-outline);
+    }
+
     &:hover,
     &:has(:focus-visible) {
       color: var(--color-button-radio-hover-text);
