@@ -15,7 +15,7 @@ import {
   VisuallyHidden,
 } from "../../shared/utils";
 
-import { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
+import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
@@ -562,7 +562,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
             </Card>
             <Card size="small" title={"Dimensions"}>
               <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
-                <SettingsItem
+                {/* <SettingsItem
                   label="Frame dimensions"
                   labelStyle={{ marginTop: "2px", height: "min-content" }}
                   htmlFor={ExportHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
@@ -578,7 +578,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       >
                         Set to viewport
                       </Button>
-                      {/* <Button
+                      <Button
                       disabled={imageDimensions === null}
                       type={isImageDimensions ? "primary" : "default"}
                       onClick={() => {
@@ -587,7 +587,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       }}
                     >
                       Set to image
-                    </Button> */}
+                    </Button>
                     </FlexRow>
                     <FlexColumn>
                       <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
@@ -637,7 +637,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       </FlexRowAlignCenter>
                     </FlexColumn>
                   </FlexColumn>
-                </SettingsItem>
+                </SettingsItem> */}
                 {/* <SettingsItem label="Dataset name" htmlFor={ExportHtmlIds.SHOW_DATASET_NAME_CHECKBOX}>
                 <div style={{ width: "fit-content" }}>
                 <Checkbox
@@ -707,7 +707,6 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
                       setImagePrefix(event.target.value);
                       setUseDefaultImagePrefix(false);
                     }}
-                    size="small"
                     value={getImagePrefix()}
                     disabled={isRecording}
                   />
