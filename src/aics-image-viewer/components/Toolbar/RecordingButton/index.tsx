@@ -9,6 +9,8 @@ import { useViewerState } from "../../../state/store";
 import { FlexColumnAlignCenter, FlexRowAlignCenter, StyledRadioGroup } from "../../shared/utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
+import type CanvasRecorder from "../../../shared/utils/recorders/CanvasRecorder";
+import ImageSequenceRecorder from "../../../shared/utils/recorders/ImageSequenceRecorder";
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
@@ -97,7 +99,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const [isPlayingCloseAnimation, setIsPlayingCloseAnimation] = useState(false);
   const [percentComplete, setPercentComplete] = useState(0);
 
-  const recorderRef = useRef<Mp4VideoRecorder | null>(null);
+  const recorderRef = useRef<CanvasRecorder | null>(null);
   const [errorText, setErrorText] = useState("");
   const [recordingMode, _setRecordingMode] = useState(RecordingMode.IMAGE_SEQUENCE);
 
@@ -111,8 +113,15 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
 
   /** Final size of the exported image/video frame, based on current options. */
-  const exportDimensions = useMemo(() => {
-    return [Math.floor(viewportDimensions[0] / pixelRatio), Math.floor(viewportDimensions[1] / pixelRatio)];
+  const exportDimensions = useMemo((): [number, number] => {
+    console.log("viewport dimensions", viewportDimensions);
+    console.log("pixel ratio", pixelRatio);
+    const exportDimensions: [number, number] = [
+      Math.floor(viewportDimensions[0] * pixelRatio),
+      Math.floor(viewportDimensions[1] * pixelRatio),
+    ];
+    console.log("export dimensions", exportDimensions);
+    return exportDimensions;
   }, [viewportDimensions, pixelRatio]);
 
   const defaultImagePrefix = useMemo(() => {
@@ -261,7 +270,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         setErrorText(error.message);
       },
     };
-    recorderRef.current = new Mp4VideoRecorder(setFrame, getCanvas, options);
+    if (recordingMode === RecordingMode.VIDEO_MP4) {
+      recorderRef.current = new Mp4VideoRecorder(setFrame, getCanvas, options);
+    } else {
+      recorderRef.current = new ImageSequenceRecorder(setFrame, getCanvas, options);
+    }
     recorderRef.current.start();
   };
 
