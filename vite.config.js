@@ -1,7 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
-import glsl from "vite-plugin-glsl";
 import svgr from "vite-plugin-svgr";
 
 const voleCorePackagePath = require.resolve("@aics/vole-core/package.json", { paths: [__dirname] });
@@ -49,7 +48,6 @@ const DEFAULT_CONFIG = {
       // tells vite to treat all `.svg` files as React components.
       include: "**/*.svg",
     }),
-    glsl(),
     react(),
   ],
 };
