@@ -9,12 +9,12 @@
   }
 }
 
-.ant-layout-content {
-  position: relative;
-}
-
 .cell-viewer-wrapper {
   overflow-y: hidden;
+
+  .ant-layout-content {
+    position: relative;
+  }
 
   @-webkit-keyframes ant-progress-active {
     from {

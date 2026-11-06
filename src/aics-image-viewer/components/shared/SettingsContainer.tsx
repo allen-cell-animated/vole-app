@@ -15,7 +15,11 @@ type SettingsItemProps = {
   htmlFor?: string;
   labelStyle?: React.CSSProperties;
   style?: React.CSSProperties;
-  isNonFormComponent?: boolean;
+  /**
+   * Flags non-interactive or non-form components that are display-only (e.g.
+   * static text). These items do not require an associated `htmlFor` attribute.
+   */
+  isDisplayOnly?: boolean;
 };
 
 const defaultLabelStyle: React.CSSProperties = {
@@ -38,21 +42,21 @@ export function SettingsItem(inputProps: PropsWithChildren<Partial<SettingsItemP
   }
 
   useEffect(() => {
-    if (props.label && !props.htmlFor && !props.isNonFormComponent) {
+    if (props.label && !props.htmlFor && !props.isDisplayOnly) {
       console.warn(
         "SettingsItem: Please set the 'htmlFor' attribute to support screen readers in setting '" + props.label + "'."
       );
     }
-  }, [props.label, props.htmlFor, props.isNonFormComponent]);
+  }, [props.label, props.htmlFor, props.isDisplayOnly]);
 
   let labelElement = <div></div>;
-  if (props.label && !props.isNonFormComponent) {
+  if (props.label && !props.isDisplayOnly) {
     labelElement = (
       <label style={{ ...defaultLabelStyle, ...props.labelStyle }} id={props.labelId} htmlFor={props.htmlFor}>
         {props.label}
       </label>
     );
-  } else if (props.label && props.isNonFormComponent) {
+  } else if (props.label && props.isDisplayOnly) {
     labelElement = (
       <div style={{ ...defaultLabelStyle, ...props.labelStyle }} id={props.labelId}>
         {props.label}
@@ -136,26 +140,30 @@ const defaultSettingsContainerProps = {
 };
 
 /**
- * A grid container that aligns a list of `SettingsItem` components by labels and input.
+ * A grid container that aligns a list of `SettingsItem` components by labels
+ * and input.
  *
- * @param $labelWidth CSS string used to set the width of the label column. Defaults to `"fit-content(30%)"`, where the label column
- * will be up to 30% of the `SettingsContainer`'s width..
- * If you do not want the label column to be sized automatically, set this to a fixed width or percentage (ex: `"30%"` or `"100px"`).
- * @param $gapPx The vertical gap, in pixels, between each `SettingsItem` and the horizontal gap between the label
- * and settings content. 6 by default.
- * @param $indentPx The left indent, in pixels, of items in the container. 10 by default.
+ * @param $labelWidth CSS string used to set the width of the label column.
+ * Defaults to `"fit-content(30%)"`, where the label column will be up to 30% of
+ * the `SettingsContainer`'s width. If you do not want the label column to be
+ * sized automatically, set this to a fixed width or percentage (ex: `"30%"` or
+ * `"100px"`).
+ * @param $gapPx The vertical gap, in pixels, between each `SettingsItem` and
+ * the horizontal gap between the label and settings content. 6 by default.
+ * @param $indentPx The left indent, in pixels, of items in the container. 10 by
+ * default.
  *
  * @example
  * ```
  * <SettingsContainer>
- *   <SettingsItem label="Name:" htmlFor="name-input">
+ *   <SettingsItem label="Name" htmlFor="name-input">
  *     <input type="text" id="name-input"/>
  *   </SettingsItem>
- *   <SettingsItem label="Reset:" htmlFor="reset-button">
+ *   <SettingsItem label="Reset" htmlFor="reset-button">
  *     <button id="reset-button">Reset</button>
  *   </SettingsItem>
- *   <SettingsItem>  // no label
- *     <input type="checkbox" />
+ *   <SettingsItem label="Status" isDisplayOnly="true">
+ *     <span>Active</span>
  *   </SettingsItem>
  * </SettingsContainer>
  * ```

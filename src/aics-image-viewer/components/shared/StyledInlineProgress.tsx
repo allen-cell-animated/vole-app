@@ -3,14 +3,12 @@ import Tooltip from "antd/es/tooltip";
 import React, { type ReactElement, useRef } from "react";
 
 type StyledInlineProgressProps = {
-  /** An integer percentage, floored and clamped to the [0, 100] range. */
+  /**
+   * An integer percentage. Will be floored and clamped to the [0, 100] range.
+   */
   percent: number;
   error?: boolean;
   sizePx?: number;
-};
-
-const defaultProps: Partial<StyledInlineProgressProps> = {
-  error: false,
 };
 
 /**
@@ -18,8 +16,7 @@ const defaultProps: Partial<StyledInlineProgressProps> = {
  * includes error styling and a tooltip showing the current percentage of
  * completion.
  */
-export default function StyledInlineProgress(inputProps: StyledInlineProgressProps): ReactElement {
-  const props = { ...defaultProps, ...inputProps };
+export default function StyledInlineProgress(props: StyledInlineProgressProps): ReactElement {
   const tooltipContainerRef = useRef<HTMLDivElement>(null);
 
   const percent = Math.min(100, Math.max(0, Math.floor(props.percent)));
