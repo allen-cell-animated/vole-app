@@ -3,7 +3,7 @@ import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Modal, Tooltip } from "antd";
 import React, { type ReactElement, useRef, useState } from "react";
 
-import PlayControls from "../../../shared/utils/playControls";
+import type PlayControls from "../../../shared/utils/playControls";
 import { useViewerState } from "../../../state/store";
 
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
