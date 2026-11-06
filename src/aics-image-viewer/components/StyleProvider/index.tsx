@@ -47,6 +47,7 @@ const theme = {
       section: palette.white,
       body: palette.ltGrey,
       error: palette.brightRed,
+      success: palette.brightGreen,
       selectionBg: palette.medPurple,
       selectionText: palette.white,
     },
@@ -120,6 +121,11 @@ const theme = {
     statusFlag: {
       border: palette.medGrey,
       text: palette.ltGrey,
+    },
+    progress: {
+      default: palette.medPurple,
+      success: palette.brightGreen,
+      error: palette.brightRed,
     },
     layout: {
       dividers: palette.medGrey,
@@ -242,6 +248,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-alert-warning-bg: ${$theme.colors.alert.warning.bg};
       --color-alert-info-text: ${$theme.colors.alert.info.text};
       --color-alert-info-bg: ${$theme.colors.alert.info.bg};
+
+      --color-progress-default: ${$theme.colors.progress.default};
+      --color-progress-success: ${$theme.colors.progress.success};
+      --color-progress-error: ${$theme.colors.progress.error};
 
       --color-layout-dividers: ${$theme.colors.layout.dividers};
 

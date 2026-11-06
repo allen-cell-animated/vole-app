@@ -2,8 +2,12 @@ import { Button, Tooltip } from "antd";
 import React, { type ReactElement } from "react";
 import styled from "styled-components";
 
+import {
+  ExternalLink,
+  FlexRowAlignCenter,
+  VisuallyHidden,
+} from "../../../../src/aics-image-viewer/components/shared/utils";
 import type { LoadDatasetCallback, ProjectEntry } from "../../../types";
-import { ExternalLink, FlexRowAlignCenter, VisuallyHidden } from "../utils";
 
 import DatasetList from "./DatasetList";
 

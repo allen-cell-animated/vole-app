@@ -12,6 +12,7 @@ import {
   writeMetadata,
   writeScenes,
 } from "../../src";
+import { FlexRowAlignCenter } from "../../src/aics-image-viewer/components/shared/utils";
 import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
 import {
   isSessionSnapshot,
@@ -22,7 +23,6 @@ import type { ViewerState } from "../../src/aics-image-viewer/state/types";
 import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../constants";
 import type { AppDataProps } from "../types";
 import { encodeImageUrlProp } from "../utils/urls";
-import { FlexRowAlignCenter } from "./LandingPage/utils";
 
 import { type ErrorAlertDescription, useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
 import Header, { HEADER_HEIGHT_PX } from "./Header";

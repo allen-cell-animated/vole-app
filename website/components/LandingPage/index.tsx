@@ -5,13 +5,18 @@ import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { parseViewerUrlParams } from "../../../src";
+import {
+  FlexColumn,
+  FlexColumnAlignCenter,
+  FlexRowAlignCenter,
+  VisuallyHidden,
+} from "../../../src/aics-image-viewer/components/shared/utils";
 import { BannerVideo } from "../../assets/videos";
 import { GTM_ID, VOLEAPP_BUILD_ENVIRONMENT } from "../../constants";
 import type { AppDataProps } from "../../types";
 import { encodeImageUrlProp } from "../../utils/urls";
 import { LANDING_PAGE_CONTENT } from "./content";
 import { TEST_DATA_CONTENT } from "./testData";
-import { FlexColumn, FlexColumnAlignCenter, FlexRowAlignCenter, VisuallyHidden } from "./utils";
 
 import Header from "../Header";
 import HelpDropdown from "../HelpDropdown";

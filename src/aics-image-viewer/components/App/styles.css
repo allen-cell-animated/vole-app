@@ -16,31 +16,6 @@
     position: relative;
   }
 
-  .ant-progress,
-  .ant-progress-line {
-    position: absolute;
-  }
-
-  .ant-progress {
-    background-color: white;
-    z-index: 20;
-  }
-
-  .ant-progress-status-active .ant-progress-track::before {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 50%;
-    left: 0;
-    width: 50%;
-    background: rgb(49, 49, 49);
-    background: linear-gradient(90deg, #313131 0%, #868686 520%, #313131 100%);
-    opacity: 0.6;
-    -webkit-animation: ant-progress-active 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    animation: ant-progress-active 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    content: "";
-  }
-
   @-webkit-keyframes ant-progress-active {
     from {
       left: -50%;

@@ -2,8 +2,8 @@ import { Button } from "antd";
 import React, { type ReactElement } from "react";
 import styled from "styled-components";
 
+import { VisuallyHidden } from "../../../../src/aics-image-viewer/components/shared/utils";
 import type { DatasetEntry, LoadDatasetCallback } from "../../../types";
-import { VisuallyHidden } from "../utils";
 
 const DatasetListContainer = styled.ul`
   padding: 0;
