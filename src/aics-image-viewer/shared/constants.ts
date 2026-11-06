@@ -1,4 +1,5 @@
 import { type CameraState, type Channel, PrefetchDirection } from "@aics/vole-core";
+import type { TooltipProps } from "antd";
 
 import { type ChannelState, ImageType, RenderMode, type ViewerState, ViewMode } from "../state/types";
 import type { AxisName } from "./types";
@@ -261,3 +262,5 @@ export const getDefaultChannelState = (index: number = 0): ChannelState => {
     keepIntensityRange: false,
   };
 };
+
+export const TOOLTIP_TRIGGER: TooltipProps["trigger"] = ["hover", "focus"];

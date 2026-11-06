@@ -1,6 +1,5 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { VideoCameraOutlined } from "@ant-design/icons";
-import { Button, Card, Input, InputNumber, Modal, Radio, type RadioChangeEvent, Space, Tooltip } from "antd";
+import { Button, Card, Input, InputNumber, Modal, Radio, type RadioChangeEvent, Space } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { clamp } from "../../../shared/utils/math";
@@ -20,7 +19,6 @@ import styles from "./styles.module.css";
 // Align settings both inside and outside of cards
 const CARD_SETTINGS_INDENT_PX = 5;
 const SETTINGS_INDENT_PX = 18;
-const TOOLTIP_TRIGGER: ("hover" | "focus")[] = ["hover", "focus"];
 const HINT_CSS_COLOR = "var(--color-text-hint)";
 
 const enum RecordingHtmlIds {
@@ -38,10 +36,12 @@ const enum RecordingHtmlIds {
   IMAGE_FILENAME_INPUT = "export-modal-image-filename-input",
 }
 
-type RecordingButtonProps = {
+type RecordingModalProps = {
   view3d: View3d;
-  volume: Volume | null;
+  volume: Volume;
   playControls: PlayControls;
+  open: boolean;
+  setIsOpen: (open: boolean) => void;
 };
 
 const enum RangeMode {
@@ -67,7 +67,7 @@ function getPixelRatio(): number {
   return window.devicePixelRatio || 1;
 }
 
-export default function RecordingButton(props: RecordingButtonProps): ReactElement {
+export default function RecordingModal(props: RecordingModalProps): ReactElement {
   //////////////////////////////////////////////////////////
   //// MARK: State
   //////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const exportModalRef = useRef<HTMLDivElement | null>(null);
 
   // Store initial time on modal open so it can be restored on close.
-  const [isModalOpen, _setIsModalOpen] = useState(false);
+  const { open: isModalOpen, setIsOpen: _setIsModalOpen } = props;
   const setIsModalOpen = useCallback(
     (open: boolean): void => {
       if (open === isModalOpen) {
@@ -92,11 +92,11 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
         originalFrameRef.current = useViewerState.getState().time;
         // Disable auto-rotation
         changeViewerSetting("autorotate", false);
-      } else if (props.volume) {
+      } else {
         props.view3d.setTime(props.volume, originalFrameRef.current);
       }
     },
-    [isModalOpen, props.playControls, props.view3d, props.volume, changeViewerSetting]
+    [isModalOpen, _setIsModalOpen, props.playControls, props.view3d, props.volume, changeViewerSetting]
   );
 
   const [isRecording, setIsRecording] = useState(false);
@@ -107,10 +107,10 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   const [errorText, setErrorText] = useState("");
   const [recordingMode, _setRecordingMode] = useState(RecordingMode.IMAGE_SEQUENCE);
 
-  const totalFrames = props.volume?.imageInfo.times ?? 0;
+  const totalFrames = props.volume.imageInfo.times;
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
   const [customMin, setCustomMin] = useState(0);
-  const [customMax, setCustomMax] = useState<number | undefined>(undefined);
+  const [customMax, setCustomMax] = useState<number>(totalFrames);
 
   const pixelRatio = getPixelRatio();
 
@@ -130,9 +130,6 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
 
   const defaultImagePrefix = useMemo(() => {
     const volume = props.volume;
-    if (!volume) {
-      return "";
-    }
     return `${volume.imageInfo.imageInfo.name}-${exportDimensions[0]}x${exportDimensions[1]}`;
   }, [exportDimensions, props.volume]);
 
@@ -149,11 +146,9 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   // Bound max and min by the total frames on volume changes. If this is the first time the
   // volume is loaded, this will also set the max bound.
   useEffect(() => {
-    if (props.volume) {
-      const maxFrame = props.volume.imageInfo.times - 1;
-      setCustomMin((min) => clamp(min, 0, maxFrame));
-      setCustomMax((max) => clamp(max ?? maxFrame, 0, maxFrame));
-    }
+    const maxFrame = props.volume.imageInfo.times - 1;
+    setCustomMin((min) => clamp(min, 0, maxFrame));
+    setCustomMax((max) => clamp(max ?? maxFrame, 0, maxFrame));
   }, [props.volume, customMax]);
 
   const getImagePrefix = (): string => {
@@ -195,9 +190,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
     async (closeModal: boolean): Promise<void> => {
       recorderRef.current?.abort();
       // Reset the frame number (clean up!)
-      if (props.volume) {
-        await props.view3d.setTime(props.volume, originalFrameRef.current);
-      }
+      await props.view3d.setTime(props.volume, originalFrameRef.current);
       setIsRecording(false);
       recorderRef.current = null;
       setIsPlayingCloseAnimation(false);
@@ -391,201 +384,190 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
   );
 
   return (
-    <div>
-      <Tooltip placement="bottom" title="Record" trigger={TOOLTIP_TRIGGER}>
-        <Button className="ant-btn-icon-only btn-borderless" onClick={() => setIsModalOpen(true)}>
-          <VideoCameraOutlined />
-        </Button>
-      </Tooltip>
-
-      <div ref={modalContainerRef}>
-        <Modal
-          className={styles.exportModal}
-          title="Recording"
-          open={isModalOpen}
-          // Do not allow cancellation of modal by clicking outside it when recording
-          mask={{ closable: !isRecording }}
-          onCancel={handleCancel}
-          footer={modalFooter}
-          getContainer={() => modalContainerRef.current ?? document.body}
-        >
-          <div className={styles.exportModalContent} ref={exportModalRef}>
-            {/* Recording type (image/video) radio */}
-            <FlexColumnAlignCenter>
-              <Radio.Group
-                className={styles.exportModeRadioGroup}
-                value={recordingMode}
-                optionType="button"
-                onChange={(e) => setRecordingMode(e.target.value)}
-                disabled={isRecording}
+    <div ref={modalContainerRef}>
+      <Modal
+        className={styles.exportModal}
+        title="Recording"
+        open={isModalOpen}
+        // Do not allow cancellation of modal by clicking outside it when recording
+        mask={{ closable: !isRecording }}
+        onCancel={handleCancel}
+        footer={modalFooter}
+        getContainer={() => modalContainerRef.current ?? document.body}
+      >
+        <div className={styles.exportModalContent} ref={exportModalRef}>
+          {/* Recording type (image/video) radio */}
+          <FlexColumnAlignCenter>
+            <Radio.Group
+              className={styles.exportModeRadioGroup}
+              value={recordingMode}
+              optionType="button"
+              onChange={(e) => setRecordingMode(e.target.value)}
+              disabled={isRecording}
+            >
+              <Radio className={styles.exportModeRadio} value={RecordingMode.IMAGE_SEQUENCE}>
+                PNG image sequence
+              </Radio>
+              {/* Optional tooltip here in case WebCodecs API is not enabled. */}
+              <Radio
+                className={styles.exportModeRadio}
+                value={RecordingMode.VIDEO_MP4}
+                disabled={isRecording || !isWebCodecsEnabled}
               >
-                <Radio className={styles.exportModeRadio} value={RecordingMode.IMAGE_SEQUENCE}>
-                  PNG image sequence
-                </Radio>
-                {/* Optional tooltip here in case WebCodecs API is not enabled. */}
-                <Radio
-                  className={styles.exportModeRadio}
-                  value={RecordingMode.VIDEO_MP4}
-                  disabled={isRecording || !isWebCodecsEnabled}
-                >
-                  MP4 Video
-                </Radio>
-              </Radio.Group>
-            </FlexColumnAlignCenter>
+                MP4 Video
+              </Radio>
+            </Radio.Group>
+          </FlexColumnAlignCenter>
 
-            {/* Range options (All/Current Frame/Custom) */}
-            <Card size="small" title="Frame range">
-              <Radio.Group
-                className={styles.rangeRadioGroup}
-                // TODO: Use fieldset + label to align with accessibility standards
-                value={rangeMode}
-                onChange={(e: RadioChangeEvent) => {
-                  setRangeMode(e.target.value);
-                }}
-                disabled={isRecording}
-                id={RecordingHtmlIds.FRAME_RANGE_RADIO}
-              >
-                <Space orientation="vertical" align="start">
-                  <Radio value={RangeMode.ALL}>
-                    All frames{" "}
-                    {rangeMode === RangeMode.ALL && (
-                      <span className={styles.hintText} style={{ marginLeft: "4px" }}>
-                        ({totalFrames} frames total)
-                      </span>
-                    )}
-                  </Radio>
-                  <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
-                    Current frame only
-                  </Radio>
-                  <Radio value={RangeMode.CUSTOM}>Custom range</Radio>
+          {/* Range options (All/Current Frame/Custom) */}
+          <Card size="small" title="Frame range">
+            <Radio.Group
+              className={styles.rangeRadioGroup}
+              // TODO: Use fieldset + label to align with accessibility standards
+              value={rangeMode}
+              onChange={(e: RadioChangeEvent) => {
+                setRangeMode(e.target.value);
+              }}
+              disabled={isRecording}
+              id={RecordingHtmlIds.FRAME_RANGE_RADIO}
+            >
+              <Space orientation="vertical" align="start">
+                <Radio value={RangeMode.ALL}>
+                  All frames{" "}
+                  {rangeMode === RangeMode.ALL && (
+                    <span className={styles.hintText} style={{ marginLeft: "4px" }}>
+                      ({totalFrames} frames total)
+                    </span>
+                  )}
+                </Radio>
+                <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
+                  Current frame only
+                </Radio>
+                <Radio value={RangeMode.CUSTOM}>Custom range</Radio>
 
-                  {rangeMode === RangeMode.CUSTOM ? (
-                    // Render the custom range input in the radio list if selected
-                    <SettingsContainer
-                      indentPx={CARD_SETTINGS_INDENT_PX}
-                      className={styles.customRangeSettingsContainer}
+                {rangeMode === RangeMode.CUSTOM ? (
+                  // Render the custom range input in the radio list if selected
+                  <SettingsContainer indentPx={CARD_SETTINGS_INDENT_PX} className={styles.customRangeSettingsContainer}>
+                    <SettingsItem label="Range" htmlFor={RecordingHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
+                      <FlexRowAlignCenter className={styles.flexRowWrap}>
+                        <InputNumber
+                          id={RecordingHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
+                          style={{ width: 60 }}
+                          aria-label="min frame"
+                          controls={false}
+                          min={0}
+                          max={totalFrames - 1}
+                          value={customMin}
+                          onChange={(value) => value && setCustomMin(value)}
+                          disabled={isRecording}
+                        />
+                        <p>-</p>
+                        <InputNumber
+                          style={{ width: 60 }}
+                          aria-label="max frame"
+                          controls={false}
+                          min={customMin}
+                          max={totalFrames - 1}
+                          value={customMax}
+                          onChange={(value) => value && setCustomMax(value)}
+                          disabled={isRecording}
+                        />
+                        <p>of {totalFrames - 1}</p>
+                      </FlexRowAlignCenter>
+                    </SettingsItem>
+                    <SettingsItem
+                      label="Frame increment"
+                      htmlFor={RecordingHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
                     >
-                      <SettingsItem label="Range" htmlFor={RecordingHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
-                        <FlexRowAlignCenter className={styles.flexRowWrap}>
-                          <InputNumber
-                            id={RecordingHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
-                            style={{ width: 60 }}
-                            aria-label="min frame"
-                            controls={false}
-                            min={0}
-                            max={totalFrames - 1}
-                            value={customMin}
-                            onChange={(value) => value && setCustomMin(value)}
-                            disabled={isRecording}
-                          />
-                          <p>-</p>
-                          <InputNumber
-                            style={{ width: 60 }}
-                            aria-label="max frame"
-                            controls={false}
-                            min={customMin}
-                            max={totalFrames - 1}
-                            value={customMax}
-                            onChange={(value) => value && setCustomMax(value)}
-                            disabled={isRecording}
-                          />
-                          <p>of {totalFrames - 1}</p>
-                        </FlexRowAlignCenter>
-                      </SettingsItem>
-                      <SettingsItem
-                        label="Frame increment"
-                        htmlFor={RecordingHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
-                      >
-                        <FlexRowAlignCenter $gap={6}>
-                          <InputNumber
-                            id={RecordingHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
-                            value={frameIncrement}
-                            onChange={(value) => value && setFrameIncrement(value)}
-                            min={1}
-                            max={totalFrames - 1}
-                            disabled={isRecording}
-                            style={{ width: 140 }}
-                          />
-                          <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
-                        </FlexRowAlignCenter>
-                      </SettingsItem>
-                    </SettingsContainer>
-                  ) : null}
-                </Space>
-              </Radio.Group>
-            </Card>
-            <Card size="small" title={"Dimensions"}>
-              <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
-                <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
-                  <p
-                    className={styles.hintText}
-                    id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
-                  >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
-                </SettingsItem>
-              </SettingsContainer>
-            </Card>
-
-            <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
-              {recordingMode === RecordingMode.VIDEO_MP4 && (
-                <>
-                  <SettingsItem label="Frames per second" htmlFor={RecordingHtmlIds.FPS_INPUT}>
-                    <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
-                      <InputNumber
-                        id={RecordingHtmlIds.FPS_INPUT}
-                        value={fps}
-                        onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
-                        min={1}
-                        max={120}
-                        disabled={isRecording}
-                        width="175px"
-                      />
-                      <p className={styles.hintText}>({getDurationLabel()})</p>
-                    </FlexRowAlignCenter>
-                  </SettingsItem>
-                  <SettingsItem label="Video quality" htmlFor={RecordingHtmlIds.VIDEO_QUALITY_RADIO}>
-                    <FlexRowAlignCenter $gap={6}>
-                      <Radio.Group
-                        className={styles.videoQualityRadioGroup}
-                        id={RecordingHtmlIds.VIDEO_QUALITY_RADIO}
-                        disabled={isRecording}
-                        options={videoQualityOptions}
-                        optionType="button"
-                        value={videoBitsPerSecond}
-                        onChange={(e) => setVideoBitsPerSecond(e.target.value)}
-                      />
-                      <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
-                    </FlexRowAlignCenter>
-                  </SettingsItem>
-                </>
-              )}
-              {/* Filename prefix */}
-              <SettingsItem label={"Filename"} htmlFor={RecordingHtmlIds.IMAGE_FILENAME_INPUT}>
-                <FlexRowAlignCenter $gap={6}>
-                  <Input
-                    id={RecordingHtmlIds.IMAGE_FILENAME_INPUT}
-                    onChange={(event) => {
-                      setImagePrefix(event.target.value);
-                      setUseDefaultImagePrefix(false);
-                    }}
-                    value={getImagePrefix()}
-                    disabled={isRecording}
-                  />
-                  <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
-                  <Button
-                    disabled={isRecording || useDefaultImagePrefix}
-                    onClick={() => {
-                      setUseDefaultImagePrefix(true);
-                    }}
-                  >
-                    Reset
-                  </Button>
-                </FlexRowAlignCenter>
+                      <FlexRowAlignCenter $gap={6}>
+                        <InputNumber
+                          id={RecordingHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
+                          value={frameIncrement}
+                          onChange={(value) => value && setFrameIncrement(value)}
+                          min={1}
+                          max={totalFrames - 1}
+                          disabled={isRecording}
+                          style={{ width: 140 }}
+                        />
+                        <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
+                      </FlexRowAlignCenter>
+                    </SettingsItem>
+                  </SettingsContainer>
+                ) : null}
+              </Space>
+            </Radio.Group>
+          </Card>
+          <Card size="small" title={"Dimensions"}>
+            <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
+              <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
+                <p
+                  className={styles.hintText}
+                  id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
+                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
               </SettingsItem>
             </SettingsContainer>
-            <br />
-          </div>
-        </Modal>
-      </div>
+          </Card>
+
+          <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
+            {recordingMode === RecordingMode.VIDEO_MP4 && (
+              <>
+                <SettingsItem label="Frames per second" htmlFor={RecordingHtmlIds.FPS_INPUT}>
+                  <FlexRowAlignCenter $gap={6} style={{ alignItems: "center", paddingTop: 4 }}>
+                    <InputNumber
+                      id={RecordingHtmlIds.FPS_INPUT}
+                      value={fps}
+                      onChange={(value) => value !== null && Number.isFinite(value) && setFps(Math.max(0, value))}
+                      min={1}
+                      max={120}
+                      disabled={isRecording}
+                      width="175px"
+                    />
+                    <p className={styles.hintText}>({getDurationLabel()})</p>
+                  </FlexRowAlignCenter>
+                </SettingsItem>
+                <SettingsItem label="Video quality" htmlFor={RecordingHtmlIds.VIDEO_QUALITY_RADIO}>
+                  <FlexRowAlignCenter $gap={6}>
+                    <Radio.Group
+                      className={styles.videoQualityRadioGroup}
+                      id={RecordingHtmlIds.VIDEO_QUALITY_RADIO}
+                      disabled={isRecording}
+                      options={videoQualityOptions}
+                      optionType="button"
+                      value={videoBitsPerSecond}
+                      onChange={(e) => setVideoBitsPerSecond(e.target.value)}
+                    />
+                    <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
+                  </FlexRowAlignCenter>
+                </SettingsItem>
+              </>
+            )}
+            {/* Filename prefix */}
+            <SettingsItem label={"Filename"} htmlFor={RecordingHtmlIds.IMAGE_FILENAME_INPUT}>
+              <FlexRowAlignCenter $gap={6}>
+                <Input
+                  id={RecordingHtmlIds.IMAGE_FILENAME_INPUT}
+                  onChange={(event) => {
+                    setImagePrefix(event.target.value);
+                    setUseDefaultImagePrefix(false);
+                  }}
+                  value={getImagePrefix()}
+                  disabled={isRecording}
+                />
+                <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
+                <Button
+                  disabled={isRecording || useDefaultImagePrefix}
+                  onClick={() => {
+                    setUseDefaultImagePrefix(true);
+                  }}
+                >
+                  Reset
+                </Button>
+              </FlexRowAlignCenter>
+            </SettingsItem>
+          </SettingsContainer>
+          <br />
+        </div>
+      </Modal>
     </div>
   );
 }
