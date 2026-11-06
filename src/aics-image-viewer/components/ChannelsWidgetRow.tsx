@@ -20,6 +20,7 @@ interface ChannelsWidgetRowProps {
 
   saveIsosurface: (channelIndex: number, type: IsosurfaceFormat) => void;
   onColorChangeComplete?: (newRGB: ColorObject, oldRGB?: ColorObject, index?: number) => void;
+  onAlphaChangeComplete?: (newAlpha: number, oldAlpha?: number, index?: number) => void;
 
   getDropdownContainer?: () => HTMLElement;
   scrollContainer?: HTMLElement | null;
@@ -68,6 +69,13 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
     (newRGB: ColorObject): void => {
       const color = colorObjectToArray(newRGB);
       changeChannelSetting(index, { color });
+    },
+    [index, changeChannelSetting]
+  );
+
+  const onColorAlphaChange = useCallback(
+    (newAlpha: number): void => {
+      changeChannelSetting(index, { volumeOpacity: newAlpha });
     },
     [index, changeChannelSetting]
   );
@@ -144,6 +152,9 @@ const ChannelsWidgetRow: React.FC<ChannelsWidgetRowProps> = (props: ChannelsWidg
       color={colorArrayToObject(channelState.color)}
       onColorChange={onColorChange}
       onColorChangeComplete={props.onColorChangeComplete}
+      alpha={channelState.volumeOpacity}
+      onAlphaChange={onColorAlphaChange}
+      onAlphaChangeComplete={props.onAlphaChangeComplete}
       onClick={onClickChannel}
       className={rowClass}
       highlight={thisChannelOnly}

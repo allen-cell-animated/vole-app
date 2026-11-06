@@ -78,6 +78,7 @@ export interface ViewerChannelSetting {
   isovalue?: number;
   // valid when surfaceEnabled = true. default 1.0 fully opaque
   surfaceOpacity?: number;
+  volumeOpacity?: number;
   colorizeEnabled?: boolean;
   colorizeAlpha?: number;
   /** Whether to keep the current contrast settings when switching volumes. */

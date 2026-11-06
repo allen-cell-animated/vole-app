@@ -185,7 +185,8 @@ const App: React.FC<AppProps> = (props) => {
     }
   }, [imageUrl, parentImageUrl, rawData, rawDims, imageType]);
 
-  const maskChannelName = props.viewerChannelSettings?.maskChannelName;
+  // const maskChannelName = props.viewerChannelSettings?.maskChannelName;
+  const maskChannelName = "SEG_Memb";
 
   // we need to keep track of channel ranges for remapping control points
   const channelRangesRef = useRef<([number, number] | undefined)[]>([]);
