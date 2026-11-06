@@ -115,6 +115,7 @@ const VIEW_MODE_TO_SNAPSHOT: { [K in ViewMode]: ViewModeSnapshot } = {
   [ViewMode.xy]: ViewModeSnapshot.xy,
   [ViewMode.xz]: ViewModeSnapshot.xz,
   [ViewMode.yz]: ViewModeSnapshot.yz,
+  [ViewMode.tripleProj]: ViewModeSnapshot.tripleProj,
 };
 
 const RENDER_MODE_TO_SNAPSHOT: { [K in RenderMode]: RenderModeSnapshot } = {
