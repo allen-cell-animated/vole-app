@@ -516,7 +516,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
             </Card>
             <Card size="small" title={"Dimensions"}>
               <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
-                <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
+                <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
                   <p
                     className={styles.hintText}
                     id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
