@@ -126,9 +126,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
   const scrollX = (amount: number): number => (barRef.current!.scrollLeft += amount);
 
+  // Translate vertical scrolling into horizontal scrolling for the toolbar;
+  // this must be set via a `useEffect` because the listener is not passive (can
+  // prevent default behavior).
   useEffect(() => {
     const bar = barRef.current;
-    // Translate vertical scrolling into horizontal scrolling
     const wheelHandler = (e: WheelEvent): void => {
       e.preventDefault();
       if (e.deltaY === 0) {
