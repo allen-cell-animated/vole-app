@@ -8,7 +8,7 @@ import { snapshotToViewerChannelSettings, snapshotToViewerState, viewerMessageTo
 import { isSessionSnapshot } from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import type { AppDataProps } from "../../types";
 import { type RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
-import { isValidUrl } from "../../utils/urls";
+import { isValidUrl, normalizeFilePathSlashes } from "../../utils/urls";
 import { FlexRow } from "../LandingPage/utils";
 
 import MiddleTruncatedText from "../MiddleTruncatedText";
@@ -52,7 +52,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
     // TODO: Handle multiple URLs?
 
     // Note: S3 URIs, GCS URIs, and Vast file paths are handled by vole-core.
-    const trimmedUrlInput = urlInput.trim();
+    const trimmedUrlInput = normalizeFilePathSlashes(urlInput.trim());
     if (!isValidUrl(trimmedUrlInput)) {
       setErrorText("Please enter a valid URL, starting with https://, s3://, or gs://.");
       return;
