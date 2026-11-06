@@ -142,12 +142,14 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
 
   /** Final size of the exported image/video frame, based on current options. */
   const exportDimensions = useMemo((): [number, number] => {
+    // TODO: When legend/scale bar is added, update these measurements with the
+    // header/footer.
     const exportDimensions: [number, number] = [
-      Math.floor(targetCanvasResolution[0] / pixelRatio),
-      Math.floor(targetCanvasResolution[1] / pixelRatio),
+      Math.floor(targetCanvasResolution[0]),
+      Math.floor(targetCanvasResolution[1]),
     ];
     return exportDimensions;
-  }, [targetCanvasResolution, pixelRatio, viewportDimensions]);
+  }, [targetCanvasResolution]);
 
   //// Image prefix
   const defaultImagePrefix = useMemo(() => {
@@ -198,23 +200,17 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   useEffect(() => {
     const canvasHtmlElement = view3d.getCanvasDOMElement();
     const observer = new ResizeObserver(() => {
-      setViewportDimensions([canvasHtmlElement.clientWidth, canvasHtmlElement.clientHeight]);
+      const width = canvasHtmlElement.clientWidth;
+      const height = canvasHtmlElement.clientHeight;
+      setViewportDimensions([width, height]);
+      if (useCurrentViewportSize && !isRecording) {
+        setDimensionsInput([width, height]);
+        setAspectRatio(width / height);
+      }
     });
     observer.observe(canvasHtmlElement);
-    if (useCurrentViewportSize && !isRecording) {
-      setDimensionsInput([canvasHtmlElement.clientWidth, canvasHtmlElement.clientHeight]);
-    }
     return () => observer.disconnect();
   }, [isRecording, useCurrentViewportSize, view3d]);
-
-  useEffect(() => {
-    if (useCurrentViewportSize) {
-      setDimensionsInput([viewportDimensions[0] * pixelRatio, viewportDimensions[1] * pixelRatio]);
-      if (aspectRatio) {
-        setAspectRatio(viewportDimensions[0] / viewportDimensions[1]);
-      }
-    }
-  }, [viewportDimensions, useCurrentViewportSize, aspectRatio, pixelRatio]);
 
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
