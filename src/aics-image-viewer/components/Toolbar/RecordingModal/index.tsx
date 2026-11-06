@@ -1,16 +1,14 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
-import { Button, Card, Input, InputNumber, Modal, Radio, Space, Tooltip } from "antd";
+import { Button, Input, InputNumber, Modal, Radio } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { TOOLTIP_TRIGGER } from "../../../shared/constants";
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
-import { getPixelRatio } from "../../../shared/utils/window";
 import { select, useViewerState } from "../../../state/store";
-import { FlexColumn, FlexColumnAlignCenter, FlexRow, FlexRowAlignCenter, VisuallyHidden } from "../../shared/utils";
+import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
 import { RangeMode, RecordingMode } from "./types";
-import { getApproximateVideoFilesizeMb, getDurationLabel, getFrameCount } from "./utils";
+import { getApproximateVideoFilesizeMb, getDurationLabel, getExportDimensions, getFrameCount } from "./utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import type CanvasRecorder from "../../../shared/utils/recorders/CanvasRecorder";
@@ -18,13 +16,10 @@ import ImageSequenceRecorder from "../../../shared/utils/recorders/ImageSequence
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
+import RecordingDimensionControls from "./RecordingDimensionControls";
 import RecordingRangeControl from "./RecordingRangeControl";
 
 import styles from "./styles.module.css";
-
-function toEven(value: number): number {
-  return Math.round(value / 2) * 2;
-}
 
 const enum RecordingHtmlIds {
   // FRAME_RANGE_RADIO = "recording-modal-frame-range-radio",
@@ -111,45 +106,11 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const [customMax, setCustomMax] = useState(totalFrames);
   const [frameIncrement, setFrameIncrement] = useState(1);
 
-  //// Resolution and dimensions
-  const [useCurrentViewportSize, setUseCurrentViewportSize] = useState(true);
-  const [dimensionsInput, setDimensionsInput] = useState([1, 1]);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(1);
-  const pixelRatio = getPixelRatio();
-  const [viewportDimensions, setViewportDimensions] = useState([1, 1]);
-  const isViewportDimensions =
-    viewportDimensions[0] === dimensionsInput[0] && viewportDimensions[1] === dimensionsInput[1];
-
-  const enforceEvenDims = recordingMode === RecordingMode.VIDEO_MP4;
-
-  /**
-   * Target resolution of the viewport area in the final rendered canvas.
-   *
-   * Note that the canvas' inner resolution is the canvas' size multiplied by
-   * the device's pixel ratio. For example, an HTML canvas with a size of
-   * 100x100 on a device and a pixel ratio of 1.5 (e.g. 150% zoom) will be
-   * rendering at a resolution of 150x150.
-   *
-   * To get the canvas size from the resolution, this value needs to be divided
-   * by the device pixel ratio.
-   */
-  const targetCanvasResolution = useMemo(() => {
-    if (enforceEvenDims) {
-      return dimensionsInput.map((value) => toEven(value));
-    }
-    return dimensionsInput.map((value) => Math.round(value));
-  }, [dimensionsInput, enforceEvenDims]);
-
-  /** Final size of the exported image/video frame, based on current options. */
-  const exportDimensions = useMemo((): [number, number] => {
-    // TODO: When legend/scale bar is added, update these measurements with the
-    // header/footer.
-    const exportDimensions: [number, number] = [
-      Math.floor(targetCanvasResolution[0]),
-      Math.floor(targetCanvasResolution[1]),
-    ];
-    return exportDimensions;
-  }, [targetCanvasResolution]);
+  const [dimensionsInput, setDimensionsInput] = useState<[number, number]>([1, 1]);
+  const exportDimensions = useMemo(
+    () => getExportDimensions(dimensionsInput, recordingMode === RecordingMode.VIDEO_MP4),
+    [dimensionsInput, recordingMode]
+  );
 
   //// Image prefix
   const defaultImagePrefix = useMemo(() => {
@@ -197,56 +158,9 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     }
   };
 
-  useEffect(() => {
-    const canvasHtmlElement = view3d.getCanvasDOMElement();
-    const observer = new ResizeObserver(() => {
-      const width = canvasHtmlElement.clientWidth;
-      const height = canvasHtmlElement.clientHeight;
-      setViewportDimensions([width, height]);
-      if (useCurrentViewportSize && !isRecording) {
-        setDimensionsInput([width, height]);
-        setAspectRatio(width / height);
-      }
-    });
-    observer.observe(canvasHtmlElement);
-    return () => observer.disconnect();
-  }, [isRecording, useCurrentViewportSize, view3d]);
-
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
   //////////////////////////////////////////////////////////
-
-  const onSetDimensions = useCallback(
-    (dimensions: [number, number]) => {
-      setDimensionsInput(dimensions);
-      if (aspectRatio) {
-        setAspectRatio(dimensions[0] / dimensions[1]);
-      }
-    },
-    [aspectRatio]
-  );
-
-  const handleSetWidth = (width: number | null): void => {
-    if (width !== null) {
-      if (aspectRatio !== null) {
-        setDimensionsInput([Math.round(width), Math.round(width / aspectRatio)]);
-      } else {
-        setDimensionsInput([Math.round(width), dimensionsInput[1]]);
-      }
-    }
-    setUseCurrentViewportSize(false);
-  };
-
-  const handleSetHeight = (height: number | null): void => {
-    if (height !== null) {
-      if (aspectRatio !== null) {
-        setDimensionsInput([Math.round(height * aspectRatio), Math.round(height)]);
-      } else {
-        setDimensionsInput([dimensionsInput[0], Math.round(height)]);
-      }
-    }
-    setUseCurrentViewportSize(false);
-  };
 
   const stopRecording = useCallback(
     async (closeModal: boolean): Promise<void> => {
@@ -477,92 +391,13 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
           />
 
-          <Card size="small" title={"Dimensions"}>
-            <SettingsContainer gapPx={6} indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}>
-              <SettingsItem
-                label="Frame dimensions"
-                labelStyle={{ marginTop: "2px", height: "min-content" }}
-                htmlFor={RecordingHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
-              >
-                <FlexColumn style={{ alignItems: "flex-start", paddingBottom: "8px" }} $gap={6}>
-                  <FlexRow $gap={6}>
-                    <Button
-                      onClick={() => {
-                        onSetDimensions(viewportDimensions as [number, number]);
-                        setUseCurrentViewportSize(true);
-                      }}
-                      type={isViewportDimensions ? "primary" : "default"}
-                    >
-                      Set to viewport
-                    </Button>
-                    {/* <Button
-                        disabled={imageDimensions === null}
-                        type={isImageDimensions ? "primary" : "default"}
-                        onClick={() => {
-                          imageDimensions && onSetDimensions([imageDimensions[0], imageDimensions[1]]);
-                          setUseCurrentViewportSize(false);
-                        }}
-                      >
-                        Set to image
-                      </Button> */}
-                  </FlexRow>
-                  <FlexColumn>
-                    <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
-                      <Space.Compact>
-                        <Space.Addon>
-                          <p className={styles.hintText}>W</p>
-                        </Space.Addon>
-                        <InputNumber<number>
-                          className={styles.dimensionInput}
-                          id={RecordingHtmlIds.FRAME_DIMENSION_WIDTH_INPUT}
-                          aria-label="Width"
-                          value={dimensionsInput[0]}
-                          onChange={handleSetWidth}
-                          controls={false}
-                          style={{ width: "90px" }}
-                        />
-                      </Space.Compact>
-                      <span style={{ padding: "0 4px" }}>×</span>
-                      <Space.Compact>
-                        <Space.Addon>
-                          <p className={styles.hintText}>H</p>
-                        </Space.Addon>
-                        <InputNumber<number>
-                          className={styles.dimensionInput}
-                          id={RecordingHtmlIds.FRAME_DIMENSION_HEIGHT_INPUT}
-                          aria-label="Height"
-                          value={dimensionsInput[1]}
-                          onChange={handleSetHeight}
-                          controls={false}
-                          style={{ width: "90px" }}
-                        />
-                      </Space.Compact>
-                      <Tooltip
-                        title={aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
-                        trigger={["hover", "focus"]}
-                        getPopupContainer={() => exportModalRef.current || document.body}
-                      >
-                        <Button
-                          type={aspectRatio ? "primary" : "link"}
-                          // sizePx={26}
-                          onClick={() => setAspectRatio(aspectRatio ? null : dimensionsInput[0] / dimensionsInput[1])}
-                        >
-                          {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
-                          <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
-                        </Button>
-                      </Tooltip>
-                    </FlexRowAlignCenter>
-                  </FlexColumn>
-                </FlexColumn>
-              </SettingsItem>
-              <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
-                <p
-                  className={styles.hintText}
-                  id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
-                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
-              </SettingsItem>
-            </SettingsContainer>
-          </Card>
+          <RecordingDimensionControls
+            view3d={props.view3d}
+            isRecording={isRecording}
+            settingsIndentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
+            dimensions={dimensionsInput}
+            setDimensions={setDimensionsInput}
+          />
 
           <SettingsContainer indentPx={RECORDING_SETTINGS_INDENT_PX} gapPx={6}>
             {/* Video settings */}
