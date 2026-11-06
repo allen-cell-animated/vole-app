@@ -2,9 +2,9 @@ import { Button, Dropdown, type MenuProps, Modal } from "antd";
 import React, { type ReactElement, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../src/aics-image-viewer/components/shared/utils";
 import { DropdownSVG } from "../assets/icons";
 import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../constants";
-import { FlexColumnAlignCenter, FlexRowAlignCenter } from "./LandingPage/utils";
 
 import { SecondaryButton } from "./Buttons";
 

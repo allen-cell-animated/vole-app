@@ -5,7 +5,7 @@ import React, { type ReactElement } from "react";
 import { type ErrorResponse, Link, useRouteError } from "react-router-dom";
 import styled from "styled-components";
 
-import { FlexColumnAlignCenter } from "./LandingPage/utils";
+import { FlexColumnAlignCenter } from "../../src/aics-image-viewer/components/shared/utils";
 
 import Header from "./Header";
 

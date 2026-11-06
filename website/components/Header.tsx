@@ -2,8 +2,8 @@ import React, { type PropsWithChildren, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
+import { FlexRowAlignCenter } from "../../src/aics-image-viewer/components/shared/utils";
 import { AllenInstituteCellScienceLogoSVG, AllenInstituteLogo } from "../assets/icons";
-import { FlexRowAlignCenter } from "./LandingPage/utils";
 
 // TODO: Adjust this when additional buttons are added to the header.
 const AICS_LOGO_RESIZE_THRESHOLD_PX = 610;

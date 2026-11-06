@@ -1,8 +1,8 @@
 import React from "react";
 
 import { ViewMode } from "../../../src";
+import { ExternalLink } from "../../../src/aics-image-viewer/components/shared/utils";
 import type { AppDataProps, ProjectEntry } from "../../types";
-import { ExternalLink } from "./utils";
 
 const NUCMORPH_BASE_SETTINGS: Partial<AppDataProps> = {
   viewerChannelSettings: {
