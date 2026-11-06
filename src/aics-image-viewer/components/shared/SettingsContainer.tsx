@@ -43,7 +43,7 @@ export function SettingsItem(inputProps: PropsWithChildren<Partial<SettingsItemP
         "SettingsItem: Please set the 'htmlFor' attribute to support screen readers in setting '" + props.label + "'."
       );
     }
-  }, [props.label, props.htmlFor]);
+  }, [props.label, props.htmlFor, props.isNonFormComponent]);
 
   let labelElement = <div></div>;
   if (props.label && !props.isNonFormComponent) {
