@@ -28,6 +28,7 @@ type ToolbarProps = {
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
+  setCanvasResolution: (resolution: [number, number] | null) => void;
 
   visibleControls: {
     autoRotateButton: boolean;
@@ -295,7 +296,12 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               <ViewerIcon type="camera" />
             </Button>
           </Tooltip>
-          <RecordingButton view3d={props.view3d} volume={props.volume} playControls={props.playControls} />
+          <RecordingButton
+            view3d={props.view3d}
+            volume={props.volume}
+            playControls={props.playControls}
+            setCanvasResolution={props.setCanvasResolution}
+          />
         </div>
       </div>
       <div

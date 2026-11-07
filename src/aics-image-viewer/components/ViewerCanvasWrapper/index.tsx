@@ -1,10 +1,11 @@
 import type { View3d, Volume } from "@aics/vole-core";
 import { LoadingOutlined } from "@ant-design/icons";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { CLIPPING_PANEL_HEIGHT_DEFAULT, CLIPPING_PANEL_HEIGHT_TALL } from "../../shared/constants";
 import type { AxisName, Styles, XYZ } from "../../shared/types";
 import type PlayControls from "../../shared/utils/playControls";
+import { getPixelRatio } from "../../shared/utils/window";
 import { select, useViewerState } from "../../state/store";
 import { ViewMode } from "../../state/types";
 
@@ -18,6 +19,7 @@ type ViewerWrapperProps = {
   view3d: View3d;
   loadingImage: boolean;
   appHeight: string;
+  canvasResolution: [number, number] | null;
   image: Volume | null;
   numSlices: XYZ<number>;
   numSlicesLoaded: XYZ<number>;
@@ -101,6 +103,17 @@ const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
       children: <RotationSliders view3d={props.view3d} disable={viewMode !== ViewMode.threeD} />,
     });
   }
+
+  useEffect(() => {
+    const pixelRatio = getPixelRatio();
+    if (props.canvasResolution) {
+      const width = props.canvasResolution[0] / pixelRatio;
+      const height = props.canvasResolution[1] / pixelRatio;
+      props.view3d.resize(null, width, height);
+    } else {
+      props.view3d.resize(null);
+    }
+  }, [props.canvasResolution, props.view3d]);
 
   return (
     <div className="cell-canvas" style={{ ...STYLES.viewer, height: appHeight }}>
