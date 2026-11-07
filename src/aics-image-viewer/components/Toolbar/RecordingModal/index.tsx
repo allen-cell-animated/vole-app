@@ -82,19 +82,19 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const [isRecording, setIsRecording] = useState(false);
   const [isPlayingCloseAnimation, setIsPlayingCloseAnimation] = useState(false);
   const [percentComplete, setPercentComplete] = useState(0);
-
   const recorderRef = useRef<CanvasRecorder | null>(null);
   const [errorText, setErrorText] = useState("");
   const [recordingMode, _setRecordingMode] = useState(RecordingMode.IMAGE_SEQUENCE);
 
+  //// Frame range
   const totalFrames = props.volume.imageInfo.times;
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
   const [customMin, setCustomMin] = useState(0);
   const [customMax, setCustomMax] = useState(totalFrames);
   const [frameIncrement, setFrameIncrement] = useState(1);
 
+  //// Resolution and dimensions
   const pixelRatio = getPixelRatio();
-
   const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
 
   /** Final size of the exported image/video frame, based on current options. */
@@ -106,13 +106,29 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     return exportDimensions;
   }, [viewportDimensions, pixelRatio]);
 
+  //// Image prefix
   const defaultImagePrefix = useMemo(() => {
     const volume = props.volume;
     return `${volume.imageInfo.imageInfo.name}-${exportDimensions[0]}x${exportDimensions[1]}`;
   }, [exportDimensions, props.volume]);
 
-  const [imagePrefix, setImagePrefix] = useState(defaultImagePrefix);
+  const [imagePrefixInput, setImagePrefixInput] = useState(defaultImagePrefix);
   const [useDefaultImagePrefix, setUseDefaultImagePrefix] = useState(true);
+
+  const imagePrefix = useMemo((): string => {
+    if (useDefaultImagePrefix) {
+      if (recordingMode === RecordingMode.IMAGE_SEQUENCE) {
+        // Add separator between prefix and frame number
+        return defaultImagePrefix + "-";
+      } else {
+        return defaultImagePrefix;
+      }
+    } else {
+      return imagePrefixInput;
+    }
+  }, [useDefaultImagePrefix, defaultImagePrefix, imagePrefixInput, recordingMode]);
+
+  //// Video settings
   const [fps, setFps] = useState(12);
   const [videoBitsPerSecond, setVideoBitsPerSecond] = useState(VideoBitrate.MEDIUM);
 
@@ -127,19 +143,6 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     setCustomMin((min) => clamp(min, 0, maxFrame));
     setCustomMax((max) => clamp(max ?? maxFrame, 0, maxFrame));
   }, [props.volume, customMax]);
-
-  const getImagePrefix = (): string => {
-    if (useDefaultImagePrefix) {
-      if (recordingMode === RecordingMode.IMAGE_SEQUENCE) {
-        // Add separator between prefix and frame number
-        return defaultImagePrefix + "-";
-      } else {
-        return defaultImagePrefix;
-      }
-    } else {
-      return imagePrefix;
-    }
-  };
 
   // Override setRecordingMode when switching to video; users should not choose current frame only
   // (since exporting the current frame only as a video doesn't really make sense.)
@@ -235,7 +238,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
       fps: fps,
       minDigits: (totalFrames - 1).toString().length,
       bitrate: videoBitsPerSecond,
-      prefix: "vole_recording_" + volume.imageInfo.imageInfo.name,
+      prefix: imagePrefix,
       onCompleted: async () => {
         setPercentComplete(100);
         // TODO: Show success notification
@@ -421,6 +424,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
           </Card>
 
           <SettingsContainer indentPx={RECORDING_CARD_SETTINGS_INDENT_PX} gapPx={6}>
+            {/* Video settings */}
             {recordingMode === RecordingMode.VIDEO_MP4 && (
               <>
                 <SettingsItem label="Frames per second" htmlFor={RecordingHtmlIds.FPS_INPUT}>
@@ -459,10 +463,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
                 <Input
                   id={RecordingHtmlIds.IMAGE_FILENAME_INPUT}
                   onChange={(event) => {
-                    setImagePrefix(event.target.value);
+                    setImagePrefixInput(event.target.value);
                     setUseDefaultImagePrefix(false);
                   }}
-                  value={getImagePrefix()}
+                  value={imagePrefix}
                   disabled={isRecording}
                 />
                 <p>{recordingMode === RecordingMode.IMAGE_SEQUENCE ? "#.png" : ".mp4"}</p>
