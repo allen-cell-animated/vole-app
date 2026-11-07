@@ -1,5 +1,5 @@
 import { isValidFramerate } from "../shared/framerate";
-import type { ChannelState, ViewerState } from "../state/types";
+import type { ChannelState, ViewerState } from "./types";
 import { RenderMode, ViewMode } from "./types";
 
 // TODO move back to a new `types` module (?)
@@ -38,8 +38,7 @@ const VIEWER_SETTINGS_CHANGE_HANDLERS: ViewerSettingChangeHandlers = {
     autorotate: autorotate && renderMode !== RenderMode.pathTrace,
   }),
 
-  targetFramerate: (targetFramerate) =>
-    isValidFramerate(targetFramerate) ? { targetFramerate } : {},
+  targetFramerate: (targetFramerate) => (isValidFramerate(targetFramerate) ? { targetFramerate } : {}),
 };
 
 /**
