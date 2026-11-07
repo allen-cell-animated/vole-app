@@ -1,0 +1,21 @@
+{
+  "name": "@aics/vole-website",
+  "version": "3.7.0",
+  "description": "website for Vol-E 3D volume viewer",
+  "homepage": "https://github.com/allen-cell-animated/vole-app#readme",
+  "bugs": {
+    "url": "https://github.com/allen-cell-animated/vole-app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allen-cell-animated/vole-app.git"
+  },
+  "license": "BSD-3-Clause",
+  "author": "Allen Institute, Cell Science",
+  "type": "commonjs",
+  "main": "es/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {}
+}
