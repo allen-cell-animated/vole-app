@@ -1,11 +1,14 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { Button, Card, Input, InputNumber, Modal, Radio, type RadioChangeEvent, Space } from "antd";
+import { Button, Card, Input, InputNumber, Modal, Radio } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
 import { select, useViewerState } from "../../../state/store";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
+import { RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
+import { RangeMode, RecordingMode } from "./types";
+import { getFrameCount } from "./utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import type CanvasRecorder from "../../../shared/utils/recorders/CanvasRecorder";
@@ -13,27 +16,23 @@ import ImageSequenceRecorder from "../../../shared/utils/recorders/ImageSequence
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
+import RecordingRangeControl from "./RecordingRangeControl";
 
 import styles from "./styles.module.css";
 
-// Align settings both inside and outside of cards
-const CARD_SETTINGS_INDENT_PX = 5;
-const SETTINGS_INDENT_PX = 18;
-const HINT_CSS_COLOR = "var(--color-text-hint)";
-
 const enum RecordingHtmlIds {
-  FRAME_RANGE_RADIO = "export-modal-frame-range-radio",
-  FRAME_RANGE_RADIO_LABEL_ID = "export-modal-frame-range-radio-label",
-  FRAME_CUSTOM_RANGE_INPUT = "export-modal-frame-custom-range-input",
-  FRAME_DIMENSION_WIDTH_INPUT = "export-modal-dimensions-width-input",
-  FRAME_DIMENSION_HEIGHT_INPUT_ID = "export-modal-dimensions-height",
-  FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "export-modal-frame-custom-range-frame-increment-input",
-  SHOW_FEATURE_LEGEND_CHECKBOX = "export-modal-show-feature-legend-checkbox",
-  SHOW_DATASET_NAME_CHECKBOX = "export-modal-show-dataset-name-checkbox",
-  FINAL_DIMENSIONS_TEXT = "export-modal-final-dimensions-text",
-  FPS_INPUT = "export-modal-fps-input",
-  VIDEO_QUALITY_RADIO = "export-modal-video-quality-radio",
-  IMAGE_FILENAME_INPUT = "export-modal-image-filename-input",
+  // FRAME_RANGE_RADIO = "recording-modal-frame-range-radio",
+  // FRAME_RANGE_RADIO_LABEL_ID = "recording-modal-frame-range-radio-label",
+  // FRAME_CUSTOM_RANGE_INPUT = "recording-modal-frame-custom-range-input",
+  // FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "recording-modal-frame-custom-range-frame-increment-input",
+  FRAME_DIMENSION_WIDTH_INPUT = "recording-modal-dimensions-width-input",
+  FRAME_DIMENSION_HEIGHT_INPUT_ID = "recording-modal-dimensions-height",
+  SHOW_FEATURE_LEGEND_CHECKBOX = "recording-modal-show-feature-legend-checkbox",
+  SHOW_DATASET_NAME_CHECKBOX = "recording-modal-show-dataset-name-checkbox",
+  FINAL_DIMENSIONS_TEXT = "recording-modal-final-dimensions-text",
+  FPS_INPUT = "recording-modal-fps-input",
+  VIDEO_QUALITY_RADIO = "recording-modal-video-quality-radio",
+  IMAGE_FILENAME_INPUT = "recording-modal-image-filename-input",
 }
 
 type RecordingModalProps = {
@@ -43,17 +42,6 @@ type RecordingModalProps = {
   open: boolean;
   setIsOpen: (open: boolean) => void;
 };
-
-const enum RangeMode {
-  ALL,
-  CURRENT,
-  CUSTOM,
-}
-
-const enum RecordingMode {
-  IMAGE_SEQUENCE,
-  VIDEO_MP4,
-}
 
 export enum VideoBitrate {
   HIGH = 1e8, // 100 Mbps
@@ -110,7 +98,8 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const totalFrames = props.volume.imageInfo.times;
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
   const [customMin, setCustomMin] = useState(0);
-  const [customMax, setCustomMax] = useState<number>(totalFrames);
+  const [customMax, setCustomMax] = useState(totalFrames);
+  const [frameIncrement, setFrameIncrement] = useState(1);
 
   const pixelRatio = getPixelRatio();
 
@@ -135,7 +124,6 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
 
   const [imagePrefix, setImagePrefix] = useState(defaultImagePrefix);
   const [useDefaultImagePrefix, setUseDefaultImagePrefix] = useState(true);
-  const [frameIncrement, setFrameIncrement] = useState(1);
   const [fps, setFps] = useState(12);
   const [videoBitsPerSecond, setVideoBitsPerSecond] = useState(VideoBitrate.MEDIUM);
 
@@ -296,8 +284,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   ];
 
   const isWebCodecsEnabled = Mp4VideoRecorder.isSupported();
-  const customRangeFrames = Math.max(Math.ceil(((customMax ?? 1) - customMin + 1) / frameIncrement), 1);
-
+  const customRangeFrames = getFrameCount(customMin, customMax, frameIncrement);
   const numFrames = rangeMode === RangeMode.CUSTOM ? customRangeFrames : totalFrames;
   const totalSeconds = numFrames / fps;
 
@@ -419,86 +406,22 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             </Radio.Group>
           </FlexColumnAlignCenter>
 
-          {/* Range options (All/Current Frame/Custom) */}
-          <Card size="small" title="Frame range">
-            <Radio.Group
-              className={styles.rangeRadioGroup}
-              // TODO: Use fieldset + label to align with accessibility standards
-              value={rangeMode}
-              onChange={(e: RadioChangeEvent) => {
-                setRangeMode(e.target.value);
-              }}
-              disabled={isRecording}
-              id={RecordingHtmlIds.FRAME_RANGE_RADIO}
-            >
-              <Space orientation="vertical" align="start">
-                <Radio value={RangeMode.ALL}>
-                  All frames{" "}
-                  {rangeMode === RangeMode.ALL && (
-                    <span className={styles.hintText} style={{ marginLeft: "4px" }}>
-                      ({totalFrames} frames total)
-                    </span>
-                  )}
-                </Radio>
-                <Radio value={RangeMode.CURRENT} disabled={isRecording || recordingMode === RecordingMode.VIDEO_MP4}>
-                  Current frame only
-                </Radio>
-                <Radio value={RangeMode.CUSTOM}>Custom range</Radio>
+          <RecordingRangeControl
+            totalFrames={totalFrames}
+            rangeMode={rangeMode}
+            min={customMin}
+            max={customMax}
+            frameIncrement={frameIncrement}
+            setFrameIncrement={setFrameIncrement}
+            setRangeMode={setRangeMode}
+            setMin={setCustomMin}
+            setMax={setCustomMax}
+            recordingMode={recordingMode}
+            isRecording={isRecording}
+          />
 
-                {rangeMode === RangeMode.CUSTOM ? (
-                  // Render the custom range input in the radio list if selected
-                  <SettingsContainer indentPx={CARD_SETTINGS_INDENT_PX} className={styles.customRangeSettingsContainer}>
-                    <SettingsItem label="Range" htmlFor={RecordingHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
-                      <FlexRowAlignCenter className={styles.flexRowWrap}>
-                        <InputNumber
-                          id={RecordingHtmlIds.FRAME_CUSTOM_RANGE_INPUT}
-                          style={{ width: 60 }}
-                          aria-label="min frame"
-                          controls={false}
-                          min={0}
-                          max={totalFrames - 1}
-                          value={customMin}
-                          onChange={(value) => value && setCustomMin(value)}
-                          disabled={isRecording}
-                        />
-                        <p>-</p>
-                        <InputNumber
-                          style={{ width: 60 }}
-                          aria-label="max frame"
-                          controls={false}
-                          min={customMin}
-                          max={totalFrames - 1}
-                          value={customMax}
-                          onChange={(value) => value && setCustomMax(value)}
-                          disabled={isRecording}
-                        />
-                        <p>of {totalFrames - 1}</p>
-                      </FlexRowAlignCenter>
-                    </SettingsItem>
-                    <SettingsItem
-                      label="Frame increment"
-                      htmlFor={RecordingHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
-                    >
-                      <FlexRowAlignCenter $gap={6}>
-                        <InputNumber
-                          id={RecordingHtmlIds.FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT}
-                          value={frameIncrement}
-                          onChange={(value) => value && setFrameIncrement(value)}
-                          min={1}
-                          max={totalFrames - 1}
-                          disabled={isRecording}
-                          style={{ width: 140 }}
-                        />
-                        <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
-                      </FlexRowAlignCenter>
-                    </SettingsItem>
-                  </SettingsContainer>
-                ) : null}
-              </Space>
-            </Radio.Group>
-          </Card>
           <Card size="small" title={"Dimensions"}>
-            <SettingsContainer gapPx={6} indentPx={CARD_SETTINGS_INDENT_PX}>
+            <SettingsContainer gapPx={6} indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}>
               <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
                 <p
                   className={styles.hintText}
@@ -508,7 +431,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             </SettingsContainer>
           </Card>
 
-          <SettingsContainer indentPx={SETTINGS_INDENT_PX} gapPx={6}>
+          <SettingsContainer indentPx={RECORDING_CARD_SETTINGS_INDENT_PX} gapPx={6}>
             {recordingMode === RecordingMode.VIDEO_MP4 && (
               <>
                 <SettingsItem label="Frames per second" htmlFor={RecordingHtmlIds.FPS_INPUT}>
