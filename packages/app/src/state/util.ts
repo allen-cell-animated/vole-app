@@ -1,4 +1,4 @@
-import type { ChannelState, ViewerState } from "../state/types";
+import type { ChannelState, ViewerState } from "./types";
 import { RenderMode, ViewMode } from "./types";
 
 // TODO move back to a new `types` module (?)

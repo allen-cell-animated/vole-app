@@ -1,4 +1,4 @@
-import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
+import type { MultisceneUrls } from "../../packages/app/src/components/App/types";
 
 export function isValidUrl(url: string): boolean {
   return (
