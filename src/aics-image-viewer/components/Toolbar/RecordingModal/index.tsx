@@ -21,14 +21,6 @@ import RecordingRangeControl from "./RecordingRangeControl";
 import styles from "./styles.module.css";
 
 const enum RecordingHtmlIds {
-  // FRAME_RANGE_RADIO = "recording-modal-frame-range-radio",
-  // FRAME_RANGE_RADIO_LABEL_ID = "recording-modal-frame-range-radio-label",
-  // FRAME_CUSTOM_RANGE_INPUT = "recording-modal-frame-custom-range-input",
-  // FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "recording-modal-frame-custom-range-frame-increment-input",
-  FRAME_DIMENSION_WIDTH_INPUT = "recording-modal-dimensions-width-input",
-  FRAME_DIMENSION_HEIGHT_INPUT_ID = "recording-modal-dimensions-height",
-  SHOW_FEATURE_LEGEND_CHECKBOX = "recording-modal-show-feature-legend-checkbox",
-  SHOW_DATASET_NAME_CHECKBOX = "recording-modal-show-dataset-name-checkbox",
   FINAL_DIMENSIONS_TEXT = "recording-modal-final-dimensions-text",
   FPS_INPUT = "recording-modal-fps-input",
   VIDEO_QUALITY_RADIO = "recording-modal-video-quality-radio",
@@ -107,13 +99,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
 
   /** Final size of the exported image/video frame, based on current options. */
   const exportDimensions = useMemo((): [number, number] => {
-    console.log("pixel ratio", pixelRatio);
-    console.log("viewport dimensions", viewportDimensions);
     const exportDimensions: [number, number] = [
       Math.floor(viewportDimensions[0] * pixelRatio),
       Math.floor(viewportDimensions[1] * pixelRatio),
     ];
-    console.log("export dimensions", exportDimensions);
     return exportDimensions;
   }, [viewportDimensions, pixelRatio]);
 
