@@ -1,6 +1,6 @@
 import { type NumberType, type RawArrayInfo, type RawArrayLoaderOptions, VolumeMaker } from "@aics/vole-core";
 
-import { ViewMode } from "../../../src";
+import { ViewMode } from "../../../packages/app/src";
 import type { AppDataProps, ProjectEntry } from "../../types";
 
 function createTestVolume(dtype: NumberType): RawArrayLoaderOptions {

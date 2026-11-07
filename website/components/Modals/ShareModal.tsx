@@ -6,15 +6,12 @@ import styled from "styled-components";
 import { useShallow } from "zustand/shallow";
 
 // TODO should these items be exported at the top level to get rid of these lengthy import paths?
-import type { MultisceneUrls } from "../../../src/aics-image-viewer/components/App/types";
-import {
-  channelStatesToSnapshot,
-  paramsToViewerMessage,
-} from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
-import { getDefaultBaseUrl, getShareLink } from "../../../src/aics-image-viewer/shared/utils/sharing";
-import { readStoredMetadata } from "../../../src/aics-image-viewer/shared/utils/storage";
-import { viewerStateToSnapshot } from "../../../src/aics-image-viewer/state/serialize";
-import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../src/aics-image-viewer/state/store";
+import type { MultisceneUrls } from "../../../packages/app/src/components/App/types";
+import { channelStatesToSnapshot, paramsToViewerMessage } from "../../../packages/app/src/shared/utils/parseSnapshot";
+import { getDefaultBaseUrl, getShareLink } from "../../../packages/app/src/shared/utils/sharing";
+import { readStoredMetadata } from "../../../packages/app/src/shared/utils/storage";
+import { viewerStateToSnapshot } from "../../../packages/app/src/state/serialize";
+import { selectViewerSettings, useViewerState, type ViewerStore } from "../../../packages/app/src/state/store";
 import type { AppDataProps } from "../../types";
 import { FlexRow } from "../LandingPage/utils";
 
