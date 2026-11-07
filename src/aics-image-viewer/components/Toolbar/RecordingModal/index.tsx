@@ -8,7 +8,7 @@ import { select, useViewerState } from "../../../state/store";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
 import { RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
 import { RangeMode, RecordingMode } from "./types";
-import { getFrameCount } from "./utils";
+import { getApproximateVideoFilesizeMb, getDurationLabel, getFrameCount } from "./utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import type CanvasRecorder from "../../../shared/utils/recorders/CanvasRecorder";
@@ -58,26 +58,28 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const exportModalRef = useRef<HTMLDivElement | null>(null);
 
-  // Store initial time on modal open so it can be restored on close.
+  // Store the original frame on close.
   const { open: isModalOpen, setIsOpen: _setIsModalOpen } = props;
   const setIsModalOpen = useCallback(
     (open: boolean): void => {
-      if (open === isModalOpen) {
-        return;
-      }
-      _setIsModalOpen(open);
-      if (open) {
-        props.playControls.pause();
-        setErrorText("");
-        originalFrameRef.current = useViewerState.getState().time;
-        // Disable auto-rotation
-        changeViewerSetting("autorotate", false);
-      } else {
+      if (!open) {
         props.view3d.setTime(props.volume, originalFrameRef.current);
       }
+      _setIsModalOpen(open);
     },
-    [isModalOpen, _setIsModalOpen, props.playControls, props.view3d, props.volume, changeViewerSetting]
+    [_setIsModalOpen, props.view3d, props.volume]
   );
+
+  // On open, save the current frame so it can be restored on modal close.
+  useEffect(() => {
+    if (isModalOpen) {
+      props.playControls.pause();
+      setErrorText("");
+      originalFrameRef.current = useViewerState.getState().time;
+      // Disable auto-rotation
+      changeViewerSetting("autorotate", false);
+    }
+  }, [isModalOpen, changeViewerSetting, props.playControls]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPlayingCloseAnimation, setIsPlayingCloseAnimation] = useState(false);
@@ -89,7 +91,8 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   //// Frame range
   const totalFrames = props.volume.imageInfo.times;
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
-  const [customMin, setCustomMin] = useState(0);
+  // Uses 1-based indexing to match rest of Vol-E UI.
+  const [customMin, setCustomMin] = useState(1);
   const [customMax, setCustomMax] = useState(totalFrames);
   const [frameIncrement, setFrameIncrement] = useState(1);
 
@@ -139,10 +142,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   // Bound max and min by the total frames on volume changes. If this is the first time the
   // volume is loaded, this will also set the max bound.
   useEffect(() => {
-    const maxFrame = props.volume.imageInfo.times - 1;
+    const maxFrame = props.volume.imageInfo.times;
     setCustomMin((min) => clamp(min, 0, maxFrame));
-    setCustomMax((max) => clamp(max ?? maxFrame, 0, maxFrame));
-  }, [props.volume, customMax]);
+    setCustomMax((max) => clamp(max, 0, maxFrame));
+  }, [props.volume]);
 
   // Override setRecordingMode when switching to video; users should not choose current frame only
   // (since exporting the current frame only as a video doesn't really make sense.)
@@ -205,6 +208,8 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     setErrorText("");
     setIsRecording(true);
 
+    // TODO: Set explicit scale level here, otherwise the playback will drop
+    // to a lower resolution.
     // Set play axis to t for prefetching.
     props.playControls.playingAxis = "t";
     props.playControls?.onPlayingAxisChanged?.("t");
@@ -222,9 +227,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
         max = currentFrame;
         break;
       case RangeMode.CUSTOM:
-        // Clamp range values in case of unsafe input
-        min = clamp(customMin, 0, totalFrames - 1);
-        max = clamp(customMax!, min, totalFrames - 1);
+        // Clamp range values in case of unsafe input.
+        // Also decrement to match 0-based indexing.
+        min = clamp(customMin - 1, 0, totalFrames - 1);
+        max = clamp(customMax - 1, min, totalFrames - 1);
     }
 
     const setFrame = async (frame: number): Promise<void> => {
@@ -280,55 +286,12 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const numFrames = rangeMode === RangeMode.CUSTOM ? customRangeFrames : totalFrames;
   const totalSeconds = numFrames / fps;
 
-  // Gets the total duration as a MM min, SS sec label.
-  // Also adds decimal places for small durations.
-  const getDurationLabel = (): string => {
-    const durationMin = Math.floor(totalSeconds / 60);
-    const durationSec = totalSeconds - durationMin * 60;
-
-    let timestamp = "";
-    if (durationMin > 0) {
-      timestamp += durationMin.toString() + " min, ";
-    }
-    // Format seconds to hundredths if less than 10 seconds
-    if (durationMin === 0 && durationSec < 10) {
-      // Round digits to 2 decimal places
-      const roundedSeconds = Math.round(durationSec * 100) / 100;
-      timestamp += roundedSeconds.toFixed(2) + " sec";
-    } else {
-      timestamp += Math.floor(durationSec).toString() + " sec";
-    }
-    return timestamp;
-  };
-
-  const getApproximateVideoFilesizeMb = (): string => {
-    // From experimentation, filesize scales linearly (ish) with the
-    // bitrate and duration unless a maximum filesize is hit at high
-    // bitrates, which seems to depend on the video dimensions.
-
-    // Video quality is bitrate in bits/second.
-    // This is usually within 0.5-2x the actual filesize.
-    const maxVideoBitsDuration = totalSeconds * videoBitsPerSecond;
-
-    // Experimentally-determined compression ratio (bits per pixel), which determines
-    // maximum size a video can be at very high bitrates. This may vary WILDLY based
-    // on image complexity (videos with little change will compress better).
-    // This is here because otherwise the filesize estimate is way too high for high bitrates
-    // (475 MB predicted vs. 70 MB actual)
-    // TODO: Is there a way to concretely determine this?
-    const compressionRatioBitsPerPixel = 3.5; // Actual value 2.7-3.0, overshooting to be safe
-    const maxVideoBitsResolution = exportDimensions[0] * exportDimensions[1] * numFrames * compressionRatioBitsPerPixel;
-
-    const sizeInMb = Math.min(maxVideoBitsResolution, maxVideoBitsDuration) / 8_000_000; // bits to MB
-
-    if (sizeInMb > 1) {
-      return Math.round(sizeInMb) + " MB";
-    } else {
-      // Round to one decimal place, with a minimum of 0.1 MB. (We don't need to be too precise
-      // because these are estimates.)
-      return Math.max(1, Math.round(sizeInMb * 10)) / 10 + " MB";
-    }
-  };
+  const approximateFilesizeMb = getApproximateVideoFilesizeMb(
+    totalSeconds,
+    videoBitsPerSecond,
+    exportDimensions,
+    numFrames
+  );
 
   // Footer for the Export modal.
   // Layout: Optional Progress meter - Export/Stop Button - Cancel Button
@@ -401,13 +364,13 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
           <RecordingRangeControl
             totalFrames={totalFrames}
             rangeMode={rangeMode}
-            min={customMin}
-            max={customMax}
+            customMin={customMin}
+            customMax={customMax}
             frameIncrement={frameIncrement}
             setFrameIncrement={setFrameIncrement}
             setRangeMode={setRangeMode}
-            setMin={setCustomMin}
-            setMax={setCustomMax}
+            setCustomMin={setCustomMin}
+            setCustomMax={setCustomMax}
             recordingMode={recordingMode}
             isRecording={isRecording}
           />
@@ -438,7 +401,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
                       disabled={isRecording}
                       width="175px"
                     />
-                    <p className={styles.hintText}>({getDurationLabel()})</p>
+                    <p className={styles.hintText}>({getDurationLabel(totalSeconds)})</p>
                   </FlexRowAlignCenter>
                 </SettingsItem>
                 <SettingsItem label="Video quality" htmlFor={RecordingHtmlIds.VIDEO_QUALITY_RADIO}>
@@ -452,7 +415,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
                       value={videoBitsPerSecond}
                       onChange={(e) => setVideoBitsPerSecond(e.target.value)}
                     />
-                    <p className={styles.hintText}>(~{getApproximateVideoFilesizeMb()})</p>
+                    <p className={styles.hintText}>(~{approximateFilesizeMb})</p>
                   </FlexRowAlignCenter>
                 </SettingsItem>
               </>

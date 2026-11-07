@@ -2,7 +2,7 @@ import { Card, InputNumber, Radio, type RadioChangeEvent, Space } from "antd";
 import React, { type ReactElement } from "react";
 
 import { FlexRowAlignCenter } from "../../shared/utils";
-import { HINT_CSS_COLOR, RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
+import { RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
 import { RangeMode, RecordingMode } from "./types";
 import { getFrameCount } from "./utils";
 
@@ -13,13 +13,13 @@ import styles from "./styles.module.css";
 type RecordingRangeControlProps = {
   totalFrames: number;
   rangeMode: RangeMode;
-  min: number;
-  max: number;
+  customMin: number;
+  customMax: number;
   frameIncrement: number;
   setFrameIncrement: (frameIncrement: number) => void;
   setRangeMode: (rangeMode: RangeMode) => void;
-  setMin: (min: number) => void;
-  setMax: (max: number) => void;
+  setCustomMax: (customMin: number) => void;
+  setCustomMin: (customMax: number) => void;
 
   recordingMode: RecordingMode;
   isRecording: boolean;
@@ -32,22 +32,44 @@ const enum RecordingRangeControlHtmlIds {
   FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "recording-modal-frame-custom-range-frame-increment-input",
 }
 
+/**
+ * Styled card that allows users to select a frame range (all, current, or
+ * custom) and shows additional controls for the custom frame range when
+ * selected.
+ */
 export default function RecordingRangeControl(props: RecordingRangeControlProps): ReactElement {
   const {
     totalFrames,
     rangeMode,
-    min: customMin,
-    max: customMax,
+    customMin,
+    customMax,
     frameIncrement,
     setFrameIncrement,
     setRangeMode,
-    setMin: setCustomMin,
-    setMax: setCustomMax,
+    setCustomMax,
+    setCustomMin,
     recordingMode,
     isRecording,
   } = props;
 
   const customRangeFrames = getFrameCount(customMin, customMax, frameIncrement);
+
+  const onSetMin: (value: number) => void = (value) => {
+    if (Number.isFinite(value)) {
+      value = Math.max(1, value); // Ensure 1-based indexing
+      setCustomMin(value);
+      setCustomMax(Math.max(value, customMax));
+    }
+  };
+
+  const onSetMax: (value: number) => void = (value) => {
+    if (Number.isFinite(value)) {
+      value = Math.min(value, totalFrames);
+      setCustomMax(value);
+      setCustomMin(Math.min(value, customMin));
+    }
+  };
+  console.log(customMin, customMax, totalFrames);
 
   return (
     <Card size="small" title="Frame range">
@@ -88,10 +110,10 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
                     style={{ width: 60 }}
                     aria-label="min frame"
                     controls={false}
-                    min={0}
-                    max={totalFrames - 1}
+                    min={1}
+                    max={totalFrames}
                     value={customMin}
-                    onChange={(value) => value && setCustomMin(value)}
+                    onChange={(value) => value !== null && onSetMin(value)}
                     disabled={isRecording}
                   />
                   <p>-</p>
@@ -100,12 +122,12 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
                     aria-label="max frame"
                     controls={false}
                     min={customMin}
-                    max={totalFrames - 1}
+                    max={totalFrames}
                     value={customMax}
-                    onChange={(value) => value && setCustomMax(value)}
+                    onChange={(value) => value !== null && onSetMax(value)}
                     disabled={isRecording}
                   />
-                  <p>of {totalFrames - 1}</p>
+                  <p>of {totalFrames}</p>
                 </FlexRowAlignCenter>
               </SettingsItem>
               <SettingsItem
@@ -118,11 +140,11 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
                     value={frameIncrement}
                     onChange={(value) => value && setFrameIncrement(value)}
                     min={1}
-                    max={totalFrames - 1}
+                    max={totalFrames}
                     disabled={isRecording}
                     style={{ width: 140 }}
                   />
-                  <p style={{ color: HINT_CSS_COLOR }}>({customRangeFrames} frames total)</p>
+                  <p className={styles.hintText}>({customRangeFrames} frames total)</p>
                 </FlexRowAlignCenter>
               </SettingsItem>
             </SettingsContainer>

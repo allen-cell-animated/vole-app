@@ -1,3 +1,2 @@
 export const RECORDING_CARD_SETTINGS_INDENT_PX = 5;
 export const RECORDING_SETTINGS_INDENT_PX = 18;
-export const HINT_CSS_COLOR = "var(--color-text-hint)";
