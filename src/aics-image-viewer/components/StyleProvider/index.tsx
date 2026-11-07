@@ -46,6 +46,7 @@ const theme = {
       header: palette.ltGrey,
       section: palette.white,
       body: palette.ltGrey,
+      hint: palette.medLtGreyAlt,
       error: palette.brightRed,
       success: palette.brightGreen,
       selectionBg: palette.medPurple,
@@ -186,6 +187,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-text-section: ${$theme.colors.text.section};
       --color-text-body: ${$theme.colors.text.body};
       --color-text-error: ${$theme.colors.text.error};
+      --color-text-hint: ${$theme.colors.text.hint};
 
       --color-text-selection-bg: ${$theme.colors.text.selectionBg};
       --color-text-selection-text: ${$theme.colors.text.selectionText};
@@ -459,6 +461,11 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
     &.ant-radio-button-wrapper-checked {
       color: var(--color-button-icon-active-text);
+    }
+
+    &:not(:disabled):active {
+      // Use same border color as buttons on click
+      border-color: var(--color-button-primary-active-outline);
     }
 
     &:hover,
