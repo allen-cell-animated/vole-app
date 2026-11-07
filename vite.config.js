@@ -38,7 +38,7 @@ const DEFAULT_CONFIG = {
   },
   define: {
     // Expose the version number directly as a global constant for the
-    // src/aics-image-viewer, which cannot use the `import.meta.env` syntax.
+    // packages/app/src, which cannot use the `import.meta.env` syntax.
     VITE_VOLEAPP_VERSION: process.env.VITE_VOLEAPP_VERSION,
   },
   plugins: [

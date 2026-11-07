@@ -9,6 +9,6 @@ module.exports = {
         require('postcss-simple-vars'),
         require('postcss-mixins'),
         require('postcss-extend-rule'),
-        require('postcss-url')({url:"copy", basePath:path.resolve(__dirname, "src/aics-image-viewer"), assetsPath:"../../../fonts"})
+        require('postcss-url')({url:"copy", basePath:path.resolve(__dirname, "packages/app/src"), assetsPath:"../../../fonts"})
     ]
 };

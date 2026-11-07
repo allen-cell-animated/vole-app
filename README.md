@@ -31,7 +31,7 @@ or as React component:
 <ImageViewerApp
   baseUrl="http://dev-aics-dtp-001.corp.alleninstitute.org/cellviewer-1-4-0/Cell-Viewer_Thumbnails/"
   cellPath="AICS-17/AICS-17_4187_23618_atlas.json"
-  // ... (also see src/aics-image-viewer/components/App/types.ts for full props specification) ...
+  // ... (also see packages/app/src/components/App/types.ts for full props specification) ...
 />
 ```
 
