@@ -1,7 +1,7 @@
 import React from "react";
 
-import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types.js";
-import type { MetadataRecord } from "../../src/aics-image-viewer/shared/types.js";
+import type { MultisceneUrls } from "../../packages/app/src/components/App/types.js";
+import type { MetadataRecord } from "../../packages/app/src/shared/types.js";
 import { encodeImageUrlProp } from "../utils/urls.js";
 
 type Message = MultisceneUrls & {

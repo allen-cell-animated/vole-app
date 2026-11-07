@@ -4,27 +4,24 @@ import React, { type ReactElement, useCallback, useEffect, useState } from "reac
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
+import { getDefaultViewerChannelSettings } from "../../packages/app/src/shared/constants";
+import { isSessionSnapshot, snapshotToViewerChannelSettings } from "../../packages/app/src/shared/utils/parseSnapshot";
 import {
   ImageViewerApp,
   parseViewerUrlParams,
   snapshotToViewerState,
   viewerMessageToParams,
-  writeMetadata,
+  writeM../../packages/app/src
   writeScenes,
 } from "../../src";
-import { getDefaultViewerChannelSettings } from "../../src/aics-image-viewer/shared/constants";
-import {
-  isSessionSnapshot,
-  snapshotToViewerChannelSettings,
-} from "../../src/aics-image-viewer/shared/utils/parseSnapshot";
-import { select, useViewerState } from "../../src/aics-image-viewer/state/store";
-import type { ViewerState } from "../../src/aics-image-viewer/state/types";
+import { select, useViewerState } from "../../packages/app/src/state/store";
+import type { ViewerState } from "../../packages/app/src/state/types";
 import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../constants";
-import type { AppDataProps } from "../types";
-import { encodeImageUrlProp } from "../utils/urls";
+import type { AppDataProps } from "../ty../../packages/app/src/state/store
+import { encodeImageUrlProp } from../../packages/app/src/state/types
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
-import { type ErrorAlertDescription, useErrorAlert } from "../../src/aics-image-viewer/components/ErrorAlert";
+import { type ErrorAlertDescription, useErrorAlert } from "../../packages/app/src/components/ErrorAlert";
 import Header, { HEADER_HEIGHT_PX } from "./Header";
 import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";

@@ -10,7 +10,7 @@ import {
 } from "../website/utils/gh_route_utils";
 import { VOLEAPP_BASENAME, VOLEAPP_BUILD_ENVIRONMENT, VOLEAPP_VERSION, VOLECORE_VERSION } from "./constants";
 
-import StyleProvider from "../src/aics-image-viewer/components/StyleProvider";
+import StyleProvider from "../packages/app/src/components/StyleProvider";
 import ErrorPage from "../website/components/ErrorPage";
 import LocalStorageReceiver from "./components/LocalStorageReceiver";
 
