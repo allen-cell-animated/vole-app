@@ -61,28 +61,29 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const exportModalRef = useRef<HTMLDivElement | null>(null);
 
+  const { open: isModalOpen, setIsOpen: _setIsModalOpen, view3d, volume, playControls } = props;
+
   // Store the original frame on close.
-  const { open: isModalOpen, setIsOpen: _setIsModalOpen } = props;
   const setIsModalOpen = useCallback(
     (open: boolean): void => {
       if (!open) {
-        props.view3d.setTime(props.volume, originalFrameRef.current);
+        view3d.setTime(volume, originalFrameRef.current);
       }
       _setIsModalOpen(open);
     },
-    [_setIsModalOpen, props.view3d, props.volume]
+    [_setIsModalOpen, view3d, volume]
   );
 
   // On open, save the current frame so it can be restored on modal close.
   useEffect(() => {
     if (isModalOpen) {
-      props.playControls.pause();
+      playControls.pause();
       setErrorText("");
       originalFrameRef.current = useViewerState.getState().time;
       // Disable auto-rotation
       changeViewerSetting("autorotate", false);
     }
-  }, [isModalOpen, changeViewerSetting, props.playControls]);
+  }, [isModalOpen, changeViewerSetting, playControls]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPlayingCloseAnimation, setIsPlayingCloseAnimation] = useState(false);
@@ -92,7 +93,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const [recordingMode, _setRecordingMode] = useState(RecordingMode.IMAGE_SEQUENCE);
 
   //// Frame range
-  const totalFrames = props.volume.imageInfo.times;
+  const totalFrames = volume.imageInfo.times;
   const [rangeMode, setRangeMode] = useState(RangeMode.ALL);
   // Uses 1-based indexing to match rest of Vol-E UI.
   const [customMin, setCustomMin] = useState(1);
@@ -114,9 +115,8 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
 
   //// Image prefix
   const defaultImagePrefix = useMemo(() => {
-    const volume = props.volume;
     return `${volume.imageInfo.imageInfo.name}-${exportDimensions[0]}x${exportDimensions[1]}`;
-  }, [exportDimensions, props.volume]);
+  }, [exportDimensions, volume]);
 
   const [imagePrefixInput, setImagePrefixInput] = useState(defaultImagePrefix);
   const [useDefaultImagePrefix, setUseDefaultImagePrefix] = useState(true);
@@ -145,10 +145,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   // Bound max and min by the total frames on volume changes. If this is the first time the
   // volume is loaded, this will also set the max bound.
   useEffect(() => {
-    const maxFrame = props.volume.imageInfo.times;
+    const maxFrame = volume.imageInfo.times;
     setCustomMin((min) => clamp(min, 0, maxFrame));
     setCustomMax((max) => clamp(max, 0, maxFrame));
-  }, [props.volume]);
+  }, [volume]);
 
   // Override setRecordingMode when switching to video; users should not choose current frame only
   // (since exporting the current frame only as a video doesn't really make sense.)
@@ -160,13 +160,13 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   };
 
   useEffect(() => {
-    const canvasHtmlElement = props.view3d.getCanvasDOMElement();
+    const canvasHtmlElement = view3d.getCanvasDOMElement();
     const observer = new ResizeObserver(() => {
       setViewportDimensions([canvasHtmlElement.clientWidth, canvasHtmlElement.clientHeight]);
     });
     observer.observe(canvasHtmlElement);
     return () => observer.disconnect();
-  }, [props.view3d]);
+  }, [view3d]);
 
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
@@ -176,17 +176,17 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     async (closeModal: boolean): Promise<void> => {
       recorderRef.current?.abort();
       // Reset the frame number (clean up!)
-      await props.view3d.setTime(props.volume, originalFrameRef.current);
+      await view3d.setTime(volume, originalFrameRef.current);
       setIsRecording(false);
       recorderRef.current = null;
       setIsPlayingCloseAnimation(false);
       setPercentComplete(0);
-      props.playControls.pause();
+      playControls.pause();
       if (closeModal) {
         setIsModalOpen(false);
       }
     },
-    [props.view3d, props.volume, props.playControls, setIsModalOpen]
+    [view3d, volume, playControls, setIsModalOpen]
   );
   const handleCancel = async (): Promise<void> => {
     if (!isRecording) {
@@ -203,7 +203,6 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   };
 
   const handleStartRecord = (): void => {
-    const volume = props.volume;
     if (!volume) {
       return;
     }
@@ -213,8 +212,8 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     // TODO: Set explicit scale level here, otherwise the playback will drop
     // to a lower resolution.
     // Set play axis to t for prefetching.
-    props.playControls.playingAxis = "t";
-    props.playControls?.onPlayingAxisChanged?.("t");
+    playControls.playingAxis = "t";
+    playControls?.onPlayingAxisChanged?.("t");
 
     /** Min and max are both inclusive */
     let min: number, max: number;
@@ -236,10 +235,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     }
 
     const setFrame = async (frame: number): Promise<void> => {
-      await props.view3d.setTime(volume, frame);
-      props.view3d.redraw(true);
+      await view3d.setTime(volume, frame);
+      view3d.redraw(true);
     };
-    const getCanvas = (): HTMLCanvasElement => props.view3d.getCanvasDOMElement();
+    const getCanvas = (): HTMLCanvasElement => view3d.getCanvasDOMElement();
     const options: Partial<RecordingOptions> = {
       min,
       max,
@@ -255,7 +254,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
         setIsPlayingCloseAnimation(true);
         setTimeout(() => stopRecording(true), 750);
         // Reset play axis
-        props.playControls.pause();
+        playControls.pause();
         recorderRef.current = null;
       },
       onRecordedFrame: (frame: number) => {
