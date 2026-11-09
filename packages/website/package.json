@@ -1,5 +1,6 @@
 {
   "name": "@aics/vole-website",
+  "private": true,
   "version": "3.7.0",
   "description": "website for Vol-E 3D volume viewer",
   "homepage": "https://github.com/allen-cell-animated/vole-app#readme",
