@@ -57,7 +57,7 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
 
   const onSetMin: (value: number) => void = (value) => {
     if (Number.isFinite(value)) {
-      value = Math.max(1, value); // Ensure 1-based indexing
+      value = Math.max(1, Math.min(Math.round(value), totalFrames));
       setCustomMin(value);
       setCustomMax(Math.max(value, customMax));
     }
@@ -65,7 +65,7 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
 
   const onSetMax: (value: number) => void = (value) => {
     if (Number.isFinite(value)) {
-      value = Math.min(value, totalFrames);
+      value = Math.max(1, Math.min(Math.round(value), totalFrames));
       setCustomMax(value);
       setCustomMin(Math.min(value, customMin));
     }

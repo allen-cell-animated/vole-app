@@ -272,7 +272,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     }
     const recorder = recorderRef.current;
     recorderRef.current.start().then(() => {
-      if (recorderRef.current === recorder && !isRecording) {
+      if (recorderRef.current === recorder && !recorder.isRecording()) {
         // Encountered an error during startup, which will be output to the
         // onError callback.
         stopRecording(false);
