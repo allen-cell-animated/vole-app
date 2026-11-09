@@ -32,7 +32,7 @@
     "test": "vitest run --passWithNoTests",
     "typeCheck": "tsc -p ../../tsconfig.json --noEmit",
     "generateTypes": "tsc -p ../../tsconfig.base.json --emitDeclarationOnly",
-    "transpileES": "cross-env TS_NODE_PROJECT=tsconfig.es.json BABEL_ENV=es VOLEAPP_VERSION=$npm_package_version babel src --out-dir es --extensions \".js,.jsx,.ts,.tsx,.svg\" --ignore src/**/*.test.*",
+    "transpileES": "cross-env TS_NODE_PROJECT=tsconfig.base.json BABEL_ENV=es VOLEAPP_VERSION=$npm_package_version babel src --out-dir es --extensions \".js,.jsx,.ts,.tsx,.svg\" --ignore src/**/*.test.*",
     "build": "npm-run-all generateTypes postcss transpileES",
     "postcss": "postcss src/**/*.css --base src --dir es",
     "publish-patch": "npm version patch | xargs -I {} sh -c 'git push origin {}'",
