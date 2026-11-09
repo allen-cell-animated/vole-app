@@ -12,6 +12,7 @@ type RecordingButtonProps = {
   view3d: View3d;
   volume: Volume | null;
   playControls: PlayControls;
+  setCanvasResolution: (resolution: [number, number] | null) => void;
 };
 
 export default function RecordingButton(props: RecordingButtonProps): ReactElement {
@@ -36,6 +37,7 @@ export default function RecordingButton(props: RecordingButtonProps): ReactEleme
           view3d={props.view3d}
           volume={props.volume}
           playControls={props.playControls}
+          setCanvasResolution={props.setCanvasResolution}
         />
       )}
     </div>
