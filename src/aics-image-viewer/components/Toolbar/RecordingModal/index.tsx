@@ -22,10 +22,6 @@ import RecordingRangeControl from "./RecordingRangeControl";
 import styles from "./styles.module.css";
 
 const enum RecordingHtmlIds {
-  // FRAME_RANGE_RADIO = "recording-modal-frame-range-radio",
-  // FRAME_RANGE_RADIO_LABEL_ID = "recording-modal-frame-range-radio-label",
-  // FRAME_CUSTOM_RANGE_INPUT = "recording-modal-frame-custom-range-input",
-  // FRAME_CUSTOM_RANGE_FRAME_INCREMENT_INPUT = "recording-modal-frame-custom-range-frame-increment-input",
   FRAME_DIMENSION_WIDTH_INPUT = "recording-modal-dimensions-width-input",
   FRAME_DIMENSION_HEIGHT_INPUT = "recording-modal-dimensions-height",
   SHOW_FEATURE_LEGEND_CHECKBOX = "recording-modal-show-feature-legend-checkbox",
