@@ -2,7 +2,6 @@ import { Card, InputNumber, Radio, type RadioChangeEvent, Space } from "antd";
 import React, { type ReactElement } from "react";
 
 import { FlexRowAlignCenter } from "../../shared/utils";
-import { RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
 import { RangeMode, RecordingMode } from "./types";
 import { getFrameCount } from "./utils";
 
@@ -23,6 +22,8 @@ type RecordingRangeControlProps = {
 
   recordingMode: RecordingMode;
   isRecording: boolean;
+
+  indentPx: number;
 };
 
 const enum RecordingRangeControlHtmlIds {
@@ -99,10 +100,7 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
 
           {rangeMode === RangeMode.CUSTOM ? (
             // Render the custom range input in the radio list if selected
-            <SettingsContainer
-              indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
-              className={styles.customRangeSettingsContainer}
-            >
+            <SettingsContainer indentPx={props.indentPx} className={styles.customRangeSettingsContainer}>
               <SettingsItem label="Range" htmlFor={RecordingRangeControlHtmlIds.FRAME_CUSTOM_RANGE_INPUT}>
                 <FlexRowAlignCenter className={styles.flexRowWrap}>
                   <InputNumber

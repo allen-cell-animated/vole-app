@@ -6,7 +6,6 @@ import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
 import { select, useViewerState } from "../../../state/store";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
-import { RECORDING_CARD_SETTINGS_INDENT_PX } from "./constants";
 import { RangeMode, RecordingMode } from "./types";
 import { getApproximateVideoFilesizeMb, getDurationLabel, getFrameCount } from "./utils";
 
@@ -40,6 +39,9 @@ export enum VideoBitrate {
   MEDIUM = 1e7, // 10 Mbps
   LOW = 5e6, // 5 Mbps
 }
+
+const RECORDING_CARD_SETTINGS_INDENT_PX = 5;
+const RECORDING_SETTINGS_INDENT_PX = 18;
 
 // MARK: Helpers
 
@@ -373,6 +375,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             setCustomMax={setCustomMax}
             recordingMode={recordingMode}
             isRecording={isRecording}
+            indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
           />
 
           <Card size="small" title={"Dimensions"}>
@@ -386,7 +389,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             </SettingsContainer>
           </Card>
 
-          <SettingsContainer indentPx={RECORDING_CARD_SETTINGS_INDENT_PX} gapPx={6}>
+          <SettingsContainer indentPx={RECORDING_SETTINGS_INDENT_PX} gapPx={6}>
             {/* Video settings */}
             {recordingMode === RecordingMode.VIDEO_MP4 && (
               <>
