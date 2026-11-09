@@ -243,6 +243,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     const options: Partial<RecordingOptions> = {
       min,
       max,
+      frameIncrement,
       fps: fps,
       minDigits: (totalFrames - 1).toString().length,
       bitrate: videoBitsPerSecond,

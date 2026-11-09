@@ -166,6 +166,9 @@ const theme = {
     // Include web + local font files
     family:
       "'Open Sans', 'Open Sans Local', Arial, sans-serif, apple-system, BlinkMacSystemFont, 'Segoe UI','PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
+    size: {
+      body: "14px",
+    },
   },
 };
 
@@ -265,6 +268,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-checkbox-bg: ${$theme.colors.checkbox.bg};
 
       --font-family: ${$theme.fonts.family};
+      --font-size-body: ${$theme.fonts.size.body};
     `;
   }}
 
@@ -298,7 +302,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
   p {
     color: var(--color-text-body);
-    font-size: 14px;
+    font-size: var(--font-size-body);
     font-weight: 400;
   }
 

@@ -26,6 +26,7 @@ const defaultLabelStyle: React.CSSProperties = {
   color: "var(--color-text-body)",
   lineHeight: 1.25,
   margin: "3px 0",
+  fontSize: "var(--font-size-body)",
 };
 
 /**
