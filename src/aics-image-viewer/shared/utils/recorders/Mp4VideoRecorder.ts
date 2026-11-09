@@ -88,6 +88,12 @@ export default class Mp4VideoRecorder extends CanvasRecorder {
     setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
+  public static isSupported(): boolean {
+    // Check if WebCodecs API exists. `mediabunny` uses the WebCodecs API
+    // internally.
+    return typeof VideoEncoder === "function";
+  }
+
   protected async cleanup(): Promise<void> {
     await super.cleanup();
     await this.output.cancel();

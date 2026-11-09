@@ -1,7 +1,8 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { Button, Card, Input, InputNumber, Modal, Radio } from "antd";
+import { Button, Card, Input, InputNumber, Modal, Radio, Tooltip } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { TOOLTIP_TRIGGER } from "../../../shared/constants";
 import { clamp } from "../../../shared/utils/math";
 import type PlayControls from "../../../shared/utils/playControls";
 import { select, useViewerState } from "../../../state/store";
@@ -187,14 +188,13 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     },
     [props.view3d, props.volume, props.playControls, setIsModalOpen]
   );
-  const handleCancel = (): void => {
+  const handleCancel = async (): Promise<void> => {
     if (!isRecording) {
       setIsModalOpen(false);
       return;
     }
-    setIsRecording(false);
     // TODO: Confirm with user before exiting
-    stopRecording(true);
+    await stopRecording(true);
   };
 
   const handleStop = async (): Promise<void> => {
@@ -243,7 +243,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     const options: Partial<RecordingOptions> = {
       min,
       max,
-      frameIncrement,
+      frameIncrement: rangeMode === RangeMode.CUSTOM ? frameIncrement : 1,
       fps: fps,
       minDigits: (totalFrames - 1).toString().length,
       bitrate: videoBitsPerSecond,
@@ -271,7 +271,14 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     } else {
       recorderRef.current = new ImageSequenceRecorder(setFrame, getCanvas, options);
     }
-    recorderRef.current.start();
+    const recorder = recorderRef.current;
+    recorderRef.current.start().then(() => {
+      if (recorderRef.current === recorder && !isRecording) {
+        // Encountered an error during startup, which will be output to the
+        // onError callback.
+        stopRecording(false);
+      }
+    });
   };
 
   //////////////////////////////////////////////////////////
@@ -354,13 +361,19 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
                 PNG image sequence
               </Radio>
               {/* Optional tooltip here in case WebCodecs API is not enabled. */}
-              <Radio
-                className={styles.exportModeRadio}
-                value={RecordingMode.VIDEO_MP4}
-                disabled={isRecording || !isWebCodecsEnabled}
+              <Tooltip
+                title={"Video recording isn't supported by this browser."}
+                open={isWebCodecsEnabled ? false : undefined}
+                trigger={TOOLTIP_TRIGGER}
               >
-                MP4 Video
-              </Radio>
+                <Radio
+                  className={styles.exportModeRadio}
+                  value={RecordingMode.VIDEO_MP4}
+                  disabled={isRecording || !isWebCodecsEnabled}
+                >
+                  MP4 Video
+                </Radio>
+              </Tooltip>
             </Radio.Group>
           </FlexColumnAlignCenter>
 

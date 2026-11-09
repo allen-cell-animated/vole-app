@@ -1,11 +1,11 @@
-.export-modal {
+.exportModal {
   & :global(.ant-card-head-title),
   & :global(.ant-modal-title) {
     text-align: left;
   }
 }
 
-.export-modal-content {
+.exportModalContent {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -19,13 +19,13 @@
 }
 
 /* Footer for the export modal; stacks the controls row above error text. */
-.modal-footer {
+.modalFooter {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.flex-row-wrap {
+.flexRowWrap {
   display: flex;
   flex-direction: row;
   gap: 6px;
@@ -33,7 +33,7 @@
 }
 
 /* Radio group for selecting the export mode (image sequence vs. video). */
-.export-mode-radio-group {
+.exportModeRadioGroup {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -47,7 +47,7 @@
     width: 50%;
   }
 
-  & .export-mode-radio {
+  & .exportModeRadio {
     & > span {
       /* Clip text when the radio is too narrow */
       overflow: hidden;
@@ -63,31 +63,27 @@
   }
 }
 
-.range-radio-group {
+.rangeRadioGroup {
   /* Overrides Ant's styling so contents can take up full width */
   width: 100%;
 
   & :global(.ant-space) {
     width: 100%;
   }
-
-  & .custom-range-settings-container {
-    list-style-position: inside;
-  }
 }
 
-.video-quality-radio-group {
+.videoQualityRadioGroup {
   display: flex;
   flex-direction: row;
 }
 
-.hint-text {
+.hintText {
   color: var(--color-text-hint);
   padding: 0;
   margin: 0;
 }
 
-.dimension-input {
+.dimensionInput {
   /* Add some padding around text so it isn't clipped */
   & :global(.ant-input-number-group-addon) {
     padding: 0 6px;
