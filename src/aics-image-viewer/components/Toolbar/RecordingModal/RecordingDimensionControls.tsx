@@ -16,6 +16,7 @@ type RecordingDimensionControlsProps = {
 
   dimensions: [number, number];
   setDimensions: (dimensions: [number, number]) => void;
+  exportDimensions: [number, number];
 };
 
 const enum RecordingDimensionControlsHtmlIds {
@@ -26,7 +27,7 @@ const enum RecordingDimensionControlsHtmlIds {
 }
 
 export default function RecordingDimensionControls(props: RecordingDimensionControlsProps): ReactElement {
-  const { view3d, isRecording, dimensions, setDimensions } = props;
+  const { view3d, isRecording, dimensions, setDimensions, exportDimensions } = props;
 
   const cardRef = useRef<HTMLDivElement | null>(null);
 
@@ -177,13 +178,12 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
             </FlexColumn>
           </FlexColumn>
         </SettingsItem>
-        {/* TODO: Show exported dimensions when the scalebar or legend is added. */}
-        {/* <SettingsItem label="Exported file dimensions" isNonFormComponent={true}>
+        <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
           <p
             className={styles.hintText}
             id={RecordingDimensionControlsHtmlIds.FINAL_DIMENSIONS_TEXT}
           >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
-        </SettingsItem> */}
+        </SettingsItem>
       </SettingsContainer>
     </Card>
   );

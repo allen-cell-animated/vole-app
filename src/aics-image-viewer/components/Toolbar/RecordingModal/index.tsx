@@ -22,10 +22,6 @@ import RecordingRangeControl from "./RecordingRangeControl";
 import styles from "./styles.module.css";
 
 const enum RecordingHtmlIds {
-  FRAME_DIMENSION_WIDTH_INPUT = "recording-modal-dimensions-width-input",
-  FRAME_DIMENSION_HEIGHT_INPUT = "recording-modal-dimensions-height",
-  SHOW_FEATURE_LEGEND_CHECKBOX = "recording-modal-show-feature-legend-checkbox",
-  SHOW_DATASET_NAME_CHECKBOX = "recording-modal-show-dataset-name-checkbox",
   FINAL_DIMENSIONS_TEXT = "recording-modal-final-dimensions-text",
   FPS_INPUT = "recording-modal-fps-input",
   VIDEO_QUALITY_RADIO = "recording-modal-video-quality-radio",
@@ -262,6 +258,10 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
       recorderRef.current = new ImageSequenceRecorder(setFrame, getCanvas, options);
     }
     const recorder = recorderRef.current;
+
+    setCanvasResolution(exportDimensions);
+    // Wrap in a timeout so the canvas resolution is applied before capturing
+    // frames.
     await setTimeout(() => {
       if (!recorderRef.current) {
         return;
@@ -269,7 +269,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
       recorderRef.current.start().then(() => {
         if (recorderRef.current === recorder && !isRecording) {
           // Encountered an error during startup, which will be output to the
-          // onError callback.
+          // onError callback and printed onscreen.
           stopRecording(false);
         }
       });
@@ -393,6 +393,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             settingsIndentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
             dimensions={dimensionsInput}
             setDimensions={setDimensionsInput}
+            exportDimensions={exportDimensions}
           />
 
           <SettingsContainer indentPx={RECORDING_SETTINGS_INDENT_PX} gapPx={6}>
