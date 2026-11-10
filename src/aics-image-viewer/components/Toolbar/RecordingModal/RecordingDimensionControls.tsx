@@ -34,7 +34,6 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
   const [useCurrentViewportSize, setUseCurrentViewportSize] = useState(true);
   const [aspectRatio, setAspectRatio] = useState<number | null>(1);
   const [viewportDimensions, setViewportDimensions] = useState([1, 1]);
-  const isViewportDimensions = viewportDimensions[0] === dimensions[0] && viewportDimensions[1] === dimensions[1];
 
   //// MARK: Listeners
 
@@ -69,8 +68,10 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
 
   const handleSetWidth = (width: number | null): void => {
     if (width !== null) {
+      width = Math.max(1, width);
       if (aspectRatio !== null) {
-        setDimensions([Math.round(width), Math.round(width / aspectRatio)]);
+        let height = Math.max(Math.round(width / aspectRatio), 1);
+        setDimensions([Math.round(width), height]);
       } else {
         setDimensions([Math.round(width), dimensions[1]]);
       }
@@ -80,11 +81,22 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
 
   const handleSetHeight = (height: number | null): void => {
     if (height !== null) {
+      height = Math.max(1, height);
       if (aspectRatio !== null) {
-        setDimensions([Math.round(height * aspectRatio), Math.round(height)]);
+        let width = Math.max(Math.round(height * aspectRatio), 1);
+        setDimensions([width, Math.round(height)]);
       } else {
         setDimensions([dimensions[0], Math.round(height)]);
       }
+    }
+    setUseCurrentViewportSize(false);
+  };
+
+  const onToggleAspectRatio = (): void => {
+    if (aspectRatio !== null) {
+      setAspectRatio(null);
+    } else {
+      setAspectRatio(dimensions[0] / dimensions[1]);
     }
     setUseCurrentViewportSize(false);
   };
@@ -106,7 +118,7 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
                   onSetDimensions(viewportDimensions as [number, number]);
                   setUseCurrentViewportSize(true);
                 }}
-                type={isViewportDimensions ? "primary" : "default"}
+                type={useCurrentViewportSize ? "primary" : "default"}
                 disabled={isRecording}
               >
                 Set to viewport
@@ -116,15 +128,15 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
                * can be set to JUST the image and image dimensions.
                */}
               {/* <Button
-                    disabled={imageDimensions === null}
-                    type={isImageDimensions ? "primary" : "default"}
-                    onClick={() => {
-                      imageDimensions && onSetDimensions([imageDimensions[0], imageDimensions[1]]);
-                      setUseCurrentViewportSize(false);
-                    }}
-                  >
-                    Set to image
-                  </Button> */}
+                disabled={imageDimensions === null}
+                type={isImageDimensions ? "primary" : "default"}
+                onClick={() => {
+                  imageDimensions && onSetDimensions([imageDimensions[0], imageDimensions[1]]);
+                  setUseCurrentViewportSize(false);
+                }}
+              >
+                Set to image
+              </Button> */}
             </FlexRow>
             <FlexColumn>
               <FlexRowAlignCenter className={styles.flexRowWrap} style={{ gap: "4px" }}>
@@ -168,7 +180,7 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
                     type={aspectRatio ? "primary" : "link"}
                     disabled={isRecording}
                     style={{ fontSize: "20px", padding: "6px" }}
-                    onClick={() => setAspectRatio(aspectRatio ? null : dimensions[0] / dimensions[1])}
+                    onClick={onToggleAspectRatio}
                   >
                     {aspectRatio ? <LockOutlined /> : <UnlockOutlined />}
                     <VisuallyHidden>{aspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}</VisuallyHidden>
