@@ -262,7 +262,11 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
         setPercentComplete(Math.floor(((frame - min) / (max - min)) * 100));
       },
       onError: (error: Error) => {
-        setErrorText(error.message);
+        console.error(error);
+        if (recorder.isRecording()) {
+          setErrorText(error.message);
+          stopRecording(false);
+        }
       },
     };
     if (recordingMode === RecordingMode.VIDEO_MP4) {
