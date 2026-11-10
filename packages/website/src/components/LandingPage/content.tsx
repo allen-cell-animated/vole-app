@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ViewMode } from "../../../packages/app/src";
+import { ViewMode } from "../../../../app/src";
 import type { AppDataProps, ProjectEntry } from "../../types";
 import { ExternalLink } from "./utils";
 

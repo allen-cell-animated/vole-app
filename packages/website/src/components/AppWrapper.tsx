@@ -4,8 +4,8 @@ import React, { type ReactElement, useCallback, useEffect, useState } from "reac
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
-import { getDefaultViewerChannelSettings } from "../../packages/app/src/shared/constants";
-import { isSessionSnapshot, snapshotToViewerChannelSettings } from "../../packages/app/src/shared/utils/parseSnapshot";
+import { getDefaultViewerChannelSettings } from "../../../app/src/shared/constants";
+import { isSessionSnapshot, snapshotToViewerChannelSettings } from "../../../app/src/shared/utils/parseSnapshot";
 import {
   ImageViewerApp,
   parseViewerUrlParams,
@@ -14,14 +14,14 @@ import {
   writeM../../packages/app/src
   writeScenes,
 } from "../../src";
-import { select, useViewerState } from "../../packages/app/src/state/store";
-import type { ViewerState } from "../../packages/app/src/state/types";
+import { select, useViewerState } from "../../../app/src/state/store";
+import type { ViewerState } from "../../../app/src/state/types";
 import { VOLEAPP_VERSION, VOLECORE_VERSION } from "../constants";
 import type { AppDataProps } from "../ty../../packages/app/src/state/store
 import { encodeImageUrlProp } from../../packages/app/src/state/types
 import { FlexRowAlignCenter } from "./LandingPage/utils";
 
-import { type ErrorAlertDescription, useErrorAlert } from "../../packages/app/src/components/ErrorAlert";
+import { type ErrorAlertDescription, useErrorAlert } from "../../../app/src/components/ErrorAlert";
 import Header, { HEADER_HEIGHT_PX } from "./Header";
 import HelpDropdown from "./HelpDropdown";
 import LoadModal from "./Modals/LoadModal";

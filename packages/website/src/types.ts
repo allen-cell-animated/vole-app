@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { AppProps } from "../packages/app/src/components/App/types";
+import type { AppProps } from "../../app/src/components/App/types";
 
 export type AppDataProps = Omit<AppProps, "appHeight" | "canvasMargin">;
 

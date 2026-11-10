@@ -1,4 +1,4 @@
-import type { MultisceneUrls } from "../../packages/app/src/components/App/types";
+import type { MultisceneUrls } from "../../../app/src/components/App/types";
 
 export function isValidUrl(url: string): boolean {
   return (

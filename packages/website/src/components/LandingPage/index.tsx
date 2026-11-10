@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 
-import { parseViewerUrlParams } from "../../../packages/app/src";
+import { parseViewerUrlParams } from "../../../../app/src";
 import { BannerVideo } from "../../assets/videos";
 import { GTM_ID, VOLEAPP_BUILD_ENVIRONMENT } from "../../constants";
 import type { AppDataProps } from "../../types";

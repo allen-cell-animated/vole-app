@@ -25,7 +25,7 @@ export default defineConfig([
     "public/",
     "es/",
     "type-declarations/",
-    "src/aics-image-viewer/shared/utils/webgl-debug.js",
+    "packages/app/src/shared/utils/webgl-debug.js",
     "postcss.*.js",
     "vite.config.js",
     "node_modules/",
@@ -109,9 +109,9 @@ export default defineConfig([
         {
           "zones": [
             // Do not allow library package to import from the web app
-            { "target": "./src", "from": "./website" },
+            { "target": "./packages/app", "from": "./packages/website" },
             // TODO: Only allow website to import from public exports of the library
-            // { "target": "./website", "from": "./src/aics-image-viewer", "except": ["./src"] },
+            // { "target": "./packages/website", "from": "./packages/app/src", "except": ["./packages/app/src"] },
           ],
         },
       ],
