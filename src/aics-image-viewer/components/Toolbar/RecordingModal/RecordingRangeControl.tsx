@@ -1,6 +1,7 @@
 import { Card, InputNumber, Radio, type RadioChangeEvent, Space } from "antd";
 import React, { type ReactElement } from "react";
 
+import { clamp } from "../../../shared/utils/math";
 import { FlexRowAlignCenter } from "../../shared/utils";
 import { RangeMode, RecordingMode } from "./types";
 import { getFrameCount } from "./utils";
@@ -57,7 +58,7 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
 
   const onSetMin: (value: number) => void = (value) => {
     if (Number.isFinite(value)) {
-      value = Math.max(1, Math.min(Math.round(value), totalFrames));
+      value = clamp(Math.round(value), 1, totalFrames);
       setCustomMin(value);
       setCustomMax(Math.max(value, customMax));
     }
@@ -65,12 +66,11 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
 
   const onSetMax: (value: number) => void = (value) => {
     if (Number.isFinite(value)) {
-      value = Math.max(1, Math.min(Math.round(value), totalFrames));
+      value = clamp(Math.round(value), 1, totalFrames);
       setCustomMax(value);
       setCustomMin(Math.min(value, customMin));
     }
   };
-  console.log(customMin, customMax, totalFrames);
 
   return (
     <Card size="small" title="Frame range">
@@ -86,9 +86,9 @@ export default function RecordingRangeControl(props: RecordingRangeControlProps)
       >
         <Space orientation="vertical" align="start">
           <Radio value={RangeMode.ALL}>
-            All frames{" "}
+            All frames
             {rangeMode === RangeMode.ALL && (
-              <span className={styles.hintText} style={{ marginLeft: "4px" }}>
+              <span className={styles.hintText} style={{ marginLeft: "6px" }}>
                 ({totalFrames} frames total)
               </span>
             )}
