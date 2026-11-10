@@ -43,8 +43,8 @@ export default function RecordingDimensionControls(props: RecordingDimensionCont
   useEffect(() => {
     const canvasHtmlElement = view3d.getCanvasDOMElement();
     const observer = new ResizeObserver(() => {
-      const width = canvasHtmlElement.clientWidth;
-      const height = canvasHtmlElement.clientHeight;
+      const width = canvasHtmlElement.width;
+      const height = canvasHtmlElement.height;
       setViewportDimensions([width, height]);
       if (useCurrentViewportSize && !isRecording) {
         setDimensions([width, height]);
