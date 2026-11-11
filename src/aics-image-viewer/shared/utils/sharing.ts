@@ -50,7 +50,7 @@ export function getShareLink(
     ...viewerSettings,
     scene: showAllScenes ? viewerSettings.scene : 0,
     channelSettings,
-    cameraState: cameraState,
+    cameraState,
   };
   // Disable FOV view, since there is no way to pass a parent image source via
   // URL.
