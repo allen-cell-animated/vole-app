@@ -17,8 +17,6 @@ export function isValidUrl(url: string): boolean {
 export function normalizeFilePathSlashes(input: string): string {
   // Replace all backslashes with forward slashes
   input = input.replaceAll("\\", "/");
-  // Replace double slashes with single
-  input = input.replaceAll("//", "/");
   if (input.startsWith("//")) {
     // If the string still starts with double slashes, remove the first.
     // (Usually `\\\\` for Windows paths)
