@@ -5,11 +5,11 @@ import React, { type ReactElement, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
 import { snapshotToViewerChannelSettings, snapshotToViewerState, viewerMessageToParams } from "../../../src";
+import { FlexRow } from "../../../src/aics-image-viewer/components/shared/utils";
 import { isSessionSnapshot } from "../../../src/aics-image-viewer/shared/utils/parseSnapshot";
 import type { AppDataProps } from "../../types";
 import { type RecentDataUrl, useRecentDataUrls } from "../../utils/react_utils";
 import { isValidUrl, normalizeFilePathSlashes } from "../../utils/urls";
-import { FlexRow } from "../LandingPage/utils";
 
 import MiddleTruncatedText from "../MiddleTruncatedText";
 
