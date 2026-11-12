@@ -1,5 +1,5 @@
 import type { View3d, Volume } from "@aics/vole-core";
-import { Button, Card, Input, InputNumber, Modal, Radio, Tooltip } from "antd";
+import { Button, Input, InputNumber, Modal, Radio, Tooltip } from "antd";
 import React, { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { TOOLTIP_TRIGGER } from "../../../shared/constants";
@@ -8,7 +8,7 @@ import type PlayControls from "../../../shared/utils/playControls";
 import { select, useViewerState } from "../../../state/store";
 import { FlexColumnAlignCenter, FlexRowAlignCenter } from "../../shared/utils";
 import { RangeMode, RecordingMode } from "./types";
-import { getApproximateVideoFilesizeMb, getDurationLabel, getFrameCount } from "./utils";
+import { getApproximateVideoFilesizeMb, getDurationLabel, getExportDimensions, getFrameCount } from "./utils";
 
 import type { RecordingOptions } from "../../../shared/utils/recorders/CanvasRecorder";
 import type CanvasRecorder from "../../../shared/utils/recorders/CanvasRecorder";
@@ -16,6 +16,7 @@ import ImageSequenceRecorder from "../../../shared/utils/recorders/ImageSequence
 import Mp4VideoRecorder from "../../../shared/utils/recorders/Mp4VideoRecorder";
 import { SettingsContainer, SettingsItem } from "../../shared/SettingsContainer";
 import StyledInlineProgress from "../../shared/StyledInlineProgress";
+import RecordingDimensionControls from "./RecordingDimensionControls";
 import RecordingRangeControl from "./RecordingRangeControl";
 
 import styles from "./styles.module.css";
@@ -33,6 +34,7 @@ type RecordingModalProps = {
   playControls: PlayControls;
   open: boolean;
   setIsOpen: (open: boolean) => void;
+  setCanvasResolution(resolution: [number, number] | null): void;
 };
 
 export enum VideoBitrate {
@@ -46,10 +48,6 @@ const RECORDING_SETTINGS_INDENT_PX = 18;
 
 // MARK: Helpers
 
-function getPixelRatio(): number {
-  return window.devicePixelRatio || 1;
-}
-
 export default function RecordingModal(props: RecordingModalProps): ReactElement {
   //////////////////////////////////////////////////////////
   //// MARK: State
@@ -61,7 +59,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const exportModalRef = useRef<HTMLDivElement | null>(null);
 
-  const { open: isModalOpen, setIsOpen: _setIsModalOpen, view3d, volume, playControls } = props;
+  const { open: isModalOpen, setIsOpen: _setIsModalOpen, view3d, volume, playControls, setCanvasResolution } = props;
 
   // Store the original frame on close.
   const setIsModalOpen = useCallback(
@@ -100,18 +98,11 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
   const [customMax, setCustomMax] = useState(totalFrames);
   const [frameIncrement, setFrameIncrement] = useState(1);
 
-  //// Resolution and dimensions
-  const pixelRatio = getPixelRatio();
-  const [viewportDimensions, setViewportDimensions] = useState([0, 0]);
-
-  /** Final size of the exported image/video frame, based on current options. */
-  const exportDimensions = useMemo((): [number, number] => {
-    const exportDimensions: [number, number] = [
-      Math.floor(viewportDimensions[0] * pixelRatio),
-      Math.floor(viewportDimensions[1] * pixelRatio),
-    ];
-    return exportDimensions;
-  }, [viewportDimensions, pixelRatio]);
+  const [dimensionsInput, setDimensionsInput] = useState<[number, number]>([1, 1]);
+  const exportDimensions = useMemo(
+    () => getExportDimensions(dimensionsInput, recordingMode === RecordingMode.VIDEO_MP4),
+    [dimensionsInput, recordingMode]
+  );
 
   //// Image prefix
   const defaultImagePrefix = useMemo(() => {
@@ -159,15 +150,6 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     }
   };
 
-  useEffect(() => {
-    const canvasHtmlElement = view3d.getCanvasDOMElement();
-    const observer = new ResizeObserver(() => {
-      setViewportDimensions([canvasHtmlElement.clientWidth, canvasHtmlElement.clientHeight]);
-    });
-    observer.observe(canvasHtmlElement);
-    return () => observer.disconnect();
-  }, [view3d]);
-
   //////////////////////////////////////////////////////////
   //// MARK: Callbacks
   //////////////////////////////////////////////////////////
@@ -182,11 +164,12 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
       setIsPlayingCloseAnimation(false);
       setPercentComplete(0);
       playControls.pause();
+      setCanvasResolution(null);
       if (closeModal) {
         setIsModalOpen(false);
       }
     },
-    [view3d, volume, playControls, setIsModalOpen]
+    [view3d, volume, playControls, setCanvasResolution, setIsModalOpen]
   );
   const handleCancel = async (): Promise<void> => {
     if (!isRecording) {
@@ -202,7 +185,7 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
     setErrorText("");
   };
 
-  const handleStartRecord = (): void => {
+  const handleStartRecord = async (): Promise<void> => {
     if (!volume) {
       return;
     }
@@ -275,13 +258,22 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
       recorderRef.current = new ImageSequenceRecorder(setFrame, getCanvas, options);
     }
     const recorder = recorderRef.current;
-    recorderRef.current.start().then(() => {
-      if (recorderRef.current === recorder && !recorder.isRecording()) {
-        // Encountered an error during startup, which will be output to the
-        // onError callback.
-        stopRecording(false);
+
+    setCanvasResolution(exportDimensions);
+    // Wrap in a timeout so the canvas resolution is applied before capturing
+    // frames.
+    await setTimeout(() => {
+      if (!recorderRef.current) {
+        return;
       }
-    });
+      recorderRef.current.start().then(() => {
+        if (recorderRef.current === recorder && !recorder.isRecording()) {
+          // Encountered an error during startup, which will be output to the
+          // onError callback and printed onscreen.
+          stopRecording(false);
+        }
+      });
+    }, 10);
   };
 
   //////////////////////////////////////////////////////////
@@ -395,16 +387,14 @@ export default function RecordingModal(props: RecordingModalProps): ReactElement
             indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
           />
 
-          <Card size="small" title={"Dimensions"}>
-            <SettingsContainer gapPx={6} indentPx={RECORDING_CARD_SETTINGS_INDENT_PX}>
-              <SettingsItem label="Exported file dimensions" isDisplayOnly={true}>
-                <p
-                  className={styles.hintText}
-                  id={RecordingHtmlIds.FINAL_DIMENSIONS_TEXT}
-                >{`${exportDimensions[0]} × ${exportDimensions[1]}`}</p>
-              </SettingsItem>
-            </SettingsContainer>
-          </Card>
+          <RecordingDimensionControls
+            view3d={props.view3d}
+            isRecording={isRecording}
+            settingsIndentPx={RECORDING_CARD_SETTINGS_INDENT_PX}
+            dimensions={dimensionsInput}
+            setDimensions={setDimensionsInput}
+            exportDimensions={exportDimensions}
+          />
 
           <SettingsContainer indentPx={RECORDING_SETTINGS_INDENT_PX} gapPx={6}>
             {/* Video settings */}

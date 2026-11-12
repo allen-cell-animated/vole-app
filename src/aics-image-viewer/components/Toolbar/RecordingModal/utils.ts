@@ -58,3 +58,14 @@ export const getApproximateVideoFilesizeMb = (
     return Math.max(1, Math.round(sizeInMb * 10)) / 10 + " MB";
   }
 };
+
+export function getExportDimensions(dimensionsInput: [number, number], enforceEvenDims: boolean): [number, number] {
+  let targetViewportDims;
+  if (enforceEvenDims) {
+    targetViewportDims = dimensionsInput.map((value) => Math.round(value / 2) * 2) as [number, number];
+  } else {
+    targetViewportDims = dimensionsInput.map((value) => Math.round(value)) as [number, number];
+  }
+
+  return targetViewportDims;
+}
