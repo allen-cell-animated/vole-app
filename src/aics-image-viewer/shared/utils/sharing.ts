@@ -1,0 +1,77 @@
+import type { CameraState } from "@aics/vole-core";
+
+import type { MultisceneUrls } from "../../components/App/types";
+import { type ChannelState, ImageType, type ViewerState } from "../../state/types";
+import { serializeViewerUrlParams } from "./parseUrl";
+
+const ENCODED_COLON_REGEX = /%3A/g;
+const ENCODED_COMMA_REGEX = /%2C/g;
+
+export function encodeSceneUrl(scene: string | string[]): string {
+  if (Array.isArray(scene)) {
+    return scene.map((url) => encodeURIComponent(url)).join(",");
+  } else {
+    return encodeURIComponent(scene);
+  }
+}
+
+/**
+ * Returns the current base URL of the viewer, including the protocol, host, and
+ * pathname.
+ */
+export function getDefaultBaseUrl(): string {
+  // location.pathname will include up to `.../viewer`
+  return location.protocol + "//" + location.host + location.pathname;
+}
+
+/**
+ * Returns a shareable URL for the viewer with the specified settings and scene data.
+ */
+export function getShareLink(
+  baseUrl: string,
+  viewerSettings: ViewerState,
+  channelSettings: ChannelState[],
+  options: Partial<{
+    imageUrl: MultisceneUrls | string | undefined;
+    parentImageUrl: MultisceneUrls | string | undefined;
+    cameraState: CameraState | undefined;
+    showAllScenes: boolean;
+  }> = {}
+): string {
+  const { imageUrl, parentImageUrl, cameraState, showAllScenes } = options;
+
+  let imageUrlToUse = imageUrl;
+  if (viewerSettings.imageType === ImageType.fullField && parentImageUrl !== undefined) {
+    imageUrlToUse = parentImageUrl;
+  }
+  const urls = imageUrlToUse !== undefined ? ((imageUrlToUse as MultisceneUrls).scenes ?? [imageUrlToUse]) : [];
+
+  const paramProps = {
+    ...viewerSettings,
+    scene: showAllScenes ? viewerSettings.scene : 0,
+    channelSettings,
+    cameraState,
+  };
+  // Disable FOV view, since there is no way to pass a parent image source via
+  // URL.
+  // TODO: Allow parent image source to be passed via URL?
+  paramProps.imageType = ImageType.segmentedCell;
+
+  const urlParams: string[] = [];
+
+  const serializedUrl = showAllScenes ? urls.map(encodeSceneUrl).join("+") : encodeSceneUrl(urls[viewerSettings.scene]);
+
+  urlParams.push(`url=${serializedUrl}`);
+
+  let serializedViewerParams = new URLSearchParams(serializeViewerUrlParams(paramProps) as Record<string, string>);
+  if (serializedViewerParams.size > 0) {
+    // Decode specifically colons and commas for better readability + decreased char count
+    let viewerParamString = serializedViewerParams
+      .toString()
+      .replace(ENCODED_COLON_REGEX, ":")
+      .replace(ENCODED_COMMA_REGEX, ",");
+    urlParams.push(viewerParamString);
+  }
+
+  return `${baseUrl}?${urlParams.join("&")}`;
+}

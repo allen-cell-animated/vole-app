@@ -15,7 +15,7 @@ export type ErrorAlertDescription = {
 
 const IssueLink: React.FC<React.PropsWithChildren<{ bug?: boolean }>> = ({ bug, children }) => (
   <a
-    href={`https://github.com/allen-cell-animated/vole-app/issues/new${bug ? "?template=bug_report.md" : "/choose"}`}
+    href={`https://github.com/AllenCell/vole-app/issues/new${bug ? "?template=bug_report.md" : "/choose"}`}
     target="_blank"
     rel="noreferrer noopener"
   >

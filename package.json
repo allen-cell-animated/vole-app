@@ -1,6 +1,6 @@
 {
   "name": "@aics/vole-app",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "web view of cell volume images",
   "main": "es/index.js",
   "module": "es/index.js",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/allen-cell-animated/vole-app.git"
+    "url": "git+https://github.com/AllenCell/vole-app.git"
   },
   "scripts": {
     "start": "vite dev",

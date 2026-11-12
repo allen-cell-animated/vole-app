@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20" height="20" version="1.1" viewBox="0 0 20 20"
+  xmlns="http://www.w3.org/2000/svg">
+  <title>Open in new tab</title>
+  <polygon id="a" transform="matrix(-.43828 -.43828 .43828 -.43828 16.494 17.531)" points="16 24 20.44 13.47 17 14.93 17 0 15 0 15 14.93 11.56 13.47" fill="currentColor" style="stroke-width:1.6134"/>
+  <path d="m0.375 0.56659c-0.2071 2.071e-5 -0.37498 0.1679-0.375 0.375v18.683c2.0707e-5 0.2071 0.1679 0.37498 0.375 0.375h18.683c0.2071-2.1e-5 0.37498-0.1679 0.375-0.375v-11.688h-0.75v11.312h-17.933v-17.933h11.125v-0.75z" style="stop-color:#000000;stroke-linecap:round;stroke-linejoin:round"/>
+</svg>
