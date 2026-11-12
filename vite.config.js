@@ -29,6 +29,11 @@ const DEFAULT_CONFIG = {
       },
     },
   },
+  css: {
+    modules: {
+      localsConvention: "camelCase",
+    },
+  },
   server: {
     port: 9020,
   },

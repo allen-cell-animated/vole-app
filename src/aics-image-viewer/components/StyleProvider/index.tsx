@@ -46,6 +46,7 @@ const theme = {
       header: palette.ltGrey,
       section: palette.white,
       body: palette.ltGrey,
+      hint: palette.medLtGreyAlt,
       error: palette.brightRed,
       success: palette.brightGreen,
       selectionBg: palette.medPurple,
@@ -165,6 +166,9 @@ const theme = {
     // Include web + local font files
     family:
       "'Open Sans', 'Open Sans Local', Arial, sans-serif, apple-system, BlinkMacSystemFont, 'Segoe UI','PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
+    size: {
+      body: "14px",
+    },
   },
 };
 
@@ -186,6 +190,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-text-section: ${$theme.colors.text.section};
       --color-text-body: ${$theme.colors.text.body};
       --color-text-error: ${$theme.colors.text.error};
+      --color-text-hint: ${$theme.colors.text.hint};
 
       --color-text-selection-bg: ${$theme.colors.text.selectionBg};
       --color-text-selection-text: ${$theme.colors.text.selectionText};
@@ -263,6 +268,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-checkbox-bg: ${$theme.colors.checkbox.bg};
 
       --font-family: ${$theme.fonts.family};
+      --font-size-body: ${$theme.fonts.size.body};
     `;
   }}
 
@@ -296,7 +302,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
   p {
     color: var(--color-text-body);
-    font-size: 14px;
+    font-size: var(--font-size-body);
     font-weight: 400;
   }
 
@@ -459,6 +465,11 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
     &.ant-radio-button-wrapper-checked {
       color: var(--color-button-icon-active-text);
+    }
+
+    &:not(:disabled):active {
+      // Use same border color as buttons on click
+      border-color: var(--color-button-primary-active-outline);
     }
 
     &:hover,
