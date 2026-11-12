@@ -5,10 +5,10 @@ import styled from "styled-components";
 // TODO: Make exports here for primary/tertiary buttons to abstract away
 // Ant button styling.
 
-type PrimaryButtonpProps = React.PropsWithChildren<{ ref: React.RefObject<HTMLButtonElement | null> }>;
+type PrimaryButtonProps = React.PropsWithChildren<{ ref: React.RefObject<HTMLButtonElement | null> }>;
 
 // Enforce the primary type for behavior on hover.
-const PrimaryButton: React.FC<PrimaryButtonpProps> = (props) => (
+const PrimaryButton: React.FC<PrimaryButtonProps> = (props) => (
   <Button {...props} type="primary">
     {props.children}
   </Button>
