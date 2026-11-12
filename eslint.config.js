@@ -4,7 +4,7 @@ import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import importXPlugin from "eslint-plugin-import-x";
 import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
-import tseslintPlugin from "typescript-eslint";
+import tseslint from "typescript-eslint";
 import globals from "globals";
 
 export default defineConfig([
@@ -32,11 +32,11 @@ export default defineConfig([
     plugins: {
       // In addition to `importXPlugin` above, we deliberately don't take the recommended config
       // for these plugins:
-      "@typescript-eslint": tseslintPlugin.plugin,
+      "@typescript-eslint": tseslint.plugin,
       "react-hooks": reactHooksPlugin,
     },
     languageOptions: {
-      parser: tseslintPlugin.parser,
+      parser: tseslint.parser,
       globals: {
         ...globals.browser,
         ...globals.node,
