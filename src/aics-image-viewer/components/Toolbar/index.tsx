@@ -1,13 +1,15 @@
-import type { VolumeDims } from "@aics/vole-core";
+import type { View3d, Volume, VolumeDims } from "@aics/vole-core";
 import { Button, Radio, Select, Tooltip } from "antd";
 import { debounce } from "lodash";
 import React from "react";
 
+import type PlayControls from "../../shared/utils/playControls";
 import { select, useViewerState } from "../../state/store";
 import { ImageType, RenderMode, ViewMode } from "../../state/types";
 
 import ViewerIcon from "../shared/ViewerIcon";
 import DownloadButton from "./DownloadButton";
+import RecordingButton from "./RecordingButton";
 import ViewModeRadioButtons from "./ViewModeRadioButtons";
 
 import "./styles.css";
@@ -20,6 +22,9 @@ type ToolbarProps = {
   canPathTrace: boolean;
   multiscaleDims?: VolumeDims[];
   multiscaleIndex?: number;
+  view3d: View3d;
+  volume: Volume | null;
+  playControls: PlayControls;
 
   resetCamera: () => void;
   downloadScreenshot: () => void;
@@ -290,6 +295,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               <ViewerIcon type="camera" />
             </Button>
           </Tooltip>
+          <RecordingButton view3d={props.view3d} volume={props.volume} playControls={props.playControls} />
         </div>
       </div>
       <div
