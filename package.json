@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/allen-cell-animated/vole-app.git"
+    "url": "git+https://github.com/AllenCell/vole-app.git"
   },
   "scripts": {
     "start": "vite dev",

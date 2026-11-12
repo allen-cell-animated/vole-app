@@ -82,24 +82,24 @@ describe("Route utils", () => {
     it("handles basic viewer links", () => {
       testUrlEncodingAndDecoding([
         [
-          "https://allen-cell-animated.github.io/vole-app/",
-          "https://allen-cell-animated.github.io/vole-app/?/",
-          "https://allen-cell-animated.github.io/vole-app/",
+          "https://allencell.github.io/vole-app/",
+          "https://allencell.github.io/vole-app/?/",
+          "https://allencell.github.io/vole-app/",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/viewer",
-          "https://allen-cell-animated.github.io/vole-app/?/viewer",
-          "https://allen-cell-animated.github.io/vole-app/viewer",
+          "https://allencell.github.io/vole-app/viewer",
+          "https://allencell.github.io/vole-app/?/viewer",
+          "https://allencell.github.io/vole-app/viewer",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/viewer?collection=https://example.com/collection.json",
-          "https://allen-cell-animated.github.io/vole-app/?/viewer&collection=https://example.com/collection.json",
-          "https://allen-cell-animated.github.io/vole-app/viewer?collection=https://example.com/collection.json",
+          "https://allencell.github.io/vole-app/viewer?collection=https://example.com/collection.json",
+          "https://allencell.github.io/vole-app/?/viewer&collection=https://example.com/collection.json",
+          "https://allencell.github.io/vole-app/viewer?collection=https://example.com/collection.json",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/viewer?collection=https://example.com/collection.json&dataset=example",
-          "https://allen-cell-animated.github.io/vole-app/?/viewer&collection=https://example.com/collection.json~and~dataset=example",
-          "https://allen-cell-animated.github.io/vole-app/viewer?collection=https://example.com/collection.json&dataset=example",
+          "https://allencell.github.io/vole-app/viewer?collection=https://example.com/collection.json&dataset=example",
+          "https://allencell.github.io/vole-app/?/viewer&collection=https://example.com/collection.json~and~dataset=example",
+          "https://allencell.github.io/vole-app/viewer?collection=https://example.com/collection.json&dataset=example",
         ],
       ]);
     });
@@ -107,14 +107,14 @@ describe("Route utils", () => {
     it("removes hash routing", () => {
       testUrlEncodingAndDecoding([
         [
-          "https://allen-cell-animated.github.io/vole-app/#/viewer",
-          "https://allen-cell-animated.github.io/vole-app/?/#/viewer",
-          "https://allen-cell-animated.github.io/vole-app/viewer",
+          "https://allencell.github.io/vole-app/#/viewer",
+          "https://allencell.github.io/vole-app/?/#/viewer",
+          "https://allencell.github.io/vole-app/viewer",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/main/#/viewer?url=https://example.com",
-          "https://allen-cell-animated.github.io/vole-app/?/#/viewer?url=https://example.com",
-          "https://allen-cell-animated.github.io/vole-app/viewer?url=https://example.com",
+          "https://allencell.github.io/vole-app/main/#/viewer?url=https://example.com",
+          "https://allencell.github.io/vole-app/?/#/viewer?url=https://example.com",
+          "https://allencell.github.io/vole-app/viewer?url=https://example.com",
         ],
       ]);
     });
@@ -122,14 +122,14 @@ describe("Route utils", () => {
     it("reroutes from main to root", () => {
       testUrlEncodingAndDecoding([
         [
-          "https://allen-cell-animated.github.io/vole-app/main/",
-          "https://allen-cell-animated.github.io/vole-app/?/",
-          "https://allen-cell-animated.github.io/vole-app/",
+          "https://allencell.github.io/vole-app/main/",
+          "https://allencell.github.io/vole-app/?/",
+          "https://allencell.github.io/vole-app/",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/main",
-          "https://allen-cell-animated.github.io/vole-app/?/",
-          "https://allen-cell-animated.github.io/vole-app/",
+          "https://allencell.github.io/vole-app/main",
+          "https://allencell.github.io/vole-app/?/",
+          "https://allencell.github.io/vole-app/",
         ],
       ]);
     });
@@ -137,24 +137,24 @@ describe("Route utils", () => {
     it("keeps pr-preview basepaths", () => {
       testUrlEncodingAndDecoding([
         [
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/?/",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/?/",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/viewer",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/?/viewer",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/viewer",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/viewer",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/?/viewer",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/viewer",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/#/viewer",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/?/#/viewer",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/viewer",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/#/viewer",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/?/#/viewer",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/viewer",
         ],
         [
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/#/viewer?collection=https://example.com/collection.json&dataset=example",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/?/#/viewer?collection=https://example.com/collection.json&dataset=example",
-          "https://allen-cell-animated.github.io/vole-app/pr-preview/pr-100/viewer?collection=https://example.com/collection.json&dataset=example",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/#/viewer?collection=https://example.com/collection.json&dataset=example",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/?/#/viewer?collection=https://example.com/collection.json&dataset=example",
+          "https://allencell.github.io/vole-app/pr-preview/pr-100/viewer?collection=https://example.com/collection.json&dataset=example",
         ],
       ]);
     });
