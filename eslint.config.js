@@ -10,11 +10,10 @@ import globals from "globals";
 export default defineConfig([
   js.configs.recommended,
   reactPlugin.configs.flat.recommended,
-  reactHooksPlugin.configs.flat.recommended,
-  // Default settings for import plugin flags imports for styled-components, React, and lodash.
-  // importXPlugin.flatConfigs.recommended,
   importXPlugin.flatConfigs.typescript,
-  tseslintPlugin.configs.recommended,
+  // Default settings for import plugin flags imports for styled-components,  React, and lodash.
+  // TODO work out how to re-enable defaults here, or whether we should actually want that.
+  // importXPlugin.flatConfigs.recommended,
   globalIgnores([
     "public/",
     "es/",
@@ -28,7 +27,16 @@ export default defineConfig([
     "imageviewer/",
   ]),
   {
+    // Flat config only lints .js/.mjs/.cjs by default; listing ts/tsx here opts them in.
+    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
+    plugins: {
+      // In addition to `importXPlugin` above, we deliberately don't take the recommended config
+      // for these plugins:
+      "@typescript-eslint": tseslintPlugin.plugin,
+      "react-hooks": reactHooksPlugin,
+    },
     languageOptions: {
+      parser: tseslintPlugin.parser,
       globals: {
         ...globals.browser,
         ...globals.node,
