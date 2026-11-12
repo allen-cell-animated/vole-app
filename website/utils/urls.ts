@@ -1,10 +1,14 @@
 import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 
+const ALLEN_PROGRAMS_PATH = "/allen/programs/allencell/data/proj0";
+const ALLEN_PROGRAMS_S3_PATH = "https://s3.us-west-2.amazonaws.com/production.files.allencell.org";
+
 export function isValidUrl(url: string): boolean {
   return (
     url.startsWith("http://") ||
     url.startsWith("https://") ||
-    url.startsWith("/allen/aics/") ||
+    url.startsWith("/allen/aics") ||
+    url.startsWith(ALLEN_PROGRAMS_PATH) ||
     url.startsWith("s3://") ||
     url.startsWith("gs://")
   );
@@ -21,6 +25,9 @@ export function normalizeFilePathSlashes(input: string): string {
   // (Usually `\\` for Windows paths)
   if (input.startsWith("//")) {
     input = input.slice(1);
+  }
+  if (input.startsWith(ALLEN_PROGRAMS_PATH)) {
+    input = input.replace(ALLEN_PROGRAMS_PATH, ALLEN_PROGRAMS_S3_PATH);
   }
   return input;
 }
