@@ -82,21 +82,24 @@ export default defineConfig([
       "@typescript-eslint/consistent-type-imports": "warn",
       "@typescript-eslint/no-import-type-side-effects": "warn",
       "radix": 1,
-      "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useImageEffect" }],
+      "react-hooks/rules-of-hooks": "error",
       // As of v5.30.2, `react-x` includes vendored copies of these two "original" `react-hooks`
       // rules. `react-hooks` is the official implementation, so we let it take care of these.
-      "react-x/rules-of-hooks": "off",
       "react-x/exhaustive-deps": "off",
+      "react-x/rules-of-hooks": "off",
       // These rules *reimplement* `react-hooks`'s newer React Compiler rules. Even if we were
       // checking these, we'd want to enable the `react-hooks` versions instead.
+      "react-x/error-boundaries": "off",
+      "react-x/purity": "off",
       "react-x/set-state-in-effect": "off",
       "react-x/set-state-in-render": "off",
-      "react-x/purity": "off",
-      "react-x/use-memo": "off",
       "react-x/static-components": "off",
-      "react-x/error-boundaries": "off",
       "react-x/unsupported-syntax": "off",
+      "react-x/use-memo": "off",
+      // These `react-x` rules are unique and turned off on purpose.
+      "react-x/no-array-index-key": "off",
+      "react-x/use-state": "off",
       "semi": 2,
       "space-before-blocks": [1, "always"],
       "import-x/no-restricted-paths": [
