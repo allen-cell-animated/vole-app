@@ -56,7 +56,7 @@ const defaultVisibleControls: ControlVisibilityFlags = {
   showBoundingBoxButton: true,
   metadataViewer: true,
   scaleLevelControls: true,
-  openInNewTabButton: true,
+  openInNewTabButton: false,
 };
 
 const defaultProps = {
