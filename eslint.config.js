@@ -45,7 +45,7 @@ export default defineConfig([
       // strictly adhere to React's rules, and added the compiler's static checks for adherence to
       // this plugin. For now, we're sticking to just the two original rules.
       // TODO enable this plugin's default rules, fix the errors, then add React Compiler.
-      // see https://react.dev/learn/react-compiler.
+      // see #614 and https://react.dev/learn/react-compiler.
       "react-hooks": reactHooksPlugin,
     },
     languageOptions: {
