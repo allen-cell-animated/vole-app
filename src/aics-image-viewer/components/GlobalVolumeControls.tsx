@@ -8,8 +8,6 @@ import SliderRow from "./shared/SliderRow";
 type GlobalVolumeControlKey = "maskAlpha" | "brightness" | "density" | "levels";
 
 export interface GlobalVolumeControlsProps {
-  imageName: string | undefined;
-  pixelSize: [number, number, number];
   visibleControls: {
     alphaMaskSlider: boolean;
     brightnessSlider: boolean;
@@ -33,7 +31,7 @@ const GlobalVolumeControls: React.FC<GlobalVolumeControlsProps> = (props) => {
     max: number,
     propKey: GlobalVolumeControlKey
   ): React.ReactNode => {
-    const onUpdate = (_strValues: string[], _handle: number, values: number[]): void => {
+    const onUpdate = (values: number[]): void => {
       const selectValue = values.length === 1 ? values[0] : (values as [number, number, number]);
       changeViewerSetting(propKey, selectValue);
     };

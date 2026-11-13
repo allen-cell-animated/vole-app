@@ -86,7 +86,7 @@
     }
 
     /* hover states of checkboxes */
-    .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+    .ant-checkbox-wrapper:hover .ant-checkbox {
       border-color: white;
     }
 
@@ -109,8 +109,20 @@
         font-size: 11px;
       }
 
-      .ant-collapse-content-box {
+      .ant-collapse-body {
         padding: 0;
+      }
+
+      .playback-settings {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        color: var(--color-controlpanel-text);
+
+        .target-framerate-input {
+          width: 72px;
+        }
       }
     }
 

@@ -1,0 +1,26 @@
+.reset-button {
+  & .ant-popover {
+    /* Override transparent white shadow, add default box shadow */
+    --ant-drop-shadow-popover: rgba(0, 0, 0, 0.016);
+    box-shadow: var(--ant-box-shadow-secondary);
+
+    /* Add light border */
+    & .ant-popover-container {
+      border: 1px solid var(--color-modal-border);
+    }
+
+    & .ant-popover-arrow {
+      z-index: 1;
+      bottom: 1.1px;
+      filter: drop-shadow(var(--color-modal-border) 0 -1px 0);
+    }
+
+    /* Increase size + change color of icon */
+    & .ant-popconfirm-message-icon > span > svg {
+      width: 16px;
+      height: 16px;
+      margin-top: 5px;
+      color: var(--color-text-error);
+    }
+  }
+}

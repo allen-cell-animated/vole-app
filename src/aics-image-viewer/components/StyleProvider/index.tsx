@@ -19,6 +19,7 @@ const palette = {
   veryDarkPurple: "#5f369f",
   veryLtPurple: "#e7e4f2",
   brightRed: "#dc4446",
+  ltRed: "#ff6669",
   brightYellow: "#e39b0d",
   darkGreen: "#294c2f",
   brightGreen: "#0ccf4d",
@@ -86,6 +87,10 @@ const theme = {
         activeOutline: palette.purpleGrey,
         disabledOutline: palette.medGrey,
         disabledText: palette.medGrey,
+      },
+      error: {
+        hoverBg: palette.ltRed,
+        text: palette.ltRed,
       },
     },
     checkbox: {
@@ -210,6 +215,9 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       --color-button-icon-active-text: ${$theme.colors.button.tertiary.activeText};
       --color-button-icon-active-bg: ${$theme.colors.button.tertiary.activeBg};
       --color-button-icon-active-outline: ${$theme.colors.button.tertiary.activeOutline};
+
+      --color-button-error-text: ${$theme.colors.button.error.text};
+      --color-button-error-hover-bg: ${$theme.colors.button.error.hoverBg};
 
       --color-toolbar-button-bg: ${$theme.colors.toolbar.buttonBg};
 
@@ -339,7 +347,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
    * Tertiary style buttons. Grey outline by default, turns to light
    * purple outline on hover.
    */
-  .ant-btn-default:not(.ant-btn-icon-only) {
+  .ant-btn-default:not(.ant-btn-icon-only):not(.ant-btn-dangerous) {
     background-color: var(--color-button-tertiary-bg);
     color: var(--color-button-tertiary-text);
     border-color: var(--color-button-tertiary-outline);
@@ -350,6 +358,20 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
       border-color: var(--color-button-tertiary-hover-outline);
       color: var(--color-button-tertiary-hover-text);
     }
+  }
+
+  .ant-btn-default.ant-btn-dangerous {
+    box-shadow: none;
+
+    /* Lighten danger button text color for accessibility */
+    &:not(:hover) {
+      color: var(--color-button-error-text);
+    }
+  }
+
+  .ant-btn-primary.ant-btn-dangerous:hover {
+    background-color: var(--color-button-error-hover-bg);
+    border: 1px solid var(--color-button-error-hover-bg);
   }
 
   // Overrides for checkbox styling
@@ -364,14 +386,10 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     background-color: var(--color-checkbox-bg);
   }
 
-  .ant-checkbox-inner {
-    background-color: transparent !important;
-  }
-
   // Add outlines to modals and dropdowns
   .ant-select-dropdown,
   .ant-dropdown-menu,
-  .ant-modal-content {
+  .ant-modal-container {
     border: 1px solid var(--color-modal-border);
   }
 
@@ -394,7 +412,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
   }
 
   .ant-select {
-    &.ant-select-disabled .ant-select-selector {
+    &.ant-select-disabled .ant-select-content {
       border-color: var(--color-button-icon-disabled-outline);
     }
 
@@ -406,12 +424,17 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
     &:hover:not(.ant-select-disabled),
     &:focus-visible:not(.ant-select-disabled),
     &.ant-select.ant-select-open {
-      .ant-select-selector,
-      .ant-select-arrow,
+      .ant-select-content,
+      .ant-select-suffix,
       .ant-select-selection-item {
         color: var(--color-button-tertiary-hover-text);
         outline-color: var(--color-button-tertiary-hover-outline);
+        opacity: 1;
       }
+    }
+
+    .ant-select-content {
+      transition: all 0.3s;
     }
   }
 
@@ -426,10 +449,6 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 
     &.ant-radio-button-wrapper-checked {
       color: var(--color-button-icon-active-text);
-
-      &:not(:first-child) {
-        box-shadow: -1px 0px 0px 0px var(--color-button-tertiary-active-outline);
-      }
     }
 
     &:hover,
@@ -447,7 +466,7 @@ const CssProvider = styled.div<{ $theme: AppTheme }>`
 `;
 
 const GlobalTooltipStyle = createGlobalStyle`
-  .ant-tooltip-inner {
+  .ant-tooltip-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -496,6 +515,8 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
           controlItemBgHover: theme.colors.menu.hoverBg,
           controlItemBgActiveHover: theme.colors.menu.hoverBg,
           controlItemBgActive: theme.colors.menu.selectedBg,
+          boxShadowSecondary:
+            "0 6px 16px 0 rgba(0, 0, 0, 0.30), 0 3px 6px -4px rgba(0, 0, 0, 0.40), 0 9px 28px 8px rgba(0, 0, 0, 0.20)",
           borderRadius: 4,
         },
         components: {
@@ -505,10 +526,11 @@ export default function StyleProvider(props: PropsWithChildren<{}>): ReactElemen
             defaultHoverBg: theme.colors.button.secondary.bg,
             defaultActiveBg: theme.colors.button.secondary.bg,
             defaultActiveBorderColor: theme.colors.button.primary.activeOutline,
+            onlyIconSize: 16,
           },
           Checkbox: {
             borderRadiusSM: 2,
-            colorBgContainer: theme.colors.checkbox.bg,
+            colorBgContainer: "transparent",
             colorPrimary: theme.colors.checkbox.bg,
             colorPrimaryHover: theme.colors.checkbox.hoverBg,
             colorText: theme.colors.checkbox.text,

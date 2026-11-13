@@ -18,7 +18,7 @@ export default function HelpDropdown(): ReactElement {
     {
       key: "github",
       label: (
-        <Link to="https://github.com/allen-cell-animated/vole-app" target="_blank" rel="noreferrer noopener">
+        <Link to="https://github.com/AllenCell/vole-app" target="_blank" rel="noreferrer noopener">
           Visit GitHub repository
         </Link>
       ),
@@ -26,11 +26,7 @@ export default function HelpDropdown(): ReactElement {
     {
       key: "github-issue",
       label: (
-        <Link
-          to="https://github.com/allen-cell-animated/vole-app/issues/new/choose"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
+        <Link to="https://github.com/AllenCell/vole-app/issues/new/choose" target="_blank" rel="noreferrer noopener">
           Report issue via GitHub
         </Link>
       ),

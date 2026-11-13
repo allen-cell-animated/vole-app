@@ -10,6 +10,21 @@ export function isValidUrl(url: string): boolean {
   );
 }
 
+/**
+ * Normalizes a file path to use only single forward slashes. Replaces
+ * backwards slashes with forward slashes, and removes double slashes.
+ */
+export function normalizeFilePathSlashes(input: string): string {
+  // Replace all backslashes with forward slashes
+  input = input.replaceAll("\\", "/");
+  // If the string still starts with double slashes, remove the first.
+  // (Usually `\\` for Windows paths)
+  if (input.startsWith("//")) {
+    input = input.slice(1);
+  }
+  return input;
+}
+
 function isURIComponentEncoded(uriComponent: string): boolean {
   try {
     const decoded = decodeURIComponent(uriComponent);

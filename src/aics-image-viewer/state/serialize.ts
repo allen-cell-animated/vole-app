@@ -153,6 +153,7 @@ export function viewerStateToSnapshot(state: Partial<ViewerState>, removeDefault
     [ViewerStateSnapshotKeys.Autorotate]: s.autorotate,
     [ViewerStateSnapshotKeys.Brightness]: s.brightness,
     [ViewerStateSnapshotKeys.Density]: s.density,
+    [ViewerStateSnapshotKeys.TargetFramerate]: s.targetFramerate,
     [ViewerStateSnapshotKeys.Interpolation]: s.interpolationEnabled,
     [ViewerStateSnapshotKeys.Region]: s.region && xyzToArray(s.region),
     [ViewerStateSnapshotKeys.Slice]: s.slice && xyzToArray(s.slice),
@@ -233,6 +234,10 @@ const stringify = <T extends Record<string, unknown>>(
  * ```
  */
 function formatFloat(value: number, maxPrecision: number = 7): string {
+  if (typeof value !== "number") {
+    console.warn(`Expected parsed value to have type number; received ${typeof value}.`);
+    value = Number(value);
+  }
   if (Number.isInteger(value)) {
     return value.toString();
   }
@@ -278,6 +283,7 @@ export const stringifyViewerStateSnapshot = (snapshot: ViewerStateSnapshot): Vie
     [ViewerStateSnapshotKeys.Autorotate]: stringifyBoolean,
     [ViewerStateSnapshotKeys.Brightness]: formatFloat,
     [ViewerStateSnapshotKeys.Density]: formatFloat,
+    [ViewerStateSnapshotKeys.TargetFramerate]: formatFloat,
     [ViewerStateSnapshotKeys.Interpolation]: stringifyBoolean,
     [ViewerStateSnapshotKeys.Region]: (value) => value.map((axis) => stringifyNumberList(axis)).join(","),
     [ViewerStateSnapshotKeys.Slice]: (value) => stringifyNumberList(value, ","),

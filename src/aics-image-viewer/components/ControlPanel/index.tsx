@@ -1,5 +1,4 @@
-import { Button, Checkbox, Collapse, type CollapseProps, Dropdown, Flex, type MenuProps, Tooltip } from "antd";
-import type { MenuInfo } from "rc-menu/lib/interface";
+import { Button, Checkbox, Dropdown, type MenuProps, Tooltip } from "antd";
 import React from "react";
 
 import { PRESET_COLOR_MAP } from "../../shared/constants";
@@ -7,16 +6,18 @@ import type { MetadataRecord } from "../../shared/types";
 import { select, useViewerState } from "../../state/store";
 
 import ChannelsWidget, { type ChannelsWidgetProps } from "../ChannelsWidget";
-import CustomizeWidget, { type CustomizeWidgetProps } from "../CustomizeWidget";
-import GlobalVolumeControls, { type GlobalVolumeControlsProps } from "../GlobalVolumeControls";
+import type { CustomizeWidgetProps } from "../CustomizeWidget";
+import type { GlobalVolumeControlsProps } from "../GlobalVolumeControls";
 import MetadataViewer from "../MetadataViewer";
 import ViewerIcon from "../shared/ViewerIcon";
+import AdvancedSettings from "./AdvancedSettings";
 import CopySettingsButton from "./CopySettingsButton";
 
 import "./styles.css";
 
 interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsProps, CustomizeWidgetProps {
   hasImage: boolean;
+  imageName: string | undefined;
   visibleControls: GlobalVolumeControlsProps["visibleControls"] &
     CustomizeWidgetProps["visibleControls"] & {
       colorPresetsDropdown: boolean;
@@ -25,6 +26,7 @@ interface ControlPanelProps extends ChannelsWidgetProps, GlobalVolumeControlsPro
   metadata: MetadataRecord;
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
+  resetToInitialViewerState: () => void;
 }
 
 const enum ControlTab {
@@ -55,17 +57,14 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
 
   const { viewerChannelSettings, visibleControls, hasImage } = props;
 
-  // TODO key is a number, but MenuInfo assumes keys will always be strings
-  //   if future versions of antd make this type more permissive, remove ugly double-cast
-  const makeTurnOnPresetFn = ({ key }: MenuInfo): void =>
-    props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors);
-
   const renderChannelSettingsHeader = (): React.ReactNode => {
     const dropDownMenuProps: MenuProps = {
       items: PRESET_COLOR_MAP.map((preset, index) => {
         return { key: index, label: preset.name };
       }),
-      onClick: makeTurnOnPresetFn,
+      // TODO key is a number, but MenuInfo assumes keys will always be strings
+      //   if future versions of antd make this type more permissive, remove ugly double-cast
+      onClick: ({ key }): void => props.onApplyColorPresets(PRESET_COLOR_MAP[key as unknown as number].colors),
     };
 
     const singleChannelTitle = singleChannelMode ? (
@@ -115,48 +114,6 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
       </Button>
     </Tooltip>
   );
-
-  // TODO this can just be a component...?
-  const renderAdvancedSettings = (): React.ReactNode => {
-    const items: CollapseProps["items"] = [
-      {
-        key: 0,
-        label: "Rendering adjustments",
-        children: (
-          <GlobalVolumeControls
-            imageName={props.imageName}
-            pixelSize={props.pixelSize}
-            visibleControls={visibleControls}
-          />
-        ),
-      },
-    ];
-    const showCustomize = visibleControls.backgroundColorPicker || visibleControls.boundingBoxColorPicker;
-
-    if (showCustomize) {
-      items.push({
-        key: 1,
-        label: "Customize",
-        children: <CustomizeWidget visibleControls={props.visibleControls} />,
-      });
-    }
-
-    return (
-      <Flex gap={10} vertical>
-        <Collapse bordered={false} defaultActiveKey={showCustomize ? [0, 1] : 0} items={items} />
-        <div style={{ margin: "0 10px", width: "fit-content" }}>
-          <Tooltip
-            trigger={["hover", "focus"]}
-            placement="right"
-            title="Clears ALL rendering settings and channel configuration to the default viewer state.
-            This will replace any edits to channel settings, color presets, and rendering adjustments."
-          >
-            <Button onClick={resetToDefaultViewerState}>Clear all settings</Button>
-          </Tooltip>
-        </div>
-      </Flex>
-    );
-  };
 
   const collapseLabel = props.collapsed ? "Show panel" : "Hide panel";
 
@@ -208,7 +165,13 @@ function ControlPanel(props: ControlPanelProps): React.ReactElement {
                 controlPanelCollapsed={props.collapsed}
               />
             )}
-            {tab === ControlTab.Advanced && renderAdvancedSettings()}
+            {tab === ControlTab.Advanced && (
+              <AdvancedSettings
+                visibleControls={visibleControls}
+                resetToDefaultViewerState={resetToDefaultViewerState}
+                resetToInitialViewerState={props.resetToInitialViewerState}
+              />
+            )}
             {tab === ControlTab.Metadata && <MetadataViewer metadata={props.metadata} />}
           </div>
         )}

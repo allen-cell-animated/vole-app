@@ -52,7 +52,7 @@ export default function ErrorPage(props: ErrorPageProps): ReactElement {
           <p>
             If the issue persists after a refresh,{" "}
             <Link
-              to="https://github.com/allen-cell-animated/vole-app/issues/new?template=bug_report.md"
+              to="https://github.com/AllenCell/vole-app/issues/new?template=bug_report.md"
               rel="noopener noreferrer"
               target="_blank"
             >

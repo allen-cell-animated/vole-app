@@ -108,14 +108,13 @@
   /* Icon-only buttons */
 
   .btn-borderless,
-  .ant-select.ant-select-outlined .ant-select-selector,
+  .ant-select.ant-select-outlined,
   .ant-radio-button-wrapper:not(.ant-radio-button-wrapper-checked) {
     background-color: var(--color-toolbar-button-bg);
   }
 
   .ant-btn-icon-only {
-    padding-bottom: 4px;
-    padding-left: 1px;
+    padding: 4px 0;
   }
 
   .btn-borderless {
@@ -143,16 +142,16 @@
   /* Dropdown */
 
   .ant-select.select-resolution {
-    > .ant-select-selector {
+    > .ant-select-content {
       text-align: left;
     }
 
-    .ant-select-selection-item {
+    .ant-select-content {
       color: var(--color-button-tertiary-text);
     }
 
     &.ant-select-disabled {
-      .ant-select-arrow {
+      .ant-select-suffix {
         display: none;
       }
     }
