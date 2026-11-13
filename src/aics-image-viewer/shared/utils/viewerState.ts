@@ -47,6 +47,7 @@ export function initializeOneChannelSetting(
     colorizeAlpha: initSettings.colorizeAlpha ?? defaultChannelState.colorizeAlpha,
     isovalue: initSettings.isovalue ?? defaultChannelState.isovalue,
     opacity: initSettings.surfaceOpacity ?? defaultChannelState.opacity,
+    volumeOpacity: initSettings.volumeOpacity ?? defaultChannelState.volumeOpacity,
     color: colorHexToArray(initSettings.color ?? "") ?? defaultColor,
     useControlPoints: initSettings.controlPointsEnabled ?? defaultChannelState.useControlPoints,
     keepIntensityRange: initSettings.keepIntensityRange ?? defaultChannelState.keepIntensityRange,

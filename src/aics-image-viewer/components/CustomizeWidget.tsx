@@ -26,6 +26,7 @@ const CustomizeWidget: React.FC<CustomizeWidgetProps> = (props) => {
           onColorChange={(color) => changeViewerSetting("backgroundColor", colorObjectToArray(color))}
           title="Background color"
           verticalMargin={16}
+          disableAlpha={true}
         />
       )}
       {props.visibleControls.boundingBoxColorPicker && (
@@ -39,6 +40,7 @@ const CustomizeWidget: React.FC<CustomizeWidgetProps> = (props) => {
             </>
           }
           verticalMargin={16}
+          disableAlpha={true}
         />
       )}
     </>
