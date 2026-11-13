@@ -35,7 +35,7 @@ type ViewerWrapperProps = {
 };
 
 const ViewerWrapper: React.FC<ViewerWrapperProps> = (props) => {
-  const view3dviewerRef = React.createRef<HTMLDivElement>();
+  const view3dviewerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     view3dviewerRef.current!.appendChild(props.view3d.getDOMElement());
