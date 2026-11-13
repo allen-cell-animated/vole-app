@@ -84,8 +84,8 @@ export default defineConfig([
       "radix": 1,
       "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useImageEffect" }],
       "react-hooks/rules-of-hooks": "error",
-      // As of v5.30.2, `react-x` includes vendored copies of these two "original" `react-hooks`
-      // rules. `react-hooks` is the official implementation, so we let it take care of these.
+      // As of v5.30.2, `react-x` includes vendored copies of the two "original" `react-hooks`
+      // rules above. `react-hooks` is the official implementation, so we defer to it.
       "react-x/exhaustive-deps": "off",
       "react-x/rules-of-hooks": "off",
       // These rules *reimplement* `react-hooks`'s newer React Compiler rules. Even if we were
@@ -97,7 +97,9 @@ export default defineConfig([
       "react-x/static-components": "off",
       "react-x/unsupported-syntax": "off",
       "react-x/use-memo": "off",
-      // These `react-x` rules are unique and turned off on purpose.
+      // These `react-x` rules are unique and turned off on purpose. We currently have a number of
+      // violations of these rules that are not critical to fix, though fixing them and enabling
+      // these rules would likely be a genuine quality improvement.
       "react-x/no-array-index-key": "off",
       "react-x/use-state": "off",
       "semi": 2,
