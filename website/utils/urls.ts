@@ -1,10 +1,13 @@
 import type { MultisceneUrls } from "../../src/aics-image-viewer/components/App/types";
 
+const ALLEN_PROGRAMS_PATH = "/allen/programs/allencell/data/proj0";
+
 export function isValidUrl(url: string): boolean {
   return (
     url.startsWith("http://") ||
     url.startsWith("https://") ||
-    url.startsWith("/allen/aics/") ||
+    url.startsWith("/allen/aics") ||
+    url.startsWith(ALLEN_PROGRAMS_PATH) ||
     url.startsWith("s3://") ||
     url.startsWith("gs://")
   );

@@ -169,7 +169,7 @@ export default function LoadModal({ onLoad }: LoadModalProps): ReactElement {
             value={urlInput}
             onChange={(value) => setUrlInput(value)}
             onSelect={setUrlInput}
-            style={{ width: "100%" }}
+            style={{ width: "calc(100% - 68px)" }}
             allowClear={true}
             options={autoCompleteOptions}
             getPopupContainer={getAutoCompletePopupContainer}
